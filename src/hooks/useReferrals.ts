@@ -71,6 +71,21 @@ export function useReferrals() {
         notes: input.notes,
       }).select().single();
       if (error) throw error;
+      
+      // Send notification email
+      try {
+        await supabase.functions.invoke('send-notification', {
+          body: {
+            type: 'referral',
+            from_user_id: user.id,
+            to_user_id: input.to_user_id,
+            contact_name: input.contact_name,
+          },
+        });
+      } catch (e) {
+        console.error('Failed to send notification:', e);
+      }
+      
       return data;
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['referrals'] }); toast({ title: 'Sucesso!', description: 'Indicação enviada' }); },

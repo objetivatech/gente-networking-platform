@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   X,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +28,7 @@ const menuItems = [
   { icon: Home, label: 'Início', path: '/' },
   { icon: User, label: 'Meu Perfil', path: '/perfil' },
   { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas' },
+  { icon: Trophy, label: 'Ranking', path: '/ranking' },
   { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao' },
   { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos' },
   { icon: DollarSign, label: 'Negócios', path: '/negocios' },

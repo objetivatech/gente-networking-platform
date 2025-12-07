@@ -17,6 +17,7 @@ import Encontros from "./pages/Encontros";
 import Estatisticas from "./pages/Estatisticas";
 import Admin from "./pages/Admin";
 import Conteudos from "./pages/Conteudos";
+import Ranking from "./pages/Ranking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
               <Route path="/equipes" element={<Equipes />} />
               <Route path="/encontros" element={<Encontros />} />
               <Route path="/conteudos" element={<Conteudos />} />
+              <Route path="/ranking" element={<Ranking />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
