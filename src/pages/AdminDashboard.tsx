@@ -18,9 +18,12 @@ import {
   Activity,
   BarChart3,
   Loader2,
-  Zap
+  Zap,
+  UserPlus,
+  UserCheck,
+  Calendar
 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -35,7 +38,8 @@ export default function AdminDashboard() {
     monthlyActivity, 
     topMembers, 
     recentActivity,
-    loadingActivity 
+    loadingActivity,
+    invitationMetrics
   } = useAdminDashboard();
   
   // Enable realtime for activity feed
@@ -70,6 +74,8 @@ export default function AdminDashboard() {
       case 'referral': return <Send className="h-4 w-4 text-purple-500" />;
       case 'business_deal': return <DollarSign className="h-4 w-4 text-amber-500" />;
       case 'attendance': return <Users className="h-4 w-4 text-cyan-500" />;
+      case 'invitation': return <UserPlus className="h-4 w-4 text-pink-500" />;
+      case 'guest_attendance': return <UserCheck className="h-4 w-4 text-emerald-500" />;
       default: return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
@@ -89,7 +95,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Membros</CardTitle>
@@ -136,6 +142,19 @@ export default function AdminDashboard() {
             </div>
             <p className="text-xs text-muted-foreground">
               {stats?.totalTestimonials || 0} depoimentos, {stats?.totalReferrals || 0} indicações
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-secondary/10 to-secondary/5 border-secondary/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Convites</CardTitle>
+            <UserPlus className="h-4 w-4 text-secondary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-secondary">{stats?.acceptedInvitations || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              de {stats?.totalInvitations || 0} enviados
             </p>
           </CardContent>
         </Card>
@@ -205,6 +224,65 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Invitation Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-secondary" />
+            Métricas de Convites por Membro
+          </CardTitle>
+          <CardDescription>Quantos convidados cada membro trouxe e quantos compareceram aos encontros</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-3">
+              {invitationMetrics?.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">Nenhum convite registrado ainda</p>
+              )}
+              {invitationMetrics?.map((metric) => (
+                <div key={metric.userId} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={metric.profile?.avatar_url || ''} />
+                    <AvatarFallback>
+                      {metric.profile?.full_name ? getInitials(metric.profile.full_name) : '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{metric.profile?.full_name || 'Usuário'}</p>
+                    {metric.profile?.company && (
+                      <p className="text-sm text-muted-foreground truncate">{metric.profile.company}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Send className="h-3 w-3" />
+                        <span className="font-medium">{metric.invited}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">enviados</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center gap-1 text-green-600">
+                        <UserCheck className="h-3 w-3" />
+                        <span className="font-medium">{metric.accepted}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">aceitos</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="flex items-center gap-1 text-secondary">
+                        <Calendar className="h-3 w-3" />
+                        <span className="font-medium">{metric.attendedMeeting}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">nos encontros</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
       {/* Bottom Row */}
       <div className="grid gap-4 md:grid-cols-2">
