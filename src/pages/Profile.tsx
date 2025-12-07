@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
+import { useStats } from '@/hooks/useStats';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
-import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram } from 'lucide-react';
+import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, Upload } from 'lucide-react';
 
 export default function Profile() {
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
+  const { data: stats } = useStats();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     full_name: '',
     company: '',
@@ -46,6 +53,71 @@ export default function Profile() {
 
   const handleCancel = () => {
     setIsEditing(false);
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, selecione uma imagem válida',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: 'Erro',
+        description: 'A imagem deve ter no máximo 2MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}/avatar.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      updateProfile({ avatar_url: `${publicUrl}?t=${Date.now()}` });
+
+      toast({
+        title: 'Sucesso!',
+        description: 'Avatar atualizado com sucesso',
+      });
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao fazer upload do avatar',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const getInitials = (name: string | null | undefined) => {
@@ -103,12 +175,33 @@ export default function Profile() {
           <div className="flex flex-col md:flex-row gap-6">
             {/* Avatar e Rank */}
             <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-32 w-32 border-4 border-primary/20">
-                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
-                  {getInitials(profile?.full_name)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative group">
+                <Avatar className="h-32 w-32 border-4 border-primary/20">
+                  <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                    {getInitials(profile?.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={handleAvatarClick}
+                  disabled={isUploading}
+                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                >
+                  {isUploading ? (
+                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                  ) : (
+                    <Camera className="h-8 w-8 text-white" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Clique para alterar</p>
               {profile && <RankBadge rank={profile.rank} size="lg" />}
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Pontos</p>
@@ -279,23 +372,23 @@ export default function Profile() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="text-center p-4 rounded-lg bg-muted">
-              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-2xl font-bold text-primary">{stats?.attendances || 0}</p>
               <p className="text-sm text-muted-foreground">Presenças</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-2xl font-bold text-primary">{stats?.genteEmAcao?.total || 0}</p>
               <p className="text-sm text-muted-foreground">Gente em Ação</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-2xl font-bold text-primary">{stats?.testimonials?.sent || 0}</p>
               <p className="text-sm text-muted-foreground">Depoimentos</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <p className="text-2xl font-bold text-primary">R$ 0</p>
+              <p className="text-2xl font-bold text-primary">R$ {((stats?.businessDeals?.value || 0) / 1000).toFixed(1)}k</p>
               <p className="text-sm text-muted-foreground">Em Negócios</p>
             </div>
             <div className="text-center p-4 rounded-lg bg-muted">
-              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-2xl font-bold text-primary">{stats?.referrals?.sent || 0}</p>
               <p className="text-sm text-muted-foreground">Indicações</p>
             </div>
           </div>

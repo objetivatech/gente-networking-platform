@@ -52,6 +52,21 @@ export function useTestimonials() {
       if (!user?.id) throw new Error('Usuário não autenticado');
       const { data, error } = await supabase.from('testimonials').insert({ from_user_id: user.id, to_user_id: input.to_user_id, content: input.content }).select().single();
       if (error) throw error;
+      
+      // Send notification email
+      try {
+        await supabase.functions.invoke('send-notification', {
+          body: {
+            type: 'testimonial',
+            from_user_id: user.id,
+            to_user_id: input.to_user_id,
+            content: input.content,
+          },
+        });
+      } catch (e) {
+        console.error('Failed to send notification:', e);
+      }
+      
       return data;
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['testimonials'] }); toast({ title: 'Sucesso!', description: 'Depoimento enviado' }); },
