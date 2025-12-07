@@ -8,6 +8,10 @@ import MainLayout from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import GenteEmAcao from "./pages/GenteEmAcao";
+import Depoimentos from "./pages/Depoimentos";
+import Negocios from "./pages/Negocios";
+import Equipes from "./pages/Equipes";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
@@ -26,11 +30,11 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
               <Route path="/estatisticas" element={<Placeholder />} />
-              <Route path="/gente-em-acao" element={<Placeholder />} />
-              <Route path="/depoimentos" element={<Placeholder />} />
-              <Route path="/negocios" element={<Placeholder />} />
+              <Route path="/gente-em-acao" element={<GenteEmAcao />} />
+              <Route path="/depoimentos" element={<Depoimentos />} />
+              <Route path="/negocios" element={<Negocios />} />
               <Route path="/indicacoes" element={<Placeholder />} />
-              <Route path="/equipes" element={<Placeholder />} />
+              <Route path="/equipes" element={<Equipes />} />
               <Route path="/encontros" element={<Placeholder />} />
               <Route path="/conteudos" element={<Placeholder />} />
               <Route path="/admin" element={<Placeholder />} />
