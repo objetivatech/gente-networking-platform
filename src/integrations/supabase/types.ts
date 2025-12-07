@@ -274,14 +274,19 @@ export type Database = {
           company: string | null
           created_at: string | null
           email: string | null
+          email_notifications_enabled: boolean | null
           full_name: string
           id: string
           instagram_url: string | null
           linkedin_url: string | null
+          notify_on_meeting: boolean | null
+          notify_on_referral: boolean | null
+          notify_on_testimonial: boolean | null
           phone: string | null
           points: number | null
           position: string | null
           rank: Database["public"]["Enums"]["member_rank"] | null
+          rd_station_synced_at: string | null
           updated_at: string | null
           website_url: string | null
         }
@@ -291,14 +296,19 @@ export type Database = {
           company?: string | null
           created_at?: string | null
           email?: string | null
+          email_notifications_enabled?: boolean | null
           full_name: string
           id: string
           instagram_url?: string | null
           linkedin_url?: string | null
+          notify_on_meeting?: boolean | null
+          notify_on_referral?: boolean | null
+          notify_on_testimonial?: boolean | null
           phone?: string | null
           points?: number | null
           position?: string | null
           rank?: Database["public"]["Enums"]["member_rank"] | null
+          rd_station_synced_at?: string | null
           updated_at?: string | null
           website_url?: string | null
         }
@@ -308,14 +318,19 @@ export type Database = {
           company?: string | null
           created_at?: string | null
           email?: string | null
+          email_notifications_enabled?: boolean | null
           full_name?: string
           id?: string
           instagram_url?: string | null
           linkedin_url?: string | null
+          notify_on_meeting?: boolean | null
+          notify_on_referral?: boolean | null
+          notify_on_testimonial?: boolean | null
           phone?: string | null
           points?: number | null
           position?: string | null
           rank?: Database["public"]["Enums"]["member_rank"] | null
+          rd_station_synced_at?: string | null
           updated_at?: string | null
           website_url?: string | null
         }
