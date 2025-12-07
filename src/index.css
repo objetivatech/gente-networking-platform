@@ -3,119 +3,124 @@
 @tailwind utilities;
 
 /* Design System - Gente Networking
-   Tema: Verde vibrante com tons modernos
+   Identidade Visual baseada no site oficial:
+   - Azul Marinho: #1e3a5f (210, 52%, 24%)
+   - Laranja: #f7941d (32, 93%, 54%)
+   - Cores complementares
    Todas as cores em HSL
 */
 
 @layer base {
   :root {
-    /* Cores principais - Verde Gente Networking */
-    --background: 0 0% 98%;
-    --foreground: 150 10% 15%;
+    /* Cores de fundo */
+    --background: 0 0% 99%;
+    --foreground: 210 52% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 150 10% 15%;
+    --card-foreground: 210 52% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 150 10% 15%;
+    --popover-foreground: 210 52% 15%;
 
-    /* Verde principal */
-    --primary: 142 76% 36%;
+    /* Azul Marinho - cor principal da marca */
+    --primary: 210 52% 24%;
     --primary-foreground: 0 0% 100%;
 
-    /* Verde claro para secundário */
-    --secondary: 142 40% 95%;
-    --secondary-foreground: 142 76% 25%;
+    /* Laranja - cor de destaque/ação */
+    --secondary: 32 93% 54%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 150 10% 95%;
-    --muted-foreground: 150 10% 45%;
+    --muted: 210 15% 95%;
+    --muted-foreground: 210 15% 40%;
 
-    /* Verde suave para accent */
-    --accent: 142 50% 90%;
-    --accent-foreground: 142 76% 25%;
+    /* Laranja suave para accent */
+    --accent: 32 70% 95%;
+    --accent-foreground: 32 93% 35%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Amarelo/Dourado para sucesso e destaque */
+    /* Verde para sucesso */
     --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
     
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 10%;
+    /* Laranja para warning */
+    --warning: 32 93% 54%;
+    --warning-foreground: 0 0% 100%;
 
-    --border: 150 10% 90%;
-    --input: 150 10% 90%;
-    --ring: 142 76% 36%;
+    --border: 210 15% 90%;
+    --input: 210 15% 90%;
+    --ring: 210 52% 24%;
 
     --radius: 0.75rem;
 
-    /* Sidebar */
-    --sidebar-background: 142 76% 25%;
+    /* Sidebar - Azul Marinho */
+    --sidebar-background: 210 52% 20%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 142 76% 25%;
-    --sidebar-accent: 142 60% 30%;
+    --sidebar-primary: 32 93% 54%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 52% 28%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 142 60% 35%;
-    --sidebar-ring: 142 76% 50%;
+    --sidebar-border: 210 52% 25%;
+    --sidebar-ring: 32 93% 54%;
 
     /* Gradientes */
-    --gradient-primary: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(142, 76%, 28%));
-    --gradient-hero: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(160, 70%, 35%));
-    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(142, 40%, 98%));
+    --gradient-primary: linear-gradient(135deg, hsl(210, 52%, 24%), hsl(210, 52%, 18%));
+    --gradient-hero: linear-gradient(135deg, hsl(210, 52%, 24%), hsl(210, 60%, 30%));
+    --gradient-accent: linear-gradient(135deg, hsl(32, 93%, 54%), hsl(32, 93%, 45%));
+    --gradient-card: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(210, 15%, 98%));
 
     /* Sombras */
-    --shadow-sm: 0 1px 2px 0 hsl(142 10% 20% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(142 10% 20% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(142 10% 20% / 0.1);
-    --shadow-glow: 0 0 20px hsl(142 76% 36% / 0.3);
+    --shadow-sm: 0 1px 2px 0 hsl(210 20% 20% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(210 20% 20% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(210 20% 20% / 0.1);
+    --shadow-glow: 0 0 20px hsl(32 93% 54% / 0.3);
 
     /* Rankings - Cores de badge */
-    --rank-iniciante: 150 10% 60%;
+    --rank-iniciante: 210 15% 60%;
     --rank-bronze: 30 60% 50%;
     --rank-prata: 210 10% 65%;
     --rank-ouro: 45 93% 47%;
-    --rank-diamante: 200 80% 60%;
+    --rank-diamante: 200 80% 55%;
   }
 
   .dark {
-    --background: 150 15% 8%;
+    --background: 210 25% 8%;
     --foreground: 0 0% 95%;
 
-    --card: 150 15% 12%;
+    --card: 210 25% 12%;
     --card-foreground: 0 0% 95%;
 
-    --popover: 150 15% 12%;
+    --popover: 210 25% 12%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 142 70% 45%;
+    --primary: 210 52% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 150 15% 18%;
-    --secondary-foreground: 142 60% 70%;
+    --secondary: 32 93% 54%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 150 15% 18%;
-    --muted-foreground: 150 10% 60%;
+    --muted: 210 25% 18%;
+    --muted-foreground: 210 15% 60%;
 
-    --accent: 150 15% 20%;
-    --accent-foreground: 142 60% 70%;
+    --accent: 210 25% 20%;
+    --accent-foreground: 32 80% 70%;
 
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 15% 20%;
-    --input: 150 15% 20%;
-    --ring: 142 70% 45%;
+    --border: 210 25% 20%;
+    --input: 210 25% 20%;
+    --ring: 210 52% 50%;
 
-    --sidebar-background: 150 20% 10%;
+    --sidebar-background: 210 30% 10%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 142 70% 50%;
+    --sidebar-primary: 32 93% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 150 15% 15%;
+    --sidebar-accent: 210 25% 15%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 150 15% 18%;
-    --sidebar-ring: 142 70% 50%;
+    --sidebar-border: 210 25% 18%;
+    --sidebar-ring: 32 93% 54%;
   }
 }
 
@@ -137,6 +142,10 @@
   
   .gradient-hero {
     background: var(--gradient-hero);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
   }
   
   .shadow-glow {

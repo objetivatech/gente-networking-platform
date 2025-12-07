@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const APP_URL = "https://gentenetworking.com.br";
+const APP_URL = "https://comunidade.gentenetworking.com.br";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 interface NotificationPayload {
-  type: "testimonial" | "referral" | "welcome";
+  type: "testimonial" | "referral" | "welcome" | "invitation_accepted";
   from_user_id?: string;
   to_user_id: string;
   content?: string;
@@ -20,6 +20,7 @@ interface NotificationPayload {
   contact_phone?: string;
   contact_email?: string;
   notes?: string;
+  new_member_name?: string;
 }
 
 // Email template generators
@@ -33,7 +34,7 @@ function testimonialEmailTemplate(fromName: string, toName: string, content: str
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background-color: #f6f9fc; margin: 0; padding: 20px;">
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-    <div style="background-color: #22c55e; padding: 24px; text-align: center;">
+    <div style="background-color: #1e3a5f; padding: 24px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Gente Networking</h1>
     </div>
     <div style="padding: 32px 24px;">
@@ -44,14 +45,14 @@ function testimonialEmailTemplate(fromName: string, toName: string, content: str
       <p style="color: #374151; font-size: 16px; line-height: 26px; margin: 16px 0;">
         <strong>${fromName}</strong> escreveu um depoimento para você:
       </p>
-      <div style="background: #f0fdf4; border-left: 4px solid #22c55e; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 24px 0;">
-        <p style="color: #166534; font-size: 16px; font-style: italic; line-height: 26px; margin: 0;">"${content}"</p>
+      <div style="background: #fff7ed; border-left: 4px solid #f7941d; padding: 16px 20px; border-radius: 0 8px 8px 0; margin: 24px 0;">
+        <p style="color: #9a3412; font-size: 16px; font-style: italic; line-height: 26px; margin: 0;">"${content}"</p>
       </div>
       <p style="color: #374151; font-size: 16px; line-height: 26px; margin: 16px 0;">
         Acesse a plataforma para ver todos os seus depoimentos!
       </p>
       <div style="text-align: center; margin: 32px 0;">
-        <a href="${APP_URL}/depoimentos" style="background-color: #22c55e; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
+        <a href="${APP_URL}/depoimentos" style="background-color: #f7941d; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
           Ver Depoimentos
         </a>
       </div>
@@ -59,7 +60,7 @@ function testimonialEmailTemplate(fromName: string, toName: string, content: str
     <div style="border-top: 1px solid #e5e7eb; padding: 24px; text-align: center;">
       <p style="color: #6b7280; font-size: 14px; margin: 0;">Gente Networking - Conectando pessoas, gerando negócios.</p>
       <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0; line-height: 20px;">
-        <a href="${APP_URL}/configuracoes" style="color: #22c55e;">Gerenciar preferências de notificação</a>
+        <a href="${APP_URL}/configuracoes" style="color: #1e3a5f;">Gerenciar preferências de notificação</a>
       </p>
     </div>
   </div>
@@ -83,7 +84,7 @@ function referralEmailTemplate(fromName: string, toName: string, contactName: st
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background-color: #f6f9fc; margin: 0; padding: 20px;">
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-    <div style="background-color: #3b82f6; padding: 24px; text-align: center;">
+    <div style="background-color: #1e3a5f; padding: 24px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Gente Networking</h1>
     </div>
     <div style="padding: 32px 24px;">
@@ -95,14 +96,14 @@ function referralEmailTemplate(fromName: string, toName: string, contactName: st
         <strong>${fromName}</strong> indicou um contato para você:
       </p>
       <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 20px; border-radius: 8px; margin: 24px 0;">
-        <p style="color: #1e40af; font-size: 20px; font-weight: bold; margin: 0 0 12px;">${contactName}</p>
+        <p style="color: #1e3a5f; font-size: 20px; font-weight: bold; margin: 0 0 12px;">${contactName}</p>
         ${contactDetails}
       </div>
       <p style="color: #374151; font-size: 16px; line-height: 26px; margin: 16px 0;">
         Acesse a plataforma para ver os detalhes completos!
       </p>
       <div style="text-align: center; margin: 32px 0;">
-        <a href="${APP_URL}/indicacoes" style="background-color: #3b82f6; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
+        <a href="${APP_URL}/indicacoes" style="background-color: #f7941d; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
           Ver Indicações
         </a>
       </div>
@@ -110,7 +111,7 @@ function referralEmailTemplate(fromName: string, toName: string, contactName: st
     <div style="border-top: 1px solid #e5e7eb; padding: 24px; text-align: center;">
       <p style="color: #6b7280; font-size: 14px; margin: 0;">Gente Networking - Conectando pessoas, gerando negócios.</p>
       <p style="color: #9ca3af; font-size: 12px; margin: 16px 0 0; line-height: 20px;">
-        <a href="${APP_URL}/configuracoes" style="color: #3b82f6;">Gerenciar preferências de notificação</a>
+        <a href="${APP_URL}/configuracoes" style="color: #1e3a5f;">Gerenciar preferências de notificação</a>
       </p>
     </div>
   </div>
@@ -128,7 +129,7 @@ function welcomeEmailTemplate(name: string): string {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background-color: #f6f9fc; margin: 0; padding: 20px;">
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-    <div style="background-color: #22c55e; padding: 24px; text-align: center;">
+    <div style="background-color: #1e3a5f; padding: 24px; text-align: center;">
       <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Gente Networking</h1>
     </div>
     <div style="padding: 32px 24px;">
@@ -153,8 +154,50 @@ function welcomeEmailTemplate(name: string): string {
         Complete seu perfil para que outros membros possam conhecê-lo(a) melhor!
       </p>
       <div style="text-align: center; margin: 32px 0;">
-        <a href="${APP_URL}/perfil" style="background-color: #22c55e; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
+        <a href="${APP_URL}/perfil" style="background-color: #f7941d; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
           Completar Meu Perfil
+        </a>
+      </div>
+    </div>
+    <div style="border-top: 1px solid #e5e7eb; padding: 24px; text-align: center;">
+      <p style="color: #6b7280; font-size: 14px; margin: 0;">Gente Networking - Conectando pessoas, gerando negócios.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+function invitationAcceptedEmailTemplate(inviterName: string, newMemberName: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; background-color: #f6f9fc; margin: 0; padding: 20px;">
+  <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+    <div style="background-color: #1e3a5f; padding: 24px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Gente Networking</h1>
+    </div>
+    <div style="padding: 32px 24px;">
+      <h2 style="color: #1f2937; font-size: 24px; margin: 0 0 20px;">🎉 Seu convite foi aceito!</h2>
+      <p style="color: #374151; font-size: 16px; line-height: 26px; margin: 16px 0;">
+        Olá <strong>${inviterName}</strong>,
+      </p>
+      <p style="color: #374151; font-size: 16px; line-height: 26px; margin: 16px 0;">
+        Ótima notícia! <strong>${newMemberName}</strong> aceitou seu convite e agora faz parte da comunidade Gente Networking!
+      </p>
+      <div style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 20px; border-radius: 8px; margin: 24px 0; text-align: center;">
+        <p style="color: #047857; font-size: 18px; font-weight: bold; margin: 0;">+30 pontos</p>
+        <p style="color: #059669; font-size: 14px; margin: 8px 0 0;">Você ganhou pontos por trazer um novo membro!</p>
+      </div>
+      <p style="color: #374151; font-size: 16px; line-height: 26px; margin: 16px 0;">
+        Continue convidando pessoas e acumulando pontos para subir no ranking!
+      </p>
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${APP_URL}/convites" style="background-color: #f7941d; border-radius: 6px; color: #ffffff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 12px 32px; display: inline-block;">
+          Ver Meus Convites
         </a>
       </div>
     </div>
@@ -251,6 +294,12 @@ const handler = async (req: Request): Promise<Response> => {
     } else if (payload.type === "welcome") {
       subject = `🎉 Bem-vindo ao Gente Networking, ${toUser.full_name}!`;
       html = welcomeEmailTemplate(toUser.full_name);
+    } else if (payload.type === "invitation_accepted") {
+      subject = `🎉 Seu convite foi aceito! ${payload.new_member_name} entrou na comunidade`;
+      html = invitationAcceptedEmailTemplate(
+        toUser.full_name,
+        payload.new_member_name || "Novo membro"
+      );
     } else {
       return new Response(JSON.stringify({ success: false, reason: "unknown_type" }), {
         status: 400,

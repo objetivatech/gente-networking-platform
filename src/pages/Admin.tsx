@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTeams } from '@/hooks/useTeams';
 import { useMembers } from '@/hooks/useMembers';
-import { useAdminTeams, useUserRole, useAdmin } from '@/hooks/useAdmin';
+import { useAdminTeams, useAdmin, useAdminRoles } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,13 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
-const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+const COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
 
 export default function Admin() {
   const { user } = useAuth();
@@ -24,9 +25,10 @@ export default function Admin() {
   const { teams, isLoading } = useTeams();
   const { data: members } = useMembers();
   const { createTeam, deleteTeam, addMember, removeMember, toggleFacilitator } = useAdminTeams();
+  const { guests, loadingGuests, promoteToMember, promoteToFacilitator } = useAdminRoles();
   const [open, setOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: '', description: '', color: '#22c55e' });
+  const [formData, setFormData] = useState({ name: '', description: '', color: '#1e3a5f' });
   const [selectedMember, setSelectedMember] = useState('');
 
   if (loadingRole) return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -47,7 +49,7 @@ export default function Admin() {
     e.preventDefault();
     await createTeam.mutateAsync(formData);
     setOpen(false);
-    setFormData({ name: '', description: '', color: '#22c55e' });
+    setFormData({ name: '', description: '', color: '#1e3a5f' });
   };
 
   const handleAddMember = async (teamId: string) => {
@@ -59,22 +61,10 @@ export default function Admin() {
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  // Filtrar membros disponíveis para adicionar
-  // Facilitador só pode adicionar membros com role 'convidado'
   const getAvailableMembers = (teamId: string) => {
     const team = teams?.find(t => t.id === teamId);
     const teamMemberIds = team?.members?.map(m => m.user_id) || [];
-    
-    let available = members?.filter(m => !teamMemberIds.includes(m.id)) || [];
-    
-    // Se for facilitador, só pode adicionar convidados
-    if (isFacilitator && !isAdmin) {
-      // Para isso precisamos verificar o role de cada membro
-      // Por enquanto, permitimos adicionar qualquer um que não esteja na equipe
-      // A validação real será feita no backend
-    }
-    
-    return available;
+    return members?.filter(m => !teamMemberIds.includes(m.id)) || [];
   };
 
   return (
@@ -86,150 +76,228 @@ export default function Admin() {
             {isAdmin ? 'Administração' : 'Gestão da Equipe'}
           </h1>
           <p className="text-muted-foreground">
-            {isAdmin ? 'Gerenciar equipes e membros' : 'Gerenciar sua equipe'}
+            {isAdmin ? 'Gerenciar equipes, membros e usuários' : 'Gerenciar sua equipe'}
           </p>
         </div>
-
-        {/* Apenas admin pode criar equipes */}
-        {isAdmin && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Equipe</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Criar Equipe</DialogTitle></DialogHeader>
-              <form onSubmit={handleCreateTeam} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome da Equipe</Label>
-                  <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome da equipe" required />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição</Label>
-                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descrição da equipe..." rows={3} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Cor</Label>
-                  <div className="flex gap-2 flex-wrap">
-                    {COLORS.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={`w-8 h-8 rounded-full transition-transform ${formData.color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}`}
-                        style={{ backgroundColor: c }}
-                        onClick={() => setFormData({ ...formData, color: c })}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={createTeam.isPending}>
-                  {createTeam.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Equipe'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
-        )}
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      ) : !visibleTeams?.length ? (
-        <Card>
-          <CardContent className="py-16 text-center text-muted-foreground">
-            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>{isAdmin ? 'Nenhuma equipe cadastrada' : 'Você não é facilitador de nenhuma equipe'}</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {visibleTeams.map((team) => (
-            <Card key={team.id}>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: team.color }} />
-                  <div>
-                    <CardTitle>{team.name}</CardTitle>
-                    {team.description && <CardDescription>{team.description}</CardDescription>}
-                  </div>
-                  <Badge variant="secondary">{team.members?.length || 0} membros</Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Adicionar membro - admin pode adicionar qualquer um, facilitador apenas convidados */}
-                  <Dialog open={addMemberOpen === team.id} onOpenChange={(o) => setAddMemberOpen(o ? team.id : null)}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm"><UserPlus className="w-4 h-4 mr-1" /> Adicionar</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Adicionar Membro</DialogTitle>
-                        {!isAdmin && (
-                          <p className="text-sm text-muted-foreground">
-                            Como facilitador, você pode adicionar convidados para participar de encontros.
-                          </p>
-                        )}
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <Select value={selectedMember} onValueChange={setSelectedMember}>
-                          <SelectTrigger><SelectValue placeholder="Selecione um membro" /></SelectTrigger>
-                          <SelectContent>
-                            {getAvailableMembers(team.id).map((m) => (
-                              <SelectItem key={m.id} value={m.id}>
-                                <div className="flex items-center gap-2">
-                                  <Avatar className="h-6 w-6"><AvatarFallback className="text-xs">{getInitials(m.full_name)}</AvatarFallback></Avatar>
-                                  {m.full_name}
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button onClick={() => handleAddMember(team.id)} disabled={!selectedMember || addMember.isPending} className="w-full">
-                          {addMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Adicionar'}
-                        </Button>
+      <Tabs defaultValue="teams" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="teams">Equipes</TabsTrigger>
+          {isAdmin && <TabsTrigger value="users">Usuários</TabsTrigger>}
+        </TabsList>
+
+        {/* Tab de Equipes */}
+        <TabsContent value="teams" className="space-y-6">
+          {/* Apenas admin pode criar equipes */}
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Equipe</Button></DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Criar Equipe</DialogTitle></DialogHeader>
+                  <form onSubmit={handleCreateTeam} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nome da Equipe</Label>
+                      <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome da equipe" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Descrição</Label>
+                      <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descrição da equipe..." rows={3} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cor</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {COLORS.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            className={`w-8 h-8 rounded-full transition-transform ${formData.color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}`}
+                            style={{ backgroundColor: c }}
+                            onClick={() => setFormData({ ...formData, color: c })}
+                          />
+                        ))}
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                  
-                  {/* Apenas admin pode deletar equipes */}
-                  {isAdmin && (
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteTeam.mutate(team.id)}>
-                      <Trash2 className="w-4 h-4" />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={createTeam.isPending}>
+                      {createTeam.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Equipe'}
                     </Button>
-                  )}
-                </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+          ) : !visibleTeams?.length ? (
+            <Card>
+              <CardContent className="py-16 text-center text-muted-foreground">
+                <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>{isAdmin ? 'Nenhuma equipe cadastrada' : 'Você não é facilitador de nenhuma equipe'}</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-6">
+              {visibleTeams.map((team) => (
+                <Card key={team.id}>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: team.color }} />
+                      <div>
+                        <CardTitle>{team.name}</CardTitle>
+                        {team.description && <CardDescription>{team.description}</CardDescription>}
+                      </div>
+                      <Badge variant="secondary">{team.members?.length || 0} membros</Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Dialog open={addMemberOpen === team.id} onOpenChange={(o) => setAddMemberOpen(o ? team.id : null)}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm"><UserPlus className="w-4 h-4 mr-1" /> Adicionar</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Adicionar Membro</DialogTitle>
+                            {!isAdmin && (
+                              <p className="text-sm text-muted-foreground">
+                                Como facilitador, você pode adicionar convidados para participar de encontros.
+                              </p>
+                            )}
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <Select value={selectedMember} onValueChange={setSelectedMember}>
+                              <SelectTrigger><SelectValue placeholder="Selecione um membro" /></SelectTrigger>
+                              <SelectContent>
+                                {getAvailableMembers(team.id).map((m) => (
+                                  <SelectItem key={m.id} value={m.id}>
+                                    <div className="flex items-center gap-2">
+                                      <Avatar className="h-6 w-6"><AvatarFallback className="text-xs">{getInitials(m.full_name)}</AvatarFallback></Avatar>
+                                      {m.full_name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button onClick={() => handleAddMember(team.id)} disabled={!selectedMember || addMember.isPending} className="w-full">
+                              {addMember.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Adicionar'}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      
+                      {isAdmin && (
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteTeam.mutate(team.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {!team.members?.length ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">Nenhum membro</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {team.members.map((member) => (
+                          <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-9 w-9">
+                                <AvatarImage src={member.profile?.avatar_url || ''} />
+                                <AvatarFallback>{getInitials(member.profile?.full_name || 'U')}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{member.profile?.full_name}</p>
+                                {member.profile?.company && <p className="text-sm text-muted-foreground">{member.profile.company}</p>}
+                              </div>
+                              {member.is_facilitator && (
+                                <Badge className="bg-amber-100 text-amber-800 border-amber-300"><Crown className="w-3 h-3 mr-1" /> Facilitador</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-4">
+                              {isAdmin && (
+                                <div className="flex items-center gap-2">
+                                  <Label htmlFor={`fac-${member.id}`} className="text-sm text-muted-foreground">Facilitador</Label>
+                                  <Switch
+                                    id={`fac-${member.id}`}
+                                    checked={member.is_facilitator}
+                                    onCheckedChange={(checked) => toggleFacilitator.mutate({ teamId: team.id, userId: member.user_id, isFacilitator: checked })}
+                                  />
+                                </div>
+                              )}
+                              
+                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeMember.mutate({ teamId: team.id, userId: member.user_id })}>
+                                <UserMinus className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Tab de Usuários - Apenas Admin */}
+        {isAdmin && (
+          <TabsContent value="users" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCog className="w-5 h-5" />
+                  Gestão de Usuários
+                </CardTitle>
+                <CardDescription>Promova convidados a membros ou facilitadores</CardDescription>
               </CardHeader>
               <CardContent>
-                {!team.members?.length ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">Nenhum membro</p>
+                {loadingGuests ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : !guests?.length ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Nenhum convidado pendente de promoção</p>
+                  </div>
                 ) : (
-                  <div className="space-y-2">
-                    {team.members.map((member) => (
-                      <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {guests.length} convidado(s) aguardando promoção
+                    </p>
+                    {guests.map((guest: any) => (
+                      <div key={guest.user_id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarImage src={member.profile?.avatar_url || ''} />
-                            <AvatarFallback>{getInitials(member.profile?.full_name || 'U')}</AvatarFallback>
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={guest.profiles?.avatar_url || ''} />
+                            <AvatarFallback>{getInitials(guest.profiles?.full_name || 'C')}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{member.profile?.full_name}</p>
-                            {member.profile?.company && <p className="text-sm text-muted-foreground">{member.profile.company}</p>}
+                            <p className="font-medium">{guest.profiles?.full_name || 'Convidado'}</p>
+                            <p className="text-sm text-muted-foreground">{guest.profiles?.email}</p>
+                            {guest.profiles?.company && (
+                              <p className="text-xs text-muted-foreground">{guest.profiles.company}</p>
+                            )}
                           </div>
-                          {member.is_facilitator && (
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-300"><Crown className="w-3 h-3 mr-1" /> Facilitador</Badge>
-                          )}
+                          <Badge variant="outline">Convidado</Badge>
                         </div>
-                        <div className="flex items-center gap-4">
-                          {/* Apenas admin pode definir/remover facilitadores */}
-                          {isAdmin && (
-                            <div className="flex items-center gap-2">
-                              <Label htmlFor={`fac-${member.id}`} className="text-sm text-muted-foreground">Facilitador</Label>
-                              <Switch
-                                id={`fac-${member.id}`}
-                                checked={member.is_facilitator}
-                                onCheckedChange={(checked) => toggleFacilitator.mutate({ teamId: team.id, userId: member.user_id, isFacilitator: checked })}
-                              />
-                            </div>
-                          )}
-                          
-                          {/* Admin pode remover qualquer membro, facilitador pode remover apenas da sua equipe */}
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeMember.mutate({ teamId: team.id, userId: member.user_id })}>
-                            <UserMinus className="w-4 h-4" />
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => promoteToMember.mutate(guest.user_id)}
+                            disabled={promoteToMember.isPending}
+                          >
+                            <ArrowUp className="w-4 h-4 mr-1" />
+                            Membro
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => promoteToFacilitator.mutate(guest.user_id)}
+                            disabled={promoteToFacilitator.isPending}
+                          >
+                            <Crown className="w-4 h-4 mr-1" />
+                            Facilitador
                           </Button>
                         </div>
                       </div>
@@ -238,9 +306,48 @@ export default function Admin() {
                 )}
               </CardContent>
             </Card>
-          ))}
-        </div>
-      )}
+
+            {/* Lista de todos os membros com seus roles */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Todos os Membros
+                </CardTitle>
+                <CardDescription>Visualize e gerencie os roles de todos os usuários</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!members?.length ? (
+                  <p className="text-center py-8 text-muted-foreground">Nenhum membro cadastrado</p>
+                ) : (
+                  <div className="space-y-2">
+                    {members.map((member) => (
+                      <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-9 w-9">
+                            <AvatarImage src={member.avatar_url || ''} />
+                            <AvatarFallback>{getInitials(member.full_name)}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{member.full_name}</p>
+                            <p className="text-xs text-muted-foreground">{member.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {member.company && (
+                            <span className="text-sm text-muted-foreground hidden sm:inline">{member.company}</span>
+                          )}
+                          <Badge variant="secondary">{member.rank || 'iniciante'}</Badge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
