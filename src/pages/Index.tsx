@@ -2,8 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
 import { useMeetings } from '@/hooks/useMeetings';
+import { useAdmin } from '@/hooks/useAdmin';
 import RankBadge from '@/components/RankBadge';
 import ActivityFeed from '@/components/ActivityFeed';
+import GuestWelcome from '@/pages/GuestWelcome';
 import {
   Handshake,
   MessageSquare,
@@ -23,8 +25,14 @@ export default function Index() {
   const { profile, isLoading: profileLoading } = useProfile();
   const { data: stats, isLoading: statsLoading } = useStats();
   const { meetings, isLoading: meetingsLoading } = useMeetings();
+  const { isGuest, isLoading: roleLoading } = useAdmin();
 
   const upcomingMeetings = meetings?.filter(m => isFuture(parseISO(m.meeting_date))).slice(0, 3);
+
+  // Convidados veem página especial
+  if (!roleLoading && isGuest) {
+    return <GuestWelcome />;
+  }
 
   const statsCards = [
     { icon: Handshake, label: 'Gente em Ação', value: stats?.genteEmAcao?.total || 0, color: 'text-blue-600' },

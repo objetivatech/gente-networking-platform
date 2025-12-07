@@ -505,6 +505,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_guest: { Args: { _user_id: string }; Returns: boolean }
+      is_team_facilitator: {
+        Args: { _team_id: string; _user_id: string }
+        Returns: boolean
+      }
       update_user_points_and_rank: {
         Args: { _user_id: string }
         Returns: undefined
