@@ -109,6 +109,42 @@ export type Database = {
         }
         Relationships: []
       }
+      contents: {
+        Row: {
+          content_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       gente_em_acao: {
         Row: {
           created_at: string | null
@@ -385,12 +421,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_activity_feed: {
+        Args: {
+          _activity_type: string
+          _description?: string
+          _metadata?: Json
+          _reference_id?: string
+          _title: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      calculate_user_points: { Args: { _user_id: string }; Returns: number }
+      get_rank_from_points: {
+        Args: { _points: number }
+        Returns: Database["public"]["Enums"]["member_rank"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      update_user_points_and_rank: {
+        Args: { _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

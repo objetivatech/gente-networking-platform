@@ -18,6 +18,15 @@ export function useUserRole() {
   });
 }
 
+export function useAdmin() {
+  const { data: role, isLoading } = useUserRole();
+  const isAdmin = role === 'admin';
+  const isFacilitator = role === 'facilitador';
+  const canManage = isAdmin || isFacilitator;
+  
+  return { role, isLoading, isAdmin, isFacilitator, canManage };
+}
+
 export function useAdminTeams() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
