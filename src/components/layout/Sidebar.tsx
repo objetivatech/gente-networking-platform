@@ -19,42 +19,56 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
+import logoGente from '@/assets/logo-gente.png';
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
 }
 
+// Itens de menu com permissões por role
+// roles: undefined = todos podem ver, array = apenas roles listados
 const menuItems = [
-  { icon: Home, label: 'Início', path: '/' },
-  { icon: User, label: 'Meu Perfil', path: '/perfil' },
-  { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas' },
-  { icon: Trophy, label: 'Ranking', path: '/ranking' },
-  { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao' },
-  { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos' },
-  { icon: DollarSign, label: 'Negócios', path: '/negocios' },
-  { icon: Send, label: 'Indicações', path: '/indicacoes' },
-  { icon: Users, label: 'Equipes', path: '/equipes' },
-  { icon: Calendar, label: 'Encontros', path: '/encontros' },
-  { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos' },
-  { icon: UserPlus, label: 'Convites', path: '/convites' },
-  { icon: BookOpen, label: 'Documentação', path: '/documentacao' },
-  { icon: Settings, label: 'Configurações', path: '/configuracoes' },
+  { icon: Home, label: 'Início', path: '/', roles: undefined },
+  { icon: User, label: 'Meu Perfil', path: '/perfil', roles: undefined },
+  { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Trophy, label: 'Ranking', path: '/ranking', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Users, label: 'Equipes', path: '/equipes', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Calendar, label: 'Encontros', path: '/encontros', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: UserPlus, label: 'Convites', path: '/convites', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: BookOpen, label: 'Documentação', path: '/documentacao', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Settings, label: 'Configurações', path: '/configuracoes', roles: undefined },
 ];
 
 const adminItems = [
-  { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
-  { icon: Settings, label: 'Admin', path: '/admin' },
+  { icon: BarChart3, label: 'Dashboard', path: '/dashboard', roles: ['admin'] },
+  { icon: Settings, label: 'Admin', path: '/admin', roles: ['admin', 'facilitador'] },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
   const { signOut } = useAuth();
+  const { role, isLoading } = useAdmin();
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  // Filtra itens de menu baseado no role do usuário
+  const filterByRole = (items: typeof menuItems) => {
+    if (isLoading || !role) return items.filter(item => !item.roles);
+    return items.filter(item => !item.roles || item.roles.includes(role));
+  };
+
+  const visibleMenuItems = filterByRole(menuItems);
+  const visibleAdminItems = filterByRole(adminItems);
 
   return (
     <>
@@ -77,9 +91,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
-                <Users className="w-5 h-5 text-sidebar-primary-foreground" />
-              </div>
+              <img 
+                src={logoGente} 
+                alt="Gente Networking" 
+                className="w-12 h-auto"
+              />
               <div>
                 <h1 className="font-bold text-lg">Gente</h1>
                 <p className="text-xs opacity-80">Networking</p>
@@ -97,7 +113,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {menuItems.map((item) => (
+            {visibleMenuItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -116,26 +132,31 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </NavLink>
             ))}
 
-            <div className="pt-4 mt-4 border-t border-sidebar-border">
-              {adminItems.map((item) => (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={onClose}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                      isActive
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                        : 'hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground'
-                    )
-                  }
-                >
-                  <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              ))}
-            </div>
+            {visibleAdminItems.length > 0 && (
+              <div className="pt-4 mt-4 border-t border-sidebar-border">
+                <p className="px-3 py-2 text-xs font-semibold uppercase text-sidebar-foreground/50">
+                  Administração
+                </p>
+                {visibleAdminItems.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
+                        isActive
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                          : 'hover:bg-sidebar-accent/50 text-sidebar-foreground/80 hover:text-sidebar-foreground'
+                      )
+                    }
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span className="font-medium">{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
+            )}
           </nav>
 
           {/* Footer */}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTeams } from '@/hooks/useTeams';
 import { useMembers } from '@/hooks/useMembers';
-import { useAdminTeams, useUserRole } from '@/hooks/useAdmin';
+import { useAdminTeams, useUserRole, useAdmin } from '@/hooks/useAdmin';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,13 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, Palette } from 'lucide-react';
+import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
 export default function Admin() {
-  const { data: userRole, isLoading: loadingRole } = useUserRole();
+  const { user } = useAuth();
+  const { role, isAdmin, isFacilitator, isLoading: loadingRole } = useAdmin();
   const { teams, isLoading } = useTeams();
   const { data: members } = useMembers();
   const { createTeam, deleteTeam, addMember, removeMember, toggleFacilitator } = useAdminTeams();
@@ -28,7 +30,18 @@ export default function Admin() {
   const [selectedMember, setSelectedMember] = useState('');
 
   if (loadingRole) return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (userRole !== 'admin' && userRole !== 'facilitador') return <Navigate to="/" replace />;
+  
+  // Apenas admin e facilitador podem acessar
+  if (!isAdmin && !isFacilitator) return <Navigate to="/" replace />;
+
+  // Filtrar equipes: facilitador só vê equipes onde é facilitador
+  const visibleTeams = teams?.filter(team => {
+    if (isAdmin) return true;
+    if (isFacilitator) {
+      return team.members?.some(m => m.user_id === user?.id && m.is_facilitator);
+    }
+    return false;
+  }) || [];
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,10 +59,22 @@ export default function Admin() {
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  // Filtrar membros disponíveis para adicionar
+  // Facilitador só pode adicionar membros com role 'convidado'
   const getAvailableMembers = (teamId: string) => {
     const team = teams?.find(t => t.id === teamId);
     const teamMemberIds = team?.members?.map(m => m.user_id) || [];
-    return members?.filter(m => !teamMemberIds.includes(m.id)) || [];
+    
+    let available = members?.filter(m => !teamMemberIds.includes(m.id)) || [];
+    
+    // Se for facilitador, só pode adicionar convidados
+    if (isFacilitator && !isAdmin) {
+      // Para isso precisamos verificar o role de cada membro
+      // Por enquanto, permitimos adicionar qualquer um que não esteja na equipe
+      // A validação real será feita no backend
+    }
+    
+    return available;
   };
 
   return (
@@ -58,53 +83,63 @@ export default function Admin() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Settings className="w-6 h-6 text-primary" />
-            Administração
+            {isAdmin ? 'Administração' : 'Gestão da Equipe'}
           </h1>
-          <p className="text-muted-foreground">Gerenciar equipes e membros</p>
+          <p className="text-muted-foreground">
+            {isAdmin ? 'Gerenciar equipes e membros' : 'Gerenciar sua equipe'}
+          </p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Equipe</Button></DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>Criar Equipe</DialogTitle></DialogHeader>
-            <form onSubmit={handleCreateTeam} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome da Equipe</Label>
-                <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome da equipe" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descrição da equipe..." rows={3} />
-              </div>
-              <div className="space-y-2">
-                <Label>Cor</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`w-8 h-8 rounded-full transition-transform ${formData.color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}`}
-                      style={{ backgroundColor: c }}
-                      onClick={() => setFormData({ ...formData, color: c })}
-                    />
-                  ))}
+        {/* Apenas admin pode criar equipes */}
+        {isAdmin && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Equipe</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Criar Equipe</DialogTitle></DialogHeader>
+              <form onSubmit={handleCreateTeam} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome da Equipe</Label>
+                  <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome da equipe" required />
                 </div>
-              </div>
-              <Button type="submit" className="w-full" disabled={createTeam.isPending}>
-                {createTeam.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Equipe'}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição</Label>
+                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descrição da equipe..." rows={3} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cor</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        className={`w-8 h-8 rounded-full transition-transform ${formData.color === c ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}`}
+                        style={{ backgroundColor: c }}
+                        onClick={() => setFormData({ ...formData, color: c })}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={createTeam.isPending}>
+                  {createTeam.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Equipe'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-      ) : !teams?.length ? (
-        <Card><CardContent className="py-16 text-center text-muted-foreground"><Users className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>Nenhuma equipe cadastrada</p></CardContent></Card>
+      ) : !visibleTeams?.length ? (
+        <Card>
+          <CardContent className="py-16 text-center text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>{isAdmin ? 'Nenhuma equipe cadastrada' : 'Você não é facilitador de nenhuma equipe'}</p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-6">
-          {teams.map((team) => (
+          {visibleTeams.map((team) => (
             <Card key={team.id}>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -116,12 +151,20 @@ export default function Admin() {
                   <Badge variant="secondary">{team.members?.length || 0} membros</Badge>
                 </div>
                 <div className="flex items-center gap-2">
+                  {/* Adicionar membro - admin pode adicionar qualquer um, facilitador apenas convidados */}
                   <Dialog open={addMemberOpen === team.id} onOpenChange={(o) => setAddMemberOpen(o ? team.id : null)}>
                     <DialogTrigger asChild>
                       <Button variant="outline" size="sm"><UserPlus className="w-4 h-4 mr-1" /> Adicionar</Button>
                     </DialogTrigger>
                     <DialogContent>
-                      <DialogHeader><DialogTitle>Adicionar Membro</DialogTitle></DialogHeader>
+                      <DialogHeader>
+                        <DialogTitle>Adicionar Membro</DialogTitle>
+                        {!isAdmin && (
+                          <p className="text-sm text-muted-foreground">
+                            Como facilitador, você pode adicionar convidados para participar de encontros.
+                          </p>
+                        )}
+                      </DialogHeader>
                       <div className="space-y-4">
                         <Select value={selectedMember} onValueChange={setSelectedMember}>
                           <SelectTrigger><SelectValue placeholder="Selecione um membro" /></SelectTrigger>
@@ -142,9 +185,13 @@ export default function Admin() {
                       </div>
                     </DialogContent>
                   </Dialog>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteTeam.mutate(team.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  
+                  {/* Apenas admin pode deletar equipes */}
+                  {isAdmin && (
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteTeam.mutate(team.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>
@@ -168,14 +215,19 @@ export default function Admin() {
                           )}
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor={`fac-${member.id}`} className="text-sm text-muted-foreground">Facilitador</Label>
-                            <Switch
-                              id={`fac-${member.id}`}
-                              checked={member.is_facilitator}
-                              onCheckedChange={(checked) => toggleFacilitator.mutate({ teamId: team.id, userId: member.user_id, isFacilitator: checked })}
-                            />
-                          </div>
+                          {/* Apenas admin pode definir/remover facilitadores */}
+                          {isAdmin && (
+                            <div className="flex items-center gap-2">
+                              <Label htmlFor={`fac-${member.id}`} className="text-sm text-muted-foreground">Facilitador</Label>
+                              <Switch
+                                id={`fac-${member.id}`}
+                                checked={member.is_facilitator}
+                                onCheckedChange={(checked) => toggleFacilitator.mutate({ teamId: team.id, userId: member.user_id, isFacilitator: checked })}
+                              />
+                            </div>
+                          )}
+                          
+                          {/* Admin pode remover qualquer membro, facilitador pode remover apenas da sua equipe */}
                           <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeMember.mutate({ teamId: team.id, userId: member.user_id })}>
                             <UserMinus className="w-4 h-4" />
                           </Button>

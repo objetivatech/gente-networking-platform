@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Users } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import logoGente from '@/assets/logo-gente.png';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
@@ -111,11 +112,15 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
       <Card className="w-full max-w-md animate-fade-in">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 rounded-full gradient-primary flex items-center justify-center">
-            <Users className="w-8 h-8 text-primary-foreground" />
+          <div className="mx-auto">
+            <img 
+              src={logoGente} 
+              alt="Gente Networking" 
+              className="w-32 h-auto mx-auto"
+            />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold">Gente Networking</CardTitle>
+            <CardTitle className="text-2xl font-bold text-[#1e3a5f]">Gente Networking</CardTitle>
             <CardDescription className="text-muted-foreground">
               Conectando pessoas, gerando negócios
             </CardDescription>
