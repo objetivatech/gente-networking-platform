@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useTeams } from '@/hooks/useTeams';
 import { useMembers } from '@/hooks/useMembers';
-import { useAdminTeams, useAdmin, useAdminRoles } from '@/hooks/useAdmin';
+import { useMeetings } from '@/hooks/useMeetings';
+import { useAdminTeams, useAdmin, useAdminRoles, useGuestAttendance } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,10 +15,102 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp } from 'lucide-react';
+import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
+import { format, isFuture, isToday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-const COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
+const TEAM_COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
+
+// Componente para linha de membro na equipe
+function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMember, getInitials }: any) {
+  const { meetings } = useMeetings();
+  const { registerGuestAttendance, isGuestAttending } = useGuestAttendance();
+  const [selectedMeeting, setSelectedMeeting] = useState('');
+  
+  // Verificar se este membro é um convidado (role = convidado)
+  const isGuest = member.profile?.role === 'convidado';
+  
+  // Encontros disponíveis (futuros ou hoje)
+  const upcomingMeetings = meetings?.filter(m => isFuture(new Date(m.meeting_date)) || isToday(new Date(m.meeting_date))) || [];
+  
+  const handleRegisterAttendance = async () => {
+    if (!selectedMeeting) return;
+    await registerGuestAttendance.mutateAsync({ 
+      guestId: member.user_id, 
+      meetingId: selectedMeeting 
+    });
+    setSelectedMeeting('');
+  };
+
+  return (
+    <div className="flex flex-col gap-2 p-3 rounded-lg bg-muted/50">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9">
+            <AvatarImage src={member.profile?.avatar_url || ''} />
+            <AvatarFallback>{getInitials(member.profile?.full_name || 'U')}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium">{member.profile?.full_name}</p>
+            {member.profile?.company && <p className="text-sm text-muted-foreground">{member.profile.company}</p>}
+          </div>
+          {member.is_facilitator && (
+            <Badge className="bg-amber-100 text-amber-800 border-amber-300"><Crown className="w-3 h-3 mr-1" /> Facilitador</Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-4">
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor={`fac-${member.id}`} className="text-sm text-muted-foreground">Facilitador</Label>
+              <Switch
+                id={`fac-${member.id}`}
+                checked={member.is_facilitator}
+                onCheckedChange={(checked) => toggleFacilitator.mutate({ teamId, userId: member.user_id, isFacilitator: checked })}
+              />
+            </div>
+          )}
+          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeMember.mutate({ teamId, userId: member.user_id })}>
+            <UserMinus className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Seção para registrar presença de convidado */}
+      {upcomingMeetings.length > 0 && (
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
+          <Calendar className="w-4 h-4 text-muted-foreground" />
+          <Select value={selectedMeeting} onValueChange={setSelectedMeeting}>
+            <SelectTrigger className="flex-1 h-8 text-xs">
+              <SelectValue placeholder="Registrar presença em encontro" />
+            </SelectTrigger>
+            <SelectContent>
+              {upcomingMeetings.map((m) => (
+                <SelectItem key={m.id} value={m.id} disabled={isGuestAttending(member.user_id, m.id)}>
+                  <div className="flex items-center gap-2">
+                    {isGuestAttending(member.user_id, m.id) && <Check className="w-3 h-3 text-green-500" />}
+                    {m.title} - {format(new Date(m.meeting_date), "dd/MM", { locale: ptBR })}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={handleRegisterAttendance}
+            disabled={!selectedMeeting || registerGuestAttendance.isPending}
+            className="h-8 text-xs"
+          >
+            {registerGuestAttendance.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Check className="w-3 h-3 mr-1" /> Confirmar</>}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 export default function Admin() {
   const { user } = useAuth();
@@ -108,7 +201,7 @@ export default function Admin() {
                     <div className="space-y-2">
                       <Label>Cor</Label>
                       <div className="flex gap-2 flex-wrap">
-                        {COLORS.map((c) => (
+                        {TEAM_COLORS.map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -198,37 +291,15 @@ export default function Admin() {
                     ) : (
                       <div className="space-y-2">
                         {team.members.map((member) => (
-                          <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9">
-                                <AvatarImage src={member.profile?.avatar_url || ''} />
-                                <AvatarFallback>{getInitials(member.profile?.full_name || 'U')}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <p className="font-medium">{member.profile?.full_name}</p>
-                                {member.profile?.company && <p className="text-sm text-muted-foreground">{member.profile.company}</p>}
-                              </div>
-                              {member.is_facilitator && (
-                                <Badge className="bg-amber-100 text-amber-800 border-amber-300"><Crown className="w-3 h-3 mr-1" /> Facilitador</Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4">
-                              {isAdmin && (
-                                <div className="flex items-center gap-2">
-                                  <Label htmlFor={`fac-${member.id}`} className="text-sm text-muted-foreground">Facilitador</Label>
-                                  <Switch
-                                    id={`fac-${member.id}`}
-                                    checked={member.is_facilitator}
-                                    onCheckedChange={(checked) => toggleFacilitator.mutate({ teamId: team.id, userId: member.user_id, isFacilitator: checked })}
-                                  />
-                                </div>
-                              )}
-                              
-                              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeMember.mutate({ teamId: team.id, userId: member.user_id })}>
-                                <UserMinus className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
+                          <TeamMemberRow 
+                            key={member.id} 
+                            member={member} 
+                            teamId={team.id}
+                            isAdmin={isAdmin}
+                            toggleFacilitator={toggleFacilitator}
+                            removeMember={removeMember}
+                            getInitials={getInitials}
+                          />
                         ))}
                       </div>
                     )}

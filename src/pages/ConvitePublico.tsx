@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { validateInvitation, Invitation } from '@/hooks/useInvitations';
-import { Users, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import logoGente from '@/assets/logo-gente.png';
 
 export default function ConvitePublico() {
   const { code } = useParams<{ code: string }>();
@@ -29,7 +30,6 @@ export default function ConvitePublico() {
   }, [code]);
 
   const handleAccept = () => {
-    // Store invitation code for after signup
     if (code) {
       localStorage.setItem('invitation_code', code);
     }
@@ -38,21 +38,25 @@ export default function ConvitePublico() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-background">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-background">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+      <Card className="w-full max-w-md border-primary/20 shadow-xl">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Users className="h-8 w-8 text-primary" />
+          <div className="flex justify-center mb-4">
+            <img 
+              src={logoGente} 
+              alt="Gente Networking" 
+              className="h-20 w-auto object-contain"
+            />
           </div>
-          <CardTitle className="text-2xl">Gente Networking</CardTitle>
-          <CardDescription>Conectando pessoas, gerando negócios</CardDescription>
+          <CardTitle className="text-2xl text-primary">Gente Networking</CardTitle>
+          <CardDescription className="text-secondary-foreground">Conectando pessoas, gerando negócios</CardDescription>
         </CardHeader>
         <CardContent className="text-center space-y-6">
           {valid && invitation ? (
@@ -73,12 +77,12 @@ export default function ConvitePublico() {
                 </p>
               </div>
 
-              <Button className="w-full" size="lg" onClick={handleAccept}>
+              <Button className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground" size="lg" onClick={handleAccept}>
                 Aceitar Convite e Criar Conta
               </Button>
 
               <p className="text-xs text-muted-foreground">
-                Código do convite: <code className="font-mono">{code}</code>
+                Código do convite: <code className="font-mono bg-muted px-1 py-0.5 rounded">{code}</code>
               </p>
             </>
           ) : (
@@ -97,7 +101,7 @@ export default function ConvitePublico() {
                 Entre em contato com quem te enviou o convite para obter um novo código.
               </p>
 
-              <Button variant="outline" onClick={() => navigate('/auth')}>
+              <Button variant="outline" onClick={() => navigate('/auth')} className="border-primary text-primary hover:bg-primary/10">
                 Ir para Login
               </Button>
             </>
