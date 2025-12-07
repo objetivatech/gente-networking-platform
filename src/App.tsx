@@ -11,7 +11,11 @@ import Profile from "./pages/Profile";
 import GenteEmAcao from "./pages/GenteEmAcao";
 import Depoimentos from "./pages/Depoimentos";
 import Negocios from "./pages/Negocios";
+import Indicacoes from "./pages/Indicacoes";
 import Equipes from "./pages/Equipes";
+import Encontros from "./pages/Encontros";
+import Estatisticas from "./pages/Estatisticas";
+import Admin from "./pages/Admin";
 import Placeholder from "./pages/Placeholder";
 import NotFound from "./pages/NotFound";
 
@@ -29,15 +33,15 @@ const App = () => (
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
-              <Route path="/estatisticas" element={<Placeholder />} />
+              <Route path="/estatisticas" element={<Estatisticas />} />
               <Route path="/gente-em-acao" element={<GenteEmAcao />} />
               <Route path="/depoimentos" element={<Depoimentos />} />
               <Route path="/negocios" element={<Negocios />} />
-              <Route path="/indicacoes" element={<Placeholder />} />
+              <Route path="/indicacoes" element={<Indicacoes />} />
               <Route path="/equipes" element={<Equipes />} />
-              <Route path="/encontros" element={<Placeholder />} />
+              <Route path="/encontros" element={<Encontros />} />
               <Route path="/conteudos" element={<Placeholder />} />
-              <Route path="/admin" element={<Placeholder />} />
+              <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
