@@ -109,18 +109,18 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      <Card className="w-full max-w-md animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
             <img 
               src={logoGente} 
               alt="Gente Networking" 
-              className="w-32 h-auto mx-auto"
+              className="w-36 h-auto mx-auto"
             />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-[#1e3a5f]">Gente Networking</CardTitle>
+            <CardTitle className="text-2xl font-bold text-primary">Gente Networking</CardTitle>
             <CardDescription className="text-muted-foreground">
               Conectando pessoas, gerando negócios
             </CardDescription>
