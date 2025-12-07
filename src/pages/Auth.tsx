@@ -87,10 +87,10 @@ export default function Auth() {
     if (!validateForm(true)) return;
     
     setLoading(true);
-    const { error } = await signUp(email, password, fullName);
-    setLoading(false);
-
+    const { error, data } = await signUp(email, password, fullName);
+    
     if (error) {
+      setLoading(false);
       let message = 'Erro ao cadastrar';
       if (error.message.includes('User already registered')) {
         message = 'Este email já está cadastrado';
@@ -100,12 +100,29 @@ export default function Auth() {
         description: message,
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Cadastro realizado!',
-        description: 'Verifique seu email para confirmar a conta',
-      });
+      return;
     }
+
+    // Check if there's an invitation code to accept
+    const inviteCode = localStorage.getItem('invite_code');
+    if (inviteCode && data?.user?.id) {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase.rpc('accept_invitation', { 
+          _code: inviteCode, 
+          _user_id: data.user.id 
+        });
+        localStorage.removeItem('invite_code');
+      } catch (err) {
+        console.error('Failed to accept invitation:', err);
+      }
+    }
+    
+    setLoading(false);
+    toast({
+      title: 'Cadastro realizado!',
+      description: 'Verifique seu email para confirmar a conta',
+    });
   };
 
   return (
