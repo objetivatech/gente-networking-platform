@@ -18,6 +18,9 @@ import Estatisticas from "./pages/Estatisticas";
 import Admin from "./pages/Admin";
 import Conteudos from "./pages/Conteudos";
 import Ranking from "./pages/Ranking";
+import Convites from "./pages/Convites";
+import ConvitePublico from "./pages/ConvitePublico";
+import Documentacao from "./pages/Documentacao";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +34,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/convite/:code" element={<ConvitePublico />} />
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
@@ -43,6 +47,8 @@ const App = () => (
               <Route path="/encontros" element={<Encontros />} />
               <Route path="/conteudos" element={<Conteudos />} />
               <Route path="/ranking" element={<Ranking />} />
+              <Route path="/convites" element={<Convites />} />
+              <Route path="/documentacao" element={<Documentacao />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
