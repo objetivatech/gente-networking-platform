@@ -44,6 +44,7 @@ const menuItems = [
 ];
 
 const adminItems = [
+  { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
   { icon: Settings, label: 'Admin', path: '/admin' },
 ];
 
