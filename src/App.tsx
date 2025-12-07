@@ -16,7 +16,7 @@ import Equipes from "./pages/Equipes";
 import Encontros from "./pages/Encontros";
 import Estatisticas from "./pages/Estatisticas";
 import Admin from "./pages/Admin";
-import Placeholder from "./pages/Placeholder";
+import Conteudos from "./pages/Conteudos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,7 +40,7 @@ const App = () => (
               <Route path="/indicacoes" element={<Indicacoes />} />
               <Route path="/equipes" element={<Equipes />} />
               <Route path="/encontros" element={<Encontros />} />
-              <Route path="/conteudos" element={<Placeholder />} />
+              <Route path="/conteudos" element={<Conteudos />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
