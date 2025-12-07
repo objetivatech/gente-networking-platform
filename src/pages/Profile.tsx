@@ -1,0 +1,306 @@
+import { useState } from 'react';
+import { useProfile } from '@/hooks/useProfile';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import RankBadge from '@/components/RankBadge';
+import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram } from 'lucide-react';
+
+export default function Profile() {
+  const { profile, isLoading, updateProfile, isUpdating } = useProfile();
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    company: '',
+    position: '',
+    phone: '',
+    bio: '',
+    linkedin_url: '',
+    instagram_url: '',
+    website_url: '',
+  });
+
+  const handleEdit = () => {
+    if (profile) {
+      setFormData({
+        full_name: profile.full_name || '',
+        company: profile.company || '',
+        position: profile.position || '',
+        phone: profile.phone || '',
+        bio: profile.bio || '',
+        linkedin_url: profile.linkedin_url || '',
+        instagram_url: profile.instagram_url || '',
+        website_url: profile.website_url || '',
+      });
+    }
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    updateProfile(formData);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
+
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Meu Perfil</h1>
+          <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+        </div>
+        {!isEditing ? (
+          <Button onClick={handleEdit}>Editar Perfil</Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleCancel}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Salvar
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Card do Perfil */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Avatar e Rank */}
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="h-32 w-32 border-4 border-primary/20">
+                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                  {getInitials(profile?.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              {profile && <RankBadge rank={profile.rank} size="lg" />}
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Pontos</p>
+                <p className="text-2xl font-bold text-primary">{profile?.points || 0}</p>
+              </div>
+            </div>
+
+            {/* Dados */}
+            <div className="flex-1 space-y-4">
+              {isEditing ? (
+                <>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="full_name">Nome Completo</Label>
+                      <Input
+                        id="full_name"
+                        value={formData.full_name}
+                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Telefone</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="(11) 99999-9999"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="company">Empresa</Label>
+                      <Input
+                        id="company"
+                        value={formData.company}
+                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="position">Cargo</Label>
+                      <Input
+                        id="position"
+                        value={formData.position}
+                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Bio</Label>
+                    <Textarea
+                      id="bio"
+                      value={formData.bio}
+                      onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                      placeholder="Conte um pouco sobre você..."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin_url">LinkedIn</Label>
+                      <Input
+                        id="linkedin_url"
+                        value={formData.linkedin_url}
+                        onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                        placeholder="https://linkedin.com/in/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="instagram_url">Instagram</Label>
+                      <Input
+                        id="instagram_url"
+                        value={formData.instagram_url}
+                        onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
+                        placeholder="@usuario"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="website_url">Website</Label>
+                      <Input
+                        id="website_url"
+                        value={formData.website_url}
+                        onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <h2 className="text-2xl font-bold">{profile?.full_name}</h2>
+                    {profile?.position && profile?.company && (
+                      <p className="text-muted-foreground">
+                        {profile.position} na {profile.company}
+                      </p>
+                    )}
+                  </div>
+
+                  {profile?.bio && (
+                    <p className="text-foreground/80">{profile.bio}</p>
+                  )}
+
+                  <div className="flex flex-wrap gap-4 pt-2">
+                    {profile?.email && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Mail className="w-4 h-4" />
+                        <span>{profile.email}</span>
+                      </div>
+                    )}
+                    {profile?.phone && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="w-4 h-4" />
+                        <span>{profile.phone}</span>
+                      </div>
+                    )}
+                    {profile?.company && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Building className="w-4 h-4" />
+                        <span>{profile.company}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    {profile?.linkedin_url && (
+                      <a
+                        href={profile.linkedin_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
+                      >
+                        <Linkedin className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile?.instagram_url && (
+                      <a
+                        href={`https://instagram.com/${profile.instagram_url.replace('@', '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
+                      >
+                        <Instagram className="w-5 h-5" />
+                      </a>
+                    )}
+                    {profile?.website_url && (
+                      <a
+                        href={profile.website_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"
+                      >
+                        <Globe className="w-5 h-5" />
+                      </a>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Estatísticas do Membro */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Minhas Estatísticas</CardTitle>
+          <CardDescription>Resumo das suas atividades na comunidade</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="text-center p-4 rounded-lg bg-muted">
+              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-sm text-muted-foreground">Presenças</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-muted">
+              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-sm text-muted-foreground">Gente em Ação</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-muted">
+              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-sm text-muted-foreground">Depoimentos</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-muted">
+              <p className="text-2xl font-bold text-primary">R$ 0</p>
+              <p className="text-sm text-muted-foreground">Em Negócios</p>
+            </div>
+            <div className="text-center p-4 rounded-lg bg-muted">
+              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-sm text-muted-foreground">Indicações</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
