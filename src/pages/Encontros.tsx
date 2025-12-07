@@ -141,10 +141,10 @@ export default function Encontros() {
                 </div>
                 <div className="space-y-2">
                   <Label>Equipe (opcional)</Label>
-                  <Select value={formData.team_id} onValueChange={(v) => setFormData({ ...formData, team_id: v })}>
+                  <Select value={formData.team_id || "all"} onValueChange={(v) => setFormData({ ...formData, team_id: v === "all" ? "" : v })}>
                     <SelectTrigger><SelectValue placeholder="Todas as equipes" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Todas as equipes</SelectItem>
+                      <SelectItem value="all">Todas as equipes</SelectItem>
                       {teams?.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
