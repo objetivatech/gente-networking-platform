@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTeams } from '@/hooks/useTeams';
 import { useMembers } from '@/hooks/useMembers';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useAdminTeams, useAdmin, useAdminRoles, useGuestAttendance } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +23,122 @@ import { format, isFuture, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const TEAM_COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
+
+// Componente para filtrar usuários por role
+function UserListWithFilter({ members, getInitials }: { members: any[] | undefined; getInitials: (name: string) => string }) {
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  
+  // Buscar roles dos membros
+  const { data: userRoles } = useQuery({
+    queryKey: ['all-user-roles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const getRoleForUser = (userId: string) => {
+    return userRoles?.find(r => r.user_id === userId)?.role || 'convidado';
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-300';
+      case 'facilitador': return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'membro': return 'bg-blue-100 text-blue-800 border-blue-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const filteredMembers = members?.filter(member => {
+    if (roleFilter === 'all') return true;
+    return getRoleForUser(member.id) === roleFilter;
+  }) || [];
+
+  const roleCounts = {
+    all: members?.length || 0,
+    admin: members?.filter(m => getRoleForUser(m.id) === 'admin').length || 0,
+    facilitador: members?.filter(m => getRoleForUser(m.id) === 'facilitador').length || 0,
+    membro: members?.filter(m => getRoleForUser(m.id) === 'membro').length || 0,
+    convidado: members?.filter(m => getRoleForUser(m.id) === 'convidado').length || 0,
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2">
+        <Button 
+          variant={roleFilter === 'all' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setRoleFilter('all')}
+        >
+          Todos ({roleCounts.all})
+        </Button>
+        <Button 
+          variant={roleFilter === 'admin' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setRoleFilter('admin')}
+        >
+          Admin ({roleCounts.admin})
+        </Button>
+        <Button 
+          variant={roleFilter === 'facilitador' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setRoleFilter('facilitador')}
+        >
+          Facilitador ({roleCounts.facilitador})
+        </Button>
+        <Button 
+          variant={roleFilter === 'membro' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setRoleFilter('membro')}
+        >
+          Membro ({roleCounts.membro})
+        </Button>
+        <Button 
+          variant={roleFilter === 'convidado' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setRoleFilter('convidado')}
+        >
+          Convidado ({roleCounts.convidado})
+        </Button>
+      </div>
+
+      {!filteredMembers.length ? (
+        <p className="text-center py-8 text-muted-foreground">Nenhum usuário encontrado</p>
+      ) : (
+        <div className="space-y-2">
+          {filteredMembers.map((member) => {
+            const role = getRoleForUser(member.id);
+            return (
+              <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={member.avatar_url || ''} />
+                    <AvatarFallback>{getInitials(member.full_name)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{member.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{member.email}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {member.company && (
+                    <span className="text-sm text-muted-foreground hidden sm:inline">{member.company}</span>
+                  )}
+                  <Badge className={getRoleBadgeColor(role)}>{role}</Badge>
+                  <Badge variant="secondary">{member.rank || 'iniciante'}</Badge>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Componente para linha de membro na equipe
 function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMember, getInitials }: any) {
@@ -383,37 +501,12 @@ export default function Admin() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  Todos os Membros
+                  Todos os Usuários
                 </CardTitle>
                 <CardDescription>Visualize e gerencie os roles de todos os usuários</CardDescription>
               </CardHeader>
               <CardContent>
-                {!members?.length ? (
-                  <p className="text-center py-8 text-muted-foreground">Nenhum membro cadastrado</p>
-                ) : (
-                  <div className="space-y-2">
-                    {members.map((member) => (
-                      <div key={member.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                            <AvatarImage src={member.avatar_url || ''} />
-                            <AvatarFallback>{getInitials(member.full_name)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{member.full_name}</p>
-                            <p className="text-xs text-muted-foreground">{member.email}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {member.company && (
-                            <span className="text-sm text-muted-foreground hidden sm:inline">{member.company}</span>
-                          )}
-                          <Badge variant="secondary">{member.rank || 'iniciante'}</Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <UserListWithFilter members={members} getInitials={getInitials} />
               </CardContent>
             </Card>
           </TabsContent>
