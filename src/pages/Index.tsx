@@ -5,6 +5,7 @@ import { useMeetings } from '@/hooks/useMeetings';
 import { useAdmin } from '@/hooks/useAdmin';
 import RankBadge from '@/components/RankBadge';
 import ActivityFeed from '@/components/ActivityFeed';
+import ScoringRulesCard from '@/components/ScoringRulesCard';
 import GuestWelcome from '@/pages/GuestWelcome';
 import {
   Handshake,
@@ -154,7 +155,7 @@ export default function Index() {
         </Card>
       </div>
 
-      {/* Destaques - Ranking */}
+      {/* Sistema de Pontuação */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -165,7 +166,7 @@ export default function Index() {
             Acumule pontos e suba de rank participando da comunidade
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <RankBadge rank="iniciante" size="lg" />
@@ -188,16 +189,7 @@ export default function Index() {
               <p className="text-xs text-muted-foreground mt-2">1000+ pts</p>
             </div>
           </div>
-          <div className="mt-4 p-4 bg-primary/5 rounded-lg">
-            <h4 className="font-medium text-sm mb-2">Como ganhar pontos:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• <strong>Gente em Ação:</strong> 10 pontos por reunião</li>
-              <li>• <strong>Depoimentos:</strong> 15 pontos cada</li>
-              <li>• <strong>Indicações:</strong> 20 pontos cada</li>
-              <li>• <strong>Presenças:</strong> 25 pontos por encontro</li>
-              <li>• <strong>Negócios:</strong> 1 ponto por R$ 100</li>
-            </ul>
-          </div>
+          <ScoringRulesCard compact />
         </CardContent>
       </Card>
     </div>

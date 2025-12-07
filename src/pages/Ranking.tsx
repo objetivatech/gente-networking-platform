@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRanking } from '@/hooks/useRanking';
 import { useTeams } from '@/hooks/useTeams';
 import RankBadge from '@/components/RankBadge';
+import ScoringRulesCard from '@/components/ScoringRulesCard';
 import { Trophy, Medal, Award, Crown, Star } from 'lucide-react';
 
 export default function Ranking() {
@@ -211,6 +212,9 @@ export default function Ranking() {
           )}
         </CardContent>
       </Card>
+
+      {/* Regras de Pontuação */}
+      <ScoringRulesCard />
     </div>
   );
 }

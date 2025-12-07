@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { Loader2 } from 'lucide-react';
@@ -8,6 +9,9 @@ import { Loader2 } from 'lucide-react';
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
+  
+  // Scroll to top on route change
+  useScrollToTop();
 
   if (loading) {
     return (

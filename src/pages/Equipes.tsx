@@ -141,30 +141,44 @@ export default function Equipes() {
                         <UserCheck className="w-4 h-4" /> Membros
                       </h4>
                       <div className="grid grid-cols-1 gap-2">
-                        {members.map((member) => (
-                          <div
-                            key={member.id}
-                            className="flex items-center gap-3 p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                          >
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={member.profile.avatar_url || ''} />
-                              <AvatarFallback className="text-xs">
-                                {getInitials(member.profile.full_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">
-                                {member.profile.full_name}
-                              </p>
-                              {member.profile.company && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {member.profile.company}
-                                </p>
-                              )}
+                        {members.map((member) => {
+                          const isGuest = member.role === 'convidado';
+                          return (
+                            <div
+                              key={member.id}
+                              className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${
+                                isGuest 
+                                  ? 'bg-secondary/10 border border-secondary/20' 
+                                  : 'bg-muted/50 hover:bg-muted'
+                              }`}
+                            >
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={member.profile.avatar_url || ''} />
+                                <AvatarFallback className="text-xs">
+                                  {getInitials(member.profile.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-sm truncate">
+                                    {member.profile.full_name}
+                                  </p>
+                                  {isGuest && (
+                                    <Badge variant="outline" className="text-xs text-secondary border-secondary">
+                                      Convidado
+                                    </Badge>
+                                  )}
+                                </div>
+                                {member.profile.company && (
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    {member.profile.company}
+                                  </p>
+                                )}
+                              </div>
+                              <RankBadge rank={member.profile.rank} size="sm" showLabel={false} />
                             </div>
-                            <RankBadge rank={member.profile.rank} size="sm" showLabel={false} />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
