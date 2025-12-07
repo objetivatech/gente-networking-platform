@@ -40,10 +40,11 @@ const menuItems = [
   { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos' },
   { icon: UserPlus, label: 'Convites', path: '/convites' },
   { icon: BookOpen, label: 'Documentação', path: '/documentacao' },
+  { icon: Settings, label: 'Configurações', path: '/configuracoes' },
 ];
 
 const adminItems = [
-  { icon: Settings, label: 'Configurações', path: '/admin' },
+  { icon: Settings, label: 'Admin', path: '/admin' },
 ];
 
 export default function Sidebar({ open, onClose }: SidebarProps) {

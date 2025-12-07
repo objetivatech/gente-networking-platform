@@ -21,6 +21,7 @@ import Ranking from "./pages/Ranking";
 import Convites from "./pages/Convites";
 import ConvitePublico from "./pages/ConvitePublico";
 import Documentacao from "./pages/Documentacao";
+import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/ranking" element={<Ranking />} />
               <Route path="/convites" element={<Convites />} />
               <Route path="/documentacao" element={<Documentacao />} />
+              <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
