@@ -212,3 +212,50 @@ export function useAdminRoles() {
     demoteToGuest 
   };
 }
+
+// Hook para gerenciar presença de convidados em encontros
+export function useGuestAttendance() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Buscar todas as presenças
+  const { data: attendances } = useQuery({
+    queryKey: ['all-attendances'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('attendances').select('*');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Verificar se um convidado já está presente em um encontro
+  const isGuestAttending = (guestId: string, meetingId: string) => {
+    return attendances?.some(a => a.user_id === guestId && a.meeting_id === meetingId) || false;
+  };
+
+  // Registrar presença de convidado
+  const registerGuestAttendance = useMutation({
+    mutationFn: async ({ guestId, meetingId }: { guestId: string; meetingId: string }) => {
+      const { error } = await supabase
+        .from('attendances')
+        .insert({ user_id: guestId, meeting_id: meetingId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-attendances'] });
+      queryClient.invalidateQueries({ queryKey: ['meetings'] });
+      queryClient.invalidateQueries({ queryKey: ['meeting-attendees'] });
+      toast({ title: 'Sucesso!', description: 'Presença do convidado registrada' });
+    },
+    onError: (e: any) => {
+      const msg = e.message?.includes('duplicate') ? 'Convidado já está presente neste encontro' : 'Erro ao registrar presença';
+      toast({ title: 'Erro', description: msg, variant: 'destructive' });
+    },
+  });
+
+  return { 
+    attendances,
+    isGuestAttending, 
+    registerGuestAttendance 
+  };
+}
