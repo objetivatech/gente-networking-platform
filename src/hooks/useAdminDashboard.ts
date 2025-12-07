@@ -14,6 +14,8 @@ export function useAdminDashboard() {
         { count: totalTestimonials },
         { count: totalReferrals },
         { count: totalGenteEmAcao },
+        { count: totalInvitations },
+        { data: invitationsData },
       ] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('teams').select('*', { count: 'exact', head: true }),
@@ -21,9 +23,12 @@ export function useAdminDashboard() {
         supabase.from('testimonials').select('*', { count: 'exact', head: true }),
         supabase.from('referrals').select('*', { count: 'exact', head: true }),
         supabase.from('gente_em_acao').select('*', { count: 'exact', head: true }),
+        supabase.from('invitations').select('*', { count: 'exact', head: true }),
+        supabase.from('invitations').select('status'),
       ]);
 
       const totalBusinessValue = dealsData?.reduce((acc, deal) => acc + Number(deal.value), 0) || 0;
+      const acceptedInvitations = invitationsData?.filter(i => i.status === 'accepted').length || 0;
 
       return {
         totalMembers: totalMembers || 0,
@@ -32,6 +37,8 @@ export function useAdminDashboard() {
         totalTestimonials: totalTestimonials || 0,
         totalReferrals: totalReferrals || 0,
         totalGenteEmAcao: totalGenteEmAcao || 0,
+        totalInvitations: totalInvitations || 0,
+        acceptedInvitations,
       };
     },
   });
@@ -142,6 +149,73 @@ export function useAdminDashboard() {
     },
   });
 
+  // Métricas de convites por membro
+  const { data: invitationMetrics } = useQuery({
+    queryKey: ['admin-invitation-metrics'],
+    queryFn: async () => {
+      // Buscar todos os convites com informações do inviter
+      const { data: invitations } = await supabase
+        .from('invitations')
+        .select('invited_by, status, accepted_by');
+
+      if (!invitations) return [];
+
+      // Agrupar por invited_by
+      const metricsMap = new Map<string, { invited: number; accepted: number; attendedMeeting: number }>();
+
+      invitations.forEach(inv => {
+        const current = metricsMap.get(inv.invited_by) || { invited: 0, accepted: 0, attendedMeeting: 0 };
+        current.invited++;
+        if (inv.status === 'accepted') {
+          current.accepted++;
+        }
+        metricsMap.set(inv.invited_by, current);
+      });
+
+      // Buscar presenças de convidados que compareceram a encontros
+      const acceptedInvitations = invitations.filter(i => i.status === 'accepted' && i.accepted_by);
+      const acceptedUserIds = acceptedInvitations.map(i => i.accepted_by).filter(Boolean);
+
+      if (acceptedUserIds.length > 0) {
+        const { data: attendances } = await supabase
+          .from('attendances')
+          .select('user_id')
+          .in('user_id', acceptedUserIds as string[]);
+
+        if (attendances) {
+          const attendedUserIds = new Set(attendances.map(a => a.user_id));
+          
+          acceptedInvitations.forEach(inv => {
+            if (inv.accepted_by && attendedUserIds.has(inv.accepted_by)) {
+              const current = metricsMap.get(inv.invited_by);
+              if (current) {
+                current.attendedMeeting++;
+                metricsMap.set(inv.invited_by, current);
+              }
+            }
+          });
+        }
+      }
+
+      // Buscar nomes dos membros
+      const userIds = Array.from(metricsMap.keys());
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, company')
+        .in('id', userIds);
+
+      const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+      return Array.from(metricsMap.entries())
+        .map(([userId, metrics]) => ({
+          userId,
+          profile: profilesMap.get(userId),
+          ...metrics,
+        }))
+        .sort((a, b) => b.accepted - a.accepted);
+    },
+  });
+
   return {
     stats,
     loadingStats,
@@ -150,5 +224,6 @@ export function useAdminDashboard() {
     topMembers,
     recentActivity,
     loadingActivity,
+    invitationMetrics,
   };
 }

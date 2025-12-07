@@ -1,4 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import {
+  magicLinkEmailTemplate,
+  passwordResetEmailTemplate,
+  confirmEmailTemplate,
+} from "../_shared/email-templates.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -10,7 +15,13 @@ const corsHeaders = {
 interface EmailRequest {
   to: string;
   subject: string;
-  html: string;
+  html?: string;
+  template?: "magic_link" | "password_reset" | "confirm_email";
+  template_data?: {
+    name?: string;
+    link?: string;
+    otp?: string;
+  };
   from?: string;
 }
 
@@ -20,7 +31,34 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { to, subject, html, from }: EmailRequest = await req.json();
+    const { to, subject, html: providedHtml, template, template_data, from }: EmailRequest = await req.json();
+
+    let html = providedHtml;
+
+    // Use template if specified
+    if (template && template_data) {
+      const name = template_data.name || "Usuário";
+      const link = template_data.link || "";
+
+      switch (template) {
+        case "magic_link":
+          html = magicLinkEmailTemplate(name, link, template_data.otp);
+          break;
+        case "password_reset":
+          html = passwordResetEmailTemplate(name, link);
+          break;
+        case "confirm_email":
+          html = confirmEmailTemplate(name, link);
+          break;
+      }
+    }
+
+    if (!html) {
+      return new Response(JSON.stringify({ error: "No HTML content or template provided" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
