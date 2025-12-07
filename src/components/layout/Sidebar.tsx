@@ -14,6 +14,8 @@ import {
   LogOut,
   X,
   Trophy,
+  UserPlus,
+  BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,6 +38,8 @@ const menuItems = [
   { icon: Users, label: 'Equipes', path: '/equipes' },
   { icon: Calendar, label: 'Encontros', path: '/encontros' },
   { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos' },
+  { icon: UserPlus, label: 'Convites', path: '/convites' },
+  { icon: BookOpen, label: 'Documentação', path: '/documentacao' },
 ];
 
 const adminItems = [

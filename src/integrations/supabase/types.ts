@@ -181,6 +181,48 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          code: string
+          created_at: string
+          email: string | null
+          expires_at: string
+          id: string
+          invited_by: string
+          metadata: Json | null
+          name: string | null
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          code: string
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          invited_by: string
+          metadata?: Json | null
+          name?: string | null
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          code?: string
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          metadata?: Json | null
+          name?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       meetings: {
         Row: {
           created_at: string | null
@@ -421,6 +463,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: {
+        Args: { _code: string; _user_id: string }
+        Returns: Json
+      }
       add_activity_feed: {
         Args: {
           _activity_type: string
