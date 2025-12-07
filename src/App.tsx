@@ -22,6 +22,7 @@ import Convites from "./pages/Convites";
 import ConvitePublico from "./pages/ConvitePublico";
 import Documentacao from "./pages/Documentacao";
 import Configuracoes from "./pages/Configuracoes";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/convites" element={<Convites />} />
               <Route path="/documentacao" element={<Documentacao />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
+              <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/admin" element={<Admin />} />
             </Route>
             <Route path="*" element={<NotFound />} />
