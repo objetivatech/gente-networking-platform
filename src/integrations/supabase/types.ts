@@ -151,6 +151,7 @@ export type Database = {
           guest_company: string | null
           guest_name: string | null
           id: string
+          image_url: string | null
           meeting_date: string
           meeting_type: string
           notes: string | null
@@ -162,6 +163,7 @@ export type Database = {
           guest_company?: string | null
           guest_name?: string | null
           id?: string
+          image_url?: string | null
           meeting_date: string
           meeting_type: string
           notes?: string | null
@@ -173,6 +175,7 @@ export type Database = {
           guest_company?: string | null
           guest_name?: string | null
           id?: string
+          image_url?: string | null
           meeting_date?: string
           meeting_type?: string
           notes?: string | null

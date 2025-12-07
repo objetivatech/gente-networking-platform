@@ -13,6 +13,7 @@ export interface GenteEmAcao {
   notes: string | null;
   meeting_date: string;
   created_at: string;
+  image_url: string | null;
   partner?: { full_name: string; company: string | null; avatar_url: string | null } | null;
 }
 
@@ -23,6 +24,7 @@ export interface CreateGenteEmAcaoInput {
   guest_company?: string;
   notes?: string;
   meeting_date: string;
+  image_url?: string;
 }
 
 export function useGenteEmAcao() {
@@ -73,6 +75,7 @@ export function useGenteEmAcao() {
         guest_company: input.meeting_type === 'convidado' ? input.guest_company : null,
         notes: input.notes,
         meeting_date: input.meeting_date,
+        image_url: input.image_url || null,
       }).select().single();
       if (error) throw error;
       return data;
