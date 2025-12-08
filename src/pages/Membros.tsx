@@ -1,14 +1,13 @@
 /**
  * @page Membros
  * @route /membros
- * @description Diretório de membros para consulta de perfis
+ * @description Diretório de membros para consulta de perfis, organizado por equipes
  * 
  * @features
- * - Lista de membros com busca
- * - Visualização de perfis
- * - Filtro por nome e empresa
- * - Cards com informações básicas
- * - Modal com perfil completo
+ * - Lista de membros agrupados por equipe
+ * - Busca por nome, empresa e segmento
+ * - Visualização de perfis completos
+ * - Excluí convidados automaticamente
  * 
  * @access Apenas membros (não convidados)
  * @since 2024-12-08
@@ -16,15 +15,16 @@
 
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useMembers } from '@/hooks/useMembers';
+import { useMembers, Member, MembersByTeam } from '@/hooks/useMembers';
 import { useAdmin } from '@/hooks/useAdmin';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import RankBadge from '@/components/RankBadge';
 import { 
   Users, 
@@ -37,7 +37,9 @@ import {
   Instagram,
   Briefcase,
   User,
-  ExternalLink
+  ExternalLink,
+  ChevronDown,
+  UsersRound
 } from 'lucide-react';
 
 interface MemberProfile {
@@ -55,6 +57,8 @@ interface MemberProfile {
   business_segment: string | null;
   points: number | null;
   rank: string | null;
+  team_name?: string | null;
+  team_color?: string | null;
 }
 
 function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewProfile: () => void }) {
@@ -152,6 +156,20 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
           )}
         </div>
       </div>
+
+      {/* Equipe */}
+      {member.team_name && (
+        <div>
+          <h4 className="text-sm font-medium text-muted-foreground mb-1">Equipe</h4>
+          <Badge 
+            variant="outline" 
+            style={{ borderColor: member.team_color || undefined, color: member.team_color || undefined }}
+          >
+            <UsersRound className="h-3 w-3 mr-1" />
+            {member.team_name}
+          </Badge>
+        </div>
+      )}
 
       {/* Segmento */}
       {member.business_segment && (
@@ -256,25 +274,87 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
   );
 }
 
-export default function Membros() {
-  const { members, isLoading } = useMembers();
-  const { isGuest, isLoading: isLoadingRole } = useAdmin();
-  const [search, setSearch] = useState('');
-  const [selectedMember, setSelectedMember] = useState<MemberProfile | null>(null);
+function TeamSection({ team, search }: { team: MembersByTeam; search: string }) {
+  const [isOpen, setIsOpen] = useState(true);
 
-  // Convidados não têm acesso
-  if (!isLoadingRole && isGuest) {
-    return <Navigate to="/" replace />;
-  }
-
-  const filteredMembers = members?.filter(member => {
+  const filteredMembers = team.members.filter(member => {
+    if (!search) return true;
     const searchLower = search.toLowerCase();
     return (
       member.full_name.toLowerCase().includes(searchLower) ||
       member.company?.toLowerCase().includes(searchLower) ||
       member.business_segment?.toLowerCase().includes(searchLower)
     );
-  }) || [];
+  });
+
+  if (filteredMembers.length === 0) return null;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <CollapsibleTrigger asChild>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-between h-auto py-3 px-4 mb-2"
+        >
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: team.team_color }}
+            />
+            <span className="font-semibold text-lg">{team.team_name}</span>
+            <Badge variant="secondary" className="ml-2">
+              {filteredMembers.length} {filteredMembers.length === 1 ? 'membro' : 'membros'}
+            </Badge>
+          </div>
+          <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pb-6">
+          {filteredMembers.map(member => (
+            <Dialog key={member.id}>
+              <DialogTrigger asChild>
+                <div>
+                  <MemberCard 
+                    member={member as MemberProfile} 
+                    onViewProfile={() => {}} 
+                  />
+                </div>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Perfil do Membro</DialogTitle>
+                </DialogHeader>
+                <MemberProfileModal member={member as MemberProfile} />
+              </DialogContent>
+            </Dialog>
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+export default function Membros() {
+  const { members, membersByTeam, isLoading } = useMembers();
+  const { isGuest, isLoading: isLoadingRole } = useAdmin();
+  const [search, setSearch] = useState('');
+
+  // Convidados não têm acesso
+  if (!isLoadingRole && isGuest) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Count filtered members
+  const filteredCount = members?.filter(member => {
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    return (
+      member.full_name.toLowerCase().includes(searchLower) ||
+      member.company?.toLowerCase().includes(searchLower) ||
+      member.business_segment?.toLowerCase().includes(searchLower)
+    );
+  }).length || 0;
 
   return (
     <div className="space-y-6">
@@ -301,29 +381,32 @@ export default function Membros() {
       {/* Stats */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Briefcase className="h-4 w-4" />
-        <span>{filteredMembers.length} membros encontrados</span>
+        <span>{filteredCount} membros encontrados</span>
       </div>
 
-      {/* Grid de Membros */}
+      {/* Loading State */}
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <Skeleton className="h-14 w-14 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                    <Skeleton className="h-3 w-2/3" />
+        <div className="space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="h-14 w-14 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-1/2" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
                   </div>
-                </div>
-                <Skeleton className="h-8 w-full mt-4" />
-              </CardContent>
-            </Card>
-          ))}
+                  <Skeleton className="h-8 w-full mt-4" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      ) : filteredMembers.length === 0 ? (
+      ) : membersByTeam.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -333,24 +416,9 @@ export default function Membros() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredMembers.map(member => (
-            <Dialog key={member.id}>
-              <DialogTrigger asChild>
-                <div>
-                  <MemberCard 
-                    member={member as MemberProfile} 
-                    onViewProfile={() => setSelectedMember(member as MemberProfile)} 
-                  />
-                </div>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Perfil do Membro</DialogTitle>
-                </DialogHeader>
-                <MemberProfileModal member={member as MemberProfile} />
-              </DialogContent>
-            </Dialog>
+        <div className="space-y-2">
+          {membersByTeam.map(team => (
+            <TeamSection key={team.team_id || 'no-team'} team={team} search={search} />
           ))}
         </div>
       )}
