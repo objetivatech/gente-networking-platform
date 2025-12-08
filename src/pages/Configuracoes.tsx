@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Settings, Mail, Bell, MessageSquare, Send, Calendar, Loader2 } from 'lucide-react';
-
+import { Settings, Mail, Bell, MessageSquare, Send, Calendar, Loader2, Trash2 } from 'lucide-react';
+import { NotificationSettings } from '@/components/NotificationSettings';
+import { clearOfflineData, getOfflineDataSize } from '@/hooks/useOfflineData';
 interface NotificationSettings {
   email_notifications_enabled: boolean;
   notify_on_testimonial: boolean;
@@ -198,6 +199,45 @@ export default function Configuracoes() {
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Salvar configurações
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Push Notifications */}
+      <NotificationSettings />
+
+      {/* Offline Data */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Dados Offline
+          </CardTitle>
+          <CardDescription>
+            Gerencie os dados armazenados localmente para uso offline.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="font-medium">Espaço utilizado</p>
+              <p className="text-sm text-muted-foreground">
+                {getOfflineDataSize()} de dados armazenados
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                clearOfflineData();
+                toast({
+                  title: 'Dados limpos',
+                  description: 'Todos os dados offline foram removidos.',
+                });
+              }}
+            >
+              Limpar cache
             </Button>
           </div>
         </CardContent>
