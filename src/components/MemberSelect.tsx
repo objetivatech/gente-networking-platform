@@ -24,7 +24,7 @@ export default function MemberSelect({
   excludeSelf = true,
 }: MemberSelectProps) {
   const { user } = useAuth();
-  const { data: members, isLoading } = useMembers();
+  const { members, isLoading } = useMembers();
 
   const filteredMembers = excludeSelf
     ? members?.filter((m) => m.id !== user?.id)

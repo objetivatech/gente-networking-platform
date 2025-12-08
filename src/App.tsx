@@ -9,6 +9,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import RedefinirSenha from "./pages/RedefinirSenha";
 import Profile from "./pages/Profile";
 import GenteEmAcao from "./pages/GenteEmAcao";
 import Depoimentos from "./pages/Depoimentos";
@@ -26,6 +27,8 @@ import Documentacao from "./pages/Documentacao";
 import Configuracoes from "./pages/Configuracoes";
 import AdminDashboard from "./pages/AdminDashboard";
 import Instalar from "./pages/Instalar";
+import Membros from "./pages/Membros";
+import Changelog from "./pages/Changelog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,11 +44,13 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/convite/:code" element={<ConvitePublico />} />
             <Route path="/instalar" element={<Instalar />} />
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
+              <Route path="/membros" element={<Membros />} />
               <Route path="/estatisticas" element={<Estatisticas />} />
               <Route path="/gente-em-acao" element={<GenteEmAcao />} />
               <Route path="/depoimentos" element={<Depoimentos />} />
@@ -56,6 +61,7 @@ const App = () => (
               <Route path="/conteudos" element={<Conteudos />} />
               <Route path="/ranking" element={<Ranking />} />
               <Route path="/convites" element={<Convites />} />
+              <Route path="/changelog" element={<Changelog />} />
               <Route path="/documentacao" element={<Documentacao />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="/dashboard" element={<AdminDashboard />} />
