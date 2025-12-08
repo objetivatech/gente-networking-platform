@@ -5,6 +5,7 @@ import { useMembers } from '@/hooks/useMembers';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useAdminTeams, useAdmin, useAdminRoles, useGuestAttendance } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePointsHistory } from '@/hooks/usePointsHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check } from 'lucide-react';
+import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check, RefreshCw } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { format, isFuture, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -237,6 +238,7 @@ export default function Admin() {
   const { data: members } = useMembers();
   const { createTeam, deleteTeam, addMember, removeMember, toggleFacilitator } = useAdminTeams();
   const { guests, loadingGuests, promoteToMember, promoteToFacilitator } = useAdminRoles();
+  const { recalculateAllPoints } = usePointsHistory();
   const [open, setOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', color: '#1e3a5f' });
@@ -296,6 +298,7 @@ export default function Admin() {
         <TabsList>
           <TabsTrigger value="teams">Equipes</TabsTrigger>
           {isAdmin && <TabsTrigger value="users">Usuários</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="system">Sistema</TabsTrigger>}
         </TabsList>
 
         {/* Tab de Equipes */}
@@ -507,6 +510,47 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <UserListWithFilter members={members} getInitials={getInitials} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {/* Tab de Sistema - Apenas Admin */}
+        {isAdmin && (
+          <TabsContent value="system" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5" />
+                  Manutenção do Sistema
+                </CardTitle>
+                <CardDescription>Ferramentas de administração do sistema</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                  <div>
+                    <h3 className="font-medium">Recalcular Pontos</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Recalcula os pontos de todos os usuários baseado nas atividades registradas.
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => recalculateAllPoints.mutate()} 
+                    disabled={recalculateAllPoints.isPending}
+                  >
+                    {recalculateAllPoints.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Recalculando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Recalcular
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
