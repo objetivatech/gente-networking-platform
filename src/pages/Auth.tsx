@@ -1,3 +1,23 @@
+/**
+ * @page Auth
+ * @route /auth
+ * @description Página de autenticação com login, cadastro e recuperação de senha
+ * 
+ * @features
+ * - Login com email/senha
+ * - Cadastro com validação completa (nome, email, WhatsApp, empresa, segmento, senha)
+ * - Máscara automática de telefone brasileiro
+ * - Verificação de email duplicado antes do cadastro
+ * - Confirmação de senha no cadastro
+ * - Indicador visual de força da senha
+ * - Recuperação de senha via email
+ * - Integração com sistema de convites
+ * - Sincronização com RD Station após cadastro
+ * 
+ * @since 2024-12-08
+ * @updated 2024-12-08 - Adicionado recuperação de senha e indicador de força
+ */
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,10 +26,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import logoGente from '@/assets/logo-gente.png';
+import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
@@ -47,8 +69,11 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, resetPassword } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -204,6 +229,50 @@ export default function Auth() {
     });
   };
 
+  /**
+   * Envia email de recuperação de senha
+   */
+  const handleResetPassword = async () => {
+    if (!resetEmail.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Informe seu email',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      z.string().email().parse(resetEmail);
+    } catch {
+      toast({
+        title: 'Erro',
+        description: 'Email inválido',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setResetLoading(true);
+    const { error } = await resetPassword(resetEmail);
+    setResetLoading(false);
+
+    if (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar o email de recuperação',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Email enviado!',
+        description: 'Verifique sua caixa de entrada para redefinir sua senha',
+      });
+      setResetDialogOpen(false);
+      setResetEmail('');
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
@@ -265,6 +334,48 @@ export default function Auth() {
                     'Entrar'
                   )}
                 </Button>
+                
+                <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="link" type="button" className="w-full text-sm text-muted-foreground">
+                      Esqueci minha senha
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Recuperar Senha</DialogTitle>
+                      <DialogDescription>
+                        Informe seu email para receber um link de recuperação de senha.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                        />
+                      </div>
+                      <Button 
+                        onClick={handleResetPassword} 
+                        className="w-full" 
+                        disabled={resetLoading}
+                      >
+                        {resetLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Enviando...
+                          </>
+                        ) : (
+                          'Enviar Link de Recuperação'
+                        )}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </form>
             </TabsContent>
             
@@ -340,6 +451,7 @@ export default function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                  <PasswordStrengthIndicator password={password} />
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
                 <div className="space-y-2">
