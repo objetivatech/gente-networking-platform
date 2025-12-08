@@ -10,6 +10,7 @@ export interface Profile {
   phone: string | null;
   company: string | null;
   position: string | null;
+  business_segment: string | null;
   bio: string | null;
   avatar_url: string | null;
   linkedin_url: string | null;

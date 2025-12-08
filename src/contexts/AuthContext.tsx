@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,7 +7,7 @@ async function syncUserToRDStation(userId: string) {
   try {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('email, full_name, phone, company, position, rd_station_synced_at')
+      .select('email, full_name, phone, company, position, business_segment, rd_station_synced_at')
       .eq('id', userId)
       .single();
 
@@ -24,6 +24,7 @@ async function syncUserToRDStation(userId: string) {
           company: profile.company,
           cf_cargo: profile.position,
           cf_empresa: profile.company,
+          cf_segmento: profile.business_segment,
           tags: ['gente-networking', 'novo-membro'],
         },
       },
@@ -45,7 +46,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null; data: { user: User | null } | null }>;
+  signUp: (email: string, password: string, fullName: string, phone: string, company: string, businessSegment: string) => Promise<{ error: Error | null; data: { user: User | null } | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -90,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error as Error | null };
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string, company: string, businessSegment: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error, data } = await supabase.auth.signUp({
@@ -100,6 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          phone: phone,
+          company: company,
+          business_segment: businessSegment,
         },
       },
     });

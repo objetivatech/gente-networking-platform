@@ -27,6 +27,7 @@ export default function Profile() {
     full_name: '',
     company: '',
     position: '',
+    business_segment: '',
     phone: '',
     bio: '',
     linkedin_url: '',
@@ -40,6 +41,7 @@ export default function Profile() {
         full_name: profile.full_name || '',
         company: profile.company || '',
         position: profile.position || '',
+        business_segment: profile.business_segment || '',
         phone: profile.phone || '',
         bio: profile.bio || '',
         linkedin_url: profile.linkedin_url || '',
@@ -227,7 +229,7 @@ export default function Profile() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Telefone</Label>
+                      <Label htmlFor="phone">WhatsApp</Label>
                       <Input
                         id="phone"
                         value={formData.phone}
@@ -241,6 +243,15 @@ export default function Profile() {
                         id="company"
                         value={formData.company}
                         onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="business_segment">Segmento de Negócio</Label>
+                      <Input
+                        id="business_segment"
+                        value={formData.business_segment}
+                        onChange={(e) => setFormData({ ...formData, business_segment: e.target.value })}
+                        placeholder="Ex: Tecnologia, Advocacia..."
                       />
                     </div>
                     <div className="space-y-2">
