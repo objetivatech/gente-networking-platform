@@ -210,7 +210,7 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
             {canRemove && onRemove && (
               <button 
                 onClick={() => onRemove(a.user_id)} 
-                className="ml-1 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                className="ml-1 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 title="Remover presença"
               >
                 <X className="w-3 h-3" />
