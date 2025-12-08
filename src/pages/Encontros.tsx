@@ -16,7 +16,7 @@ import { format, isPast, isToday, isFuture } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function Encontros() {
-  const { meetings, isLoading, toggleAttendance } = useMeetings();
+  const { meetings, isLoading, toggleAttendance, removeAttendance } = useMeetings();
   const { data: userRole } = useUserRole();
   const { createMeeting, deleteMeeting } = useAdminMeetings();
   const { teams } = useTeams();
@@ -98,7 +98,7 @@ export default function Encontros() {
               )}
             </div>
           </div>
-          {selectedMeeting === meeting.id && <AttendeesList meetingId={meeting.id} />}
+          {selectedMeeting === meeting.id && <AttendeesList meetingId={meeting.id} canRemove={isAdmin} onRemove={(userId) => removeAttendance.mutate({ meetingId: meeting.id, userId })} />}
         </CardContent>
       </Card>
     );
@@ -189,7 +189,7 @@ export default function Encontros() {
   );
 }
 
-function AttendeesList({ meetingId }: { meetingId: string }) {
+function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -201,12 +201,21 @@ function AttendeesList({ meetingId }: { meetingId: string }) {
       <p className="text-sm font-medium mb-2">Confirmados ({attendees.length})</p>
       <div className="flex flex-wrap gap-2">
         {attendees.map((a) => (
-          <div key={a.id} className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted text-sm">
+          <div key={a.id} className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted text-sm group">
             <Avatar className="h-5 w-5">
               <AvatarImage src={a.profile?.avatar_url || ''} />
               <AvatarFallback className="text-[10px]">{getInitials(a.profile?.full_name || 'U')}</AvatarFallback>
             </Avatar>
             <span>{a.profile?.full_name}</span>
+            {canRemove && onRemove && (
+              <button 
+                onClick={() => onRemove(a.user_id)} 
+                className="ml-1 text-muted-foreground hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
+                title="Remover presença"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
           </div>
         ))}
       </div>
