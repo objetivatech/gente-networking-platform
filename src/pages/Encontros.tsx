@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2 } from 'lucide-react';
 import { format, isPast, isToday, isFuture } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 
 export default function Encontros() {
   const { meetings, isLoading, toggleAttendance, removeAttendance } = useMeetings();
@@ -34,11 +35,11 @@ export default function Encontros() {
     setFormData({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '' });
   };
 
-  const upcomingMeetings = meetings?.filter(m => isFuture(new Date(m.meeting_date)) || isToday(new Date(m.meeting_date))) || [];
-  const pastMeetings = meetings?.filter(m => isPast(new Date(m.meeting_date)) && !isToday(new Date(m.meeting_date))) || [];
+  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [];
+  const pastMeetings = meetings?.filter(m => isPast(parseLocalDate(m.meeting_date)) && !isToday(parseLocalDate(m.meeting_date))) || [];
 
   const MeetingCard = ({ meeting }: { meeting: typeof meetings[0] }) => {
-    const isPastMeeting = isPast(new Date(meeting.meeting_date)) && !isToday(new Date(meeting.meeting_date));
+    const isPastMeeting = isPast(parseLocalDate(meeting.meeting_date)) && !isToday(parseLocalDate(meeting.meeting_date));
 
     return (
       <Card className={`transition-all ${isPastMeeting ? 'opacity-70' : 'hover:shadow-md'}`}>
@@ -52,13 +53,13 @@ export default function Encontros() {
                     {meeting.team.name}
                   </Badge>
                 )}
-                {isToday(new Date(meeting.meeting_date)) && <Badge className="bg-primary">Hoje</Badge>}
+                {isToday(parseLocalDate(meeting.meeting_date)) && <Badge className="bg-primary">Hoje</Badge>}
               </div>
               {meeting.description && <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>}
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  {format(new Date(meeting.meeting_date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                  {format(parseLocalDate(meeting.meeting_date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
                 </div>
                 {meeting.meeting_time && (
                   <div className="flex items-center gap-1">

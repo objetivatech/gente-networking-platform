@@ -12,6 +12,7 @@ import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, DollarSign, TrendingUp, Award, Trash2, Calendar, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 import { z } from 'zod';
 
 const formSchema = z.object({
@@ -97,7 +98,7 @@ export default function Negocios() {
             <div className="flex items-center gap-4 mt-3 flex-wrap">
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
-                {format(new Date(deal.deal_date), "dd/MM/yyyy", { locale: ptBR })}
+                {format(parseLocalDate(deal.deal_date), "dd/MM/yyyy", { locale: ptBR })}
               </div>
               {showReferrer && (
                 <div className="flex items-center gap-2 text-sm">

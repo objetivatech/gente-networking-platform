@@ -22,6 +22,7 @@ import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, Use
 import { Navigate } from 'react-router-dom';
 import { format, isFuture, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 
 const TEAM_COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
 
@@ -151,7 +152,7 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
   const isGuest = member.profile?.role === 'convidado';
   
   // Encontros disponíveis (futuros ou hoje)
-  const upcomingMeetings = meetings?.filter(m => isFuture(new Date(m.meeting_date)) || isToday(new Date(m.meeting_date))) || [];
+  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [];
   
   const handleRegisterAttendance = async () => {
     if (!selectedMeeting) return;
@@ -208,7 +209,7 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
                 <SelectItem key={m.id} value={m.id} disabled={isGuestAttending(member.user_id, m.id)}>
                   <div className="flex items-center gap-2">
                     {isGuestAttending(member.user_id, m.id) && <Check className="w-3 h-3 text-green-500" />}
-                    {m.title} - {format(new Date(m.meeting_date), "dd/MM", { locale: ptBR })}
+                    {m.title} - {format(parseLocalDate(m.meeting_date), "dd/MM", { locale: ptBR })}
                   </div>
                 </SelectItem>
               ))}
