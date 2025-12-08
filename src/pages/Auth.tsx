@@ -13,13 +13,26 @@ import logoGente from '@/assets/logo-gente.png';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
+const phoneSchema = z.string().min(10, 'WhatsApp inválido').max(20, 'WhatsApp inválido');
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+  fullName?: string;
+  phone?: string;
+  company?: string;
+  businessSegment?: string;
+}
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [businessSegment, setBusinessSegment] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
@@ -32,7 +45,7 @@ export default function Auth() {
   }, [user, navigate]);
 
   const validateForm = (isSignUp: boolean) => {
-    const newErrors: { email?: string; password?: string; fullName?: string } = {};
+    const newErrors: FormErrors = {};
     
     try {
       emailSchema.parse(email);
@@ -46,8 +59,24 @@ export default function Auth() {
       newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
     }
     
-    if (isSignUp && !fullName.trim()) {
-      newErrors.fullName = 'Nome é obrigatório';
+    if (isSignUp) {
+      if (!fullName.trim()) {
+        newErrors.fullName = 'Nome Completo é obrigatório';
+      }
+      
+      try {
+        phoneSchema.parse(phone.replace(/\D/g, ''));
+      } catch {
+        newErrors.phone = 'WhatsApp inválido';
+      }
+      
+      if (!company.trim()) {
+        newErrors.company = 'Nome da Empresa é obrigatório';
+      }
+      
+      if (!businessSegment.trim()) {
+        newErrors.businessSegment = 'Segmento de Negócio é obrigatório';
+      }
     }
     
     setErrors(newErrors);
@@ -87,7 +116,7 @@ export default function Auth() {
     if (!validateForm(true)) return;
     
     setLoading(true);
-    const { error, data } = await signUp(email, password, fullName);
+    const { error, data } = await signUp(email, password, fullName, phone, company, businessSegment);
     
     if (error) {
       setLoading(false);
@@ -192,7 +221,7 @@ export default function Auth() {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nome Completo</Label>
+                  <Label htmlFor="signup-name">Nome Completo *</Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -204,7 +233,7 @@ export default function Auth() {
                   {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email">Email *</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -216,7 +245,43 @@ export default function Auth() {
                   {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
+                  <Label htmlFor="signup-phone">WhatsApp *</Label>
+                  <Input
+                    id="signup-phone"
+                    type="tel"
+                    placeholder="(11) 99999-9999"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                  />
+                  {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-company">Nome da Empresa *</Label>
+                  <Input
+                    id="signup-company"
+                    type="text"
+                    placeholder="Nome da sua empresa"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    required
+                  />
+                  {errors.company && <p className="text-sm text-destructive">{errors.company}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-segment">Segmento de Negócio *</Label>
+                  <Input
+                    id="signup-segment"
+                    type="text"
+                    placeholder="Ex: Tecnologia, Advocacia, Marketing..."
+                    value={businessSegment}
+                    onChange={(e) => setBusinessSegment(e.target.value)}
+                    required
+                  />
+                  {errors.businessSegment && <p className="text-sm text-destructive">{errors.businessSegment}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Senha *</Label>
                   <Input
                     id="signup-password"
                     type="password"
