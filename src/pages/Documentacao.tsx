@@ -345,6 +345,140 @@ export default function Documentacao() {
           <TabsContent value="dev">
             <ScrollArea className="h-[calc(100vh-300px)]">
               <div className="space-y-6 pr-4">
+                {/* Rotas e Páginas */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5" />
+                      Rotas e Páginas
+                    </CardTitle>
+                    <CardDescription>Mapeamento completo das rotas do sistema</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-2 text-sm">
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/auth</code>
+                        <p className="text-muted-foreground mt-1">Login, cadastro e recuperação de senha</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/</code>
+                        <p className="text-muted-foreground mt-1">Dashboard principal com feed de atividades</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/perfil</code>
+                        <p className="text-muted-foreground mt-1">Perfil do usuário com histórico de pontos</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/ranking</code>
+                        <p className="text-muted-foreground mt-1">Ranking de membros por pontuação</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/gente-em-acao</code>
+                        <p className="text-muted-foreground mt-1">Registro de reuniões 1-a-1</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/depoimentos</code>
+                        <p className="text-muted-foreground mt-1">Envio e visualização de depoimentos</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/indicacoes</code>
+                        <p className="text-muted-foreground mt-1">Indicações de contatos</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/negocios</code>
+                        <p className="text-muted-foreground mt-1">Registro de negócios fechados</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/encontros</code>
+                        <p className="text-muted-foreground mt-1">Calendário de encontros</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/convites</code>
+                        <p className="text-muted-foreground mt-1">Gerenciamento de convites</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/equipes</code>
+                        <p className="text-muted-foreground mt-1">Gestão de equipes (Admin/Facilitador)</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/estatisticas</code>
+                        <p className="text-muted-foreground mt-1">Gráficos e métricas do sistema</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/conteudos</code>
+                        <p className="text-muted-foreground mt-1">Materiais educativos</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/admin</code>
+                        <p className="text-muted-foreground mt-1">Painel administrativo (apenas Admin)</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/configuracoes</code>
+                        <p className="text-muted-foreground mt-1">Configurações e preferências</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/documentacao</code>
+                        <p className="text-muted-foreground mt-1">Esta página de documentação</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/instalar</code>
+                        <p className="text-muted-foreground mt-1">Instruções de instalação PWA</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/convite/:code</code>
+                        <p className="text-muted-foreground mt-1">Página pública de convite</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Componentes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5" />
+                      Componentes Principais
+                    </CardTitle>
+                    <CardDescription>Componentes reutilizáveis do sistema</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-2 text-sm">
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">PasswordStrengthIndicator</code>
+                        <p className="text-muted-foreground mt-1">Indicador visual de força da senha (fraca/média/forte)</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">PointsEvolutionChart</code>
+                        <p className="text-muted-foreground mt-1">Gráfico de evolução de pontos do usuário</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">RankBadge</code>
+                        <p className="text-muted-foreground mt-1">Badge visual do rank do usuário</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">ActivityFeed</code>
+                        <p className="text-muted-foreground mt-1">Feed de atividades em tempo real</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">MemberSelect</code>
+                        <p className="text-muted-foreground mt-1">Seletor de membros reutilizável</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">ScoringRulesCard</code>
+                        <p className="text-muted-foreground mt-1">Exibe regras de pontuação</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">OfflineIndicator</code>
+                        <p className="text-muted-foreground mt-1">Indicador de modo offline</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">PWAInstallPrompt</code>
+                        <p className="text-muted-foreground mt-1">Prompt de instalação PWA</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -372,6 +506,9 @@ export default function Documentacao() {
                       <div className="p-3 rounded-lg bg-muted">
                         <strong>Forms:</strong> React Hook Form + Zod
                       </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <strong>PWA:</strong> vite-plugin-pwa
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -386,19 +523,62 @@ export default function Documentacao() {
                   <CardContent className="space-y-4">
                     <h4 className="font-semibold">Tabelas Principais:</h4>
                     <div className="grid gap-2 text-sm font-mono">
-                      <code className="p-2 rounded bg-muted">profiles</code>
-                      <code className="p-2 rounded bg-muted">user_roles</code>
-                      <code className="p-2 rounded bg-muted">teams</code>
-                      <code className="p-2 rounded bg-muted">team_members</code>
-                      <code className="p-2 rounded bg-muted">meetings</code>
-                      <code className="p-2 rounded bg-muted">attendances</code>
-                      <code className="p-2 rounded bg-muted">gente_em_acao</code>
-                      <code className="p-2 rounded bg-muted">testimonials</code>
-                      <code className="p-2 rounded bg-muted">business_deals</code>
-                      <code className="p-2 rounded bg-muted">referrals</code>
-                      <code className="p-2 rounded bg-muted">activity_feed</code>
-                      <code className="p-2 rounded bg-muted">contents</code>
-                      <code className="p-2 rounded bg-muted">invitations</code>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>profiles</code>
+                        <span className="text-muted-foreground text-xs">Perfis de usuários</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>user_roles</code>
+                        <span className="text-muted-foreground text-xs">Roles (admin, facilitador, membro, convidado)</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>teams</code>
+                        <span className="text-muted-foreground text-xs">Equipes de networking</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>team_members</code>
+                        <span className="text-muted-foreground text-xs">Membros das equipes</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>meetings</code>
+                        <span className="text-muted-foreground text-xs">Encontros quinzenais</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>attendances</code>
+                        <span className="text-muted-foreground text-xs">Presenças em encontros</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>gente_em_acao</code>
+                        <span className="text-muted-foreground text-xs">Reuniões 1-a-1</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>testimonials</code>
+                        <span className="text-muted-foreground text-xs">Depoimentos</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>business_deals</code>
+                        <span className="text-muted-foreground text-xs">Negócios fechados</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>referrals</code>
+                        <span className="text-muted-foreground text-xs">Indicações de contatos</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>activity_feed</code>
+                        <span className="text-muted-foreground text-xs">Feed de atividades</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>contents</code>
+                        <span className="text-muted-foreground text-xs">Conteúdos educativos</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>invitations</code>
+                        <span className="text-muted-foreground text-xs">Convites de membros</span>
+                      </div>
+                      <div className="p-2 rounded bg-muted flex justify-between">
+                        <code>points_history</code>
+                        <span className="text-muted-foreground text-xs">Histórico de pontos</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
