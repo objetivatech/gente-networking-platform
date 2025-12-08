@@ -16,6 +16,8 @@ import {
   Trophy,
   UserPlus,
   BookOpen,
+  History,
+  Contact,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +35,7 @@ interface SidebarProps {
 const menuItems = [
   { icon: Home, label: 'Início', path: '/', roles: undefined },
   { icon: User, label: 'Meu Perfil', path: '/perfil', roles: undefined },
+  { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
   { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Trophy, label: 'Ranking', path: '/ranking', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro'] },
@@ -43,6 +46,7 @@ const menuItems = [
   { icon: Calendar, label: 'Encontros', path: '/encontros', roles: ['admin', 'facilitador', 'membro'] },
   { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos', roles: ['admin', 'facilitador', 'membro'] },
   { icon: UserPlus, label: 'Convites', path: '/convites', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: History, label: 'Changelog', path: '/changelog', roles: ['admin', 'facilitador', 'membro'] },
   { icon: BookOpen, label: 'Documentação', path: '/documentacao', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Settings, label: 'Configurações', path: '/configuracoes', roles: undefined },
 ];

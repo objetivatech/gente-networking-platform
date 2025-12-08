@@ -417,6 +417,39 @@ export type Database = {
         }
         Relationships: []
       }
+      system_changelog: {
+        Row: {
+          category: string | null
+          changes: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          title: string
+          version: string
+        }
+        Insert: {
+          category?: string | null
+          changes?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          title: string
+          version: string
+        }
+        Update: {
+          category?: string | null
+          changes?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          title?: string
+          version?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           id: string

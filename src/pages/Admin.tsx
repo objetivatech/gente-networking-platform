@@ -236,7 +236,7 @@ export default function Admin() {
   const { user } = useAuth();
   const { role, isAdmin, isFacilitator, isLoading: loadingRole } = useAdmin();
   const { teams, isLoading } = useTeams();
-  const { data: members } = useMembers();
+  const { members } = useMembers();
   const { createTeam, deleteTeam, addMember, removeMember, toggleFacilitator } = useAdminTeams();
   const { guests, loadingGuests, promoteToMember, promoteToFacilitator } = useAdminRoles();
   const { recalculateAllPoints } = usePointsHistory();
