@@ -81,12 +81,27 @@ export function useMeetings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meetings'] });
       queryClient.invalidateQueries({ queryKey: ['my-attendances'] });
+      queryClient.invalidateQueries({ queryKey: ['meeting-attendees'] });
       toast({ title: 'Sucesso!', description: 'Presença atualizada' });
     },
     onError: () => { toast({ title: 'Erro', description: 'Erro ao atualizar presença', variant: 'destructive' }); },
   });
 
-  return { meetings, myAttendances, isLoading, toggleAttendance };
+  const removeAttendance = useMutation({
+    mutationFn: async ({ meetingId, userId }: { meetingId: string; userId: string }) => {
+      const { error } = await supabase.from('attendances').delete().eq('meeting_id', meetingId).eq('user_id', userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['meetings'] });
+      queryClient.invalidateQueries({ queryKey: ['my-attendances'] });
+      queryClient.invalidateQueries({ queryKey: ['meeting-attendees'] });
+      toast({ title: 'Sucesso!', description: 'Presença removida' });
+    },
+    onError: () => { toast({ title: 'Erro', description: 'Erro ao remover presença', variant: 'destructive' }); },
+  });
+
+  return { meetings, myAttendances, isLoading, toggleAttendance, removeAttendance };
 }
 
 export function useMeetingAttendees(meetingId: string) {
