@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
@@ -23,6 +24,7 @@ import ConvitePublico from "./pages/ConvitePublico";
 import Documentacao from "./pages/Documentacao";
 import Configuracoes from "./pages/Configuracoes";
 import AdminDashboard from "./pages/AdminDashboard";
+import Instalar from "./pages/Instalar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,10 +35,12 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <PWAInstallPrompt />
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/convite/:code" element={<ConvitePublico />} />
+            <Route path="/instalar" element={<Instalar />} />
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
