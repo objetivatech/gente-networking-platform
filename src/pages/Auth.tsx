@@ -13,25 +13,39 @@ import logoGente from '@/assets/logo-gente.png';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
-const phoneSchema = z.string().min(10, 'WhatsApp inválido').max(20, 'WhatsApp inválido');
+const phoneSchema = z.string().min(10, 'WhatsApp inválido').max(11, 'WhatsApp inválido');
 
 interface FormErrors {
   email?: string;
   password?: string;
+  confirmPassword?: string;
   fullName?: string;
   phone?: string;
   company?: string;
   businessSegment?: string;
 }
 
+// Função para formatar telefone brasileiro
+const formatPhoneBR = (value: string): string => {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  
+  if (digits.length === 0) return '';
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+};
+
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [company, setCompany] = useState('');
   const [businessSegment, setBusinessSegment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   
   const { signIn, signUp, user } = useAuth();
@@ -44,7 +58,26 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
-  const validateForm = (isSignUp: boolean) => {
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneBR(e.target.value);
+    setPhone(formatted);
+  };
+
+  const checkEmailExists = async (emailToCheck: string): Promise<boolean> => {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', emailToCheck.toLowerCase().trim())
+        .maybeSingle();
+      return !!data;
+    } catch {
+      return false;
+    }
+  };
+
+  const validateForm = async (isSignUp: boolean): Promise<boolean> => {
     const newErrors: FormErrors = {};
     
     try {
@@ -64,10 +97,11 @@ export default function Auth() {
         newErrors.fullName = 'Nome Completo é obrigatório';
       }
       
+      const phoneDigits = phone.replace(/\D/g, '');
       try {
-        phoneSchema.parse(phone.replace(/\D/g, ''));
+        phoneSchema.parse(phoneDigits);
       } catch {
-        newErrors.phone = 'WhatsApp inválido';
+        newErrors.phone = 'WhatsApp inválido (ex: 11999999999)';
       }
       
       if (!company.trim()) {
@@ -77,6 +111,20 @@ export default function Auth() {
       if (!businessSegment.trim()) {
         newErrors.businessSegment = 'Segmento de Negócio é obrigatório';
       }
+
+      if (password !== confirmPassword) {
+        newErrors.confirmPassword = 'As senhas não coincidem';
+      }
+
+      // Check if email already exists
+      if (!newErrors.email) {
+        setCheckingEmail(true);
+        const exists = await checkEmailExists(email);
+        setCheckingEmail(false);
+        if (exists) {
+          newErrors.email = 'Este email já está cadastrado. Tente fazer login.';
+        }
+      }
     }
     
     setErrors(newErrors);
@@ -85,7 +133,8 @@ export default function Auth() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm(false)) return;
+    const isValid = await validateForm(false);
+    if (!isValid) return;
     
     setLoading(true);
     const { error } = await signIn(email, password);
@@ -113,7 +162,8 @@ export default function Auth() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateForm(true)) return;
+    const isValid = await validateForm(true);
+    if (!isValid) return;
     
     setLoading(true);
     const { error, data } = await signUp(email, password, fullName, phone, company, businessSegment);
@@ -251,7 +301,7 @@ export default function Auth() {
                     type="tel"
                     placeholder="(11) 99999-9999"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={handlePhoneChange}
                     required
                   />
                   {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
@@ -292,7 +342,19 @@ export default function Auth() {
                   />
                   {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-confirm-password">Confirmar Senha *</Label>
+                  <Input
+                    id="signup-confirm-password"
+                    type="password"
+                    placeholder="Repita a senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                  {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+                </div>
+                <Button type="submit" className="w-full" disabled={loading || checkingEmail}>
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
