@@ -17,8 +17,9 @@ import {
   MapPin,
   Clock,
 } from 'lucide-react';
-import { format, isFuture, parseISO } from 'date-fns';
+import { format, isFuture } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -28,7 +29,7 @@ export default function Index() {
   const { meetings, isLoading: meetingsLoading } = useMeetings();
   const { isGuest, isLoading: roleLoading } = useAdmin();
 
-  const upcomingMeetings = meetings?.filter(m => isFuture(parseISO(m.meeting_date))).slice(0, 3);
+  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date))).slice(0, 3);
 
   // Convidados veem página especial
   if (!roleLoading && isGuest) {
@@ -122,7 +123,7 @@ export default function Index() {
                     <h4 className="font-medium text-sm">{meeting.title}</h4>
                     <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
-                      {format(parseISO(meeting.meeting_date), "dd 'de' MMM", { locale: ptBR })}
+                      {format(parseLocalDate(meeting.meeting_date), "dd 'de' MMM", { locale: ptBR })}
                       {meeting.meeting_time && (
                         <>
                           <Clock className="h-3 w-3 ml-2" />

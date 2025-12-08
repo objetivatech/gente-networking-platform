@@ -16,15 +16,16 @@ import {
   Send,
   CheckCircle
 } from 'lucide-react';
-import { format, isFuture, parseISO } from 'date-fns';
+import { format, isFuture } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 import logoGente from '@/assets/logo-gente.png';
 
 export default function GuestWelcome() {
   const { profile } = useProfile();
   const { meetings } = useMeetings();
 
-  const upcomingMeetings = meetings?.filter(m => isFuture(parseISO(m.meeting_date))).slice(0, 3);
+  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date))).slice(0, 3);
 
   const benefits = [
     { icon: Handshake, title: 'Gente em Ação', description: 'Participe de reuniões 1-a-1 com membros da comunidade' },
@@ -125,7 +126,7 @@ export default function GuestWelcome() {
                   <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {format(parseISO(meeting.meeting_date), "dd 'de' MMMM", { locale: ptBR })}
+                      {format(parseLocalDate(meeting.meeting_date), "dd 'de' MMMM", { locale: ptBR })}
                     </span>
                     {meeting.meeting_time && (
                       <span className="flex items-center gap-1">

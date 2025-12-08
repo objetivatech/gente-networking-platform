@@ -16,6 +16,7 @@ import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, Handshake, User, Users, Trash2, Calendar, ImagePlus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 
@@ -565,7 +566,7 @@ export default function GenteEmAcao() {
                     <div className="text-right text-sm">
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <Calendar className="w-3 h-3" />
-                        {format(new Date(meeting.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
+                        {format(parseLocalDate(meeting.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
                       </div>
                     </div>
                     <Button
