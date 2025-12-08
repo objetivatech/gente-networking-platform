@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
 import { PointsHistoryCard } from '@/components/PointsHistoryCard';
+import { PointsEvolutionChart } from '@/components/PointsEvolutionChart';
 import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, Upload } from 'lucide-react';
 
 export default function Profile() {
@@ -397,6 +398,9 @@ export default function Profile() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Gráfico de Evolução de Pontos */}
+      {user?.id && <PointsEvolutionChart userId={user.id} />}
 
       {/* Histórico de Pontos */}
       {user?.id && <PointsHistoryCard userId={user.id} />}
