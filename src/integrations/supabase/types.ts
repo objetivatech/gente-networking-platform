@@ -270,6 +270,48 @@ export type Database = {
           },
         ]
       }
+      points_history: {
+        Row: {
+          activity_type: string | null
+          created_at: string | null
+          id: string
+          points_after: number
+          points_before: number
+          points_change: number
+          rank_after: Database["public"]["Enums"]["member_rank"] | null
+          rank_before: Database["public"]["Enums"]["member_rank"] | null
+          reason: string | null
+          reference_id: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type?: string | null
+          created_at?: string | null
+          id?: string
+          points_after: number
+          points_before: number
+          points_change: number
+          rank_after?: Database["public"]["Enums"]["member_rank"] | null
+          rank_before?: Database["public"]["Enums"]["member_rank"] | null
+          reason?: string | null
+          reference_id?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string | null
+          created_at?: string | null
+          id?: string
+          points_after?: number
+          points_before?: number
+          points_change?: number
+          rank_after?: Database["public"]["Enums"]["member_rank"] | null
+          rank_before?: Database["public"]["Enums"]["member_rank"] | null
+          reason?: string | null
+          reference_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -513,6 +555,7 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      recalculate_all_user_points: { Args: never; Returns: number }
       update_user_points_and_rank: {
         Args: { _user_id: string }
         Returns: undefined

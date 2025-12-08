@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
+import { PointsHistoryCard } from '@/components/PointsHistoryCard';
 import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, Upload } from 'lucide-react';
 
 export default function Profile() {
+  const { user } = useAuth();
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { data: stats } = useStats();
   const { toast } = useToast();
@@ -394,6 +397,9 @@ export default function Profile() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Histórico de Pontos */}
+      {user?.id && <PointsHistoryCard userId={user.id} />}
     </div>
   );
 }
