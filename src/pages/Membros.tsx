@@ -6,6 +6,8 @@
  * @features
  * - Lista de membros agrupados por equipe
  * - Busca por nome, empresa e segmento
+ * - Filtros avançados por equipe, segmento e rank
+ * - Exportação para PDF e Excel
  * - Visualização de perfis completos
  * - Excluí convidados automaticamente
  * 
@@ -13,7 +15,7 @@
  * @since 2024-12-08
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useMembers, Member, MembersByTeam } from '@/hooks/useMembers';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -25,6 +27,8 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import RankBadge from '@/components/RankBadge';
 import { 
   Users, 
@@ -39,8 +43,14 @@ import {
   User,
   ExternalLink,
   ChevronDown,
-  UsersRound
+  UsersRound,
+  Filter,
+  X,
+  Download,
+  FileSpreadsheet,
+  FileText
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface MemberProfile {
   id: string;
@@ -274,17 +284,38 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
   );
 }
 
-function TeamSection({ team, search }: { team: MembersByTeam; search: string }) {
+interface TeamSectionProps {
+  team: MembersByTeam;
+  search: string;
+  segmentFilter: string;
+  rankFilter: string;
+}
+
+function TeamSection({ team, search, segmentFilter, rankFilter }: TeamSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const filteredMembers = team.members.filter(member => {
-    if (!search) return true;
-    const searchLower = search.toLowerCase();
-    return (
-      member.full_name.toLowerCase().includes(searchLower) ||
-      member.company?.toLowerCase().includes(searchLower) ||
-      member.business_segment?.toLowerCase().includes(searchLower)
-    );
+    // Text search
+    if (search) {
+      const searchLower = search.toLowerCase();
+      const matchesSearch = 
+        member.full_name.toLowerCase().includes(searchLower) ||
+        member.company?.toLowerCase().includes(searchLower) ||
+        member.business_segment?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // Segment filter
+    if (segmentFilter && segmentFilter !== 'all') {
+      if (member.business_segment !== segmentFilter) return false;
+    }
+    
+    // Rank filter
+    if (rankFilter && rankFilter !== 'all') {
+      if (member.rank !== rankFilter) return false;
+    }
+    
+    return true;
   });
 
   if (filteredMembers.length === 0) return null;
@@ -335,47 +366,317 @@ function TeamSection({ team, search }: { team: MembersByTeam; search: string }) 
   );
 }
 
+const RANK_LABELS: Record<string, string> = {
+  iniciante: 'Iniciante',
+  bronze: 'Bronze',
+  prata: 'Prata',
+  ouro: 'Ouro',
+  diamante: 'Diamante',
+};
+
 export default function Membros() {
   const { members, membersByTeam, isLoading } = useMembers();
   const { isGuest, isLoading: isLoadingRole } = useAdmin();
   const [search, setSearch] = useState('');
+  const [teamFilter, setTeamFilter] = useState<string>('all');
+  const [segmentFilter, setSegmentFilter] = useState<string>('all');
+  const [rankFilter, setRankFilter] = useState<string>('all');
+
+  // Extract unique segments and teams for filters
+  const { uniqueSegments, uniqueTeams, uniqueRanks } = useMemo(() => {
+    if (!members) return { uniqueSegments: [], uniqueTeams: [], uniqueRanks: [] };
+    
+    const segments = new Set<string>();
+    const ranks = new Set<string>();
+    
+    members.forEach(m => {
+      if (m.business_segment) segments.add(m.business_segment);
+      if (m.rank) ranks.add(m.rank);
+    });
+    
+    const teams = membersByTeam
+      .filter(t => t.team_id !== null)
+      .map(t => ({ id: t.team_id!, name: t.team_name, color: t.team_color }));
+    
+    return {
+      uniqueSegments: Array.from(segments).sort(),
+      uniqueTeams: teams,
+      uniqueRanks: ['iniciante', 'bronze', 'prata', 'ouro', 'diamante'].filter(r => ranks.has(r)),
+    };
+  }, [members, membersByTeam]);
+
+  // Filter members by team filter (other filters are handled in TeamSection)
+  const filteredMembersByTeam = useMemo(() => {
+    if (teamFilter === 'all') return membersByTeam;
+    if (teamFilter === 'no-team') return membersByTeam.filter(t => t.team_id === null);
+    return membersByTeam.filter(t => t.team_id === teamFilter);
+  }, [membersByTeam, teamFilter]);
+
+  // Count filtered members
+  const filteredCount = useMemo(() => {
+    let count = 0;
+    filteredMembersByTeam.forEach(team => {
+      team.members.forEach(member => {
+        // Text search
+        if (search) {
+          const searchLower = search.toLowerCase();
+          const matchesSearch = 
+            member.full_name.toLowerCase().includes(searchLower) ||
+            member.company?.toLowerCase().includes(searchLower) ||
+            member.business_segment?.toLowerCase().includes(searchLower);
+          if (!matchesSearch) return;
+        }
+        
+        // Segment filter
+        if (segmentFilter !== 'all' && member.business_segment !== segmentFilter) return;
+        
+        // Rank filter
+        if (rankFilter !== 'all' && member.rank !== rankFilter) return;
+        
+        count++;
+      });
+    });
+    return count;
+  }, [filteredMembersByTeam, search, segmentFilter, rankFilter]);
+
+  // Get all filtered members for export
+  const getFilteredMembers = (): Member[] => {
+    const result: Member[] = [];
+    filteredMembersByTeam.forEach(team => {
+      team.members.forEach(member => {
+        // Text search
+        if (search) {
+          const searchLower = search.toLowerCase();
+          const matchesSearch = 
+            member.full_name.toLowerCase().includes(searchLower) ||
+            member.company?.toLowerCase().includes(searchLower) ||
+            member.business_segment?.toLowerCase().includes(searchLower);
+          if (!matchesSearch) return;
+        }
+        
+        // Segment filter
+        if (segmentFilter !== 'all' && member.business_segment !== segmentFilter) return;
+        
+        // Rank filter
+        if (rankFilter !== 'all' && member.rank !== rankFilter) return;
+        
+        result.push(member);
+      });
+    });
+    return result;
+  };
+
+  const hasActiveFilters = teamFilter !== 'all' || segmentFilter !== 'all' || rankFilter !== 'all' || search !== '';
+
+  const clearFilters = () => {
+    setSearch('');
+    setTeamFilter('all');
+    setSegmentFilter('all');
+    setRankFilter('all');
+  };
+
+  // Export to Excel
+  const exportToExcel = async () => {
+    try {
+      const XLSX = await import('xlsx');
+      const filteredMembers = getFilteredMembers();
+      
+      const data = filteredMembers.map(m => ({
+        'Nome': m.full_name,
+        'Email': m.email || '',
+        'Telefone': m.phone || '',
+        'Empresa': m.company || '',
+        'Cargo': m.position || '',
+        'Segmento': m.business_segment || '',
+        'Equipe': m.team_name || 'Sem Equipe',
+        'Rank': m.rank ? RANK_LABELS[m.rank] || m.rank : '',
+        'Pontos': m.points || 0,
+        'LinkedIn': m.linkedin_url || '',
+        'Instagram': m.instagram_url || '',
+        'Website': m.website_url || '',
+      }));
+      
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Membros');
+      
+      // Auto-size columns
+      const colWidths = Object.keys(data[0] || {}).map(key => ({
+        wch: Math.max(key.length, ...data.map(row => String(row[key as keyof typeof row]).length))
+      }));
+      ws['!cols'] = colWidths;
+      
+      XLSX.writeFile(wb, `membros-comunidade-${new Date().toISOString().split('T')[0]}.xlsx`);
+      toast.success('Lista exportada para Excel!');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      toast.error('Erro ao exportar para Excel');
+    }
+  };
+
+  // Export to PDF
+  const exportToPDF = async () => {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      await import('jspdf-autotable');
+      
+      const filteredMembers = getFilteredMembers();
+      const doc = new jsPDF();
+      
+      // Title
+      doc.setFontSize(18);
+      doc.text('Diretório de Membros', 14, 22);
+      doc.setFontSize(10);
+      doc.setTextColor(128);
+      doc.text(`Exportado em ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+      doc.text(`Total: ${filteredMembers.length} membros`, 14, 36);
+      
+      // Table data
+      const tableData = filteredMembers.map(m => [
+        m.full_name,
+        m.company || '-',
+        m.phone || '-',
+        m.email || '-',
+        m.team_name || 'Sem Equipe',
+        m.rank ? RANK_LABELS[m.rank] || m.rank : '-',
+      ]);
+      
+      // @ts-ignore - jspdf-autotable adds this method
+      doc.autoTable({
+        startY: 42,
+        head: [['Nome', 'Empresa', 'Telefone', 'Email', 'Equipe', 'Rank']],
+        body: tableData,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [34, 197, 94] },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+      });
+      
+      doc.save(`membros-comunidade-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('Lista exportada para PDF!');
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast.error('Erro ao exportar para PDF');
+    }
+  };
 
   // Convidados não têm acesso
   if (!isLoadingRole && isGuest) {
     return <Navigate to="/" replace />;
   }
 
-  // Count filtered members
-  const filteredCount = members?.filter(member => {
-    if (!search) return true;
-    const searchLower = search.toLowerCase();
-    return (
-      member.full_name.toLowerCase().includes(searchLower) ||
-      member.company?.toLowerCase().includes(searchLower) ||
-      member.business_segment?.toLowerCase().includes(searchLower)
-    );
-  }).length || 0;
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Users className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Diretório de Membros</h1>
-          <p className="text-muted-foreground">Conheça os membros da comunidade</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-3">
+          <Users className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Diretório de Membros</h1>
+            <p className="text-muted-foreground">Conheça os membros da comunidade</p>
+          </div>
         </div>
+        
+        {/* Export Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={exportToExcel}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Exportar para Excel
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={exportToPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Exportar para PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nome, empresa ou segmento..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome, empresa ou segmento..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        {/* Advanced Filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Filter className="h-4 w-4" />
+            <span>Filtros:</span>
+          </div>
+          
+          {/* Team Filter */}
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Equipe" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as equipes</SelectItem>
+              {uniqueTeams.map(team => (
+                <SelectItem key={team.id} value={team.id}>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: team.color }}
+                    />
+                    {team.name}
+                  </div>
+                </SelectItem>
+              ))}
+              <SelectItem value="no-team">Sem Equipe</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Segment Filter */}
+          <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Segmento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os segmentos</SelectItem>
+              {uniqueSegments.map(segment => (
+                <SelectItem key={segment} value={segment}>
+                  {segment}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {/* Rank Filter */}
+          <Select value={rankFilter} onValueChange={setRankFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Rank" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os ranks</SelectItem>
+              {uniqueRanks.map(rank => (
+                <SelectItem key={rank} value={rank}>
+                  {RANK_LABELS[rank] || rank}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="h-4 w-4 mr-1" />
+              Limpar filtros
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Stats */}
@@ -406,19 +707,30 @@ export default function Membros() {
             ))}
           </div>
         </div>
-      ) : membersByTeam.length === 0 ? (
+      ) : filteredMembersByTeam.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">
-              {search ? 'Nenhum membro encontrado com esses critérios' : 'Nenhum membro cadastrado'}
+              {hasActiveFilters ? 'Nenhum membro encontrado com esses critérios' : 'Nenhum membro cadastrado'}
             </p>
+            {hasActiveFilters && (
+              <Button variant="link" onClick={clearFilters} className="mt-2">
+                Limpar filtros
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
-          {membersByTeam.map(team => (
-            <TeamSection key={team.team_id || 'no-team'} team={team} search={search} />
+          {filteredMembersByTeam.map(team => (
+            <TeamSection 
+              key={team.team_id || 'no-team'} 
+              team={team} 
+              search={search}
+              segmentFilter={segmentFilter}
+              rankFilter={rankFilter}
+            />
           ))}
         </div>
       )}
