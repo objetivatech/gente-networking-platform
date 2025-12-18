@@ -16,7 +16,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useMembers, Member, MembersByTeam } from '@/hooks/useMembers';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Card, CardContent } from '@/components/ui/card';
@@ -289,9 +289,10 @@ interface TeamSectionProps {
   search: string;
   segmentFilter: string;
   rankFilter: string;
+  onViewProfile: (memberId: string) => void;
 }
 
-function TeamSection({ team, search, segmentFilter, rankFilter }: TeamSectionProps) {
+function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }: TeamSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const filteredMembers = team.members.filter(member => {
@@ -343,22 +344,11 @@ function TeamSection({ team, search, segmentFilter, rankFilter }: TeamSectionPro
       <CollapsibleContent>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 pb-6">
           {filteredMembers.map(member => (
-            <Dialog key={member.id}>
-              <DialogTrigger asChild>
-                <div>
-                  <MemberCard 
-                    member={member as MemberProfile} 
-                    onViewProfile={() => {}} 
-                  />
-                </div>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Perfil do Membro</DialogTitle>
-                </DialogHeader>
-                <MemberProfileModal member={member as MemberProfile} />
-              </DialogContent>
-            </Dialog>
+            <MemberCard 
+              key={member.id}
+              member={member as MemberProfile} 
+              onViewProfile={() => onViewProfile(member.id)} 
+            />
           ))}
         </div>
       </CollapsibleContent>
@@ -375,12 +365,17 @@ const RANK_LABELS: Record<string, string> = {
 };
 
 export default function Membros() {
+  const navigate = useNavigate();
   const { members, membersByTeam, isLoading } = useMembers();
   const { isGuest, isLoading: isLoadingRole } = useAdmin();
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [segmentFilter, setSegmentFilter] = useState<string>('all');
   const [rankFilter, setRankFilter] = useState<string>('all');
+
+  const handleViewProfile = (memberId: string) => {
+    navigate(`/membro/${memberId}`);
+  };
 
   // Extract unique segments and teams for filters
   const { uniqueSegments, uniqueTeams, uniqueRanks } = useMemo(() => {
@@ -730,6 +725,7 @@ export default function Membros() {
               search={search}
               segmentFilter={segmentFilter}
               rankFilter={rankFilter}
+              onViewProfile={handleViewProfile}
             />
           ))}
         </div>

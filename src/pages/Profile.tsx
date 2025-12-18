@@ -13,7 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
 import { PointsHistoryCard } from '@/components/PointsHistoryCard';
 import { PointsEvolutionChart } from '@/components/PointsEvolutionChart';
-import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, Upload } from 'lucide-react';
+import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, Upload, ImagePlus, Cake } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -22,7 +24,9 @@ export default function Profile() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     full_name: '',
     company: '',
@@ -33,6 +37,7 @@ export default function Profile() {
     linkedin_url: '',
     instagram_url: '',
     website_url: '',
+    birthday: '',
   });
 
   const handleEdit = () => {
@@ -47,6 +52,7 @@ export default function Profile() {
         linkedin_url: profile.linkedin_url || '',
         instagram_url: profile.instagram_url || '',
         website_url: profile.website_url || '',
+        birthday: profile.birthday || '',
       });
     }
     setIsEditing(true);
@@ -63,6 +69,66 @@ export default function Profile() {
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleBannerClick = () => {
+    bannerInputRef.current?.click();
+  };
+
+  const handleBannerUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Erro',
+        description: 'Por favor, selecione uma imagem válida',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Erro',
+        description: 'A imagem deve ter no máximo 5MB',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingBanner(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}/banner.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('banners')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('banners')
+        .getPublicUrl(fileName);
+
+      updateProfile({ banner_url: `${publicUrl}?t=${Date.now()}` });
+
+      toast({
+        title: 'Sucesso!',
+        description: 'Foto de capa atualizada',
+      });
+    } catch (error: any) {
+      console.error('Error uploading banner:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao fazer upload da capa',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingBanner(false);
+    }
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -176,13 +242,45 @@ export default function Profile() {
       </div>
 
       {/* Card do Perfil */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-6">
+      <Card className="overflow-hidden">
+        {/* Banner */}
+        <div 
+          className="relative h-32 md:h-48 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20"
+          style={profile?.banner_url ? { 
+            backgroundImage: `url(${profile.banner_url})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          } : undefined}
+        >
+          <button
+            onClick={handleBannerClick}
+            disabled={isUploadingBanner}
+            className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+          >
+            {isUploadingBanner ? (
+              <Loader2 className="h-8 w-8 text-white animate-spin" />
+            ) : (
+              <div className="flex items-center gap-2 text-white bg-black/50 px-4 py-2 rounded-lg">
+                <ImagePlus className="h-5 w-5" />
+                <span>Alterar capa</span>
+              </div>
+            )}
+          </button>
+          <input
+            ref={bannerInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleBannerUpload}
+            className="hidden"
+          />
+        </div>
+
+        <CardContent className="relative pt-0">
+          <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
             {/* Avatar e Rank */}
             <div className="flex flex-col items-center gap-4">
               <div className="relative group">
-                <Avatar className="h-32 w-32 border-4 border-primary/20">
+                <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
                   <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
                   <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
                     {getInitials(profile?.full_name)}
@@ -260,6 +358,15 @@ export default function Profile() {
                         id="position"
                         value={formData.position}
                         onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="birthday">Data de Aniversário</Label>
+                      <Input
+                        id="birthday"
+                        type="date"
+                        value={formData.birthday}
+                        onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
                       />
                     </div>
                   </div>

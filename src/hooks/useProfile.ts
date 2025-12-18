@@ -13,9 +13,11 @@ export interface Profile {
   business_segment: string | null;
   bio: string | null;
   avatar_url: string | null;
+  banner_url: string | null;
   linkedin_url: string | null;
   instagram_url: string | null;
   website_url: string | null;
+  birthday: string | null;
   rank: 'iniciante' | 'bronze' | 'prata' | 'ouro' | 'diamante';
   points: number;
   created_at: string;
