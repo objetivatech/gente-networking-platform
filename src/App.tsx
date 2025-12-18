@@ -28,6 +28,7 @@ import Configuracoes from "./pages/Configuracoes";
 import AdminDashboard from "./pages/AdminDashboard";
 import Instalar from "./pages/Instalar";
 import Membros from "./pages/Membros";
+import MemberProfile from "./pages/MemberProfile";
 import Changelog from "./pages/Changelog";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
               <Route path="/membros" element={<Membros />} />
+              <Route path="/membro/:id" element={<MemberProfile />} />
               <Route path="/estatisticas" element={<Estatisticas />} />
               <Route path="/gente-em-acao" element={<GenteEmAcao />} />
               <Route path="/depoimentos" element={<Depoimentos />} />
