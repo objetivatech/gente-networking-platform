@@ -308,7 +308,7 @@ export default function Profile() {
           </div>
 
           {/* Espaço para o avatar + info do rank/pontos à direita do avatar */}
-          <div className="flex flex-col md:flex-row gap-6 pt-20 md:pt-4">
+          <div className="flex flex-col md:flex-row gap-6 pt-24 md:pt-6 md:pl-40">
             {/* Rank e Pontos - visível ao lado no desktop */}
             <div className="hidden md:flex flex-col items-center gap-4 min-w-[140px]">
               {profile && <RankBadge rank={profile.rank} size="lg" />}
