@@ -18,6 +18,7 @@ import {
   BookOpen,
   History,
   Contact,
+  Cake,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -36,6 +37,7 @@ const menuItems = [
   { icon: Home, label: 'Início', path: '/', roles: undefined },
   { icon: User, label: 'Meu Perfil', path: '/perfil', roles: undefined },
   { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'] },
   { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Trophy, label: 'Ranking', path: '/ranking', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro'] },

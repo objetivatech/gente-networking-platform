@@ -275,37 +275,42 @@ export default function Profile() {
           />
         </div>
 
-        <CardContent className="relative pt-0">
-          <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
-            {/* Avatar e Rank */}
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative group">
-                <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                  <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
-                    {getInitials(profile?.full_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <button
-                  onClick={handleAvatarClick}
-                  disabled={isUploading}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                >
-                  {isUploading ? (
-                    <Loader2 className="h-8 w-8 text-white animate-spin" />
-                  ) : (
-                    <Camera className="h-8 w-8 text-white" />
-                  )}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Clique para alterar</p>
+        <CardContent className="relative pt-6">
+          {/* Avatar sobrepondo o banner */}
+          <div className="absolute -top-16 left-6">
+            <div className="relative group">
+              <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+                <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                  {getInitials(profile?.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <button
+                onClick={handleAvatarClick}
+                disabled={isUploading}
+                className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {isUploading ? (
+                  <Loader2 className="h-8 w-8 text-white animate-spin" />
+                ) : (
+                  <Camera className="h-8 w-8 text-white" />
+                )}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-2">Clique para alterar</p>
+          </div>
+
+          {/* Espaço para o avatar + info do rank/pontos à direita do avatar */}
+          <div className="flex flex-col md:flex-row gap-6 pt-20 md:pt-4">
+            {/* Rank e Pontos - visível ao lado no desktop */}
+            <div className="hidden md:flex flex-col items-center gap-4 min-w-[140px]">
               {profile && <RankBadge rank={profile.rank} size="lg" />}
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Pontos</p>
@@ -480,6 +485,15 @@ export default function Profile() {
                   </div>
                 </>
               )}
+              
+              {/* Rank e Pontos - visível abaixo no mobile */}
+              <div className="flex md:hidden justify-center gap-6 pt-4">
+                {profile && <RankBadge rank={profile.rank} size="lg" />}
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Pontos</p>
+                  <p className="text-2xl font-bold text-primary">{profile?.points || 0}</p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
