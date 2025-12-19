@@ -1,0 +1,4 @@
+-- Adicionar entradas recentes no changelog
+INSERT INTO system_changelog (version, title, description, category, changes) VALUES
+('1.3.0', 'Perfis Individuais e Aniversários', 'Novas funcionalidades para perfis de membros e gestão de aniversários', 'feature', '["Página de perfil individual com URL compartilhável (/membro/:id)", "Botão de compartilhar perfil (Web Share API)", "Foto de capa/banner personalizável nos perfis", "Data de aniversário no perfil", "Página de calendário de aniversários (/aniversarios)", "Notificações automáticas de aniversário para equipe", "Email de felicitação automático para aniversariantes", "Cron job diário às 8h para envio de notificações"]'),
+('1.2.1', 'Filtros Avançados no Diretório', 'Melhorias na página de membros', 'improvement', '["Filtro por equipe específica", "Filtro por segmento de negócio", "Filtro por rank (nível)", "Exportação da lista em PDF", "Exportação da lista em Excel"]');
