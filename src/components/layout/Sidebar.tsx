@@ -55,6 +55,7 @@ const menuItems = [
 
 const adminItems = [
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard', roles: ['admin'] },
+  { icon: Users, label: 'Gerenciar Membros', path: '/admin/membros', roles: ['admin'] },
   { icon: Settings, label: 'Admin', path: '/admin', roles: ['admin', 'facilitador'] },
 ];
 

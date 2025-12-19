@@ -31,6 +31,8 @@ export interface Member {
   team_id: string | null;
   team_name: string | null;
   team_color: string | null;
+  slug: string | null;
+  is_active: boolean;
 }
 
 export interface MembersByTeam {
@@ -40,17 +42,22 @@ export interface MembersByTeam {
   members: Member[];
 }
 
-export function useMembers() {
+export function useMembers(includeInactive = false) {
   const query = useQuery({
-    queryKey: ['members-directory'],
+    queryKey: ['members-directory', includeInactive],
     queryFn: async () => {
       // 1. Get all profiles
-      const { data: profiles, error: profilesError } = await supabase
+      let profilesQuery = supabase
         .from('profiles')
-        .select('id, full_name, email, phone, company, position, bio, avatar_url, linkedin_url, instagram_url, website_url, business_segment, points, rank')
+        .select('id, full_name, email, phone, company, position, bio, avatar_url, linkedin_url, instagram_url, website_url, business_segment, points, rank, slug, is_active')
         .order('full_name');
-
-      if (profilesError) throw profilesError;
+      
+      // Filtrar inativos a menos que explicitamente solicitado
+      if (!includeInactive) {
+        profilesQuery = profilesQuery.eq('is_active', true);
+      }
+      
+      const { data: profiles, error: profilesError } = await profilesQuery;
 
       // 2. Get user roles to filter out guests
       const { data: roles, error: rolesError } = await supabase

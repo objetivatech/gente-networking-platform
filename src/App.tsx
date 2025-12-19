@@ -30,6 +30,7 @@ import Instalar from "./pages/Instalar";
 import Membros from "./pages/Membros";
 import MemberProfile from "./pages/MemberProfile";
 import Aniversarios from "./pages/Aniversarios";
+import GerenciarMembros from "./pages/GerenciarMembros";
 import Changelog from "./pages/Changelog";
 import NotFound from "./pages/NotFound";
 
@@ -53,7 +54,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/perfil" element={<Profile />} />
               <Route path="/membros" element={<Membros />} />
-              <Route path="/membro/:id" element={<MemberProfile />} />
+              <Route path="/membro/:slug" element={<MemberProfile />} />
               <Route path="/aniversarios" element={<Aniversarios />} />
               <Route path="/estatisticas" element={<Estatisticas />} />
               <Route path="/gente-em-acao" element={<GenteEmAcao />} />
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/membros" element={<GerenciarMembros />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -321,11 +321,14 @@ export type Database = {
           business_segment: string | null
           company: string | null
           created_at: string | null
+          deactivated_at: string | null
+          deactivation_reason: string | null
           email: string | null
           email_notifications_enabled: boolean | null
           full_name: string
           id: string
           instagram_url: string | null
+          is_active: boolean
           linkedin_url: string | null
           notify_on_meeting: boolean | null
           notify_on_referral: boolean | null
@@ -335,6 +338,7 @@ export type Database = {
           position: string | null
           rank: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at: string | null
+          slug: string | null
           updated_at: string | null
           website_url: string | null
         }
@@ -346,11 +350,14 @@ export type Database = {
           business_segment?: string | null
           company?: string | null
           created_at?: string | null
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           email?: string | null
           email_notifications_enabled?: boolean | null
           full_name: string
           id: string
           instagram_url?: string | null
+          is_active?: boolean
           linkedin_url?: string | null
           notify_on_meeting?: boolean | null
           notify_on_referral?: boolean | null
@@ -360,6 +367,7 @@ export type Database = {
           position?: string | null
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
+          slug?: string | null
           updated_at?: string | null
           website_url?: string | null
         }
@@ -371,11 +379,14 @@ export type Database = {
           business_segment?: string | null
           company?: string | null
           created_at?: string | null
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           email?: string | null
           email_notifications_enabled?: boolean | null
           full_name?: string
           id?: string
           instagram_url?: string | null
+          is_active?: boolean
           linkedin_url?: string | null
           notify_on_meeting?: boolean | null
           notify_on_referral?: boolean | null
@@ -385,6 +396,7 @@ export type Database = {
           position?: string | null
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
+          slug?: string | null
           updated_at?: string | null
           website_url?: string | null
         }
@@ -581,6 +593,11 @@ export type Database = {
         Returns: string
       }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
+      generate_slug: { Args: { name: string }; Returns: string }
+      generate_unique_slug: {
+        Args: { name: string; user_id: string }
+        Returns: string
+      }
       get_rank_from_points: {
         Args: { _points: number }
         Returns: Database["public"]["Enums"]["member_rank"]
@@ -598,6 +615,7 @@ export type Database = {
         Returns: boolean
       }
       recalculate_all_user_points: { Args: never; Returns: number }
+      unaccent: { Args: { "": string }; Returns: string }
       update_user_points_and_rank: {
         Args: { _user_id: string }
         Returns: undefined
