@@ -124,41 +124,60 @@ export function useAdminRoles() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Buscar todos os usuários com role 'convidado'
+  // Buscar todos os usuários com role 'convidado' (incluindo quem não tem role definido)
   const { data: guests, isLoading: loadingGuests } = useQuery({
     queryKey: ['guests'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar todos os profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, company, avatar_url, is_active')
+        .eq('is_active', true)
+        .order('full_name');
+      
+      if (profilesError) throw profilesError;
+
+      // Buscar roles
+      const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
-        .select(`
-          user_id,
-          role,
-          profiles:user_id (
-            id,
-            full_name,
-            email,
-            company,
-            avatar_url
-          )
-        `)
-        .eq('role', 'convidado');
-      if (error) throw error;
-      return data;
+        .select('user_id, role');
+      
+      if (rolesError) throw rolesError;
+
+      // Map de user_id -> role
+      const rolesMap: Record<string, string> = {};
+      roles?.forEach(r => {
+        rolesMap[r.user_id] = r.role;
+      });
+
+      // Filtrar apenas convidados (quem tem role=convidado ou não tem role)
+      const guestsData = profiles
+        ?.filter(profile => {
+          const role = rolesMap[profile.id];
+          return role === 'convidado' || !role;
+        })
+        .map(profile => ({
+          user_id: profile.id,
+          role: 'convidado' as const,
+          profiles: profile
+        }));
+
+      return guestsData || [];
     },
   });
 
-  // Promover convidado para membro
+  // Promover convidado para membro (usa upsert para incluir quem não tem role)
   const promoteToMember = useMutation({
     mutationFn: async (userId: string) => {
       const { error } = await supabase
         .from('user_roles')
-        .update({ role: 'membro' })
-        .eq('user_id', userId);
+        .upsert({ user_id: userId, role: 'membro' }, { onConflict: 'user_id' });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['members-directory'] });
       toast({ title: 'Sucesso!', description: 'Usuário promovido a membro' });
     },
     onError: () => {
@@ -166,18 +185,18 @@ export function useAdminRoles() {
     },
   });
 
-  // Promover para facilitador
+  // Promover para facilitador (usa upsert para incluir quem não tem role)
   const promoteToFacilitator = useMutation({
     mutationFn: async (userId: string) => {
       const { error } = await supabase
         .from('user_roles')
-        .update({ role: 'facilitador' })
-        .eq('user_id', userId);
+        .upsert({ user_id: userId, role: 'facilitador' }, { onConflict: 'user_id' });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
+      queryClient.invalidateQueries({ queryKey: ['members-directory'] });
       toast({ title: 'Sucesso!', description: 'Usuário promovido a facilitador' });
     },
     onError: () => {

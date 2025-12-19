@@ -67,17 +67,38 @@ export default function GerenciarMembros() {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [deactivationReason, setDeactivationReason] = useState('');
 
-  // Buscar todos os membros (ativos e inativos)
+  // Buscar todos os membros (ativos e inativos), excluindo convidados
   const { data: members, isLoading } = useQuery({
     queryKey: ['admin-members'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, full_name, email, phone, company, avatar_url, is_active, deactivated_at, deactivation_reason, created_at')
         .order('full_name');
 
-      if (error) throw error;
-      return data as MemberData[];
+      if (profilesError) throw profilesError;
+
+      // Buscar roles para filtrar convidados
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) throw rolesError;
+
+      // Map de user_id -> role
+      const rolesMap: Record<string, string> = {};
+      roles?.forEach(r => {
+        rolesMap[r.user_id] = r.role;
+      });
+
+      // Filtrar apenas membros (não convidados)
+      const filteredProfiles = profiles?.filter(profile => {
+        const role = rolesMap[profile.id];
+        return role !== 'convidado';
+      }) || [];
+
+      return filteredProfiles as MemberData[];
     },
   });
 
