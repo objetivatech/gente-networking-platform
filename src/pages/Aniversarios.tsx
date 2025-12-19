@@ -16,6 +16,7 @@ interface MemberBirthday {
   avatar_url: string | null;
   company: string | null;
   birthday: string;
+  slug: string | null;
 }
 
 export default function Aniversarios() {
@@ -27,8 +28,9 @@ export default function Aniversarios() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, company, birthday')
-        .not('birthday', 'is', null);
+        .select('id, full_name, avatar_url, company, birthday, slug')
+        .not('birthday', 'is', null)
+        .eq('is_active', true);
 
       if (error) throw error;
       return data as MemberBirthday[];
@@ -109,7 +111,7 @@ export default function Aniversarios() {
               {todaysBirthdays.map((member) => (
                 <button
                   key={member.id}
-                  onClick={() => navigate(`/membro/${member.id}`)}
+                  onClick={() => navigate(`/membro/${member.slug || member.id}`)}
                   className="flex items-center gap-3 p-3 rounded-lg bg-background hover:bg-muted transition-colors"
                 >
                   <Avatar className="h-12 w-12 border-2 border-primary">
@@ -171,7 +173,7 @@ export default function Aniversarios() {
               {monthMembers.map((member) => (
                 <button
                   key={member.id}
-                  onClick={() => navigate(`/membro/${member.id}`)}
+                  onClick={() => navigate(`/membro/${member.slug || member.id}`)}
                   className="w-full flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors text-left"
                 >
                   <div className="flex-shrink-0 w-16 text-center">

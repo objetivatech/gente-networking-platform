@@ -69,6 +69,7 @@ interface MemberProfile {
   rank: string | null;
   team_name?: string | null;
   team_color?: string | null;
+  slug?: string | null;
 }
 
 function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewProfile: () => void }) {
@@ -347,7 +348,7 @@ function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }:
             <MemberCard 
               key={member.id}
               member={member as MemberProfile} 
-              onViewProfile={() => onViewProfile(member.id)} 
+              onViewProfile={() => onViewProfile(member.slug || member.id)} 
             />
           ))}
         </div>
@@ -373,8 +374,8 @@ export default function Membros() {
   const [segmentFilter, setSegmentFilter] = useState<string>('all');
   const [rankFilter, setRankFilter] = useState<string>('all');
 
-  const handleViewProfile = (memberId: string) => {
-    navigate(`/membro/${memberId}`);
+  const handleViewProfile = (memberSlug: string) => {
+    navigate(`/membro/${memberSlug}`);
   };
 
   // Extract unique segments and teams for filters

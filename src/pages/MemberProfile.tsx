@@ -27,57 +27,74 @@ interface MemberProfile {
   birthday: string | null;
   rank: 'iniciante' | 'bronze' | 'prata' | 'ouro' | 'diamante';
   points: number;
+  slug: string | null;
+  is_active: boolean;
 }
 
 export default function MemberProfile() {
-  const { id } = useParams<{ id: string }>();
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const { data: member, isLoading, error } = useQuery({
-    queryKey: ['member-profile', id],
+    queryKey: ['member-profile', slug],
     queryFn: async () => {
-      if (!id) throw new Error('ID do membro não informado');
+      if (!slug) throw new Error('Slug do membro não informado');
       
-      const { data, error } = await supabase
+      // Primeiro tenta buscar por slug, depois por ID (para compatibilidade)
+      let query = supabase
         .from('profiles')
         .select('*')
-        .eq('id', id)
+        .eq('slug', slug)
         .single();
+
+      const { data, error } = await query;
+
+      // Se não encontrou por slug, tenta por ID (UUID)
+      if (error && slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        const { data: dataById, error: errorById } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', slug)
+          .single();
+        
+        if (errorById) throw errorById;
+        return dataById as MemberProfile;
+      }
 
       if (error) throw error;
       return data as MemberProfile;
     },
-    enabled: !!id,
+    enabled: !!slug,
   });
 
   const { data: teamInfo } = useQuery({
-    queryKey: ['member-team', id],
+    queryKey: ['member-team', member?.id],
     queryFn: async () => {
-      if (!id) return null;
+      if (!member?.id) return null;
       
       const { data } = await supabase
         .from('team_members')
         .select('team_id, is_facilitator, teams(name, color)')
-        .eq('user_id', id)
+        .eq('user_id', member.id)
         .single();
 
       return data;
     },
-    enabled: !!id,
+    enabled: !!member?.id,
   });
 
   const { data: stats } = useQuery({
-    queryKey: ['member-stats', id],
+    queryKey: ['member-stats', member?.id],
     queryFn: async () => {
-      if (!id) return null;
+      if (!member?.id) return null;
       
       const [attendances, genteEmAcao, testimonials, businessDeals, referrals] = await Promise.all([
-        supabase.from('attendances').select('id', { count: 'exact' }).eq('user_id', id),
-        supabase.from('gente_em_acao').select('id', { count: 'exact' }).eq('user_id', id),
-        supabase.from('testimonials').select('id', { count: 'exact' }).eq('from_user_id', id),
-        supabase.from('business_deals').select('value').eq('closed_by_user_id', id),
-        supabase.from('referrals').select('id', { count: 'exact' }).eq('from_user_id', id),
+        supabase.from('attendances').select('id', { count: 'exact' }).eq('user_id', member.id),
+        supabase.from('gente_em_acao').select('id', { count: 'exact' }).eq('user_id', member.id),
+        supabase.from('testimonials').select('id', { count: 'exact' }).eq('from_user_id', member.id),
+        supabase.from('business_deals').select('value').eq('closed_by_user_id', member.id),
+        supabase.from('referrals').select('id', { count: 'exact' }).eq('from_user_id', member.id),
       ]);
 
       const totalDealsValue = businessDeals.data?.reduce((sum, deal) => sum + (deal.value || 0), 0) || 0;
@@ -90,7 +107,7 @@ export default function MemberProfile() {
         referrals: referrals.count || 0,
       };
     },
-    enabled: !!id,
+    enabled: !!member?.id,
   });
 
   const getInitials = (name: string | null | undefined) => {
