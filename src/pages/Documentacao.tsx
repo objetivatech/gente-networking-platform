@@ -369,6 +369,18 @@ export default function Documentacao() {
                         <p className="text-muted-foreground mt-1">Perfil do usuário com histórico de pontos</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/membros</code>
+                        <p className="text-muted-foreground mt-1">Diretório de membros com filtros avançados e exportação</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/membro/:id</code>
+                        <p className="text-muted-foreground mt-1">Perfil individual de membro com URL compartilhável</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/aniversarios</code>
+                        <p className="text-muted-foreground mt-1">Calendário de aniversários da comunidade</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/ranking</code>
                         <p className="text-muted-foreground mt-1">Ranking de membros por pontuação</p>
                       </div>
@@ -419,6 +431,10 @@ export default function Documentacao() {
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/documentacao</code>
                         <p className="text-muted-foreground mt-1">Esta página de documentação</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/changelog</code>
+                        <p className="text-muted-foreground mt-1">Histórico de versões e atualizações</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/instalar</code>
