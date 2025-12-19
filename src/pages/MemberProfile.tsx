@@ -181,16 +181,21 @@ export default function MemberProfile() {
           } : undefined}
         />
         
-        <CardContent className="relative pt-0">
+        <CardContent className="relative pt-6">
           {/* Avatar overlapping banner */}
-          <div className="flex flex-col md:flex-row gap-6 -mt-16 md:-mt-20">
-            <div className="flex flex-col items-center gap-4">
-              <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-                <AvatarImage src={member.avatar_url || ''} alt={member.full_name || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
-                  {getInitials(member.full_name)}
-                </AvatarFallback>
-              </Avatar>
+          <div className="absolute -top-16 left-6">
+            <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
+              <AvatarImage src={member.avatar_url || ''} alt={member.full_name || ''} />
+              <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
+                {getInitials(member.full_name)}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          {/* Content with proper spacing */}
+          <div className="flex flex-col md:flex-row gap-6 pt-20 md:pt-4">
+            {/* Rank e Pontos - sidebar on desktop */}
+            <div className="hidden md:flex flex-col items-center gap-4 min-w-[140px]">
               <RankBadge rank={member.rank} size="lg" />
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Pontos</p>
@@ -199,7 +204,7 @@ export default function MemberProfile() {
             </div>
 
             {/* Member Info */}
-            <div className="flex-1 pt-16 md:pt-20 space-y-4">
+            <div className="flex-1 space-y-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">{member.full_name}</h1>
                 {member.position && member.company && (
@@ -295,6 +300,15 @@ export default function MemberProfile() {
                     <Globe className="w-5 h-5" />
                   </a>
                 )}
+              </div>
+
+              {/* Rank e Pontos - mobile only */}
+              <div className="flex md:hidden justify-center gap-6 pt-4">
+                <RankBadge rank={member.rank} size="lg" />
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Pontos</p>
+                  <p className="text-2xl font-bold text-primary">{member.points || 0}</p>
+                </div>
               </div>
             </div>
           </div>
