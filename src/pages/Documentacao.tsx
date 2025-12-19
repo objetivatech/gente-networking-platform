@@ -373,8 +373,8 @@ export default function Documentacao() {
                         <p className="text-muted-foreground mt-1">Diretório de membros com filtros avançados e exportação</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/membro/:id</code>
-                        <p className="text-muted-foreground mt-1">Perfil individual de membro com URL compartilhável</p>
+                        <code className="font-bold">/membro/:slug</code>
+                        <p className="text-muted-foreground mt-1">Perfil individual de membro com URL amigável (ex: /membro/joao-silva)</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/aniversarios</code>
@@ -423,6 +423,10 @@ export default function Documentacao() {
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/admin</code>
                         <p className="text-muted-foreground mt-1">Painel administrativo (apenas Admin)</p>
+                      </div>
+                      <div className="p-3 rounded-lg bg-muted">
+                        <code className="font-bold">/admin/membros</code>
+                        <p className="text-muted-foreground mt-1">Gerenciamento de membros ativos/inativos (apenas Admin)</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/configuracoes</code>
