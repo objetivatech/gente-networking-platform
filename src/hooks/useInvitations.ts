@@ -134,14 +134,19 @@ export function useInvitations() {
 }
 
 export async function validateInvitation(code: string): Promise<Invitation | null> {
-  const { data, error } = await supabase
-    .from('invitations')
-    .select('*')
-    .eq('code', code)
-    .eq('status', 'pending')
-    .gt('expires_at', new Date().toISOString())
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('invitations')
+      .select('*')
+      .eq('code', code)
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
 
-  if (error || !data) return null;
-  return data as Invitation;
+    if (error || !data) return null;
+    return data as Invitation;
+  } catch (error) {
+    console.error('Error validating invitation:', error);
+    return null;
+  }
 }

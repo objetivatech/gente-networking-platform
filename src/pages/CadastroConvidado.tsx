@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,9 +9,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { z } from 'zod';
-import logoGente from '@/assets/logo-gente.png';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
-import { validateInvitation, Invitation } from '@/hooks/useInvitations';
+
+interface Invitation {
+  id: string;
+  code: string;
+  invited_by: string;
+  email: string | null;
+  name: string | null;
+  status: 'pending' | 'accepted' | 'expired';
+  accepted_by: string | null;
+  accepted_at: string | null;
+  expires_at: string;
+  created_at: string;
+  metadata: Record<string, unknown>;
+}
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
@@ -70,14 +83,30 @@ export default function CadastroConvidado() {
         return;
       }
 
-      const inv = await validateInvitation(code);
-      setInvitation(inv);
-      setValid(!!inv);
+      try {
+        const { data, error } = await supabase
+          .from('invitations')
+          .select('*')
+          .eq('code', code)
+          .eq('status', 'pending')
+          .gt('expires_at', new Date().toISOString())
+          .maybeSingle();
 
-      if (inv) {
-        if (inv.name) setFullName(inv.name);
-        if (inv.email) setEmail(inv.email);
-        localStorage.setItem('invitation_code', code);
+        if (error) {
+          console.error('Error checking invitation:', error);
+          setValid(false);
+        } else if (data) {
+          setInvitation(data as Invitation);
+          setValid(true);
+          if (data.name) setFullName(data.name);
+          if (data.email) setEmail(data.email);
+          localStorage.setItem('invitation_code', code);
+        } else {
+          setValid(false);
+        }
+      } catch (err) {
+        console.error('Error validating invitation:', err);
+        setValid(false);
       }
 
       setValidating(false);
@@ -93,7 +122,6 @@ export default function CadastroConvidado() {
 
   const checkEmailExists = async (emailToCheck: string): Promise<boolean> => {
     try {
-      const { supabase } = await import('@/integrations/supabase/client');
       const { data } = await supabase
         .from('profiles')
         .select('id')
@@ -180,7 +208,6 @@ export default function CadastroConvidado() {
 
     if (code && data?.user?.id) {
       try {
-        const { supabase } = await import('@/integrations/supabase/client');
         await supabase.rpc('accept_invitation', {
           _code: code,
           _user_id: data.user.id
@@ -200,43 +227,41 @@ export default function CadastroConvidado() {
 
   if (validating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-900" />
       </div>
     );
   }
 
   if (!valid || !invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
-        <Card className="w-full max-w-md border-destructive/20 shadow-xl">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-orange-50">
+        <Card className="w-full max-w-md border-red-200 shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <img
-                src={logoGente}
-                alt="Gente Networking"
-                className="h-20 w-auto object-contain"
-              />
+              <div className="h-20 w-20 bg-blue-900 rounded-full flex items-center justify-center">
+                <span className="text-white text-2xl font-bold">GN</span>
+              </div>
             </div>
-            <CardTitle className="text-2xl text-primary">Gente Networking</CardTitle>
-            <CardDescription className="text-secondary-foreground">Conectando pessoas, gerando negócios</CardDescription>
+            <CardTitle className="text-2xl text-blue-900">Gente Networking</CardTitle>
+            <CardDescription>Conectando pessoas, gerando negócios</CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-6">
-            <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
               <XCircle className="h-12 w-12 text-red-500 mx-auto mb-3" />
-              <h3 className="font-semibold text-lg text-red-700 dark:text-red-300">
+              <h3 className="font-semibold text-lg text-red-700">
                 Convite Inválido
               </h3>
-              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+              <p className="text-sm text-red-600 mt-1">
                 Este convite não é válido, já foi utilizado ou expirou.
               </p>
             </div>
 
-            <p className="text-muted-foreground text-sm">
+            <p className="text-gray-600 text-sm">
               Entre em contato com quem te enviou o convite para obter um novo código.
             </p>
 
-            <Button variant="outline" onClick={() => navigate('/auth')} className="border-primary text-primary hover:bg-primary/10">
+            <Button variant="outline" onClick={() => navigate('/auth')} className="border-blue-900 text-blue-900 hover:bg-blue-50">
               Ir para Login
             </Button>
           </CardContent>
@@ -246,30 +271,28 @@ export default function CadastroConvidado() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-lg animate-fade-in shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50 p-4">
+      <Card className="w-full max-w-lg shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
-            <img
-              src={logoGente}
-              alt="Gente Networking"
-              className="w-36 h-auto mx-auto"
-            />
+            <div className="h-20 w-20 bg-blue-900 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-white text-2xl font-bold">GN</span>
+            </div>
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-primary">Bem-vindo ao Gente Networking!</CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardTitle className="text-2xl font-bold text-blue-900">Bem-vindo ao Gente Networking!</CardTitle>
+            <CardDescription>
               Conectando pessoas, gerando negócios
             </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 mb-6">
+          <div className="p-4 rounded-lg bg-green-50 border border-green-200 mb-6">
             <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-2" />
-            <h3 className="font-semibold text-center text-green-700 dark:text-green-300 mb-1">
+            <h3 className="font-semibold text-center text-green-700 mb-1">
               Você foi convidado!
             </h3>
-            <p className="text-sm text-green-600 dark:text-green-400 text-center">
+            <p className="text-sm text-green-600 text-center">
               {invitation.name ? `${invitation.name}, complete` : 'Complete'} seu cadastro abaixo para fazer parte da nossa comunidade.
             </p>
           </div>
@@ -285,7 +308,7 @@ export default function CadastroConvidado() {
                 onChange={(e) => setFullName(e.target.value)}
                 required
               />
-              {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
+              {errors.fullName && <p className="text-sm text-red-600">{errors.fullName}</p>}
             </div>
 
             <div className="space-y-2">
@@ -298,7 +321,7 @@ export default function CadastroConvidado() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -311,7 +334,7 @@ export default function CadastroConvidado() {
                 onChange={handlePhoneChange}
                 required
               />
-              {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+              {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
             </div>
 
             <div className="space-y-2">
@@ -324,7 +347,7 @@ export default function CadastroConvidado() {
                 onChange={(e) => setCompany(e.target.value)}
                 required
               />
-              {errors.company && <p className="text-sm text-destructive">{errors.company}</p>}
+              {errors.company && <p className="text-sm text-red-600">{errors.company}</p>}
             </div>
 
             <div className="space-y-2">
@@ -337,7 +360,7 @@ export default function CadastroConvidado() {
                 onChange={(e) => setBusinessSegment(e.target.value)}
                 required
               />
-              {errors.businessSegment && <p className="text-sm text-destructive">{errors.businessSegment}</p>}
+              {errors.businessSegment && <p className="text-sm text-red-600">{errors.businessSegment}</p>}
             </div>
 
             <div className="space-y-2">
@@ -351,7 +374,7 @@ export default function CadastroConvidado() {
                 required
               />
               <PasswordStrengthIndicator password={password} />
-              {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+              {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
             </div>
 
             <div className="space-y-2">
@@ -364,7 +387,7 @@ export default function CadastroConvidado() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
-              {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
             </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail}>
@@ -378,11 +401,11 @@ export default function CadastroConvidado() {
               )}
             </Button>
 
-            <p className="text-xs text-center text-muted-foreground">
+            <p className="text-xs text-center text-gray-600">
               Já tem uma conta?{' '}
               <Button
                 variant="link"
-                className="p-0 h-auto text-xs text-primary hover:underline"
+                className="p-0 h-auto text-xs text-blue-900 hover:underline"
                 onClick={() => navigate('/auth')}
                 type="button"
               >
