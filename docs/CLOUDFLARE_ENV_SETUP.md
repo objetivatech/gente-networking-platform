@@ -29,10 +29,10 @@ Você precisa adicionar as variáveis de ambiente no painel do Cloudflare Pages.
 
    **Para o ambiente de Production:**
    ```
-   VITE_SUPABASE_URL = https://zrfxqnpqetewunxeukvt.supabase.co
+   VITE_SUPABASE_URL = https://vyfkddcbmwlwldaorxzy.supabase.co
    ```
    ```
-   VITE_SUPABASE_PUBLISHABLE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyZnhxbnBxZXRld3VueGV1a3Z0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzODgxOTMsImV4cCI6MjA4Mzk2NDE5M30._4-3VYp3WbG8zeqUzq94ag0WBSZwlPrBI6sIbw7ePeI
+   VITE_SUPABASE_PUBLISHABLE_KEY = sb_publishable_EPVu6Lp9miUs9f3rvWj8YQ_CiUV1zoE
    ```
 
    **Opcional (se você também usar Preview):**

@@ -52,7 +52,7 @@ const formatPhoneBR = (value: string): string => {
 export default function CadastroConvidado() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { signUp, user } = useAuth();
+  const { signUp, signIn, user } = useAuth();
   const { toast } = useToast();
 
   const [invitation, setInvitation] = useState<Invitation | null>(null);
@@ -229,11 +229,25 @@ export default function CadastroConvidado() {
       }
     }
 
-    setLoading(false);
     toast({
       title: 'Bem-vindo ao Gente Networking!',
-      description: 'Sua conta foi criada com sucesso',
+      description: 'Sua conta foi criada com sucesso. Redirecionando...',
     });
+
+    const loginResult = await signIn(email, password);
+
+    if (loginResult.error) {
+      console.error('Auto-login failed:', loginResult.error);
+      setLoading(false);
+      toast({
+        title: 'Cadastro realizado',
+        description: 'Por favor, faça login para continuar',
+      });
+      navigate('/auth');
+      return;
+    }
+
+    setLoading(false);
   };
 
   if (validating) {
