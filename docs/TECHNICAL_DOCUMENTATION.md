@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2024-12-08  
-> **Versão:** 1.0.0
+> **Última atualização:** 2025-01-14
+> **Versão:** 2.0.0
 
 ## Índice
 
@@ -30,6 +30,7 @@ O **Gente Networking** é uma plataforma de gestão de comunidade de networking 
 - Calendário de encontros quinzenais
 - Convites personalizados
 - Dashboard de estatísticas
+- **Sistema de privacidade por grupo**: Membros só visualizam informações de outros membros do mesmo grupo
 
 ---
 
@@ -48,7 +49,6 @@ O **Gente Networking** é uma plataforma de gestão de comunidade de networking 
 | Zod | Validação de schemas |
 | Supabase | Backend (Auth, Database, Edge Functions) |
 | Resend | Envio de emails |
-| RD Station | Marketing automation |
 
 ---
 
@@ -70,7 +70,7 @@ src/
 supabase/
 ├── functions/           # Edge Functions
 │   ├── _shared/         # Código compartilhado (email-templates)
-│   ├── rdstation/       # Integração RD Station
+│   ├── birthday-notifications/ # Notificações de aniversários
 │   ├── send-email/      # Envio de emails
 │   └── send-notification/ # Notificações
 └── migrations/          # Migrações SQL
@@ -167,7 +167,6 @@ docs/
 | `useOfflineData` | `useOfflineData.ts` | Cache offline |
 | `usePWAInstall` | `usePWAInstall.ts` | Instalação PWA |
 | `usePushNotifications` | `usePushNotifications.ts` | Notificações push |
-| `useRDStation` | `useRDStation.ts` | Integração RD Station |
 
 ---
 
@@ -250,6 +249,33 @@ Os pontos são calculados automaticamente via triggers PostgreSQL:
 
 ## Banco de Dados
 
+**Supabase (PostgreSQL)** com Row Level Security (RLS) em todas as tabelas.
+
+### Sistema de Privacidade por Grupo
+
+A partir da versão 2.0.0, o sistema implementa restrições de acesso baseadas em grupos:
+
+#### Funções Auxiliares
+
+- `get_user_teams(user_id)`: Retorna lista de times do usuário
+- `are_same_team(user_id1, user_id2)`: Verifica se dois usuários estão no mesmo time
+- `has_role(user_id, role)`: Verifica role do usuário
+
+#### Políticas de Acesso
+
+**Membros regulares:**
+- Visualizam apenas perfis de membros do mesmo grupo
+- Podem enviar depoimentos e indicações apenas para membros do mesmo grupo
+- Veem apenas atividades de membros do mesmo grupo
+
+**Facilitadores:**
+- Acesso amplo a todos os grupos
+- Podem gerenciar apenas sua própria equipe
+
+**Administradores:**
+- Acesso completo sem restrições
+- Podem gerenciar todas as equipes e membros
+
 ### Tabelas Principais
 
 | Tabela | Descrição |
@@ -317,34 +343,20 @@ Notificações de depoimentos e indicações.
 }
 ```
 
-### rdstation
+### birthday-notifications
 
-Integração com RD Station Marketing.
+Notificações automáticas de aniversários dos membros.
 
-**Endpoint:** `POST /rdstation`
+**Endpoint:** `POST /birthday-notifications`
 
-**Body:**
-```json
-{
-  "action": "create_conversion",
-  "data": {
-    "conversion_identifier": "cadastro-gente-networking",
-    "email": "email@exemplo.com",
-    "name": "Nome",
-    ...
-  }
-}
-```
+**Funcionalidade:**
+- Executa diariamente via cron job
+- Envia notificações por email para membros com aniversário
+- Lista aniversariantes do dia na dashboard
 
 ---
 
 ## Integrações
-
-### RD Station
-
-- Sincronização automática após cadastro
-- Campo `rd_station_synced_at` controla última sincronização
-- Conversões enviadas para tracking de leads
 
 ### Resend
 

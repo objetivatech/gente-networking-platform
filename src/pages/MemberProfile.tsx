@@ -40,30 +40,26 @@ export default function MemberProfile() {
     queryKey: ['member-profile', slug],
     queryFn: async () => {
       if (!slug) throw new Error('Slug do membro não informado');
-      
-      // Primeiro tenta buscar por slug, depois por ID (para compatibilidade)
-      let query = supabase
+
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('slug', slug)
-        .single();
+        .maybeSingle();
 
-      const { data, error } = await query;
-
-      // Se não encontrou por slug, tenta por ID (UUID)
       if (error && slug.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
         const { data: dataById, error: errorById } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', slug)
-          .single();
-        
+          .maybeSingle();
+
         if (errorById) throw errorById;
-        return dataById as MemberProfile;
+        return dataById as MemberProfile | null;
       }
 
       if (error) throw error;
-      return data as MemberProfile;
+      return data as MemberProfile | null;
     },
     enabled: !!slug,
   });
@@ -163,7 +159,8 @@ export default function MemberProfile() {
   if (error || !member) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-muted-foreground">Membro não encontrado</p>
+        <p className="text-muted-foreground">Membro não encontrado ou você não tem permissão para visualizar este perfil</p>
+        <p className="text-sm text-muted-foreground">Você só pode visualizar perfis de membros do mesmo grupo</p>
         <Button variant="outline" onClick={() => navigate('/membros')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar para Membros

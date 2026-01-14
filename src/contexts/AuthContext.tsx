@@ -2,45 +2,6 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-// RD Station sync helper
-async function syncUserToRDStation(userId: string) {
-  try {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('email, full_name, phone, company, position, business_segment, rd_station_synced_at')
-      .eq('id', userId)
-      .single();
-
-    if (!profile?.email || profile.rd_station_synced_at) return;
-
-    await supabase.functions.invoke('rdstation', {
-      body: {
-        action: 'create_conversion',
-        data: {
-          conversion_identifier: 'cadastro-gente-networking',
-          email: profile.email,
-          name: profile.full_name,
-          phone: profile.phone,
-          company: profile.company,
-          cf_cargo: profile.position,
-          cf_empresa: profile.company,
-          cf_segmento: profile.business_segment,
-          tags: ['gente-networking', 'novo-membro'],
-        },
-      },
-    });
-
-    await supabase
-      .from('profiles')
-      .update({ rd_station_synced_at: new Date().toISOString() })
-      .eq('id', userId);
-
-    console.log('Usuário sincronizado com RD Station');
-  } catch (error) {
-    console.error('Erro ao sincronizar com RD Station:', error);
-  }
-}
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -59,22 +20,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-
-        // Sync new users to RD Station
-        if (event === 'SIGNED_IN' && session?.user) {
-          // Use setTimeout to not block the auth flow
-          setTimeout(() => syncUserToRDStation(session.user.id), 1000);
-        }
       }
     );
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);

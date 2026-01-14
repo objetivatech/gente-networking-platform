@@ -2,7 +2,7 @@
  * @page Auth
  * @route /auth
  * @description Página de autenticação com login, cadastro e recuperação de senha
- * 
+ *
  * @features
  * - Login com email/senha
  * - Cadastro com validação completa (nome, email, WhatsApp, empresa, segmento, senha)
@@ -12,10 +12,9 @@
  * - Indicador visual de força da senha
  * - Recuperação de senha via email
  * - Integração com sistema de convites
- * - Sincronização com RD Station após cadastro
- * 
+ *
  * @since 2024-12-08
- * @updated 2024-12-08 - Adicionado recuperação de senha e indicador de força
+ * @updated 2025-01-14 - Removida integração com RD Station
  */
 
 import { useState, useEffect } from 'react';

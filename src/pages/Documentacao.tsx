@@ -67,8 +67,22 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>
-                      O Gente Networking é uma plataforma de gestão de comunidade focada em networking profissional. 
+                      O Gente Networking é uma plataforma de gestão de comunidade focada em networking profissional.
                       Aqui você pode registrar suas atividades, fazer conexões e acompanhar seu progresso.
+                    </p>
+
+                    <h4 className="font-semibold mt-4">Privacidade e Acesso por Grupo</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Para proteger a privacidade dos membros, o acesso às informações é restrito por grupo:
+                    </p>
+                    <ul>
+                      <li><strong>Membros:</strong> Podem ver apenas informações de outros membros do mesmo grupo</li>
+                      <li><strong>Facilitadores:</strong> Têm acesso a informações de todos os grupos</li>
+                      <li><strong>Administradores:</strong> Têm acesso completo ao sistema</li>
+                    </ul>
+                    <p className="text-sm text-muted-foreground">
+                      Isso significa que você só poderá enviar depoimentos, fazer indicações e visualizar perfis de membros
+                      que estão no mesmo grupo que você.
                     </p>
                   </CardContent>
                 </Card>
@@ -87,7 +101,7 @@ export default function Documentacao() {
                     <div className="grid gap-3">
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><Handshake className="h-4 w-4" /> Gente em Ação</span>
-                        <Badge>10 pts</Badge>
+                        <Badge>25 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Depoimentos</span>
@@ -99,15 +113,15 @@ export default function Documentacao() {
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Presenças</span>
-                        <Badge>25 pts</Badge>
+                        <Badge>20 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><UserPlus className="h-4 w-4" /> Convites Aceitos</span>
-                        <Badge>30 pts</Badge>
+                        <Badge>15 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><DollarSign className="h-4 w-4" /> Negócios</span>
-                        <Badge>1 pt / R$100</Badge>
+                        <Badge>5 pts / R$100</Badge>
                       </div>
                     </div>
                     
@@ -131,10 +145,22 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>Registre suas reuniões 1-a-1 com outros membros ou convidados externos.</p>
-                    <ul>
-                      <li><strong>Com Membro:</strong> Selecione o membro da comunidade</li>
-                      <li><strong>Com Convidado:</strong> Informe nome e empresa do convidado</li>
-                    </ul>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Acesse o menu "Gente em Ação"</li>
+                      <li>Clique em "Registrar Reunião"</li>
+                      <li>Escolha o tipo de reunião:
+                        <ul>
+                          <li><strong>Com Membro:</strong> Selecione o membro da sua equipe</li>
+                          <li><strong>Com Convidado:</strong> Informe nome e empresa do convidado externo</li>
+                        </ul>
+                      </li>
+                      <li>Selecione a data da reunião</li>
+                      <li>Adicione observações (opcional)</li>
+                      <li>Envie uma foto da reunião (opcional)</li>
+                      <li>Clique em "Salvar" para ganhar 25 pontos</li>
+                    </ol>
                   </CardContent>
                 </Card>
 
@@ -146,8 +172,21 @@ export default function Documentacao() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
-                    <p>Envie depoimentos para outros membros destacando suas qualidades profissionais.</p>
-                    <p>Os depoimentos recebidos aparecem no seu perfil e o membro é notificado por email.</p>
+                    <p>Envie depoimentos para outros membros do seu grupo destacando suas qualidades profissionais.</p>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Acesse o menu "Depoimentos"</li>
+                      <li>Clique em "Novo Depoimento"</li>
+                      <li>Selecione o membro do seu grupo para quem deseja enviar o depoimento</li>
+                      <li>Escreva um depoimento sincero destacando qualidades profissionais, trabalhos realizados ou experiências positivas</li>
+                      <li>Clique em "Enviar" para ganhar 15 pontos</li>
+                      <li>O membro receberá uma notificação por email e o depoimento aparecerá no perfil dele</li>
+                    </ol>
+
+                    <p className="text-sm text-muted-foreground mt-4">
+                      <strong>Nota:</strong> Você só pode enviar depoimentos para membros do mesmo grupo.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -159,12 +198,28 @@ export default function Documentacao() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
-                    <p>Compartilhe contatos qualificados com outros membros.</p>
-                    <ul>
-                      <li>Informe o nome, telefone e email do contato</li>
-                      <li>Adicione notas sobre o contexto da indicação</li>
-                      <li>O membro será notificado por email automaticamente</li>
-                    </ul>
+                    <p>Compartilhe contatos qualificados com outros membros do seu grupo.</p>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Acesse o menu "Indicações"</li>
+                      <li>Clique em "Nova Indicação"</li>
+                      <li>Selecione o membro do seu grupo que receberá a indicação</li>
+                      <li>Preencha os dados do contato:
+                        <ul>
+                          <li>Nome completo</li>
+                          <li>Telefone (WhatsApp)</li>
+                          <li>Email</li>
+                        </ul>
+                      </li>
+                      <li>Adicione notas sobre o contexto da indicação, necessidades do contato ou como conheceu a pessoa</li>
+                      <li>Clique em "Enviar" para ganhar 20 pontos</li>
+                      <li>O membro receberá uma notificação por email com os dados do contato</li>
+                    </ol>
+
+                    <p className="text-sm text-muted-foreground mt-4">
+                      <strong>Nota:</strong> Você só pode fazer indicações para membros do mesmo grupo.
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -177,11 +232,27 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>Registre negócios fechados através da comunidade.</p>
-                    <ul>
-                      <li>Informe o valor do negócio</li>
-                      <li>Selecione quem fez a indicação (se aplicável)</li>
-                      <li>Esses dados aparecem nas estatísticas da comunidade</li>
-                    </ul>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Acesse o menu "Negócios"</li>
+                      <li>Clique em "Registrar Negócio"</li>
+                      <li>Preencha os dados:
+                        <ul>
+                          <li>Nome do cliente</li>
+                          <li>Valor do negócio em R$</li>
+                          <li>Data de fechamento</li>
+                          <li>Descrição do negócio (opcional)</li>
+                        </ul>
+                      </li>
+                      <li>Se o negócio veio de uma indicação, selecione o membro que fez a indicação</li>
+                      <li>Clique em "Salvar"</li>
+                      <li>Você ganha 5 pontos a cada R$ 100,00 do valor do negócio</li>
+                    </ol>
+
+                    <p className="text-sm text-muted-foreground mt-4">
+                      <strong>Exemplo:</strong> Um negócio de R$ 5.000,00 = 250 pontos
+                    </p>
                   </CardContent>
                 </Card>
 
@@ -194,13 +265,27 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>Convide novos membros para a comunidade e ganhe pontos!</p>
-                    <ul>
-                      <li>Crie um código de convite único</li>
-                      <li>Compartilhe o link ou código com o convidado</li>
-                      <li>Acompanhe o status do convite</li>
-                      <li>Ganhe 30 pontos quando seu convite for aceito</li>
-                      <li>Convites expiram em 30 dias</li>
-                    </ul>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Acesse o menu "Convites"</li>
+                      <li>Clique em "Criar Novo Convite"</li>
+                      <li>Preencha:
+                        <ul>
+                          <li>Nome do convidado</li>
+                          <li>Email do convidado</li>
+                        </ul>
+                      </li>
+                      <li>Clique em "Gerar Convite"</li>
+                      <li>Copie o link gerado e envie para o convidado por WhatsApp, email ou outro meio</li>
+                      <li>O convidado clicará no link, criará sua conta e será adicionado como "Convidado"</li>
+                      <li>Quando o convidado participar do primeiro encontro presencial, você ganha 15 pontos</li>
+                      <li>Um administrador ou facilitador precisará promovê-lo para "Membro" após o primeiro encontro</li>
+                    </ol>
+
+                    <p className="text-sm text-muted-foreground mt-4">
+                      <strong>Importante:</strong> Convites expiram em 30 dias. Você pode acompanhar o status de todos os seus convites na página de Convites.
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -236,6 +321,7 @@ export default function Documentacao() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
+                    <h4 className="font-semibold">Funcionalidades:</h4>
                     <ul>
                       <li><strong>Criar Equipes:</strong> Nome, descrição e cor identificadora</li>
                       <li><strong>Adicionar Membros:</strong> Vincule membros às equipes</li>
@@ -243,6 +329,23 @@ export default function Documentacao() {
                       <li><strong>Remover Membros:</strong> Desvincule membros de equipes</li>
                       <li><strong>Promover Convidados:</strong> Transforme convidados em membros</li>
                     </ul>
+
+                    <h4 className="font-semibold mt-4">Como criar uma equipe:</h4>
+                    <ol>
+                      <li>Acesse o menu "Equipes"</li>
+                      <li>Clique em "Nova Equipe"</li>
+                      <li>Preencha:
+                        <ul>
+                          <li>Nome da equipe</li>
+                          <li>Descrição (opcional)</li>
+                          <li>Escolha uma cor para identificação</li>
+                        </ul>
+                      </li>
+                      <li>Clique em "Salvar"</li>
+                      <li>Na lista de equipes, clique em "Gerenciar Membros"</li>
+                      <li>Adicione membros à equipe</li>
+                      <li>Se necessário, promova um membro para Facilitador</li>
+                    </ol>
                   </CardContent>
                 </Card>
 
@@ -621,8 +724,8 @@ export default function Documentacao() {
                         <p className="text-sm text-muted-foreground mt-1">Notificações de depoimentos e indicações</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">rdstation</code>
-                        <p className="text-sm text-muted-foreground mt-1">Integração com RD Station Marketing</p>
+                        <code className="font-bold">birthday-notifications</code>
+                        <p className="text-sm text-muted-foreground mt-1">Notificações automáticas de aniversários</p>
                       </div>
                     </div>
                   </CardContent>
