@@ -30,10 +30,7 @@ export default function ConvitePublico() {
   }, [code]);
 
   const handleAccept = () => {
-    if (code) {
-      localStorage.setItem('invitation_code', code);
-    }
-    navigate('/auth?mode=signup');
+    navigate(`/convite/${code}/cadastrar`);
   };
 
   if (loading) {

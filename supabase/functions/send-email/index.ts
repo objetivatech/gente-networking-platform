@@ -3,6 +3,7 @@ import {
   magicLinkEmailTemplate,
   passwordResetEmailTemplate,
   confirmEmailTemplate,
+  invitationEmailTemplate,
 } from "../_shared/email-templates.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -16,11 +17,14 @@ interface EmailRequest {
   to: string;
   subject: string;
   html?: string;
-  template?: "magic_link" | "password_reset" | "confirm_email";
+  template?: "magic_link" | "password_reset" | "confirm_email" | "invitation";
   template_data?: {
     name?: string;
     link?: string;
     otp?: string;
+    inviter_name?: string;
+    guest_name?: string;
+    invite_link?: string;
   };
   from?: string;
 }
@@ -49,6 +53,13 @@ const handler = async (req: Request): Promise<Response> => {
           break;
         case "confirm_email":
           html = confirmEmailTemplate(name, link);
+          break;
+        case "invitation":
+          html = invitationEmailTemplate(
+            template_data.inviter_name || "Um membro",
+            template_data.guest_name || "",
+            template_data.invite_link || ""
+          );
           break;
       }
     }

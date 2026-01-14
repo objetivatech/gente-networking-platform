@@ -69,26 +69,25 @@ export function useInvitations() {
       if (input.email) {
         try {
           const inviteUrl = `${window.location.origin}/convite/${code}`;
+
+          const { data: inviterProfile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const inviterName = inviterProfile?.full_name || 'Um membro';
+
           await supabase.functions.invoke('send-email', {
             body: {
               to: input.email,
-              subject: '🎉 Você foi convidado para o Gente Networking!',
-              html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                  <h1 style="color: #22c55e;">Gente Networking</h1>
-                  <h2>Você foi convidado!</h2>
-                  <p>${input.name ? `Olá ${input.name},` : 'Olá,'}</p>
-                  <p>Você recebeu um convite para participar do Gente Networking, uma comunidade de networking focada em conexões e negócios.</p>
-                  <p>Use o código abaixo ou clique no link para criar sua conta:</p>
-                  <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-                    <p style="font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #22c55e; margin: 0;">${code}</p>
-                  </div>
-                  <a href="${inviteUrl}" style="display: inline-block; background: #22c55e; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Aceitar Convite</a>
-                  <p style="margin-top: 20px; color: #666;">Este convite expira em 30 dias.</p>
-                  <hr style="margin: 40px 0; border: none; border-top: 1px solid #eee;" />
-                  <p style="color: #666; font-size: 12px;">Gente Networking - Conectando pessoas, gerando negócios.</p>
-                </div>
-              `,
+              subject: 'Você foi convidado para o Gente Networking! 🎉',
+              template: 'invitation',
+              template_data: {
+                inviter_name: inviterName,
+                guest_name: input.name,
+                invite_link: inviteUrl,
+              },
             },
           });
         } catch (e) {

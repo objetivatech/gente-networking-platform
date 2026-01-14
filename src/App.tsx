@@ -23,6 +23,7 @@ import Conteudos from "./pages/Conteudos";
 import Ranking from "./pages/Ranking";
 import Convites from "./pages/Convites";
 import ConvitePublico from "./pages/ConvitePublico";
+import CadastroConvidado from "./pages/CadastroConvidado";
 import Documentacao from "./pages/Documentacao";
 import Configuracoes from "./pages/Configuracoes";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/redefinir-senha" element={<RedefinirSenha />} />
             <Route path="/convite/:code" element={<ConvitePublico />} />
+            <Route path="/convite/:code/cadastrar" element={<CadastroConvidado />} />
             <Route path="/instalar" element={<Instalar />} />
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />

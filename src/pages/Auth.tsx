@@ -208,15 +208,15 @@ export default function Auth() {
     }
 
     // Check if there's an invitation code to accept
-    const inviteCode = localStorage.getItem('invite_code');
+    const inviteCode = localStorage.getItem('invitation_code');
     if (inviteCode && data?.user?.id) {
       try {
         const { supabase } = await import('@/integrations/supabase/client');
-        await supabase.rpc('accept_invitation', { 
-          _code: inviteCode, 
-          _user_id: data.user.id 
+        await supabase.rpc('accept_invitation', {
+          _code: inviteCode,
+          _user_id: data.user.id
         });
-        localStorage.removeItem('invite_code');
+        localStorage.removeItem('invitation_code');
       } catch (err) {
         console.error('Failed to accept invitation:', err);
       }
