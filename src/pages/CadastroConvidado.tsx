@@ -78,8 +78,12 @@ export default function CadastroConvidado() {
 
   useEffect(() => {
     async function checkInvite() {
+      console.log('Checking invitation with code:', code);
+
       if (!code) {
+        console.log('No code provided');
         setValidating(false);
+        setValid(false);
         return;
       }
 
@@ -87,26 +91,33 @@ export default function CadastroConvidado() {
         const { data, error } = await supabase
           .from('invitations')
           .select('*')
-          .eq('code', code)
+          .eq('code', code.toUpperCase())
           .eq('status', 'pending')
           .gt('expires_at', new Date().toISOString())
           .maybeSingle();
 
+        console.log('Invitation query result:', { data, error });
+
         if (error) {
           console.error('Error checking invitation:', error);
           setValid(false);
+          setInvitation(null);
         } else if (data) {
+          console.log('Valid invitation found:', data);
           setInvitation(data as Invitation);
           setValid(true);
           if (data.name) setFullName(data.name);
           if (data.email) setEmail(data.email);
           localStorage.setItem('invitation_code', code);
         } else {
+          console.log('No invitation found for code:', code);
           setValid(false);
+          setInvitation(null);
         }
       } catch (err) {
         console.error('Error validating invitation:', err);
         setValid(false);
+        setInvitation(null);
       }
 
       setValidating(false);

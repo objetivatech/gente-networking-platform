@@ -29,6 +29,8 @@ export default function ConvitePublico() {
   }, [code]);
 
   const handleAccept = () => {
+    console.log('Navigating to:', `/convite/${code}/cadastrar`);
+    console.log('Current code:', code);
     navigate(`/convite/${code}/cadastrar`);
   };
 
