@@ -3,6 +3,13 @@
  * @route /auth
  * @description Página de autenticação com login, cadastro e recuperação de senha
  *
+ * @author Diogo Devitte
+ * @company Ranktop SEO Inteligente
+ * @website https://ranktop.com.br
+ * @contact (51) 991227114
+ * 
+ * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
+ *
  * @features
  * - Login com email/senha
  * - Cadastro com validação completa (nome, email, WhatsApp, empresa, segmento, senha)
@@ -480,6 +487,28 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Footer de Copyright */}
+      <div className="mt-8 text-center">
+        <span className="text-sm text-muted-foreground">
+          © 2026. Criado e operado com{' '}
+          <strong className="text-destructive">♥</strong> por{' '}
+          <a
+            href="https://ranktop.com.br"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center hover:opacity-80 transition-opacity"
+          >
+            <img
+              src="https://ik.imagekit.io/oespecialisaseo/Logo%20RANKTOP%20cropped.png"
+              width={80}
+              alt="Ranktop – SEO, Tecnologia, Automação e Inteligência Artificial aplicadas a negócios."
+              className="inline-block align-middle"
+            />
+          </a>
+          .
+        </span>
+      </div>
     </div>
   );
 }

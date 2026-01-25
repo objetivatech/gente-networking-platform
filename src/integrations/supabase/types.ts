@@ -592,15 +592,24 @@ export type Database = {
         }
         Returns: string
       }
+      are_same_team: {
+        Args: { p_user_id1: string; p_user_id2: string }
+        Returns: boolean
+      }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
       generate_slug: { Args: { name: string }; Returns: string }
-      generate_unique_slug: {
-        Args: { name: string; user_id: string }
-        Returns: string
-      }
+      generate_unique_slug:
+        | { Args: { name: string; user_id: string }; Returns: string }
+        | { Args: { name: string; user_id: string }; Returns: string }
       get_rank_from_points: {
         Args: { _points: number }
         Returns: Database["public"]["Enums"]["member_rank"]
+      }
+      get_user_teams: {
+        Args: { p_user_id: string }
+        Returns: {
+          team_id: string
+        }[]
       }
       has_role: {
         Args: {
@@ -611,11 +620,10 @@ export type Database = {
       }
       is_guest: { Args: { _user_id: string }; Returns: boolean }
       is_team_facilitator: {
-        Args: { _team_id: string; _user_id: string }
+        Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
       recalculate_all_user_points: { Args: never; Returns: number }
-      unaccent: { Args: { "": string }; Returns: string }
       update_user_points_and_rank: {
         Args: { _user_id: string }
         Returns: undefined

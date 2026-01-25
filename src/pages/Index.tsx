@@ -1,3 +1,14 @@
+/**
+ * Index - Dashboard Principal
+ * 
+ * @author Diogo Devitte
+ * @company Ranktop SEO Inteligente
+ * @website https://ranktop.com.br
+ * @contact (51) 991227114
+ * 
+ * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
+ */
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';

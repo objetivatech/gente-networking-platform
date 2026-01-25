@@ -104,6 +104,28 @@ export default function ConvitePublico() {
           )}
         </CardContent>
       </Card>
+
+      {/* Footer de Copyright */}
+      <div className="mt-8 text-center">
+        <span className="text-sm text-muted-foreground">
+          © 2026. Criado e operado com{' '}
+          <strong className="text-red-500">♥</strong> por{' '}
+          <a
+            href="https://ranktop.com.br"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center hover:opacity-80 transition-opacity"
+          >
+            <img
+              src="https://ik.imagekit.io/oespecialisaseo/Logo%20RANKTOP%20cropped.png"
+              width={80}
+              alt="Ranktop – SEO, Tecnologia, Automação e Inteligência Artificial aplicadas a negócios."
+              className="inline-block align-middle"
+            />
+          </a>
+          .
+        </span>
+      </div>
     </div>
   );
 }
