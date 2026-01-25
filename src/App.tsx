@@ -1,3 +1,14 @@
+/**
+ * App - Main Application Component
+ * 
+ * @author Diogo Devitte
+ * @company Ranktop SEO Inteligente
+ * @website https://ranktop.com.br
+ * @contact (51) 991227114
+ * 
+ * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
+ */
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";

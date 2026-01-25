@@ -1,3 +1,14 @@
+/**
+ * AuthContext - Authentication Context Provider
+ * 
+ * @author Diogo Devitte
+ * @company Ranktop SEO Inteligente
+ * @website https://ranktop.com.br
+ * @contact (51) 991227114
+ * 
+ * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
+ */
+
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
