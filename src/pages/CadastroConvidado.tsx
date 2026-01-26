@@ -252,194 +252,238 @@ export default function CadastroConvidado() {
 
   if (validating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-900" />
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   if (!valid || !invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-orange-50">
-        <Card className="w-full max-w-md border-red-200 shadow-xl">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="h-20 w-20 bg-blue-900 rounded-full flex items-center justify-center">
-                <span className="text-white text-2xl font-bold">GN</span>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md border-destructive/20 shadow-xl">
+            <CardHeader className="text-center">
+              <div className="flex justify-center mb-4">
+                <div className="h-20 w-20 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-primary-foreground text-2xl font-bold">GN</span>
+                </div>
               </div>
-            </div>
-            <CardTitle className="text-2xl text-blue-900">Gente Networking</CardTitle>
-            <CardDescription>Conectando pessoas, gerando negócios</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-6">
-            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-              <XCircle className="h-12 w-12 text-red-500 mx-auto mb-3" />
-              <h3 className="font-semibold text-lg text-red-700">
-                Convite Inválido
-              </h3>
-              <p className="text-sm text-red-600 mt-1">
-                Este convite não é válido, já foi utilizado ou expirou.
+              <CardTitle className="text-2xl text-primary">Gente Networking</CardTitle>
+              <CardDescription>Conectando pessoas, gerando negócios</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-6">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                <XCircle className="h-12 w-12 text-destructive mx-auto mb-3" />
+                <h3 className="font-semibold text-lg text-destructive">
+                  Convite Inválido
+                </h3>
+                <p className="text-sm text-destructive/80 mt-1">
+                  Este convite não é válido, já foi utilizado ou expirou.
+                </p>
+              </div>
+
+              <p className="text-muted-foreground text-sm">
+                Entre em contato com quem te enviou o convite para obter um novo código.
               </p>
-            </div>
 
-            <p className="text-gray-600 text-sm">
-              Entre em contato com quem te enviou o convite para obter um novo código.
-            </p>
+              <Button variant="outline" onClick={() => navigate('/auth')} className="border-primary text-primary hover:bg-primary/10">
+                Ir para Login
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
 
-            <Button variant="outline" onClick={() => navigate('/auth')} className="border-blue-900 text-blue-900 hover:bg-blue-50">
-              Ir para Login
-            </Button>
-          </CardContent>
-        </Card>
+        <footer className="border-t border-border bg-card py-4 px-4">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span className="text-sm text-muted-foreground">
+              © 2026. Criado e operado com{' '}
+              <strong className="text-destructive">♥</strong> por{' '}
+              <a href="https://ranktop.com.br" target="_blank" rel="noopener noreferrer" className="inline-flex items-center hover:opacity-80 transition-opacity">
+                <img src="https://ik.imagekit.io/oespecialisaseo/Logo%20RANKTOP%20cropped.png" width={100} alt="Ranktop" className="inline-block align-middle" />
+              </a>.
+            </span>
+            <span className="text-xs text-muted-foreground max-w-2xl">
+              Recursos visuais licenciados por{' '}
+              <a href="https://www.freepikcompany.com/legal" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Freepik</a>,{' '}
+              <a href="https://www.freepikcompany.com/legal#nav-flaticon" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Flaticon</a>,{' '}
+              <a href="https://fontawesome.com/license/free" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">FontAwesome</a>{' '}
+              e <a href="https://lottiefiles.com/page/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">LottieFiles</a>.
+            </span>
+          </div>
+        </footer>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-orange-50 p-4">
-      <Card className="w-full max-w-lg shadow-lg">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto">
-            <div className="h-20 w-20 bg-blue-900 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-white text-2xl font-bold">GN</span>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-lg shadow-lg">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto">
+              <div className="h-20 w-20 bg-primary rounded-full flex items-center justify-center mx-auto">
+                <span className="text-primary-foreground text-2xl font-bold">GN</span>
+              </div>
             </div>
-          </div>
-          <div>
-            <CardTitle className="text-2xl font-bold text-blue-900">Bem-vindo ao Gente Networking!</CardTitle>
-            <CardDescription>
-              Conectando pessoas, gerando negócios
-            </CardDescription>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="p-4 rounded-lg bg-green-50 border border-green-200 mb-6">
-            <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-2" />
-            <h3 className="font-semibold text-center text-green-700 mb-1">
-              Você foi convidado!
-            </h3>
-            <p className="text-sm text-green-600 text-center">
-              {invitation.name ? `${invitation.name}, complete` : 'Complete'} seu cadastro abaixo para fazer parte da nossa comunidade.
-            </p>
-          </div>
-
-          <form onSubmit={handleSignUp} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signup-name">Nome Completo *</Label>
-              <Input
-                id="signup-name"
-                type="text"
-                placeholder="Seu nome completo"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-              {errors.fullName && <p className="text-sm text-red-600">{errors.fullName}</p>}
+            <div>
+              <CardTitle className="text-2xl font-bold text-primary">Bem-vindo ao Gente Networking!</CardTitle>
+              <CardDescription>
+                Conectando pessoas, gerando negócios
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 mb-6">
+              <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-2" />
+              <h3 className="font-semibold text-center text-green-700 dark:text-green-400 mb-1">
+                Você foi convidado!
+              </h3>
+              <p className="text-sm text-green-600 dark:text-green-300 text-center">
+                {invitation.name ? `${invitation.name}, complete` : 'Complete'} seu cadastro abaixo para fazer parte da nossa comunidade.
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-email">Email *</Label>
-              <Input
-                id="signup-email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
-            </div>
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="signup-name">Nome Completo *</Label>
+                <Input
+                  id="signup-name"
+                  type="text"
+                  placeholder="Seu nome completo"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+                {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-phone">WhatsApp *</Label>
-              <Input
-                id="signup-phone"
-                type="tel"
-                placeholder="(11) 99999-9999"
-                value={phone}
-                onChange={handlePhoneChange}
-                required
-              />
-              {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-email">Email *</Label>
+                <Input
+                  id="signup-email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-company">Nome da Empresa *</Label>
-              <Input
-                id="signup-company"
-                type="text"
-                placeholder="Nome da sua empresa"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                required
-              />
-              {errors.company && <p className="text-sm text-red-600">{errors.company}</p>}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-phone">WhatsApp *</Label>
+                <Input
+                  id="signup-phone"
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  required
+                />
+                {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-segment">Segmento de Negócio *</Label>
-              <Input
-                id="signup-segment"
-                type="text"
-                placeholder="Ex: Tecnologia, Advocacia, Marketing..."
-                value={businessSegment}
-                onChange={(e) => setBusinessSegment(e.target.value)}
-                required
-              />
-              {errors.businessSegment && <p className="text-sm text-red-600">{errors.businessSegment}</p>}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-company">Nome da Empresa *</Label>
+                <Input
+                  id="signup-company"
+                  type="text"
+                  placeholder="Nome da sua empresa"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  required
+                />
+                {errors.company && <p className="text-sm text-destructive">{errors.company}</p>}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-password">Senha *</Label>
-              <Input
-                id="signup-password"
-                type="password"
-                placeholder="Mínimo 6 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <PasswordStrengthIndicator password={password} />
-              {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-segment">Segmento de Negócio *</Label>
+                <Input
+                  id="signup-segment"
+                  type="text"
+                  placeholder="Ex: Tecnologia, Advocacia, Marketing..."
+                  value={businessSegment}
+                  onChange={(e) => setBusinessSegment(e.target.value)}
+                  required
+                />
+                {errors.businessSegment && <p className="text-sm text-destructive">{errors.businessSegment}</p>}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="signup-confirm-password">Confirmar Senha *</Label>
-              <Input
-                id="signup-confirm-password"
-                type="password"
-                placeholder="Repita a senha"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-              {errors.confirmPassword && <p className="text-sm text-red-600">{errors.confirmPassword}</p>}
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="signup-password">Senha *</Label>
+                <Input
+                  id="signup-password"
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <PasswordStrengthIndicator password={password} />
+                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+              </div>
 
-            <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Criando sua conta...
-                </>
-              ) : (
-                'Criar Minha Conta'
-              )}
-            </Button>
+              <div className="space-y-2">
+                <Label htmlFor="signup-confirm-password">Confirmar Senha *</Label>
+                <Input
+                  id="signup-confirm-password"
+                  type="password"
+                  placeholder="Repita a senha"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
+              </div>
 
-            <p className="text-xs text-center text-gray-600">
-              Já tem uma conta?{' '}
-              <Button
-                variant="link"
-                className="p-0 h-auto text-xs text-blue-900 hover:underline"
-                onClick={() => navigate('/auth')}
-                type="button"
-              >
-                Fazer login
+              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Criando sua conta...
+                  </>
+                ) : (
+                  'Criar Minha Conta'
+                )}
               </Button>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
+
+              <p className="text-xs text-center text-muted-foreground">
+                Já tem uma conta?{' '}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-xs text-primary hover:underline"
+                  onClick={() => navigate('/auth')}
+                  type="button"
+                >
+                  Fazer login
+                </Button>
+              </p>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+
+      <footer className="border-t border-border bg-card py-4 px-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="text-sm text-muted-foreground">
+            © 2026. Criado e operado com{' '}
+            <strong className="text-destructive">♥</strong> por{' '}
+            <a href="https://ranktop.com.br" target="_blank" rel="noopener noreferrer" className="inline-flex items-center hover:opacity-80 transition-opacity">
+              <img src="https://ik.imagekit.io/oespecialisaseo/Logo%20RANKTOP%20cropped.png" width={100} alt="Ranktop" className="inline-block align-middle" />
+            </a>.
+          </span>
+          <span className="text-xs text-muted-foreground max-w-2xl">
+            Recursos visuais licenciados por{' '}
+            <a href="https://www.freepikcompany.com/legal" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Freepik</a>,{' '}
+            <a href="https://www.freepikcompany.com/legal#nav-flaticon" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">Flaticon</a>,{' '}
+            <a href="https://fontawesome.com/license/free" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">FontAwesome</a>{' '}
+            e <a href="https://lottiefiles.com/page/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">LottieFiles</a>.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
