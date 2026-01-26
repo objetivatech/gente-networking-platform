@@ -280,8 +280,9 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-secondary/10">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
             <img 
@@ -486,29 +487,43 @@ export default function Auth() {
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
 
       {/* Footer de Copyright */}
-      <div className="mt-8 text-center">
-        <span className="text-sm text-muted-foreground">
-          © 2026. Criado e operado com{' '}
-          <strong className="text-destructive">♥</strong> por{' '}
-          <a
-            href="https://ranktop.com.br"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center hover:opacity-80 transition-opacity"
-          >
-            <img
-              src="https://ik.imagekit.io/oespecialisaseo/Logo%20RANKTOP%20cropped.png"
-              width={80}
-              alt="Ranktop – SEO, Tecnologia, Automação e Inteligência Artificial aplicadas a negócios."
-              className="inline-block align-middle"
-            />
-          </a>
-          .
-        </span>
-      </div>
+      <footer className="border-t border-border bg-card py-4 px-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="text-sm text-muted-foreground">
+            © 2026. Criado e operado com{' '}
+            <strong className="text-destructive">♥</strong> por{' '}
+            <a
+              href="https://ranktop.com.br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center hover:opacity-80 transition-opacity"
+            >
+              <img
+                src="https://ik.imagekit.io/oespecialisaseo/Logo%20RANKTOP%20cropped.png"
+                width={100}
+                alt="Ranktop – SEO, Tecnologia, Automação e Inteligência Artificial aplicadas a negócios."
+                className="inline-block align-middle"
+              />
+            </a>
+            .
+          </span>
+
+          <span className="text-xs text-muted-foreground max-w-2xl">
+            Projeto construído com tecnologias de nuvem, banco de dados e inteligência artificial, 
+            incluindo serviços de edge computing, plataformas low-code e modelos de IA generativa.
+            <br />
+            Recursos visuais licenciados por{' '}
+            <a href="https://www.freepikcompany.com/legal" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Freepik</a>,{' '}
+            <a href="https://www.freepikcompany.com/legal#nav-flaticon" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Flaticon</a>,{' '}
+            <a href="https://fontawesome.com/license/free" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">FontAwesome</a>{' '}
+            e <a href="https://lottiefiles.com/page/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">LottieFiles</a>.
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }

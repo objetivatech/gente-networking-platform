@@ -742,12 +742,40 @@ export default function Documentacao() {
                     <p>Todas as tabelas possuem Row Level Security (RLS) habilitado:</p>
                     <ul>
                       <li>Roles são armazenados em tabela separada (user_roles)</li>
-                      <li>Função <code>has_role()</code> com SECURITY DEFINER</li>
+                      <li>Função <code>has_role()</code> com SECURITY DEFINER e <code>search_path</code> definido</li>
                       <li>Função <code>is_team_facilitator()</code> para validar facilitadores</li>
                       <li>Função <code>is_guest()</code> para validar convidados</li>
                       <li>Políticas específicas por ação (SELECT, INSERT, UPDATE, DELETE)</li>
                       <li>Facilitadores só podem adicionar convidados às suas equipes</li>
                     </ul>
+
+                    <h4 className="font-semibold mt-4">Hardening de Segurança (v1.4.1)</h4>
+                    <ul>
+                      <li>Todas as funções PostgreSQL possuem <code>SET search_path = public</code> para evitar hijacking de search path</li>
+                      <li>Extensões <code>unaccent</code> e <code>pg_trgm</code> movidas para schema <code>extensions</code> dedicado</li>
+                      <li>Funções que usam extensões definem <code>search_path = public, extensions</code></li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Code className="h-5 w-5" />
+                      Rodapé e Metadados
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>Todas as páginas públicas e internas incluem:</p>
+                    <ul>
+                      <li>Rodapé de copyright com marca Ranktop</li>
+                      <li>Créditos de licenciamento visual (Freepik, Flaticon, FontAwesome, LottieFiles)</li>
+                      <li>Meta tags de autoria no <code>index.html</code></li>
+                      <li>Cabeçalhos JSDoc em arquivos core do sistema</li>
+                    </ul>
+                    <p className="text-sm text-muted-foreground">
+                      Páginas públicas com rodapé: Login, Cadastro de Convidado, Redefinir Senha, Instalar, Convite Público.
+                    </p>
                   </CardContent>
                 </Card>
               </div>
