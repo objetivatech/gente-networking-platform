@@ -27,9 +27,23 @@ import { parseLocalDate } from '@/lib/date-utils';
 const TEAM_COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
 
 // Componente para filtrar usuários por role
-function UserListWithFilter({ members, getInitials }: { members: any[] | undefined; getInitials: (name: string) => string }) {
+function UserListWithFilter({ getInitials }: { getInitials: (name: string) => string }) {
   const [roleFilter, setRoleFilter] = useState<string>('all');
   
+  // Buscar todos os profiles ativos (incluindo convidados)
+  const { data: allProfiles } = useQuery({
+    queryKey: ['all-profiles-admin'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, company, avatar_url, rank, is_active')
+        .eq('is_active', true)
+        .order('full_name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Buscar roles dos membros
   const { data: userRoles } = useQuery({
     queryKey: ['all-user-roles'],
@@ -55,17 +69,17 @@ function UserListWithFilter({ members, getInitials }: { members: any[] | undefin
     }
   };
 
-  const filteredMembers = members?.filter(member => {
+  const filteredMembers = allProfiles?.filter(member => {
     if (roleFilter === 'all') return true;
     return getRoleForUser(member.id) === roleFilter;
   }) || [];
 
   const roleCounts = {
-    all: members?.length || 0,
-    admin: members?.filter(m => getRoleForUser(m.id) === 'admin').length || 0,
-    facilitador: members?.filter(m => getRoleForUser(m.id) === 'facilitador').length || 0,
-    membro: members?.filter(m => getRoleForUser(m.id) === 'membro').length || 0,
-    convidado: members?.filter(m => getRoleForUser(m.id) === 'convidado').length || 0,
+    all: allProfiles?.length || 0,
+    admin: allProfiles?.filter(m => getRoleForUser(m.id) === 'admin').length || 0,
+    facilitador: allProfiles?.filter(m => getRoleForUser(m.id) === 'facilitador').length || 0,
+    membro: allProfiles?.filter(m => getRoleForUser(m.id) === 'membro').length || 0,
+    convidado: allProfiles?.filter(m => getRoleForUser(m.id) === 'convidado').length || 0,
   };
 
   return (
@@ -510,7 +524,7 @@ export default function Admin() {
                 <CardDescription>Visualize e gerencie os roles de todos os usuários</CardDescription>
               </CardHeader>
               <CardContent>
-                <UserListWithFilter members={members} getInitials={getInitials} />
+                <UserListWithFilter getInitials={getInitials} />
               </CardContent>
             </Card>
           </TabsContent>

@@ -54,6 +54,7 @@ interface MemberData {
   deactivated_at: string | null;
   deactivation_reason: string | null;
   created_at: string | null;
+  role: string | null;
 }
 
 export default function GerenciarMembros() {
@@ -67,7 +68,7 @@ export default function GerenciarMembros() {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [deactivationReason, setDeactivationReason] = useState('');
 
-  // Buscar todos os membros (ativos e inativos), excluindo convidados
+  // Buscar todos os membros (ativos e inativos)
   const { data: members, isLoading } = useQuery({
     queryKey: ['admin-members'],
     queryFn: async () => {
@@ -79,7 +80,7 @@ export default function GerenciarMembros() {
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles para filtrar convidados
+      // Buscar roles
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
@@ -92,20 +93,21 @@ export default function GerenciarMembros() {
         rolesMap[r.user_id] = r.role;
       });
 
-      // Filtrar apenas membros (não convidados)
-      const filteredProfiles = profiles?.filter(profile => {
-        const role = rolesMap[profile.id];
-        return role !== 'convidado';
-      }) || [];
+      // Adicionar role aos profiles
+      const profilesWithRole = profiles?.map(profile => ({
+        ...profile,
+        role: rolesMap[profile.id] || null,
+      })) || [];
 
-      return filteredProfiles as MemberData[];
+      return profilesWithRole as MemberData[];
     },
   });
 
   // Mutation para desativar membro
   const deactivateMutation = useMutation({
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) => {
-      const { error } = await supabase
+      // 1. Desativar o perfil
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           is_active: false,
@@ -114,20 +116,33 @@ export default function GerenciarMembros() {
         })
         .eq('id', memberId);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // 2. Remover o usuário de todos os grupos
+      const { error: teamError } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('user_id', memberId);
+
+      if (teamError) {
+        console.error('Erro ao remover de grupos:', teamError);
+        // Não falha a operação se der erro aqui
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
       queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
       toast({
         title: 'Membro desativado',
-        description: 'O membro foi desativado e movido para o histórico.',
+        description: 'O membro foi desativado, removido dos grupos e movido para o histórico.',
       });
       setShowDeactivateDialog(false);
       setSelectedMember(null);
       setDeactivationReason('');
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Erro ao desativar:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível desativar o membro.',
@@ -193,7 +208,12 @@ export default function GerenciarMembros() {
     );
   });
 
-  const activeMembers = filteredMembers?.filter(m => m.is_active) || [];
+  // Ativos: apenas membros, facilitadores e admins (não convidados e não sem role)
+  const activeMembers = filteredMembers?.filter(m => 
+    m.is_active && m.role && m.role !== 'convidado'
+  ) || [];
+  
+  // Inativos: todos que estão desativados (para permitir resgate)
   const inactiveMembers = filteredMembers?.filter(m => !m.is_active) || [];
 
   const handleDeactivate = () => {
@@ -221,6 +241,16 @@ export default function GerenciarMembros() {
         <div>
           <p className="font-semibold flex items-center gap-2">
             {member.full_name}
+            {member.role && (
+              <Badge variant="outline" className="text-xs">
+                {member.role === 'admin' ? 'Admin' : 
+                 member.role === 'facilitador' ? 'Facilitador' : 
+                 member.role === 'membro' ? 'Membro' : 'Convidado'}
+              </Badge>
+            )}
+            {!member.role && (
+              <Badge variant="secondary" className="text-xs">Convidado</Badge>
+            )}
             {!member.is_active && (
               <Badge variant="destructive" className="text-xs">Inativo</Badge>
             )}
