@@ -103,8 +103,8 @@ export function useMembers(includeInactive = false) {
       const membersWithTeam: Member[] = (profiles || [])
         .filter(profile => {
           const role = rolesMap[profile.id];
-          // Exclude guests - include members without roles (default is membro) or with non-guest roles
-          return role !== 'convidado';
+          // Exclude guests - users with role 'convidado' or without any role are considered guests
+          return role && role !== 'convidado';
         })
         .map(profile => {
           const teamId = teamMembershipMap[profile.id] || null;

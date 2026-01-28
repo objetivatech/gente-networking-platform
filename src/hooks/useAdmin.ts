@@ -166,40 +166,78 @@ export function useAdminRoles() {
     },
   });
 
-  // Promover convidado para membro (usa upsert para incluir quem não tem role)
+  // Promover convidado para membro
   const promoteToMember = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase
+      // Verificar se o usuário já tem uma role
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .upsert({ user_id: userId, role: 'membro' }, { onConflict: 'user_id' });
-      if (error) throw error;
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingRole) {
+        // Atualizar role existente
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: 'membro' })
+          .eq('user_id', userId);
+        if (error) throw error;
+      } else {
+        // Inserir nova role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'membro' });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-roles'] });
       toast({ title: 'Sucesso!', description: 'Usuário promovido a membro' });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Erro ao promover usuário:', error);
       toast({ title: 'Erro', description: 'Erro ao promover usuário', variant: 'destructive' });
     },
   });
 
-  // Promover para facilitador (usa upsert para incluir quem não tem role)
+  // Promover para facilitador
   const promoteToFacilitator = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase
+      // Verificar se o usuário já tem uma role
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .upsert({ user_id: userId, role: 'facilitador' }, { onConflict: 'user_id' });
-      if (error) throw error;
+        .select('id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingRole) {
+        // Atualizar role existente
+        const { error } = await supabase
+          .from('user_roles')
+          .update({ role: 'facilitador' })
+          .eq('user_id', userId);
+        if (error) throw error;
+      } else {
+        // Inserir nova role
+        const { error } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'facilitador' });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['guests'] });
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-roles'] });
       toast({ title: 'Sucesso!', description: 'Usuário promovido a facilitador' });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Erro ao promover usuário:', error);
       toast({ title: 'Erro', description: 'Erro ao promover usuário', variant: 'destructive' });
     },
   });
