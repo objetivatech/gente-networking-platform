@@ -368,7 +368,7 @@ const RANK_LABELS: Record<string, string> = {
 export default function Membros() {
   const navigate = useNavigate();
   const { members, membersByTeam, isLoading } = useMembers();
-  const { isGuest, isLoading: isLoadingRole } = useAdmin();
+  const { isGuest, canManage, isLoading: isLoadingRole } = useAdmin();
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [segmentFilter, setSegmentFilter] = useState<string>('all');
@@ -572,25 +572,27 @@ export default function Membros() {
           </div>
         </div>
         
-        {/* Export Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={exportToExcel}>
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Exportar para Excel
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={exportToPDF}>
-              <FileText className="h-4 w-4 mr-2" />
-              Exportar para PDF
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Export Dropdown - Apenas para admins e facilitadores */}
+        {canManage && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportToExcel}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Exportar para Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportToPDF}>
+                <FileText className="h-4 w-4 mr-2" />
+                Exportar para PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Search and Filters */}
