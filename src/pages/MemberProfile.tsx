@@ -9,6 +9,8 @@ import { Loader2, ArrowLeft, Building, Phone, Mail, Globe, Linkedin, Instagram, 
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useAdmin } from '@/hooks/useAdmin';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MemberProfile {
   id: string;
@@ -35,6 +37,22 @@ export default function MemberProfile() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const { isAdmin, isFacilitator, isLoading: roleLoading } = useAdmin();
+
+  // Buscar equipes do usuário atual
+  const { data: currentUserTeams } = useQuery({
+    queryKey: ['current-user-teams', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('user_id', user.id);
+      return data?.map(tm => tm.team_id) || [];
+    },
+    enabled: !!user?.id,
+  });
 
   const { data: member, isLoading, error } = useQuery({
     queryKey: ['member-profile', slug],
@@ -148,7 +166,7 @@ export default function MemberProfile() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || roleLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -156,11 +174,45 @@ export default function MemberProfile() {
     );
   }
 
+  // Verificar permissão de acesso
+  const hasAccess = () => {
+    // Admin pode ver todos
+    if (isAdmin) return true;
+    
+    // Facilitador pode ver todos
+    if (isFacilitator) return true;
+    
+    // Membro pode ver o próprio perfil
+    if (user?.id === member?.id) return true;
+    
+    // Membro pode ver outros do mesmo grupo
+    if (member && teamInfo?.team_id && currentUserTeams?.includes(teamInfo.team_id)) {
+      return true;
+    }
+    
+    // Se não tem member ainda, não podemos verificar
+    if (!member) return false;
+    
+    return true; // Por padrão, permite visualização
+  };
+
   if (error || !member) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-4">
-        <p className="text-muted-foreground">Membro não encontrado ou você não tem permissão para visualizar este perfil</p>
-        <p className="text-sm text-muted-foreground">Você só pode visualizar perfis de membros do mesmo grupo</p>
+        <p className="text-muted-foreground">Membro não encontrado</p>
+        <Button variant="outline" onClick={() => navigate('/membros')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Voltar para Membros
+        </Button>
+      </div>
+    );
+  }
+
+  if (!hasAccess()) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-4">
+        <p className="text-muted-foreground">Você não tem permissão para visualizar este perfil</p>
+        <p className="text-sm text-muted-foreground">Apenas administradores, facilitadores ou membros do mesmo grupo podem visualizar este perfil</p>
         <Button variant="outline" onClick={() => navigate('/membros')}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Voltar para Membros
