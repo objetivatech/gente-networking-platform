@@ -306,7 +306,7 @@ export default function Auth() {
             </TabsList>
             
             <TabsContent value="login">
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4" data-rd-no-capture="true">
                 <div className="space-y-2">
                   <Label htmlFor="login-email">Email</Label>
                   <Input
