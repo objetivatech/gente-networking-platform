@@ -5,8 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useAdminGuests, GuestRecord } from '@/hooks/useAdminGuests';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useTeams } from '@/hooks/useTeams';
+import { usePromoteGuest } from '@/hooks/usePromoteGuest';
 import { 
   Users, 
   UserPlus, 
@@ -17,7 +21,8 @@ import {
   Clock, 
   XCircle,
   UserCheck,
-  ArrowUpRight
+  ArrowUpRight,
+  Crown
 } from 'lucide-react';
 import { format, isWithinInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -26,6 +31,8 @@ import { Navigate, useNavigate } from 'react-router-dom';
 export default function GestaoConvidados() {
   const { isAdmin, isFacilitator, isLoading: isLoadingRole } = useAdmin();
   const { guestRecords, members, isLoading } = useAdminGuests();
+  const { teams } = useTeams();
+  const { promoteGuest, isPromoting } = usePromoteGuest();
   const navigate = useNavigate();
 
   // Filtros
@@ -35,6 +42,12 @@ export default function GestaoConvidados() {
   const [becameMemberFilter, setBecameMemberFilter] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  // Modal de promoção
+  const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [selectedGuest, setSelectedGuest] = useState<GuestRecord | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'membro' | 'facilitador'>('membro');
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
 
   // Verificar permissão
   if (!isLoadingRole && !isAdmin && !isFacilitator) {
@@ -110,6 +123,33 @@ export default function GestaoConvidados() {
       default:
         return null;
     }
+  };
+
+  const handleOpenPromoteDialog = (record: GuestRecord) => {
+    setSelectedGuest(record);
+    setSelectedRole('membro');
+    setSelectedTeamId('');
+    setShowPromoteDialog(true);
+  };
+
+  const handlePromote = () => {
+    if (!selectedGuest?.guest?.id) return;
+    
+    promoteGuest({
+      userId: selectedGuest.guest.id,
+      targetRole: selectedRole,
+      teamId: selectedTeamId || undefined,
+    });
+    
+    setShowPromoteDialog(false);
+    setSelectedGuest(null);
+  };
+
+  // Verificar se o convidado pode ser promovido (aceito e ainda com role 'convidado')
+  const canPromote = (record: GuestRecord) => {
+    return record.invitation.status === 'accepted' && 
+           record.guest && 
+           (record.guestRole === 'convidado' || !record.guestRole);
   };
 
   return (
@@ -336,22 +376,99 @@ export default function GestaoConvidados() {
                     <span>{format(parseISO(record.invitation.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                   </div>
 
-                   {/* Ação */}
-                   {record.guest && (
-                     <Button 
-                       variant="ghost" 
-                       size="sm"
-                       onClick={() => navigate(`/membro/${record.guest?.slug || record.guest?.id}`)}
-                     >
-                       <ArrowUpRight className="h-4 w-4" />
-                     </Button>
-                   )}
+                   {/* Ações */}
+                   <div className="flex items-center gap-2">
+                     {/* Botão Promover - apenas para convidados aceitos não promovidos */}
+                     {canPromote(record) && (
+                       <Button 
+                         variant="default"
+                         size="sm"
+                         className="gap-1"
+                         onClick={() => handleOpenPromoteDialog(record)}
+                       >
+                         <Crown className="h-4 w-4" />
+                         Promover
+                       </Button>
+                     )}
+                     {/* Botão Ver Perfil */}
+                     {record.guest && (
+                       <Button 
+                         variant="ghost" 
+                         size="sm"
+                         onClick={() => navigate(`/membro/${record.guest?.slug || record.guest?.id}`)}
+                       >
+                         <ArrowUpRight className="h-4 w-4" />
+                       </Button>
+                     )}
+                   </div>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Promoção */}
+      <Dialog open={showPromoteDialog} onOpenChange={setShowPromoteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              Promover Convidado
+            </DialogTitle>
+            <DialogDescription>
+              Promova <strong>{selectedGuest?.guest?.full_name}</strong> para Membro ou Facilitador da comunidade.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="role">Novo perfil</Label>
+              <Select value={selectedRole} onValueChange={(v: 'membro' | 'facilitador') => setSelectedRole(v)}>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Selecione o perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="membro">Membro</SelectItem>
+                  <SelectItem value="facilitador">Facilitador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="team">Adicionar ao grupo (opcional)</Label>
+              <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                <SelectTrigger id="team">
+                  <SelectValue placeholder="Selecione um grupo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum grupo</SelectItem>
+                  {teams?.map(team => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Se não adicionar a um grupo agora, você pode fazer isso depois em "Equipes".
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPromoteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handlePromote}
+              disabled={isPromoting}
+            >
+              {isPromoting ? 'Promovendo...' : 'Confirmar Promoção'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

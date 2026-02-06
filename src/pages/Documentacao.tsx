@@ -352,6 +352,53 @@ export default function Documentacao() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
+                      <UserPlus className="h-5 w-5" />
+                      Gestão de Convidados e Promoção
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>
+                      Acompanhe todos os convites realizados pelos membros e promova convidados 
+                      que participaram dos encontros para membros efetivos da comunidade.
+                    </p>
+
+                    <h4 className="font-semibold mt-4">Acessando a Gestão de Convidados:</h4>
+                    <ol>
+                      <li>No menu lateral, clique em "Gestão de Convidados"</li>
+                      <li>Você verá uma lista de todos os convites com status (Pendente, Aceito, Expirado)</li>
+                      <li>Use os filtros para encontrar convidados específicos</li>
+                    </ol>
+
+                    <h4 className="font-semibold mt-4">Promovendo um Convidado para Membro:</h4>
+                    <ol>
+                      <li>Na lista de convidados, localize o convidado que já aceitou o convite e participou de um encontro</li>
+                      <li>Clique no botão "Promover" (disponível apenas para convidados aceitos)</li>
+                      <li>No modal de promoção, selecione:
+                        <ul>
+                          <li><strong>Novo perfil:</strong> Membro ou Facilitador</li>
+                          <li><strong>Grupo:</strong> Opcionalmente, adicione diretamente a um grupo</li>
+                        </ul>
+                      </li>
+                      <li>Clique em "Confirmar Promoção"</li>
+                      <li>O convidado agora é um membro efetivo e aparecerá no diretório de membros</li>
+                    </ol>
+
+                    <h4 className="font-semibold mt-4">Diferenças entre as páginas:</h4>
+                    <ul>
+                      <li><strong>Gestão de Convidados:</strong> Foco em convites e conversão de convidados para membros</li>
+                      <li><strong>Gerenciar Membros:</strong> Foco em ativar/desativar membros efetivos (não inclui convidados)</li>
+                    </ul>
+
+                    <p className="text-sm text-muted-foreground mt-4">
+                      <strong>Dica:</strong> Convites expiram em 30 dias. Convidados aceitos que não foram promovidos 
+                      continuam com acesso limitado até serem promovidos.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
                       <Shield className="h-5 w-5" />
                       Permissões por Perfil
                     </CardTitle>
@@ -368,9 +415,11 @@ export default function Documentacao() {
                     <h4>Facilitador</h4>
                     <ul>
                       <li>Gerenciar apenas sua equipe</li>
+                      <li>Promover convidados a membros</li>
                       <li>Adicionar apenas convidados à equipe (para encontros)</li>
                       <li>Remover membros da sua equipe</li>
                       <li>Criar convites</li>
+                      <li>Acessar Gestão de Convidados</li>
                     </ul>
                     <h4>Membro</h4>
                     <ul>
