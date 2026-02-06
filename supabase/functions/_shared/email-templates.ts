@@ -2,8 +2,8 @@
 // All emails use consistent branding: Navy Blue #1e3a5f and Orange #f7941d
 
 const APP_URL = "https://comunidade.gentenetworking.com.br";
-// Logo hosted in the public folder - will be served from the published app URL
-const LOGO_URL = "https://network-bloom-forge.lovable.app/logo-gente.png";
+// White horizontal logo for dark email headers - better visibility
+const LOGO_URL = "https://network-bloom-forge.lovable.app/logo-gente-branco.png?v=2";
 
 // Base email wrapper with consistent styling
 function emailWrapper(content: string): string {
@@ -23,7 +23,7 @@ function emailWrapper(content: string): string {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%); padding: 32px 24px; text-align: center;">
-              <img src="${LOGO_URL}" alt="Gente Networking" style="height: 60px; width: auto; margin-bottom: 12px;" />
+              <img src="${LOGO_URL}" alt="Gente Networking" style="max-width: 280px; width: 100%; height: auto; margin-bottom: 12px;" />
               <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Conectando pessoas, gerando negócios</p>
             </td>
           </tr>
