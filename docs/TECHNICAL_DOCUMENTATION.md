@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2025-01-14
-> **Versão:** 2.0.0
+> **Última atualização:** 2025-02-06
+> **Versão:** 2.1.0
 
 ## Índice
 
@@ -388,6 +388,13 @@ Documentação completa em `docs/PWA_IMPLEMENTATION.md`.
 ---
 
 ## Changelog
+
+### 2025-02-06
+- **Fluxo de Convidados**: Corrigido sistema de convites e expiração (30 dias)
+- **Gestão de Convidados**: Corrigido acesso a perfis de membros convertidos
+- **Página de Aceite de Convite**: Adicionado logo real e rodapé consistente
+- **Emails**: Corrigido carregamento do logo nos templates de email
+- **Permissões de Acesso**: Admins e Facilitadores podem visualizar todos os perfis
 
 ### 2024-12-08
 - Adicionado indicador de força de senha (`PasswordStrengthIndicator`)
