@@ -2,7 +2,8 @@
 // All emails use consistent branding: Navy Blue #1e3a5f and Orange #f7941d
 
 const APP_URL = "https://comunidade.gentenetworking.com.br";
-const LOGO_URL = "https://comunidade.gentenetworking.com.br/logo-gente.png";
+// Logo hosted in the public folder - will be served from the published app URL
+const LOGO_URL = "https://network-bloom-forge.lovable.app/logo-gente.png";
 
 // Base email wrapper with consistent styling
 function emailWrapper(content: string): string {
