@@ -336,16 +336,16 @@ export default function GestaoConvidados() {
                     <span>{format(parseISO(record.invitation.created_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                   </div>
 
-                  {/* Ação */}
-                  {record.guest && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => navigate(`/membro/${record.guest?.id}`)}
-                    >
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Button>
-                  )}
+                   {/* Ação */}
+                   {record.guest && (
+                     <Button 
+                       variant="ghost" 
+                       size="sm"
+                       onClick={() => navigate(`/membro/${record.guest?.slug || record.guest?.id}`)}
+                     >
+                       <ArrowUpRight className="h-4 w-4" />
+                     </Button>
+                   )}
                 </div>
               ))}
             </div>

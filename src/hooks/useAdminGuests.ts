@@ -23,6 +23,7 @@ export interface GuestRecord {
     company: string | null;
     avatar_url: string | null;
     email: string | null;
+    slug: string | null;
   } | null;
   guestRole: 'admin' | 'facilitador' | 'membro' | 'convidado' | null;
   becameMember: boolean;
@@ -45,14 +46,14 @@ export function useAdminGuests() {
       const acceptedByIds = invitations?.filter(i => i.accepted_by).map(i => i.accepted_by) || [];
       const allUserIds = [...new Set([...inviterIds, ...acceptedByIds])];
 
-      let profiles: Record<string, any> = {};
-      if (allUserIds.length > 0) {
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, full_name, company, avatar_url, email')
-          .in('id', allUserIds);
-        profilesData?.forEach(p => { profiles[p.id] = p; });
-      }
+       let profiles: Record<string, any> = {};
+       if (allUserIds.length > 0) {
+         const { data: profilesData } = await supabase
+           .from('profiles')
+           .select('id, full_name, company, avatar_url, email, slug')
+           .in('id', allUserIds);
+         profilesData?.forEach(p => { profiles[p.id] = p; });
+       }
 
       // Buscar roles
       let roles: Record<string, string> = {};
