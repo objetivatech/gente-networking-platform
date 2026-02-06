@@ -128,7 +128,7 @@ export default function GestaoConvidados() {
   const handleOpenPromoteDialog = (record: GuestRecord) => {
     setSelectedGuest(record);
     setSelectedRole('membro');
-    setSelectedTeamId('');
+    setSelectedTeamId('none');
     setShowPromoteDialog(true);
   };
 
@@ -138,7 +138,7 @@ export default function GestaoConvidados() {
     promoteGuest({
       userId: selectedGuest.guest.id,
       targetRole: selectedRole,
-      teamId: selectedTeamId || undefined,
+      teamId: selectedTeamId !== 'none' ? selectedTeamId : undefined,
     });
     
     setShowPromoteDialog(false);
@@ -442,7 +442,7 @@ export default function GestaoConvidados() {
                   <SelectValue placeholder="Selecione um grupo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum grupo</SelectItem>
+                  <SelectItem value="none">Nenhum grupo</SelectItem>
                   {teams?.map(team => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name}
