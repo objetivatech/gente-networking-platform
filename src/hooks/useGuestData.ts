@@ -69,7 +69,7 @@ export function useGuestData() {
         .eq('id', invitation.invited_by)
         .maybeSingle();
 
-      // Buscar equipes do membro que convidou
+      // Buscar grupos do membro que convidou
       const { data: teamMemberships } = await supabase
         .from('team_members')
         .select('team_id')
@@ -113,7 +113,7 @@ export function useGuestData() {
       // Filtrar apenas encontros futuros
       const futureMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date))) || [];
 
-      // Buscar informações das equipes
+      // Buscar informações dos grupos
       let teams: Record<string, any> = {};
       if (teamIds.length > 0) {
         const { data: teamsData } = await supabase

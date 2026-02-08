@@ -53,10 +53,10 @@ export default function Ranking() {
 
         <Select value={selectedTeam} onValueChange={setSelectedTeam}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filtrar por equipe" />
+            <SelectValue placeholder="Filtrar por grupo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todas as equipes</SelectItem>
+            <SelectItem value="all">Todos os grupos</SelectItem>
             {teams?.map((team) => (
               <SelectItem key={team.id} value={team.id}>
                 {team.name}

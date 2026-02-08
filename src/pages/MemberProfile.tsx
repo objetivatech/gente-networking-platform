@@ -40,7 +40,7 @@ export default function MemberProfile() {
   const { user } = useAuth();
   const { isAdmin, isFacilitator, isLoading: roleLoading } = useAdmin();
 
-  // Buscar equipes do usuário atual
+  // Buscar grupos do usuário atual
   const { data: currentUserTeams } = useQuery({
     queryKey: ['current-user-teams', user?.id],
     queryFn: async () => {

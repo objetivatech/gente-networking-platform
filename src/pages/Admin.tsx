@@ -156,7 +156,7 @@ function UserListWithFilter({ getInitials }: { getInitials: (name: string) => st
   );
 }
 
-// Componente para linha de membro na equipe
+// Componente para linha de membro no grupo
 function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMember, getInitials }: any) {
   const { meetings } = useMeetings();
   const { registerGuestAttendance, isGuestAttending } = useGuestAttendance();
@@ -264,7 +264,7 @@ export default function Admin() {
   // Apenas admin e facilitador podem acessar
   if (!isAdmin && !isFacilitator) return <Navigate to="/" replace />;
 
-  // Filtrar equipes: facilitador só vê equipes onde é facilitador
+  // Filtrar grupos: facilitador só vê grupos onde é facilitador
   const visibleTeams = teams?.filter(team => {
     if (isAdmin) return true;
     if (isFacilitator) {
@@ -301,38 +301,38 @@ export default function Admin() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Settings className="w-6 h-6 text-primary" />
-            {isAdmin ? 'Administração' : 'Gestão da Equipe'}
+            {isAdmin ? 'Administração' : 'Gestão do Grupo'}
           </h1>
           <p className="text-muted-foreground">
-            {isAdmin ? 'Gerenciar equipes, membros e usuários' : 'Gerenciar sua equipe'}
+            {isAdmin ? 'Gerenciar grupos, membros e usuários' : 'Gerenciar seu grupo'}
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="teams" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="teams">Equipes</TabsTrigger>
+          <TabsTrigger value="teams">Grupos</TabsTrigger>
           {isAdmin && <TabsTrigger value="users">Usuários</TabsTrigger>}
           {isAdmin && <TabsTrigger value="system">Sistema</TabsTrigger>}
         </TabsList>
 
-        {/* Tab de Equipes */}
+        {/* Tab de Grupos */}
         <TabsContent value="teams" className="space-y-6">
-          {/* Apenas admin pode criar equipes */}
+          {/* Apenas admin pode criar grupos */}
           {isAdmin && (
             <div className="flex justify-end">
               <Dialog open={open} onOpenChange={setOpen}>
-                <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Equipe</Button></DialogTrigger>
+                <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Novo Grupo</Button></DialogTrigger>
                 <DialogContent>
-                  <DialogHeader><DialogTitle>Criar Equipe</DialogTitle></DialogHeader>
+                  <DialogHeader><DialogTitle>Criar Grupo</DialogTitle></DialogHeader>
                   <form onSubmit={handleCreateTeam} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="name">Nome da Equipe</Label>
-                      <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome da equipe" required />
+                      <Label htmlFor="name">Nome do Grupo</Label>
+                      <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome do grupo" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Descrição</Label>
-                      <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descrição da equipe..." rows={3} />
+                      <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Descrição do grupo..." rows={3} />
                     </div>
                     <div className="space-y-2">
                       <Label>Cor</Label>
@@ -349,7 +349,7 @@ export default function Admin() {
                       </div>
                     </div>
                     <Button type="submit" className="w-full" disabled={createTeam.isPending}>
-                      {createTeam.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Equipe'}
+                      {createTeam.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Grupo'}
                     </Button>
                   </form>
                 </DialogContent>
@@ -363,7 +363,7 @@ export default function Admin() {
             <Card>
               <CardContent className="py-16 text-center text-muted-foreground">
                 <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>{isAdmin ? 'Nenhuma equipe cadastrada' : 'Você não é facilitador de nenhuma equipe'}</p>
+                <p>{isAdmin ? 'Nenhum grupo cadastrado' : 'Você não é facilitador de nenhum grupo'}</p>
               </CardContent>
             </Card>
           ) : (

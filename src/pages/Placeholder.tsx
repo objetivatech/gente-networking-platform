@@ -24,8 +24,8 @@ const pageTitles: Record<string, { title: string; description: string }> = {
     description: 'Indicações de contatos entre membros',
   },
   '/equipes': {
-    title: 'Equipes',
-    description: 'Gerencie as equipes e grupos da comunidade',
+    title: 'Grupos',
+    description: 'Gerencie os grupos da comunidade',
   },
   '/encontros': {
     title: 'Encontros',

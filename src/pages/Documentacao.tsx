@@ -152,7 +152,7 @@ export default function Documentacao() {
                       <li>Clique em "Registrar Reunião"</li>
                       <li>Escolha o tipo de reunião:
                         <ul>
-                          <li><strong>Com Membro:</strong> Selecione o membro da sua equipe</li>
+                          <li><strong>Com Membro:</strong> Selecione o membro do seu grupo</li>
                           <li><strong>Com Convidado:</strong> Informe nome e empresa do convidado externo</li>
                         </ul>
                       </li>
@@ -307,7 +307,7 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>
-                      Administradores têm acesso completo ao sistema, podendo gerenciar equipes, 
+                      Administradores têm acesso completo ao sistema, podendo gerenciar grupos, 
                       membros, encontros e conteúdos.
                     </p>
                   </CardContent>
@@ -317,33 +317,33 @@ export default function Documentacao() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
-                      Gerenciamento de Equipes
+                      Gerenciamento de Grupos
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <h4 className="font-semibold">Funcionalidades:</h4>
                     <ul>
-                      <li><strong>Criar Equipes:</strong> Nome, descrição e cor identificadora</li>
-                      <li><strong>Adicionar Membros:</strong> Vincule membros às equipes</li>
-                      <li><strong>Promover Facilitadores:</strong> Defina líderes de cada equipe</li>
-                      <li><strong>Remover Membros:</strong> Desvincule membros de equipes</li>
+                      <li><strong>Criar Grupos:</strong> Nome, descrição e cor identificadora</li>
+                      <li><strong>Adicionar Membros:</strong> Vincule membros aos grupos</li>
+                      <li><strong>Promover Facilitadores:</strong> Defina líderes de cada grupo</li>
+                      <li><strong>Remover Membros:</strong> Desvincule membros de grupos</li>
                       <li><strong>Promover Convidados:</strong> Transforme convidados em membros</li>
                     </ul>
 
-                    <h4 className="font-semibold mt-4">Como criar uma equipe:</h4>
+                    <h4 className="font-semibold mt-4">Como criar um grupo:</h4>
                     <ol>
-                      <li>Acesse o menu "Equipes"</li>
-                      <li>Clique em "Nova Equipe"</li>
+                      <li>Acesse o menu "Grupos"</li>
+                      <li>Clique em "Novo Grupo"</li>
                       <li>Preencha:
                         <ul>
-                          <li>Nome da equipe</li>
+                          <li>Nome do grupo</li>
                           <li>Descrição (opcional)</li>
                           <li>Escolha uma cor para identificação</li>
                         </ul>
                       </li>
                       <li>Clique em "Salvar"</li>
-                      <li>Na lista de equipes, clique em "Gerenciar Membros"</li>
-                      <li>Adicione membros à equipe</li>
+                      <li>Na lista de grupos, clique em "Gerenciar Membros"</li>
+                      <li>Adicione membros ao grupo</li>
                       <li>Se necessário, promova um membro para Facilitador</li>
                     </ol>
                   </CardContent>
@@ -407,17 +407,17 @@ export default function Documentacao() {
                     <h4>Admin</h4>
                     <ul>
                       <li>Acesso completo ao sistema</li>
-                      <li>Criar/editar/excluir equipes</li>
+                      <li>Criar/editar/excluir grupos</li>
                       <li>Definir facilitadores</li>
-                      <li>Migrar membros entre equipes</li>
+                      <li>Migrar membros entre grupos</li>
                       <li>Promover convidados a membros</li>
                     </ul>
                     <h4>Facilitador</h4>
                     <ul>
-                      <li>Gerenciar apenas sua equipe</li>
+                      <li>Gerenciar apenas seu grupo</li>
                       <li>Promover convidados a membros</li>
-                      <li>Adicionar apenas convidados à equipe (para encontros)</li>
-                      <li>Remover membros da sua equipe</li>
+                      <li>Adicionar apenas convidados ao grupo (para encontros)</li>
+                      <li>Remover membros do seu grupo</li>
                       <li>Criar convites</li>
                       <li>Acessar Gestão de Convidados</li>
                     </ul>
@@ -445,7 +445,7 @@ export default function Documentacao() {
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <ul>
                       <li><strong>Criar Encontros:</strong> Título, data, horário e local</li>
-                      <li><strong>Vincular a Equipes:</strong> Associe encontros a equipes específicas</li>
+                      <li><strong>Vincular a Grupos:</strong> Associe encontros a grupos específicos</li>
                       <li><strong>Acompanhar Presenças:</strong> Visualize quem confirmou presença</li>
                     </ul>
                   </CardContent>
@@ -562,7 +562,7 @@ export default function Documentacao() {
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/equipes</code>
-                        <p className="text-muted-foreground mt-1">Gestão de equipes (Admin/Facilitador)</p>
+                        <p className="text-muted-foreground mt-1">Gestão de grupos (Admin/Facilitador)</p>
                       </div>
                       <div className="p-3 rounded-lg bg-muted">
                         <code className="font-bold">/estatisticas</code>
@@ -705,11 +705,11 @@ export default function Documentacao() {
                       </div>
                       <div className="p-2 rounded bg-muted flex justify-between">
                         <code>teams</code>
-                        <span className="text-muted-foreground text-xs">Equipes de networking</span>
+                        <span className="text-muted-foreground text-xs">Grupos de networking</span>
                       </div>
                       <div className="p-2 rounded bg-muted flex justify-between">
                         <code>team_members</code>
-                        <span className="text-muted-foreground text-xs">Membros das equipes</span>
+                        <span className="text-muted-foreground text-xs">Membros dos grupos</span>
                       </div>
                       <div className="p-2 rounded bg-muted flex justify-between">
                         <code>meetings</code>
@@ -795,7 +795,7 @@ export default function Documentacao() {
                       <li>Função <code>is_team_facilitator()</code> para validar facilitadores</li>
                       <li>Função <code>is_guest()</code> para validar convidados</li>
                       <li>Políticas específicas por ação (SELECT, INSERT, UPDATE, DELETE)</li>
-                      <li>Facilitadores só podem adicionar convidados às suas equipes</li>
+                      <li>Facilitadores só podem adicionar convidados aos seus grupos</li>
                     </ul>
 
                     <h4 className="font-semibold mt-4">Hardening de Segurança (v1.4.1)</h4>

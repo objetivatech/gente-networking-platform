@@ -1,12 +1,12 @@
 /**
  * @page Membros
  * @route /membros
- * @description Diretório de membros para consulta de perfis, organizado por equipes
+ * @description Diretório de membros para consulta de perfis, organizado por grupos
  * 
  * @features
- * - Lista de membros agrupados por equipe
+ * - Lista de membros agrupados por grupo
  * - Busca por nome, empresa e segmento
- * - Filtros avançados por equipe, segmento e rank
+ * - Filtros avançados por grupo, segmento e rank
  * - Exportação para PDF e Excel
  * - Visualização de perfis completos
  * - Excluí convidados automaticamente
@@ -168,10 +168,10 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
         </div>
       </div>
 
-      {/* Equipe */}
+      {/* Grupo */}
       {member.team_name && (
         <div>
-          <h4 className="text-sm font-medium text-muted-foreground mb-1">Equipe</h4>
+          <h4 className="text-sm font-medium text-muted-foreground mb-1">Grupo</h4>
           <Badge 
             variant="outline" 
             style={{ borderColor: member.team_color || undefined, color: member.team_color || undefined }}
@@ -484,7 +484,7 @@ export default function Membros() {
         'Empresa': m.company || '',
         'Cargo': m.position || '',
         'Segmento': m.business_segment || '',
-        'Equipe': m.team_name || 'Sem Equipe',
+        'Grupo': m.team_name || 'Sem Grupo',
         'Rank': m.rank ? RANK_LABELS[m.rank] || m.rank : '',
         'Pontos': m.points || 0,
         'LinkedIn': m.linkedin_url || '',
@@ -533,14 +533,14 @@ export default function Membros() {
         m.company || '-',
         m.phone || '-',
         m.email || '-',
-        m.team_name || 'Sem Equipe',
+        m.team_name || 'Sem Grupo',
         m.rank ? RANK_LABELS[m.rank] || m.rank : '-',
       ]);
       
       // @ts-ignore - jspdf-autotable adds this method
       doc.autoTable({
         startY: 42,
-        head: [['Nome', 'Empresa', 'Telefone', 'Email', 'Equipe', 'Rank']],
+        head: [['Nome', 'Empresa', 'Telefone', 'Email', 'Grupo', 'Rank']],
         body: tableData,
         styles: { fontSize: 8 },
         headStyles: { fillColor: [34, 197, 94] },
@@ -618,10 +618,10 @@ export default function Membros() {
           {/* Team Filter */}
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Equipe" />
+              <SelectValue placeholder="Grupo" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as equipes</SelectItem>
+              <SelectItem value="all">Todos os grupos</SelectItem>
               {uniqueTeams.map(team => (
                 <SelectItem key={team.id} value={team.id}>
                   <div className="flex items-center gap-2">
@@ -633,7 +633,7 @@ export default function Membros() {
                   </div>
                 </SelectItem>
               ))}
-              <SelectItem value="no-team">Sem Equipe</SelectItem>
+              <SelectItem value="no-team">Sem Grupo</SelectItem>
             </SelectContent>
           </Select>
           
