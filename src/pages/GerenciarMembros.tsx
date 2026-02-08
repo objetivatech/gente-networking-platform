@@ -103,39 +103,36 @@ export default function GerenciarMembros() {
     },
   });
 
-  // Mutation para desativar membro
+  // Mutation para desativar membro usando função SECURITY DEFINER
   const deactivateMutation = useMutation({
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) => {
-      // 1. Desativar o perfil
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          is_active: false,
-          deactivated_at: new Date().toISOString(),
-          deactivation_reason: reason || null,
-        })
-        .eq('id', memberId);
+      const { data, error } = await supabase.rpc('deactivate_member', {
+        _member_id: memberId,
+        _reason: reason || null,
+      });
 
-      if (profileError) throw profileError;
-
-      // 2. Remover o usuário de todos os grupos
-      const { error: teamError } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('user_id', memberId);
-
-      if (teamError) {
-        console.error('Erro ao remover de grupos:', teamError);
-        // Não falha a operação se der erro aqui
+      if (error) throw error;
+      
+      const result = data as { success: boolean; error?: string; teams_removed?: number } | null;
+      
+      // Verificar se a função retornou sucesso
+      if (result && !result.success) {
+        throw new Error(result.error || 'Erro ao desativar membro');
       }
+
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
       queryClient.invalidateQueries({ queryKey: ['members-directory'] });
       queryClient.invalidateQueries({ queryKey: ['teams'] });
+      
+      const teamsRemoved = data?.teams_removed || 0;
       toast({
         title: 'Membro desativado',
-        description: 'O membro foi desativado, removido dos grupos e movido para o histórico.',
+        description: teamsRemoved > 0 
+          ? `O membro foi desativado e removido de ${teamsRemoved} grupo(s).`
+          : 'O membro foi desativado com sucesso.',
       });
       setShowDeactivateDialog(false);
       setSelectedMember(null);
@@ -145,25 +142,29 @@ export default function GerenciarMembros() {
       console.error('Erro ao desativar:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível desativar o membro.',
+        description: error.message || 'Não foi possível desativar o membro.',
         variant: 'destructive',
       });
     },
   });
 
-  // Mutation para reativar membro
+  // Mutation para reativar membro usando função SECURITY DEFINER
   const activateMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          is_active: true,
-          deactivated_at: null,
-          deactivation_reason: null,
-        })
-        .eq('id', memberId);
+      const { data, error } = await supabase.rpc('reactivate_member', {
+        _member_id: memberId,
+      });
 
       if (error) throw error;
+      
+      const result = data as { success: boolean; error?: string } | null;
+      
+      // Verificar se a função retornou sucesso
+      if (result && !result.success) {
+        throw new Error(result.error || 'Erro ao reativar membro');
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
@@ -175,10 +176,10 @@ export default function GerenciarMembros() {
       setShowActivateDialog(false);
       setSelectedMember(null);
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: 'Não foi possível reativar o membro.',
+        description: error.message || 'Não foi possível reativar o membro.',
         variant: 'destructive',
       });
     },
