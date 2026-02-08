@@ -353,40 +353,43 @@ export default function Documentacao() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <UserPlus className="h-5 w-5" />
-                      Gestão de Convidados e Promoção
+                      Gestão de Pessoas
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>
-                      Acompanhe todos os convites realizados pelos membros e promova convidados 
-                      que participaram dos encontros para membros efetivos da comunidade.
+                      A página unificada de Gestão de Pessoas (/admin/pessoas) centraliza todas as operações 
+                      de gerenciamento de membros, convidados e histórico de inativos.
                     </p>
 
-                    <h4 className="font-semibold mt-4">Acessando a Gestão de Convidados:</h4>
+                    <h4 className="font-semibold mt-4">Acessando a Gestão de Pessoas:</h4>
                     <ol>
-                      <li>No menu lateral, clique em "Gestão de Convidados"</li>
-                      <li>Você verá uma lista de todos os convites com status (Pendente, Aceito, Expirado)</li>
-                      <li>Use os filtros para encontrar convidados específicos</li>
+                      <li>No menu lateral, na seção Administração, clique em "Gestão de Pessoas"</li>
+                      <li>Você verá três abas: Membros, Convidados e Inativos</li>
+                      <li>Use os filtros para buscar por nome, email, perfil ou grupo</li>
                     </ol>
 
-                    <h4 className="font-semibold mt-4">Promovendo um Convidado para Membro:</h4>
-                    <ol>
-                      <li>Na lista de convidados, localize o convidado que já aceitou o convite e participou de um encontro</li>
-                      <li>Clique no botão "Promover" (disponível apenas para convidados aceitos)</li>
-                      <li>No modal de promoção, selecione:
-                        <ul>
-                          <li><strong>Novo perfil:</strong> Membro ou Facilitador</li>
-                          <li><strong>Grupo:</strong> Opcionalmente, adicione diretamente a um grupo</li>
-                        </ul>
-                      </li>
-                      <li>Clique em "Confirmar Promoção"</li>
-                      <li>O convidado agora é um membro efetivo e aparecerá no diretório de membros</li>
-                    </ol>
-
-                    <h4 className="font-semibold mt-4">Diferenças entre as páginas:</h4>
+                    <h4 className="font-semibold mt-4">Aba Membros:</h4>
                     <ul>
-                      <li><strong>Gestão de Convidados:</strong> Foco em convites e conversão de convidados para membros</li>
-                      <li><strong>Gerenciar Membros:</strong> Foco em ativar/desativar membros efetivos (não inclui convidados)</li>
+                      <li>Lista todos os membros ativos (Membro, Facilitador, Admin)</li>
+                      <li>Botão "Desativar" para mover para histórico de inativos</li>
+                      <li>Ao desativar, o membro é automaticamente removido de todos os grupos</li>
+                    </ul>
+
+                    <h4 className="font-semibold mt-4">Aba Convidados:</h4>
+                    <ul>
+                      <li>Lista pessoas que aceitaram convites mas ainda não foram promovidas</li>
+                      <li>Mostra quem fez o convite e quando</li>
+                      <li>Botão "Promover" para transformar em Membro ou Facilitador</li>
+                      <li>Opção de adicionar diretamente a um grupo durante a promoção</li>
+                    </ul>
+
+                    <h4 className="font-semibold mt-4">Aba Inativos:</h4>
+                    <ul>
+                      <li>Lista todas as pessoas desativadas (histórico)</li>
+                      <li>Mostra data e motivo da desativação</li>
+                      <li>Botão "Reativar" para trazer a pessoa de volta</li>
+                      <li>Após reativar, é necessário adicionar ao grupo manualmente</li>
                     </ul>
 
                     <p className="text-sm text-muted-foreground mt-4">

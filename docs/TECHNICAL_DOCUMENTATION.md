@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2025-02-06
-> **Versão:** 2.1.0
+> **Última atualização:** 2025-02-08
+> **Versão:** 2.2.0
 
 ## Índice
 
@@ -388,6 +388,13 @@ Documentação completa em `docs/PWA_IMPLEMENTATION.md`.
 ---
 
 ## Changelog
+
+### 2025-02-08
+- **Gestão de Pessoas**: Nova página unificada em `/admin/pessoas` com abas Membros/Convidados/Inativos
+- **Fluxo de Desativação**: Corrigido para usar função SECURITY DEFINER que remove de grupos corretamente
+- **Funções do Banco**: Adicionadas `deactivate_member()` e `reactivate_member()`
+- **Documentação de Fluxos**: Criado `docs/USER_FLOWS.md` com diagramas detalhados
+- **Menu Simplificado**: Unificado gerenciamento de pessoas em uma única entrada no menu Admin
 
 ### 2025-02-06
 - **Fluxo de Convidados**: Corrigido sistema de convites e expiração (30 dias)
