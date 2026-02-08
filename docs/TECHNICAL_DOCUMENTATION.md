@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2025-02-08
-> **Versão:** 2.2.0
+> **Última atualização:** 2026-02-08
+> **Versão:** 2.3.0
 
 ## Índice
 
@@ -216,34 +216,70 @@ docs/
 
 ---
 
-## Sistema de Pontuação
+## Sistema de Pontuação Mensal
+
+### Modelo de Dados
+
+A partir da versão 2.3.0, o sistema de gamificação opera com **ciclos mensais** e **pontuação por grupo**:
+
+```sql
+-- Tabela principal de pontuação
+CREATE TABLE monthly_points (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id),
+  team_id UUID REFERENCES teams(id),
+  year_month TEXT NOT NULL,  -- "YYYY-MM"
+  points INTEGER DEFAULT 0,
+  rank member_rank DEFAULT 'iniciante',
+  UNIQUE(user_id, team_id, year_month)
+);
+```
 
 ### Regras de Pontuação
 
-| Atividade | Pontos |
-|-----------|--------|
-| Gente em Ação (reunião 1-a-1) | 25 pts |
-| Presença em Encontro | 20 pts |
-| Indicação de Contato | 20 pts |
-| Depoimento | 15 pts |
-| Convite Aceito | 15 pts |
-| Negócio Realizado | 5 pts / R$ 100 |
+| Atividade | Pontos | Contexto de Grupo |
+|-----------|--------|-------------------|
+| Gente em Ação (reunião 1-a-1) | 25 pts | Grupo em comum com parceiro |
+| Presença em Encontro | 20 pts | Grupo do encontro |
+| Indicação de Contato | 20 pts | Grupo em comum com destinatário |
+| Depoimento | 15 pts | Grupo em comum com destinatário |
+| Convite Aceito | 15 pts | Grupos do convidador |
+| Negócio Realizado | 5 pts / R$ 100 | Todos os grupos |
 
 ### Ranks
 
 | Rank | Pontos | Emoji |
 |------|--------|-------|
 | Iniciante | 0-49 | 🌱 |
-| Bronze | 50-199 | 🥉 |
-| Prata | 200-499 | 🥈 |
-| Ouro | 500-999 | 🥇 |
-| Diamante | 1000+ | 💎 |
+| Bronze | 50-149 | 🥉 |
+| Prata | 150-299 | 🥈 |
+| Ouro | 300-499 | 🥇 |
+| Diamante | 500+ | 💎 |
+
+### Funções de Banco de Dados
+
+| Função | Descrição |
+|--------|-----------|
+| `get_current_year_month()` | Retorna mês atual "YYYY-MM" |
+| `calculate_monthly_points_for_team()` | Calcula pontos por grupo/mês |
+| `update_monthly_points_for_team()` | Atualiza pontuação mensal |
+| `get_monthly_ranking()` | Retorna ranking ordenado |
+| `recalculate_all_monthly_points()` | Recalcula todos os usuários |
+
+### Hooks React
+
+| Hook | Descrição |
+|------|-----------|
+| `useMonthlyRanking(teamId?, yearMonth?)` | Rankings mensais |
+| `useMonthlyPoints(userId, teamId?)` | Pontos do usuário no mês |
+| `useMonthlyPointsHistory(userId, teamId?)` | Histórico de meses |
+| `useRecalculateMonthlyPoints()` | Mutation para recálculo |
 
 ### Triggers Automáticos
 
 Os pontos são calculados automaticamente via triggers PostgreSQL:
-- `update_user_points_and_rank()` atualiza pontos após cada atividade
-- Histórico salvo em `points_history` para visualização de evolução
+- `update_all_monthly_points_for_user()` atualiza pontos após cada atividade
+- Histórico salvo em `monthly_points` para visualização de evolução
 
 ---
 

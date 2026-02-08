@@ -1,9 +1,9 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2025-02-08
-> **Versão:** 2.2.0
+> **Última atualização:** 2026-02-08
+> **Versão:** 2.3.0
 
-Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking e sistema de pontuação.
+Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking e sistema de pontuação mensal por grupo.
 
 ---
 
@@ -484,18 +484,43 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 
 ---
 
-## Sistema de Pontuação
+## Sistema de Pontuação Mensal por Grupo
+
+### Visão Geral
+
+A partir da versão 2.3.0, o sistema de gamificação opera com **ciclos mensais** e **pontuação por grupo**:
+
+- **Pontos são zerados mensalmente** - A cada novo mês, inicia-se um ciclo
+- **Histórico de pontos** - Consulta de desempenho de meses anteriores
+- **Pontuação por grupo** - Membros em múltiplos grupos têm pontuação separada
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MODELO DE PONTUAÇÃO MENSAL                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────┐                                                    │
+│  │ monthly_points      │  ← TABELA PRINCIPAL                               │
+│  │ - user_id           │                                                    │
+│  │ - team_id           │  ← Pontuação POR GRUPO                            │
+│  │ - year_month        │  ← Ex: "2026-02" (ciclo mensal)                   │
+│  │ - points            │  ← Total de pontos do mês/grupo                   │
+│  │ - rank              │  ← Rank calculado para este mês/grupo             │
+│  └─────────────────────┘                                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Tabela de Pontos
 
-| Atividade | Pontos | Quem Recebe |
-|-----------|--------|-------------|
-| Gente em Ação | +25 | Quem registra |
-| Depoimento | +15 | Quem envia |
-| Indicação | +20 | Quem indica |
-| Negócio | +5/R$100 | Quem fecha |
-| Presença | +20 | Quem comparece |
-| Convite Aceito* | +15 | Quem convidou |
+| Atividade | Pontos | Quem Recebe | Contexto de Grupo |
+|-----------|--------|-------------|-------------------|
+| Gente em Ação | +25 | Quem registra | Grupo em comum com parceiro |
+| Depoimento | +15 | Quem envia | Grupo em comum com destinatário |
+| Indicação | +20 | Quem indica | Grupo em comum com destinatário |
+| Negócio | +5/R$100 | Quem fecha | Todos os grupos do usuário |
+| Presença | +20 | Quem comparece | Grupo do encontro |
+| Convite Aceito* | +15 | Quem convidou | Grupos do convidador |
 
 *Bônus quando convidado comparece a um encontro
 
@@ -509,32 +534,34 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 | Ouro | 300 | 🥇 |
 | Diamante | 500 | 💎 |
 
-### Função de Cálculo
+### Funções de Cálculo
 
-A função `calculate_user_points(_user_id)` soma:
-1. Reuniões Gente em Ação × 25
-2. Depoimentos enviados × 15
-3. Indicações feitas × 20
-4. Valor de negócios / 100 × 5
-5. Presenças × 20
-6. Convidados que participaram × 15
+| Função | Descrição |
+|--------|-----------|
+| `get_current_year_month()` | Retorna "YYYY-MM" atual |
+| `calculate_monthly_points_for_team()` | Calcula pontos de um usuário em um grupo/mês |
+| `update_monthly_points_for_team()` | Atualiza a tabela monthly_points |
+| `update_all_monthly_points_for_user()` | Atualiza pontos em todos os grupos |
+| `get_monthly_ranking()` | Retorna ranking ordenado por grupo/mês |
+| `get_user_monthly_points()` | Retorna pontos do usuário no mês |
+| `recalculate_all_monthly_points()` | Recalcula pontos de todos os usuários |
 
 ---
 
 ## Validações e Triggers
 
-### Triggers de INSERT (Adição de Pontos)
+### Triggers de INSERT (Adição de Pontos Mensais)
 
-| Tabela | Trigger | Função |
-|--------|---------|--------|
-| `gente_em_acao` | AFTER INSERT | `handle_gente_em_acao_insert()` |
-| `testimonials` | AFTER INSERT | `handle_testimonial_insert()` |
-| `referrals` | AFTER INSERT | `handle_referral_insert()` |
-| `business_deals` | AFTER INSERT | `handle_business_deal_insert()` |
-| `attendances` | AFTER INSERT | `handle_attendance_insert()` |
-| `attendances` | AFTER INSERT | `handle_guest_attendance_insert()` |
+| Tabela | Trigger | Função | Ação |
+|--------|---------|--------|------|
+| `gente_em_acao` | AFTER INSERT | `handle_gente_em_acao_insert()` | Atualiza pontos mensais |
+| `testimonials` | AFTER INSERT | `handle_testimonial_insert()` | Atualiza pontos mensais |
+| `referrals` | AFTER INSERT | `handle_referral_insert()` | Atualiza pontos mensais |
+| `business_deals` | AFTER INSERT | `handle_business_deal_insert()` | Atualiza pontos mensais |
+| `attendances` | AFTER INSERT | `handle_attendance_insert()` | Atualiza pontos mensais |
+| `attendances` | AFTER INSERT | `handle_guest_attendance_insert()` | Atualiza pontos do convidador |
 
-### Triggers de DELETE (Remoção de Pontos)
+### Triggers de DELETE (Remoção de Pontos Mensais)
 
 | Tabela | Trigger | Função |
 |--------|---------|--------|
@@ -551,15 +578,25 @@ A função `calculate_user_points(_user_id)` soma:
 | `deactivate_member()` | Desativa membro e remove de grupos | Admin |
 | `reactivate_member()` | Reativa membro | Admin |
 | `has_role()` | Verifica role do usuário | Qualquer (sistema) |
-| `calculate_user_points()` | Calcula pontos | Qualquer (sistema) |
-| `update_user_points_and_rank()` | Atualiza pontos e rank | Qualquer (sistema) |
+| `calculate_monthly_points_for_team()` | Calcula pontos mensais | Qualquer (sistema) |
+| `update_monthly_points_for_team()` | Atualiza pontos mensais | Qualquer (sistema) |
 | `accept_invitation()` | Processa aceite de convite | Qualquer (sistema) |
 
 ---
 
 ## Changelog
 
-### 2025-02-08
+### 2026-02-08 (v2.3.0)
+- **Sistema de gamificação mensal por grupo**
+  - Pontos agora são contabilizados por mês e por grupo
+  - Nova tabela `monthly_points` para armazenar pontuação
+  - Rankings mensais com filtro por mês e grupo
+  - Gráfico de evolução mensal no perfil
+- Atualização de todos os triggers para o novo sistema
+- Novos hooks: `useMonthlyRanking`, `useMonthlyPoints`
+- Componentes: `MonthlyPointsSummary`, `MonthlyPointsEvolutionChart`
+
+### 2025-02-08 (v2.2.0)
 - Corrigido fluxo de desativação (agora remove de grupos corretamente)
 - Adicionadas funções SECURITY DEFINER para desativar/reativar
 - Criada página unificada de Gestão de Pessoas

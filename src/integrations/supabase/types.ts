@@ -270,6 +270,54 @@ export type Database = {
           },
         ]
       }
+      monthly_points: {
+        Row: {
+          created_at: string | null
+          id: string
+          points: number
+          rank: Database["public"]["Enums"]["member_rank"]
+          team_id: string
+          updated_at: string | null
+          user_id: string
+          year_month: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          points?: number
+          rank?: Database["public"]["Enums"]["member_rank"]
+          team_id: string
+          updated_at?: string | null
+          user_id: string
+          year_month: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          points?: number
+          rank?: Database["public"]["Enums"]["member_rank"]
+          team_id?: string
+          updated_at?: string | null
+          user_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monthly_points_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monthly_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       points_history: {
         Row: {
           activity_type: string | null
@@ -282,7 +330,9 @@ export type Database = {
           rank_before: Database["public"]["Enums"]["member_rank"] | null
           reason: string | null
           reference_id: string | null
+          team_id: string | null
           user_id: string
+          year_month: string | null
         }
         Insert: {
           activity_type?: string | null
@@ -295,7 +345,9 @@ export type Database = {
           rank_before?: Database["public"]["Enums"]["member_rank"] | null
           reason?: string | null
           reference_id?: string | null
+          team_id?: string | null
           user_id: string
+          year_month?: string | null
         }
         Update: {
           activity_type?: string | null
@@ -308,9 +360,19 @@ export type Database = {
           rank_before?: Database["public"]["Enums"]["member_rank"] | null
           reason?: string | null
           reference_id?: string | null
+          team_id?: string | null
           user_id?: string
+          year_month?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "points_history_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -596,6 +658,10 @@ export type Database = {
         Args: { p_user_id1: string; p_user_id2: string }
         Returns: boolean
       }
+      calculate_monthly_points_for_team: {
+        Args: { _team_id: string; _user_id: string; _year_month: string }
+        Returns: number
+      }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
       deactivate_member: {
         Args: { _member_id: string; _reason?: string }
@@ -605,9 +671,35 @@ export type Database = {
       generate_unique_slug:
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
+      get_current_year_month: { Args: never; Returns: string }
+      get_monthly_ranking: {
+        Args: { _team_id?: string; _year_month?: string }
+        Returns: {
+          avatar_url: string
+          company: string
+          full_name: string
+          member_position: string
+          points: number
+          position_rank: number
+          rank: Database["public"]["Enums"]["member_rank"]
+          team_id: string
+          team_name: string
+          user_id: string
+        }[]
+      }
       get_rank_from_points: {
         Args: { _points: number }
         Returns: Database["public"]["Enums"]["member_rank"]
+      }
+      get_user_monthly_points: {
+        Args: { _team_id?: string; _user_id: string; _year_month?: string }
+        Returns: {
+          points: number
+          rank: Database["public"]["Enums"]["member_rank"]
+          team_id: string
+          team_name: string
+          year_month: string
+        }[]
       }
       get_user_teams: {
         Args: { p_user_id: string }
@@ -615,6 +707,7 @@ export type Database = {
           team_id: string
         }[]
       }
+      get_year_month_from_date: { Args: { d: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -628,7 +721,19 @@ export type Database = {
         Returns: boolean
       }
       reactivate_member: { Args: { _member_id: string }; Returns: Json }
+      recalculate_all_monthly_points: {
+        Args: { _year_month?: string }
+        Returns: number
+      }
       recalculate_all_user_points: { Args: never; Returns: number }
+      update_all_monthly_points_for_user: {
+        Args: { _user_id: string; _year_month?: string }
+        Returns: undefined
+      }
+      update_monthly_points_for_team: {
+        Args: { _team_id: string; _user_id: string; _year_month?: string }
+        Returns: undefined
+      }
       update_user_points_and_rank: {
         Args: { _user_id: string }
         Returns: undefined

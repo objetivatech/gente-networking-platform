@@ -14,6 +14,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
 import { useMeetings } from '@/hooks/useMeetings';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useAuth } from '@/contexts/AuthContext';
+import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
 import RankBadge from '@/components/RankBadge';
 import ActivityFeed from '@/components/ActivityFeed';
 import ScoringRulesCard from '@/components/ScoringRulesCard';
@@ -35,6 +37,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 export default function Index() {
+  const { user } = useAuth();
   const { profile, isLoading: profileLoading } = useProfile();
   const { data: stats, isLoading: statsLoading } = useStats();
   const { meetings, isLoading: meetingsLoading } = useMeetings();
@@ -67,17 +70,7 @@ export default function Index() {
             Bem-vindo ao Gente Networking. Acompanhe suas atividades e conexões.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {profile && (
-            <>
-              <div className="text-right hidden sm:block">
-                <p className="text-sm text-muted-foreground">Seus pontos</p>
-                <p className="text-lg font-bold text-primary">{profile.points || 0} pts</p>
-              </div>
-              <RankBadge rank={profile.rank} size="lg" />
-            </>
-          )}
-        </div>
+        {user?.id && <MonthlyPointsSummary userId={user.id} compact />}
       </div>
 
       {/* Cards de Estatísticas */}

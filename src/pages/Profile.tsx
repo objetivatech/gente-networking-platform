@@ -11,8 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
-import { PointsHistoryCard } from '@/components/PointsHistoryCard';
-import { PointsEvolutionChart } from '@/components/PointsEvolutionChart';
+import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
+import { MonthlyPointsEvolutionChart } from '@/components/MonthlyPointsEvolutionChart';
 import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, Upload, ImagePlus, Cake } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -309,13 +309,9 @@ export default function Profile() {
 
           {/* Espaço para o avatar + info do rank/pontos à direita do avatar */}
           <div className="flex flex-col md:flex-row gap-6 pt-24 md:pt-6 md:pl-40">
-            {/* Rank e Pontos - visível ao lado no desktop */}
-            <div className="hidden md:flex flex-col items-center gap-4 min-w-[140px]">
-              {profile && <RankBadge rank={profile.rank} size="lg" />}
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Pontos</p>
-                <p className="text-2xl font-bold text-primary">{profile?.points || 0}</p>
-              </div>
+            {/* Pontos do Mês - visível ao lado no desktop */}
+            <div className="hidden md:block min-w-[180px]">
+              {user?.id && <MonthlyPointsSummary userId={user.id} compact />}
             </div>
 
             {/* Dados */}
@@ -486,13 +482,9 @@ export default function Profile() {
                 </>
               )}
               
-              {/* Rank e Pontos - visível abaixo no mobile */}
-              <div className="flex md:hidden justify-center gap-6 pt-4">
-                {profile && <RankBadge rank={profile.rank} size="lg" />}
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Pontos</p>
-                  <p className="text-2xl font-bold text-primary">{profile?.points || 0}</p>
-                </div>
+              {/* Pontos do Mês - visível abaixo no mobile */}
+              <div className="md:hidden pt-4">
+                {user?.id && <MonthlyPointsSummary userId={user.id} compact />}
               </div>
             </div>
           </div>
@@ -531,11 +523,11 @@ export default function Profile() {
         </CardContent>
       </Card>
 
-      {/* Gráfico de Evolução de Pontos */}
-      {user?.id && <PointsEvolutionChart userId={user.id} />}
+      {/* Pontos do Mês Detalhado */}
+      {user?.id && <MonthlyPointsSummary userId={user.id} />}
 
-      {/* Histórico de Pontos */}
-      {user?.id && <PointsHistoryCard userId={user.id} />}
+      {/* Gráfico de Evolução Mensal */}
+      {user?.id && <MonthlyPointsEvolutionChart userId={user.id} />}
     </div>
   );
 }

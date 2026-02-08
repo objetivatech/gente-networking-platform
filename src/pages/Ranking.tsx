@@ -3,16 +3,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useRanking } from '@/hooks/useRanking';
+import { useMonthlyRanking, useAvailableMonths } from '@/hooks/useMonthlyRanking';
 import { useTeams } from '@/hooks/useTeams';
 import RankBadge from '@/components/RankBadge';
 import ScoringRulesCard from '@/components/ScoringRulesCard';
-import { Trophy, Medal, Award, Crown, Star } from 'lucide-react';
+import { Trophy, Medal, Award, Crown, Star, Calendar, Loader2 } from 'lucide-react';
+import { format, parse } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function Ranking() {
+  const currentMonth = format(new Date(), 'yyyy-MM');
   const [selectedTeam, setSelectedTeam] = useState<string>('all');
-  const { data: ranking, isLoading } = useRanking(selectedTeam === 'all' ? undefined : selectedTeam);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonth);
+  
+  const { data: ranking, isLoading } = useMonthlyRanking(
+    selectedTeam === 'all' ? undefined : selectedTeam,
+    selectedMonth
+  );
   const { teams } = useTeams();
+  const { data: availableMonths } = useAvailableMonths();
 
   const getPositionIcon = (position: number) => {
     switch (position) {
@@ -40,6 +49,17 @@ export default function Ranking() {
     }
   };
 
+  const formatMonthLabel = (yearMonth: string) => {
+    try {
+      const date = parse(yearMonth, 'yyyy-MM', new Date());
+      return format(date, "MMMM 'de' yyyy", { locale: ptBR });
+    } catch {
+      return yearMonth;
+    }
+  };
+
+  const isCurrentMonth = selectedMonth === currentMonth;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -48,22 +68,41 @@ export default function Ranking() {
             <Trophy className="h-8 w-8 text-yellow-500" />
             Ranking
           </h1>
-          <p className="text-muted-foreground">Membros ordenados por pontuação</p>
+          <p className="text-muted-foreground flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            {isCurrentMonth ? 'Ranking do mês atual' : `Ranking de ${formatMonthLabel(selectedMonth)}`}
+          </p>
         </div>
 
-        <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filtrar por grupo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os grupos</SelectItem>
-            {teams?.map((team) => (
-              <SelectItem key={team.id} value={team.id}>
-                {team.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Selecionar mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {(availableMonths || [currentMonth]).map((month) => (
+                <SelectItem key={month} value={month}>
+                  {formatMonthLabel(month)}
+                  {month === currentMonth && ' (atual)'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filtrar por grupo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os grupos</SelectItem>
+              {teams?.map((team) => (
+                <SelectItem key={team.id} value={team.id}>
+                  {team.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Top 3 Destaque */}
@@ -83,6 +122,7 @@ export default function Ranking() {
               </div>
               <h3 className="font-bold mt-4">{ranking[1]?.full_name}</h3>
               <p className="text-sm text-muted-foreground">{ranking[1]?.company}</p>
+              <p className="text-xs text-muted-foreground">{ranking[1]?.team_name}</p>
               <div className="mt-2 flex flex-col items-center gap-2">
                 <RankBadge rank={ranking[1]?.rank} size="sm" />
                 <Badge variant="secondary" className="text-lg">
@@ -107,6 +147,7 @@ export default function Ranking() {
               </div>
               <h3 className="font-bold text-lg mt-4">{ranking[0]?.full_name}</h3>
               <p className="text-sm text-muted-foreground">{ranking[0]?.company}</p>
+              <p className="text-xs text-muted-foreground">{ranking[0]?.team_name}</p>
               <div className="mt-2 flex flex-col items-center gap-2">
                 <RankBadge rank={ranking[0]?.rank} size="md" />
                 <Badge className="text-lg bg-yellow-500 hover:bg-yellow-600">
@@ -131,6 +172,7 @@ export default function Ranking() {
               </div>
               <h3 className="font-bold mt-4">{ranking[2]?.full_name}</h3>
               <p className="text-sm text-muted-foreground">{ranking[2]?.company}</p>
+              <p className="text-xs text-muted-foreground">{ranking[2]?.team_name}</p>
               <div className="mt-2 flex flex-col items-center gap-2">
                 <RankBadge rank={ranking[2]?.rank} size="sm" />
                 <Badge variant="secondary" className="text-lg">
@@ -146,39 +188,36 @@ export default function Ranking() {
       {/* Lista completa */}
       <Card>
         <CardHeader>
-          <CardTitle>Classificação Geral</CardTitle>
+          <CardTitle>Classificação {isCurrentMonth ? 'Mensal' : `de ${formatMonthLabel(selectedMonth)}`}</CardTitle>
           <CardDescription>
             {ranking?.length || 0} membros no ranking
+            {!isCurrentMonth && ' (histórico)'}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-3 animate-pulse">
-                  <div className="w-6 h-6 bg-muted rounded"></div>
-                  <div className="h-10 w-10 bg-muted rounded-full"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-muted rounded w-1/3"></div>
-                    <div className="h-3 bg-muted rounded w-1/4"></div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : ranking?.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhum membro encontrado</p>
+              <p className="font-medium">Nenhum membro encontrado</p>
+              <p className="text-sm">
+                {isCurrentMonth 
+                  ? 'Participe das atividades para aparecer no ranking!' 
+                  : 'Nenhuma atividade registrada neste período.'}
+              </p>
             </div>
           ) : (
             <div className="space-y-2">
-              {ranking?.map((member, index) => (
+              {ranking?.map((member) => (
                 <div
-                  key={member.id}
-                  className={`flex items-center gap-4 p-3 rounded-lg border transition-colors hover:bg-muted/50 ${getPositionStyle(index + 1)}`}
+                  key={`${member.user_id}-${member.team_id}`}
+                  className={`flex items-center gap-4 p-3 rounded-lg border transition-colors hover:bg-muted/50 ${getPositionStyle(member.position_rank)}`}
                 >
                   <div className="w-8 flex justify-center">
-                    {getPositionIcon(index + 1)}
+                    {getPositionIcon(member.position_rank)}
                   </div>
                   
                   <Avatar className="h-10 w-10">
@@ -191,13 +230,9 @@ export default function Ranking() {
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{member.full_name}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span className="truncate">{member.company || member.position || 'Membro'}</span>
-                      {member.teamName && (
-                        <>
-                          <span>•</span>
-                          <span className="truncate">{member.teamName}</span>
-                        </>
-                      )}
+                      <span className="truncate">{member.company || member.member_position || 'Membro'}</span>
+                      <span>•</span>
+                      <span className="truncate">{member.team_name}</span>
                     </div>
                   </div>
 

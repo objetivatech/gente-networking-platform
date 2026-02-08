@@ -91,10 +91,18 @@ export default function Documentacao() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Trophy className="h-5 w-5" />
-                      Sistema de Pontuação e Ranks
+                      Sistema de Pontuação Mensal por Grupo
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                      <p className="font-semibold text-primary">Novidade v2.3.0!</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Os pontos agora são contabilizados <strong>mensalmente</strong> e por <strong>grupo</strong>. 
+                        A cada novo mês, o ranking reinicia, dando oportunidade para todos competirem novamente!
+                      </p>
+                    </div>
+
                     <p className="text-muted-foreground">
                       Acumule pontos participando das atividades da comunidade:
                     </p>
@@ -128,11 +136,19 @@ export default function Documentacao() {
                     <h4 className="font-semibold mt-4">Níveis:</h4>
                     <div className="grid gap-2">
                       <div className="flex items-center gap-2">🌱 <strong>Iniciante:</strong> 0-49 pontos</div>
-                      <div className="flex items-center gap-2">🥉 <strong>Bronze:</strong> 50-199 pontos</div>
-                      <div className="flex items-center gap-2">🥈 <strong>Prata:</strong> 200-499 pontos</div>
-                      <div className="flex items-center gap-2">🥇 <strong>Ouro:</strong> 500-999 pontos</div>
-                      <div className="flex items-center gap-2">💎 <strong>Diamante:</strong> 1000+ pontos</div>
+                      <div className="flex items-center gap-2">🥉 <strong>Bronze:</strong> 50-149 pontos</div>
+                      <div className="flex items-center gap-2">🥈 <strong>Prata:</strong> 150-299 pontos</div>
+                      <div className="flex items-center gap-2">🥇 <strong>Ouro:</strong> 300-499 pontos</div>
+                      <div className="flex items-center gap-2">💎 <strong>Diamante:</strong> 500+ pontos</div>
                     </div>
+
+                    <h4 className="font-semibold mt-4">Como funciona:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Seus pontos são calculados separadamente para cada grupo que você participa</li>
+                      <li>• O ranking mostra a classificação mensal, com filtros por mês e grupo</li>
+                      <li>• No seu perfil, você pode ver um gráfico de evolução mensal</li>
+                      <li>• Atividades realizadas em um mês contam apenas para aquele mês</li>
+                    </ul>
                   </CardContent>
                 </Card>
 
