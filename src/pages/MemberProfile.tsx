@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
+import { PointsHistoryCard } from '@/components/PointsHistoryCard';
 
 interface MemberProfile {
   id: string;
@@ -410,6 +411,11 @@ export default function MemberProfile() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Points History Card */}
+      {member && (
+        <PointsHistoryCard userId={member.id} />
       )}
     </div>
   );
