@@ -43,8 +43,8 @@ export function useAdminTeams() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Equipe criada' }); },
-    onError: () => { toast({ title: 'Erro', description: 'Erro ao criar equipe', variant: 'destructive' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Grupo criado' }); },
+    onError: () => { toast({ title: 'Erro', description: 'Erro ao criar grupo', variant: 'destructive' }); },
   });
 
   const updateTeam = useMutation({
@@ -52,12 +52,12 @@ export function useAdminTeams() {
       const { error } = await supabase.from('teams').update(input).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Equipe atualizada' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Grupo atualizado' }); },
   });
 
   const deleteTeam = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from('teams').delete().eq('id', id); if (error) throw error; },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Equipe removida' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Grupo removido' }); },
   });
 
   const addMember = useMutation({
@@ -67,8 +67,8 @@ export function useAdminTeams() {
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Membro adicionado' }); },
     onError: (e: any) => { 
-      const msg = e.message?.includes('duplicate') ? 'Membro já está na equipe' : 
-                  e.message?.includes('policy') ? 'Você só pode adicionar convidados à sua equipe' :
+      const msg = e.message?.includes('duplicate') ? 'Membro já está no grupo' : 
+                  e.message?.includes('policy') ? 'Você só pode adicionar convidados ao seu grupo' :
                   'Erro ao adicionar membro';
       toast({ title: 'Erro', description: msg, variant: 'destructive' }); 
     },

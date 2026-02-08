@@ -159,7 +159,7 @@ export default function Estatisticas() {
               <CardContent className="p-4 text-center">
                 <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
                 <p className="text-3xl font-bold">{communityStats?.totalTeams}</p>
-                <p className="text-sm text-muted-foreground">Equipes</p>
+                <p className="text-sm text-muted-foreground">Grupos</p>
               </CardContent>
             </Card>
             <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10">

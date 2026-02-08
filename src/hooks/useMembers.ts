@@ -4,8 +4,8 @@
  * 
  * @features
  * - Filtra convidados automaticamente
- * - Inclui informações de equipe
- * - Agrupa membros por equipe
+ * - Inclui informações de grupo
+ * - Agrupa membros por grupo
  * 
  * @since 2024-12-08
  */
@@ -154,7 +154,7 @@ export function useMembers(includeInactive = false) {
     if (membersWithoutTeam.length > 0) {
       membersByTeam.push({
         team_id: null,
-        team_name: 'Sem Equipe',
+        team_name: 'Sem Grupo',
         team_color: '#6b7280',
         members: membersWithoutTeam,
       });

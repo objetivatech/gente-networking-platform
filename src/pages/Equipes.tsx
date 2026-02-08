@@ -24,7 +24,7 @@ export default function Equipes() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Users className="w-6 h-6 text-primary" />
-          Equipes
+          Grupos
         </h1>
         <p className="text-muted-foreground">Grupos e membros da comunidade</p>
       </div>
@@ -35,7 +35,7 @@ export default function Equipes() {
           <CardContent className="pt-4">
             <div className="text-center">
               <p className="text-3xl font-bold text-primary">{teams?.length || 0}</p>
-              <p className="text-sm text-muted-foreground">Equipes</p>
+              <p className="text-sm text-muted-foreground">Grupos</p>
             </div>
           </CardContent>
         </Card>
@@ -61,14 +61,14 @@ export default function Equipes() {
         </Card>
       </div>
 
-      {/* Lista de Equipes */}
+      {/* Lista de Grupos */}
       {!teams?.length ? (
         <Card>
           <CardContent className="py-16">
             <div className="text-center text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="font-medium">Nenhuma equipe cadastrada</p>
-              <p className="text-sm">As equipes aparecerão aqui quando forem criadas</p>
+              <p className="font-medium">Nenhum grupo cadastrado</p>
+              <p className="text-sm">Os grupos aparecerão aqui quando forem criados</p>
             </div>
           </CardContent>
         </Card>
@@ -185,7 +185,7 @@ export default function Equipes() {
 
                   {!team.members?.length && (
                     <div className="text-center py-4 text-muted-foreground text-sm">
-                      Nenhum membro nesta equipe
+                      Nenhum membro neste grupo
                     </div>
                   )}
                 </CardContent>

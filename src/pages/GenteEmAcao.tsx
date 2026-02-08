@@ -94,7 +94,7 @@ export default function GenteEmAcao() {
     queryFn: async () => {
       if (!user?.id) return [];
 
-      // Primeiro, buscar equipes onde o usuário é membro
+      // Primeiro, buscar grupos onde o usuário é membro
       const { data: teamMemberships, error: tmError } = await supabase
         .from('team_members')
         .select('team_id')
@@ -104,7 +104,7 @@ export default function GenteEmAcao() {
 
       const teamIds = teamMemberships.map(tm => tm.team_id);
 
-      // Buscar todos os membros dessas equipes
+      // Buscar todos os membros desses grupos
       const { data: allTeamMembers, error: amError } = await supabase
         .from('team_members')
         .select('user_id')

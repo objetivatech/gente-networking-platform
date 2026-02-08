@@ -142,11 +142,11 @@ export default function Encontros() {
                   <Input id="location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="Endereço ou link" />
                 </div>
                 <div className="space-y-2">
-                  <Label>Equipe (opcional)</Label>
+                  <Label>Grupo (opcional)</Label>
                   <Select value={formData.team_id || "all"} onValueChange={(v) => setFormData({ ...formData, team_id: v === "all" ? "" : v })}>
-                    <SelectTrigger><SelectValue placeholder="Todas as equipes" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Todos os grupos" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Todas as equipes</SelectItem>
+                      <SelectItem value="all">Todos os grupos</SelectItem>
                       {teams?.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                     </SelectContent>
                   </Select>

@@ -104,7 +104,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.totalMembers || 0}</div>
             <p className="text-xs text-muted-foreground">
-              em {stats?.totalTeams || 0} equipes
+              em {stats?.totalTeams || 0} grupos
             </p>
           </CardContent>
         </Card>

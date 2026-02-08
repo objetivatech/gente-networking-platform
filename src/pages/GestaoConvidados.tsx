@@ -451,7 +451,7 @@ export default function GestaoConvidados() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                Se não adicionar a um grupo agora, você pode fazer isso depois em "Equipes".
+                Se não adicionar a um grupo agora, você pode fazer isso depois em "Grupos".
               </p>
             </div>
           </div>

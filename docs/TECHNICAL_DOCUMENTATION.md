@@ -24,7 +24,7 @@
 
 O **Gente Networking** é uma plataforma de gestão de comunidade de networking profissional. O sistema permite:
 
-- Gerenciamento de equipes e membros
+- Gerenciamento de grupos e membros
 - Registro de atividades de networking (Gente em Ação, Depoimentos, Indicações, Negócios)
 - Sistema de gamificação com pontos e ranks
 - Calendário de encontros quinzenais
@@ -106,7 +106,7 @@ docs/
 | `/negocios` | `Negocios.tsx` | Registro de negócios | Membros+ |
 | `/encontros` | `Encontros.tsx` | Calendário de encontros | Membros+ |
 | `/convites` | `Convites.tsx` | Gerenciamento de convites | Membros+ |
-| `/equipes` | `Equipes.tsx` | Gestão de equipes | Admin/Facilitador |
+| `/equipes` | `Equipes.tsx` | Gestão de grupos | Admin/Facilitador |
 | `/estatisticas` | `Estatisticas.tsx` | Gráficos e métricas | Membros+ |
 | `/conteudos` | `Conteudos.tsx` | Materiais educativos | Membros+ |
 | `/admin` | `Admin.tsx` | Painel administrativo | Admin |
@@ -152,7 +152,7 @@ docs/
 | `useAdmin` | `useAdmin.ts` | Verificação de roles (isAdmin, isFacilitator, etc) |
 | `useProfile` | `useProfile.ts` | Dados do perfil do usuário |
 | `useMembers` | `useMembers.ts` | Lista de membros |
-| `useTeams` | `useTeams.ts` | Gestão de equipes |
+| `useTeams` | `useTeams.ts` | Gestão de grupos |
 | `useMeetings` | `useMeetings.ts` | Encontros e presenças |
 | `useGenteEmAcao` | `useGenteEmAcao.ts` | Reuniões 1-a-1 |
 | `useTestimonials` | `useTestimonials.ts` | Depoimentos |
@@ -210,7 +210,7 @@ docs/
 | Role | Descrição |
 |------|-----------|
 | `admin` | Acesso total ao sistema |
-| `facilitador` | Gerencia sua equipe |
+| `facilitador` | Gerencia seu grupo |
 | `membro` | Participa de atividades |
 | `convidado` | Acesso limitado, aguarda promoção |
 
@@ -282,8 +282,8 @@ A partir da versão 2.0.0, o sistema implementa restrições de acesso baseadas 
 |--------|-----------|
 | `profiles` | Perfis de usuários (nome, empresa, pontos, rank) |
 | `user_roles` | Roles dos usuários |
-| `teams` | Equipes de networking |
-| `team_members` | Membros das equipes |
+| `teams` | Grupos de networking |
+| `team_members` | Membros dos grupos |
 | `meetings` | Encontros quinzenais |
 | `attendances` | Presenças em encontros |
 | `gente_em_acao` | Reuniões 1-a-1 |
@@ -301,7 +301,7 @@ A partir da versão 2.0.0, o sistema implementa restrições de acesso baseadas 
 |--------|-----------|
 | `has_role(_role, _user_id)` | Verifica se usuário tem role |
 | `is_guest(_user_id)` | Verifica se é convidado |
-| `is_team_facilitator(_team_id, _user_id)` | Verifica se é facilitador da equipe |
+| `is_team_facilitator(_team_id, _user_id)` | Verifica se é facilitador do grupo |
 | `calculate_user_points(_user_id)` | Calcula pontos do usuário |
 | `get_rank_from_points(_points)` | Retorna rank baseado em pontos |
 | `update_user_points_and_rank(_user_id)` | Atualiza pontos e rank |
