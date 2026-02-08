@@ -253,7 +253,7 @@ export default function Admin() {
   const { members } = useMembers();
   const { createTeam, deleteTeam, addMember, removeMember, toggleFacilitator } = useAdminTeams();
   const { guests, loadingGuests, promoteToMember, promoteToFacilitator } = useAdminRoles();
-  const { recalculateAllPoints } = usePointsHistory();
+  const { recalculateAllPoints, recalculateAllMonthlyPoints } = usePointsHistory();
   const [open, setOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', color: '#1e3a5f' });
@@ -542,14 +542,42 @@ export default function Admin() {
                 <CardDescription>Ferramentas de administração do sistema</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Recalcular Pontos Mensais (novo sistema) */}
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                   <div>
-                    <h3 className="font-medium">Recalcular Pontos</h3>
+                    <h3 className="font-medium">Recalcular Pontos Mensais</h3>
                     <p className="text-sm text-muted-foreground">
-                      Recalcula os pontos de todos os usuários baseado nas atividades registradas.
+                      Recalcula os pontos de todos os usuários no mês atual, agrupados por grupo.
                     </p>
                   </div>
                   <Button 
+                    onClick={() => recalculateAllMonthlyPoints.mutate(undefined)} 
+                    disabled={recalculateAllMonthlyPoints.isPending}
+                  >
+                    {recalculateAllMonthlyPoints.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Recalculando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Recalcular
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Recalcular Pontos Legados (sistema antigo) */}
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-dashed">
+                  <div>
+                    <h3 className="font-medium text-muted-foreground">Recalcular Pontos Legados</h3>
+                    <p className="text-sm text-muted-foreground">
+                      (Sistema antigo) Recalcula pontos globais acumulados - mantido apenas para histórico.
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline"
                     onClick={() => recalculateAllPoints.mutate()} 
                     disabled={recalculateAllPoints.isPending}
                   >
