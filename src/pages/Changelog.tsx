@@ -253,7 +253,8 @@ export default function Changelog() {
       const { data, error } = await supabase
         .from('system_changelog')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('version', { ascending: false });
 
       if (error) throw error;
       
