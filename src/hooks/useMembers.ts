@@ -59,6 +59,8 @@ export function useMembers(includeInactive = false) {
       
       const { data: profiles, error: profilesError } = await profilesQuery;
 
+      if (profilesError) throw profilesError;
+
       // 2. Get user roles to filter out guests
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
@@ -72,17 +74,20 @@ export function useMembers(includeInactive = false) {
         rolesMap[r.user_id] = r.role;
       });
 
-      // 3. Get team memberships
+      // 3. Get team memberships (a user can belong to multiple teams)
       const { data: teamMembers, error: teamMembersError } = await supabase
         .from('team_members')
         .select('user_id, team_id');
 
       if (teamMembersError) throw teamMembersError;
 
-      // Create a map of user_id -> team_id
-      const teamMembershipMap: Record<string, string> = {};
+      // Create a map of user_id -> team_ids[] (multiple teams per user)
+      const teamMembershipMap: Record<string, string[]> = {};
       teamMembers?.forEach(tm => {
-        teamMembershipMap[tm.user_id] = tm.team_id;
+        if (!teamMembershipMap[tm.user_id]) {
+          teamMembershipMap[tm.user_id] = [];
+        }
+        teamMembershipMap[tm.user_id].push(tm.team_id);
       });
 
       // 4. Get all teams
@@ -99,24 +104,40 @@ export function useMembers(includeInactive = false) {
         teamsMap[t.id] = { name: t.name, color: t.color || '#22c55e' };
       });
 
-      // 5. Filter out guests and add team info
-      const membersWithTeam: Member[] = (profiles || [])
-        .filter(profile => {
-          const role = rolesMap[profile.id];
-          // Exclude guests - users with role 'convidado' or without any role are considered guests
-          return role && role !== 'convidado';
-        })
-        .map(profile => {
-          const teamId = teamMembershipMap[profile.id] || null;
-          const teamInfo = teamId ? teamsMap[teamId] : null;
-          
-          return {
+      // 5. Filter out guests and create member entries for each team membership
+      // A member who belongs to 2 teams will appear once per team
+      const membersWithTeam: Member[] = [];
+      
+      (profiles || []).forEach(profile => {
+        const role = rolesMap[profile.id];
+        // Exclude guests - users with role 'convidado' or without any role are considered guests
+        if (!role || role === 'convidado') return;
+        
+        const userTeamIds = teamMembershipMap[profile.id] || [];
+        
+        if (userTeamIds.length === 0) {
+          // Member without team - add once with null team
+          membersWithTeam.push({
             ...profile,
-            team_id: teamId,
-            team_name: teamInfo?.name || null,
-            team_color: teamInfo?.color || null,
-          };
-        });
+            team_id: null,
+            team_name: null,
+            team_color: null,
+          });
+        } else {
+          // Member with teams - add once for each team
+          userTeamIds.forEach(teamId => {
+            const teamInfo = teamsMap[teamId];
+            if (teamInfo) {
+              membersWithTeam.push({
+                ...profile,
+                team_id: teamId,
+                team_name: teamInfo.name,
+                team_color: teamInfo.color,
+              });
+            }
+          });
+        }
+      });
 
       return membersWithTeam;
     },
@@ -161,8 +182,14 @@ export function useMembers(includeInactive = false) {
     }
   }
 
+  // Get unique members (deduplicated by id) for total count
+  const uniqueMembers = query.data 
+    ? Array.from(new Map(query.data.map(m => [m.id, m])).values())
+    : undefined;
+
   return {
-    members: query.data,
+    members: uniqueMembers, // Unique list for counts
+    allMemberEntries: query.data, // Full list with duplicates per team
     membersByTeam,
     isLoading: query.isLoading,
     error: query.error,
