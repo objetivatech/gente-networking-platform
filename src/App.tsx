@@ -44,6 +44,7 @@ import MemberProfile from "./pages/MemberProfile";
 import Aniversarios from "./pages/Aniversarios";
 import GerenciarMembros from "./pages/GerenciarMembros";
 import GestaoConvidados from "./pages/GestaoConvidados";
+import GestaoPessoas from "./pages/GestaoPessoas";
 import Changelog from "./pages/Changelog";
 import NotFound from "./pages/NotFound";
 
@@ -85,6 +86,8 @@ const App = () => (
               <Route path="/configuracoes" element={<Configuracoes />} />
               <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/admin/pessoas" element={<GestaoPessoas />} />
+              {/* Rotas antigas mantidas para compatibilidade */}
               <Route path="/admin/membros" element={<GerenciarMembros />} />
               <Route path="/admin/convidados" element={<GestaoConvidados />} />
             </Route>
