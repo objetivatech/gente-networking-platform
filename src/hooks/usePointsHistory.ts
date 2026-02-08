@@ -40,33 +40,48 @@ export function usePointsHistory(userId?: string) {
     enabled: !!userId,
   });
 
+  // Recalcula pontos MENSAIS por grupo (novo sistema v2.3.0)
+  const recalculateAllMonthlyPoints = useMutation({
+    mutationFn: async (yearMonth?: string) => {
+      const { data, error } = await supabase.rpc('recalculate_all_monthly_points', {
+        _year_month: yearMonth || null
+      });
+      
+      if (error) throw error;
+      return data as number;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['monthly-ranking'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-points'] });
+      queryClient.invalidateQueries({ queryKey: ['points-history'] });
+      toast({
+        title: 'Pontos mensais recalculados!',
+        description: `${count} usuários atualizados com sucesso.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível recalcular os pontos mensais.',
+        variant: 'destructive',
+      });
+      console.error('Error recalculating monthly points:', error);
+    },
+  });
+
+  // Mantém compatibilidade com sistema legado (pontos globais)
   const recalculateAllPoints = useMutation({
     mutationFn: async () => {
-      // Get all profile IDs
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id');
-      
-      if (profilesError) throw profilesError;
-
-      let updated = 0;
-      
-      // Call the RPC function for each user
-      for (const profile of profiles || []) {
-        const { error } = await supabase.rpc('update_user_points_and_rank', {
-          _user_id: profile.id
-        });
-        if (!error) updated++;
-      }
-
-      return updated;
+      const { data, error } = await supabase.rpc('recalculate_all_user_points');
+      if (error) throw error;
+      return data as number;
     },
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['points-history'] });
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
       queryClient.invalidateQueries({ queryKey: ['ranking'] });
       toast({
-        title: 'Pontos recalculados!',
+        title: 'Pontos legados recalculados!',
         description: `${count} usuários atualizados com sucesso.`,
       });
     },
@@ -84,5 +99,6 @@ export function usePointsHistory(userId?: string) {
     history,
     isLoading,
     recalculateAllPoints,
+    recalculateAllMonthlyPoints,
   };
 }
