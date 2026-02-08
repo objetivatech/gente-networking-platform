@@ -597,6 +597,10 @@ export type Database = {
         Returns: boolean
       }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
+      deactivate_member: {
+        Args: { _member_id: string; _reason?: string }
+        Returns: Json
+      }
       generate_slug: { Args: { name: string }; Returns: string }
       generate_unique_slug:
         | { Args: { name: string; user_id: string }; Returns: string }
@@ -623,6 +627,7 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
+      reactivate_member: { Args: { _member_id: string }; Returns: Json }
       recalculate_all_user_points: { Args: never; Returns: number }
       update_user_points_and_rank: {
         Args: { _user_id: string }
