@@ -1,294 +1,231 @@
 
+# Plano: Sistema de Gamificação Mensal por Grupo
 
-# Plano Completo de Evolução da Plataforma Gente Networking
+## Resumo Executivo
 
-## Visão Geral
+Este plano implementa uma **reformulação completa do sistema de gamificação** para operar com ciclos mensais e pontuação por grupo, conforme solicitado. As principais mudanças são:
 
-Este plano cobre 16 solicitações agrupadas em **6 fases de implementação**, priorizadas por dependência técnica e impacto. A estimativa total é de **15-20 ciclos de implementação** (mensagens).
-
----
-
-## Fase 1: Papéis e Permissões (Itens 1a, 1b, 13)
-
-### 1a - Redesenho do acesso do Administrador
-
-**Situação atual:** Admin vê as mesmas páginas que membros (formulários de lançamento em Gente em Ação, Depoimentos, etc.)
-
-**Proposta:**
-- Cada página de atividade (GenteEmAcao, Depoimentos, Indicações, Negocios, Convites, Encontros) passará a exibir **duas visões** condicionais baseadas no role:
-  - **Membro/Facilitador:** formulário de lançamento + listagem pessoal (como hoje)
-  - **Admin:** painel de gestão com listagem completa de todos os registros + filtros por grupo, período e membro
-- O botão "Novo Registro" será ocultado para admin nessas páginas
-- A página de Estatísticas para admin substituirá "Minhas Estatísticas" por "Relatório Geral" com dados de todos os membros
-- Admin será excluído da gamificação (não pontua, não aparece no ranking)
-
-### 1b - Facilitador não pontua
-
-- Facilitador continua podendo lançar atividades, mas seus registros não contarão para a gamificação
-- Ajuste na função `calculate_monthly_points_for_team` para ignorar usuários com role `facilitador`
-- Facilitador não aparecerá nos rankings
-
-### Item 13 - Controle total do Admin sobre registros
-
-- Nas visões administrativas das páginas de atividades, o admin terá botões de **editar** e **excluir** registros de qualquer membro
-- Criação de novas RLS policies permitindo admin fazer UPDATE/DELETE em todas as tabelas de atividades
-- Novo item no menu admin: **"Gestão de Registros"** (`/admin/registros`) com interface unificada para buscar e gerenciar qualquer registro do sistema (Gente em Ação, Depoimentos, Indicações, Negócios, Convites)
-
-**Alterações de banco de dados:**
-- Novas RLS policies para admin em `gente_em_acao`, `testimonials`, `referrals`, `business_deals`, `invitations`
-- Ajuste nas funções de cálculo para excluir admin e facilitador
-
-**Arquivos afetados:** `GenteEmAcao.tsx`, `Depoimentos.tsx`, `Indicacoes.tsx`, `Negocios.tsx`, `Convites.tsx`, `Encontros.tsx`, `Estatisticas.tsx`, `Sidebar.tsx`, nova página `AdminRegistros.tsx`, hooks correspondentes
+1. **Pontos zerados mensalmente** - A cada novo mês, inicia-se um novo ciclo de pontuação
+2. **Histórico de pontos mensais** - Consulta de desempenho de meses anteriores
+3. **Pontuação por grupo** - Membros que pertencem a múltiplos grupos têm pontuação separada em cada um
+4. **Rankings mensais** - Exibição sempre do mês corrente, global e por grupo
 
 ---
 
-## Fase 2: Mobile e UX (Item 2)
+## Arquitetura da Solução
 
-### Responsividade e experiência mobile
+### Nova Estrutura de Dados
 
-**Diagnóstico:** O layout atual usa sidebar fixa de 264px + conteúdo. No mobile, a sidebar é um drawer. O conteúdo principal não tem otimização específica para telas pequenas.
-
-**Proposta:**
-1. **Bottom Navigation Bar** para mobile (visível apenas em telas < 1024px):
-   - Barra fixa na parte inferior com 4-5 ícones dos recursos mais usados
-   - Customizada por role:
-     - **Membro:** Gente em Ação, Negócios, Indicações, Convites, Perfil
-     - **Admin:** Dashboard, Gestão de Pessoas, Admin, Ranking
-     - **Facilitador:** Admin, Gestão de Pessoas, Encontros, Estatísticas
-
-2. **Dashboard Mobile redesenhada:**
-   - Cards de ação rápida em grid 2x2 com ícones grandes
-   - Resumo de pontos compacto
-   - Feed de atividades simplificado
-
-3. **Ajustes globais de responsividade:**
-   - Revisar todos os grids e tabelas para mobile
-   - Ajustar tamanhos de fonte e espaçamentos
-   - Garantir que diálogos/modals funcionem bem em mobile
-   - Adicionar `safe-area-inset` para iPhones com notch
-
-**Arquivos afetados:** Novo componente `BottomNav.tsx`, `MainLayout.tsx`, `Index.tsx`, `src/index.css`, várias páginas
-
----
-
-## Fase 3: Feed de Atividades e Notificações (Itens 4, 8, 12)
-
-### Item 8 - Feed de Atividades completo
-
-**Proposta:**
-1. **Nova página `/feed`** com feed completo e detalhado:
-   - Filtros por grupo, tipo de atividade e período
-   - Cada item é clicável e expande detalhes do lançamento
-   - Membros só veem atividades de colegas do mesmo grupo (RLS via nova coluna `team_id` na `activity_feed`)
-   - Paginação infinita (scroll)
-
-2. **Header (sininho):** links para `/feed` ao clicar em uma notificação
-3. **Index (Atividades Recentes):** mantém resumo com link "Ver todas" apontando para `/feed`
-4. **Item 12 (Dashboard admin):** conectar o bloco "Atividades Recentes" ao mesmo hook `useActivityFeed`, que já funciona mas não está populando porque o `activity_feed` pode estar vazio
-
-**Alterações de banco de dados:**
-- Adicionar `team_id` na tabela `activity_feed` para filtragem por grupo
-- Atualizar triggers para popular `team_id` ao inserir
-- Nova RLS policy: membros só veem atividades de seus grupos
-
-### Item 4 - Notificações por email e push
-
-**Proposta:**
-1. Atualizar a edge function `send-notification` para disparar emails via Resend quando:
-   - Membro recebe nova indicação
-   - Membro recebe novo depoimento
-   - Negócio fechado a partir de indicação do membro
-   - Convidado preenche cadastro (notifica o membro que convidou)
-
-2. Integrar push notifications (já existe `usePushNotifications`) com os mesmos eventos
-3. Respeitar as preferências de `/configuracoes` (verificar se os toggles realmente funcionam)
-
-### Item 8 (continuação) - Revisar configurações de notificações
-
-- Verificar se as flags `notify_on_testimonial`, `notify_on_referral`, `notify_on_meeting` são efetivamente consultadas antes de enviar
-- Adicionar novas flags: `notify_on_business_deal`, `notify_on_guest_signup`
-
-**Arquivos afetados:** Nova página `Feed.tsx`, `Header.tsx`, `ActivityFeed.tsx`, `useActivityFeed.ts`, `Configuracoes.tsx`, edge functions, migration SQL
-
----
-
-## Fase 4: Conteúdo e Dados (Itens 3, 5, 7, 10, 11)
-
-### Item 3 - Acesso a convidados por encontro
-
-**Proposta:**
-- Remodelar a página `/encontros` para incluir uma seção expansível em cada encontro passado mostrando os **convidados que participaram**
-- Buscar convidados via: usuários com role `convidado` que têm registro em `attendances` para aquele `meeting_id`
-- Nome do convidado é um link para `/membro/:slug` (perfil)
-- Acesso restrito: membros/facilitadores/admin (convidados não veem)
-
-**Arquivos afetados:** `Encontros.tsx`, possivelmente novo componente `MeetingGuestsList.tsx`
-
-### Item 5 - Mesclar Membros e Grupos
-
-**Proposta:**
-- Unificar `/membros` e `/equipes` em uma única página `/membros`
-- A página já agrupa por grupo (seções expansíveis). Adicionar:
-  - Estatísticas resumidas por grupo (total membros, facilitadores) no cabeçalho de cada seção
-  - Info de facilitadores com badge especial
-  - Descrição do grupo visível
-- Remover `/equipes` do menu e redirecionar para `/membros`
-- Manter a rota `/equipes` com redirect para compatibilidade
-
-**Arquivos afetados:** `Membros.tsx` (enriquecer), `Equipes.tsx` (redirect), `Sidebar.tsx`
-
-### Item 7 - Status da indicação (Frio/Morno/Quente)
-
-**Proposta:**
-- Adicionar coluna `status` (TEXT, default 'morno') na tabela `referrals`
-- Valores: `frio`, `morno`, `quente`
-- No formulário de indicação, adicionar seletor visual com 3 opções coloridas:
-  - Frio: azul (#3b82f6)
-  - Morno: laranja (#f59e0b)
-  - Quente: vermelho (#ef4444)
-- Na listagem, cada card de indicação terá borda/badge colorido conforme status
-- Quem recebeu pode atualizar o status
-
-**Arquivos afetados:** `Indicacoes.tsx`, `useReferrals.ts`, migration SQL
-
-### Item 10 - Controle de convites
-
-**Proposta:**
-- Adicionar botão de **excluir** convite pendente (já existe `deleteInvitation` no hook mas não está no UI)
-- Corrigir expiração: criar uma função scheduled (cron) ou verificar no frontend se `expires_at < now()` e marcar como expirado
-- Adicionar migration para atualizar convites antigos que já passaram de 30 dias
-
-**Arquivos afetados:** `Convites.tsx`, `useInvitations.ts`, migration SQL
-
-### Item 11 - Histórico de pontos funcional
-
-**Proposta:**
-- O `PointsHistoryCard` já existe mas depende de dados na tabela `points_history` que podem estar vazios para o sistema mensal
-- Atualizar os triggers para popular `points_history` com contexto mensal ao recalcular
-- Adicionar `PointsHistoryCard` na página `Profile.tsx` (perfil do próprio usuário)
-- Investigar por que alguns usuários estão com pontos zerados (provavelmente não pertencem a nenhum grupo ou não têm atividades no mês corrente)
-
-**Arquivos afetados:** `Profile.tsx`, `PointsHistoryCard.tsx`, migration SQL para popular histórico
-
----
-
-## Fase 5: Perfil e Estatísticas (Itens 14, 15, 16)
-
-### Item 14 - Redesign da página de perfil
-
-**Proposta** (baseada no print mencionado, com melhorias sugeridas):
-- Adicionar ao perfil do membro (próprio e de terceiros):
-  - **Resumo de atividades do mês:** mini-cards com contadores
-  - **Grupos a que pertence:** badges coloridos
-  - **Abas de conteúdo:**
-    - "Sobre" (bio, contato, links)
-    - "Atividades" (timeline de ações recentes)
-    - "Estatísticas" (gráfico de evolução mensal)
-    - "Depoimentos" (recebidos/enviados)
-  - **Badges de conquistas:** Top 3 do mês, streak de presenças, etc.
-
-**Arquivos afetados:** `Profile.tsx`, `MemberProfile.tsx`, novos componentes de abas
-
-### Item 15 - Melhorias em Estatísticas
-
-**Proposta:**
-1. **"Minhas Estatísticas":**
-   - Corrigir Gente em Ação em branco (provavelmente `useStats` não busca dados corretamente)
-   - Adicionar filtro por mês
-   - Incluir todas as atividades com detalhamento
-
-2. **"Comunidade":**
-   - Adicionar sub-abas: "Global" e uma por grupo
-   - Estatísticas separadas por período (mês a mês)
-   - Incluir todas as métricas: Gente em Ação, Depoimentos, Indicações, Negócios, Presenças
-   - Para admin: dados completos de todos os membros
-
-**Arquivos afetados:** `Estatisticas.tsx`, `useStats.ts`, novos hooks
-
-### Item 16 - Visibilidade de atividades dos colegas
-
-**Proposta:**
-- Dentro do perfil de cada membro (visível para colegas de grupo):
-  - Aba "Atividades" com histórico de Gente em Ação, Negócios, Depoimentos e Indicações
-  - Dados detalhados mas respeitando privacidade (valores de negócios podem ser omitidos)
-- No Feed de Atividades (item 8), as atividades dos colegas já estarão visíveis
-
-**Arquivos afetados:** `MemberProfile.tsx`, novo hook `useMemberActivities.ts`
-
----
-
-## Fase 6: Integrações e Correções (Itens 6, 9)
-
-### Item 9 - RD Station capturando login
-
-**Diagnóstico:** O script RD Station em `index.html` captura todos os formulários. A página `/auth` tem formulários de login E cadastro.
-
-**Proposta:**
-- Verificar se o atributo `data-rd-no-capture='true'` está no formulário de login em `Auth.tsx`
-- Garantir que APENAS o formulário de cadastro (signup) está sendo capturado
-- Adicionar `data-rd-no-capture='true'` em todos os outros formulários da plataforma (perfil, indicações, etc.)
-
-**Arquivos afetados:** `Auth.tsx`, possíveis outros formulários
-
-### Item 6 - Conselho de Administração 24/7 (Help Desk)
-
-**Opções de implementação:**
-
-| Opção | Descrição | Complexidade |
-|-------|-----------|-------------|
-| **A - Fórum interno** | Nova tabela `forum_posts` com categorias, respostas e upvotes. Página `/conselho` com threads. Membros podem criar tópicos e responder. | Média-Alta |
-| **B - Canal de discussão** | Estilo chat assíncrono com canais por tema. Mais simples que fórum, similar a um Slack simplificado. | Alta |
-| **C - Quadro de solicitações** | Estilo Kanban com cards de "problemas/pedidos" que membros podem criar e outros podem comentar/oferecer ajuda. Status: Aberto, Em andamento, Resolvido. | Média |
-| **D - Integração externa** | Usar WhatsApp Community ou grupo do Telegram, com link direto da plataforma. Zero desenvolvimento. | Baixa |
-
-**Recomendação:** Opção **A (Fórum interno)** ou **C (Quadro de solicitações)**, pois mantém tudo dentro da plataforma e gera mais engajamento. Sugiro começar com a opção C por ser mais simples e visual, podendo evoluir para fórum depois.
-
-**Estrutura para Opção C:**
 ```text
-help_requests
-- id, user_id, title, description, category
-- status (aberto, em_andamento, resolvido)
-- created_at, resolved_at
-
-help_responses  
-- id, request_id, user_id, content, created_at
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MODELO DE DADOS - PONTUAÇÃO MENSAL                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ANTES (atual):                                                             │
+│  ┌─────────────┐                                                            │
+│  │ profiles    │                                                            │
+│  │ - points    │  ← Pontos acumulados globalmente, sem contexto de grupo   │
+│  │ - rank      │                                                            │
+│  └─────────────┘                                                            │
+│                                                                             │
+│  DEPOIS (proposto):                                                         │
+│  ┌─────────────────────┐                                                    │
+│  │ monthly_points      │  (NOVA TABELA)                                     │
+│  │ - user_id           │                                                    │
+│  │ - team_id           │  ← Pontuação POR GRUPO                            │
+│  │ - year_month        │  ← Ex: "2026-02" (ciclo mensal)                   │
+│  │ - points            │  ← Total de pontos do mês para este grupo         │
+│  │ - rank              │  ← Rank calculado para este mês/grupo             │
+│  │ - updated_at        │                                                    │
+│  └─────────────────────┘                                                    │
+│           │                                                                 │
+│           ▼                                                                 │
+│  ┌─────────────────────┐                                                    │
+│  │ points_history      │  (ATUALIZADA)                                      │
+│  │ - user_id           │                                                    │
+│  │ - team_id           │  ← NOVO: Contexto do grupo                        │
+│  │ - year_month        │  ← NOVO: Mês de referência                        │
+│  │ - activity_type     │                                                    │
+│  │ - points_change     │                                                    │
+│  │ - created_at        │                                                    │
+│  └─────────────────────┘                                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Documentação (Transversal)
+## Detalhamento Técnico
 
-Após cada fase:
-- Atualizar `docs/TECHNICAL_DOCUMENTATION.md`
-- Atualizar `docs/USER_FLOWS.md`
-- Atualizar `/documentacao` (página interna)
-- Adicionar entrada no changelog (tabela `system_changelog`)
-- Versão sugerida: **v3.0.0** (dado o escopo das mudanças)
+### 1. Alterações no Banco de Dados
 
----
-
-## Ordem de Implementação Recomendada
-
-```text
-Fase 1 (Papéis)     ████████░░░░░░░░  ~4 ciclos
-Fase 4 (Dados)       ████████░░░░░░░░  ~4 ciclos  
-Fase 2 (Mobile)      ██████░░░░░░░░░░  ~3 ciclos
-Fase 3 (Feed/Notif)  ██████░░░░░░░░░░  ~3 ciclos
-Fase 5 (Perfil/Stats)████████░░░░░░░░  ~4 ciclos
-Fase 6 (Integ/Extra) ████░░░░░░░░░░░░  ~2 ciclos
+#### 1.1 Nova tabela: `monthly_points`
+```sql
+CREATE TABLE monthly_points (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  year_month TEXT NOT NULL, -- formato "YYYY-MM"
+  points INTEGER NOT NULL DEFAULT 0,
+  rank member_rank DEFAULT 'iniciante',
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, team_id, year_month)
+);
 ```
 
-Fases 1 e 4 são prioritárias porque estabelecem a base para as demais. Item 9 (RD Station) é uma correção rápida que pode ser feita em qualquer momento.
+#### 1.2 Alterações na tabela `points_history`
+Adicionar colunas:
+- `team_id UUID` - Para contexto do grupo
+- `year_month TEXT` - Para vincular ao mês
+
+#### 1.3 Novas funções de banco de dados
+
+| Função | Descrição |
+|--------|-----------|
+| `get_current_year_month()` | Retorna "YYYY-MM" atual |
+| `calculate_monthly_points(user_id, team_id, year_month)` | Calcula pontos de um usuário em um grupo/mês |
+| `update_monthly_points_and_rank(user_id, team_id)` | Atualiza a tabela monthly_points |
+| `get_monthly_ranking(team_id, year_month)` | Retorna ranking ordenado |
+
+#### 1.4 Atualização dos Triggers
+Todos os triggers de atividades (gente_em_acao, testimonials, referrals, etc.) precisam:
+1. Identificar o grupo do contexto da atividade
+2. Chamar `update_monthly_points_and_rank()` para cada grupo do usuário
+
+### 2. Lógica de Contexto de Grupo
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│           COMO DETERMINAR O GRUPO DE UMA ATIVIDADE?                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ATIVIDADE              │  LÓGICA DE GRUPO                                  │
+│  ───────────────────────┼──────────────────────────────────────────────────│
+│  Presença (attendances) │  Grupo do encontro (meetings.team_id)            │
+│                         │  Se encontro sem grupo: todos os grupos do user  │
+│                         │                                                   │
+│  Gente em Ação          │  Grupo em comum com o parceiro, ou               │
+│                         │  todos os grupos do usuário se com convidado     │
+│                         │                                                   │
+│  Depoimentos            │  Grupo em comum entre from_user e to_user        │
+│                         │  Se múltiplos: pontua em cada um                 │
+│                         │                                                   │
+│  Indicações             │  Grupo em comum entre from_user e to_user        │
+│                         │                                                   │
+│  Negócios               │  Todos os grupos do usuário que fechou           │
+│                         │                                                   │
+│  Convites               │  Grupo do convidador                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3. Alterações no Frontend
+
+#### 3.1 Página de Ranking (`/ranking`)
+- Adicionar seletor de mês (padrão: mês atual)
+- Filtro por grupo (já existe, manter)
+- Exibir claramente "Ranking de [Mês/Ano]"
+- Remover exibição de pontos globais/acumulados
+
+#### 3.2 Perfil do Usuário (`/perfil`)
+- Substituir "pontos totais" por "pontos do mês"
+- Adicionar seletor de grupo (se pertence a múltiplos)
+- Gráfico de evolução: mostrar mês a mês
+
+#### 3.3 Dashboard (`/`)
+- Exibir pontos do mês atual
+- Se usuário pertence a múltiplos grupos, mostrar resumo por grupo
+
+#### 3.4 Histórico de Pontos
+- Adicionar filtros: mês e grupo
+- Agrupar histórico por mês com totais
+
+#### 3.5 Estatísticas (`/estatisticas`)
+- Ajustar para refletir dados mensais
+
+### 4. Novos Hooks
+
+| Hook | Descrição |
+|------|-----------|
+| `useMonthlyRanking(teamId?, yearMonth?)` | Rankings mensais por grupo |
+| `useMonthlyPoints(userId, teamId?)` | Pontos do usuário no mês/grupo |
+| `usePointsHistoryByMonth(userId, yearMonth?)` | Histórico filtrado por mês |
+
+### 5. Migração de Dados Existentes
+
+A migração não irá "converter" os pontos antigos, pois o modelo era diferente. Opções:
+
+1. **Zerar e começar do zero** - Simples, mas perde histórico
+2. **Migrar como "mês genérico"** - Criar um registro especial para pontos legados
+3. **Manter pontos antigos apenas para consulta** - Recomendado
+
+**Recomendação:** Manter os campos `points` e `rank` na tabela `profiles` como "pontos históricos/legados" e usar o novo sistema a partir do mês de implementação.
 
 ---
 
-## Considerações Importantes
+## Cronograma de Implementação
 
-1. **Impacto para usuários existentes:** As mudanças nos papéis (admin não lança, facilitador não pontua) mudam a dinâmica atual. Recomendo comunicar aos usuários antes de ativar.
+### Fase 1: Estrutura de Dados
+- [ ] Criar tabela `monthly_points`
+- [ ] Adicionar colunas à `points_history`
+- [ ] Criar índices para performance
+- [ ] Criar funções de cálculo mensal
+- [ ] Atualizar triggers das atividades
 
-2. **Performance:** Com visões administrativas mostrando todos os registros, será importante implementar paginação server-side e não carregar tudo de uma vez.
+### Fase 2: Backend/Hooks
+- [ ] Criar `useMonthlyRanking`
+- [ ] Criar `useMonthlyPoints`
+- [ ] Atualizar `usePointsHistory`
+- [ ] Atualizar `useStats` para contexto mensal
 
-3. **Testes:** Após cada fase, validar os fluxos em mobile e desktop, testando com diferentes roles (admin, facilitador, membro, convidado).
+### Fase 3: Frontend
+- [ ] Atualizar página Ranking
+- [ ] Atualizar página Perfil
+- [ ] Atualizar Dashboard
+- [ ] Atualizar Estatísticas
 
-4. **Backward compatibility:** Manter rotas antigas com redirects (ex: `/equipes` -> `/membros`).
+### Fase 4: Documentação
+- [ ] Atualizar USER_FLOWS.md
+- [ ] Atualizar TECHNICAL_DOCUMENTATION.md
+- [ ] Atualizar página /documentacao
+- [ ] Adicionar entrada no Changelog
 
+---
+
+## Considerações e Melhorias Sugeridas
+
+### Melhorias Adicionais (Opcionais)
+
+1. **Notificações de Reset Mensal**
+   - Enviar email no início de cada mês informando pontuação final do mês anterior
+
+2. **Badges de Conquistas Mensais**
+   - Criar badges visuais para "Top 3 do mês" em cada grupo
+
+3. **Comparativo Mês-a-Mês**
+   - Gráfico comparando desempenho entre meses
+
+4. **Meta Mensal**
+   - Permitir que o usuário defina uma meta de pontos para o mês
+
+5. **Leaderboard em Tempo Real**
+   - Usar Supabase Realtime para atualizar ranking ao vivo
+
+### Pontos de Atenção
+
+- **Performance**: Com pontuação por grupo/mês, o volume de dados aumenta. Índices adequados são essenciais.
+- **Retroatividade**: Atividades registradas devem ser contabilizadas no mês em que ocorreram (`meeting_date`, `deal_date`), não na data de criação.
+- **Membros sem grupo**: Precisam ser tratados (não recebem pontos ou recebem em um "grupo geral"?).
+
+---
+
+## Resumo das Entregas
+
+| Item | Descrição |
+|------|-----------|
+| **Nova tabela** | `monthly_points` para armazenar pontuação mensal por grupo |
+| **Colunas novas** | `team_id` e `year_month` em `points_history` |
+| **Funções SQL** | Cálculo e atualização de pontos mensais |
+| **Triggers atualizados** | Todas as 6 atividades com lógica de grupo |
+| **Hooks React** | `useMonthlyRanking`, `useMonthlyPoints` |
+| **Páginas atualizadas** | Ranking, Perfil, Dashboard, Estatísticas |
+| **Documentação** | USER_FLOWS.md, TECHNICAL_DOCUMENTATION.md, /documentacao, Changelog |
