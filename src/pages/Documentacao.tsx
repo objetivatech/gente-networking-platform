@@ -536,10 +536,14 @@ export default function Documentacao() {
                     <p>Acompanhe métricas da comunidade:</p>
                     <ul>
                       <li>Total de membros e distribuição por rank</li>
-                      <li>Valor total de negócios realizados</li>
+                      <li>Valor total de negócios (acumulado e anual)</li>
                       <li>Quantidade de indicações e depoimentos</li>
+                      <li><strong>% de presença por encontro</strong> (barras visuais)</li>
+                      <li><strong>KPIs por grupo</strong> (membros, GA, indicações, depoimentos, volume R$)</li>
+                      <li>Métricas de convites por membro</li>
                       <li>Ranking de membros mais ativos</li>
                       <li>Evolução mensal das atividades</li>
+                      <li>Feed de atividades em tempo real</li>
                     </ul>
                   </CardContent>
                 </Card>
