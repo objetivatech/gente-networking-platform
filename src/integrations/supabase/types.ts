@@ -473,6 +473,7 @@ export type Database = {
           from_user_id: string
           id: string
           notes: string | null
+          status: string | null
           to_user_id: string
         }
         Insert: {
@@ -483,6 +484,7 @@ export type Database = {
           from_user_id: string
           id?: string
           notes?: string | null
+          status?: string | null
           to_user_id: string
         }
         Update: {
@@ -493,6 +495,7 @@ export type Database = {
           from_user_id?: string
           id?: string
           notes?: string | null
+          status?: string | null
           to_user_id?: string
         }
         Relationships: []

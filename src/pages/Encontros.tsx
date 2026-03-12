@@ -122,7 +122,7 @@ export default function Encontros() {
             <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Novo Encontro</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Criar Encontro</DialogTitle></DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" data-rd-no-capture="true">
                 <div className="space-y-2">
                   <Label htmlFor="title">Título</Label>
                   <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Encontro Quinzenal" required />

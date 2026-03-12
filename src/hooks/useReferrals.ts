@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+export type ReferralStatus = 'frio' | 'morno' | 'quente';
+
 export interface Referral {
   id: string;
   from_user_id: string;
@@ -11,6 +13,7 @@ export interface Referral {
   contact_phone: string | null;
   contact_email: string | null;
   notes: string | null;
+  status: ReferralStatus;
   created_at: string;
   from_user?: { full_name: string; company: string | null; avatar_url: string | null };
   to_user?: { full_name: string; company: string | null; avatar_url: string | null };
@@ -22,6 +25,7 @@ export interface CreateReferralInput {
   contact_phone?: string;
   contact_email?: string;
   notes?: string;
+  status?: ReferralStatus;
 }
 
 export function useReferrals() {
@@ -69,6 +73,7 @@ export function useReferrals() {
         contact_phone: input.contact_phone,
         contact_email: input.contact_email,
         notes: input.notes,
+        status: input.status || 'morno',
       }).select().single();
       if (error) throw error;
       
@@ -97,5 +102,16 @@ export function useReferrals() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['referrals'] }); toast({ title: 'Sucesso!', description: 'Indicação removida' }); },
   });
 
-  return { sentReferrals, receivedReferrals, isLoading: loadingSent || loadingReceived, createReferral, deleteReferral };
+  const updateReferralStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: ReferralStatus }) => {
+      const { error } = await supabase.from('referrals').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: 'Status atualizado!' });
+    },
+  });
+
+  return { sentReferrals, receivedReferrals, isLoading: loadingSent || loadingReceived, createReferral, deleteReferral, updateReferralStatus };
 }

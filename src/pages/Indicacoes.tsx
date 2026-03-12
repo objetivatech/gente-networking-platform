@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useReferrals } from '@/hooks/useReferrals';
+import { useReferrals, ReferralStatus } from '@/hooks/useReferrals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +8,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MemberSelect from '@/components/MemberSelect';
-import { Loader2, Plus, Send, Inbox, Trash2, Phone, Mail, User } from 'lucide-react';
+import { Loader2, Plus, Send, Inbox, Trash2, Phone, Mail, User, Thermometer } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { z } from 'zod';
+
+const STATUS_CONFIG: Record<ReferralStatus, { label: string; color: string; bgColor: string }> = {
+  frio: { label: 'Frio', color: 'text-blue-700', bgColor: 'bg-blue-100 border-blue-300' },
+  morno: { label: 'Morno', color: 'text-amber-700', bgColor: 'bg-amber-100 border-amber-300' },
+  quente: { label: 'Quente', color: 'text-red-700', bgColor: 'bg-red-100 border-red-300' },
+};
 
 const formSchema = z.object({
   to_user_id: z.string().min(1, 'Selecione um membro'),
@@ -20,12 +28,13 @@ const formSchema = z.object({
   contact_phone: z.string().max(20).optional(),
   contact_email: z.string().email('Email inválido').max(255).optional().or(z.literal('')),
   notes: z.string().max(500).optional(),
+  status: z.enum(['frio', 'morno', 'quente']).default('morno'),
 });
 
 export default function Indicacoes() {
-  const { sentReferrals, receivedReferrals, isLoading, createReferral, deleteReferral } = useReferrals();
+  const { sentReferrals, receivedReferrals, isLoading, createReferral, deleteReferral, updateReferralStatus } = useReferrals();
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ to_user_id: '', contact_name: '', contact_phone: '', contact_email: '', notes: '' });
+  const [formData, setFormData] = useState({ to_user_id: '', contact_name: '', contact_phone: '', contact_email: '', notes: '', status: 'morno' as ReferralStatus });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,17 +49,52 @@ export default function Indicacoes() {
     }
     await createReferral.mutateAsync(formData);
     setOpen(false);
-    setFormData({ to_user_id: '', contact_name: '', contact_phone: '', contact_email: '', notes: '' });
+    setFormData({ to_user_id: '', contact_name: '', contact_phone: '', contact_email: '', notes: '', status: 'morno' });
   };
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  const StatusBadge = ({ status }: { status: ReferralStatus }) => {
+    const config = STATUS_CONFIG[status] || STATUS_CONFIG.morno;
+    return (
+      <Badge variant="outline" className={`gap-1 ${config.bgColor} ${config.color} border`}>
+        <Thermometer className="h-3 w-3" />
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const StatusSelector = ({ value, onChange }: { value: ReferralStatus; onChange: (v: ReferralStatus) => void }) => (
+    <div className="flex gap-2">
+      {(Object.keys(STATUS_CONFIG) as ReferralStatus[]).map((s) => {
+        const config = STATUS_CONFIG[s];
+        const isSelected = value === s;
+        return (
+          <button
+            key={s}
+            type="button"
+            onClick={() => onChange(s)}
+            className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium transition-all ${
+              isSelected
+                ? `${config.bgColor} ${config.color} border-2`
+                : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted'
+            }`}
+          >
+            {config.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   const ReferralCard = ({ referral, type }: { referral: any; type: 'sent' | 'received' }) => {
     const user = type === 'sent' ? referral.to_user : referral.from_user;
     const label = type === 'sent' ? 'Para' : 'De';
+    const referralStatus: ReferralStatus = referral.status || 'morno';
+    const statusConfig = STATUS_CONFIG[referralStatus];
 
     return (
-      <div className="p-4 rounded-lg border bg-card">
+      <div className={`p-4 rounded-lg border-l-4 bg-card border ${statusConfig.bgColor.replace('bg-', 'border-l-').replace('100', '500')}`} style={{ borderLeftColor: referralStatus === 'frio' ? '#3b82f6' : referralStatus === 'quente' ? '#ef4444' : '#f59e0b' }}>
         <div className="flex items-start gap-3">
           <Avatar className="h-10 w-10 border-2 border-primary/20">
             <AvatarImage src={user?.avatar_url || ''} />
@@ -58,9 +102,12 @@ export default function Indicacoes() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div>
-                <span className="text-xs text-muted-foreground">{label}: </span>
-                <span className="font-medium">{user?.full_name}</span>
+              <div className="flex items-center gap-2">
+                <div>
+                  <span className="text-xs text-muted-foreground">{label}: </span>
+                  <span className="font-medium">{user?.full_name}</span>
+                </div>
+                <StatusBadge status={referralStatus} />
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">
@@ -92,6 +139,33 @@ export default function Indicacoes() {
               </div>
               {referral.notes && <p className="mt-2 text-sm text-muted-foreground">{referral.notes}</p>}
             </div>
+
+            {/* Recipient can update status */}
+            {type === 'received' && (
+              <div className="mt-3">
+                <Label className="text-xs text-muted-foreground mb-1 block">Atualizar status:</Label>
+                <div className="flex gap-1.5">
+                  {(Object.keys(STATUS_CONFIG) as ReferralStatus[]).map((s) => {
+                    const config = STATUS_CONFIG[s];
+                    const isActive = referralStatus === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => updateReferralStatus.mutate({ id: referral.id, status: s })}
+                        className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                          isActive
+                            ? `${config.bgColor} ${config.color} border`
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                      >
+                        {config.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -113,7 +187,7 @@ export default function Indicacoes() {
           <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Indicação</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Enviar Indicação</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" data-rd-no-capture="true">
               <div className="space-y-2">
                 <Label>Para qual membro?</Label>
                 <MemberSelect value={formData.to_user_id} onChange={(v) => setFormData({ ...formData, to_user_id: v })} placeholder="Selecione o membro" />
@@ -134,6 +208,10 @@ export default function Indicacoes() {
                   <Input id="contact_email" type="email" value={formData.contact_email} onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })} placeholder="email@exemplo.com" />
                   {errors.contact_email && <p className="text-sm text-destructive">{errors.contact_email}</p>}
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Status da Indicação</Label>
+                <StatusSelector value={formData.status} onChange={(s) => setFormData({ ...formData, status: s })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Observações (opcional)</Label>
