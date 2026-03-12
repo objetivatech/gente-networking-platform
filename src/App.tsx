@@ -48,6 +48,7 @@ import GestaoPessoas from "./pages/GestaoPessoas";
 import Changelog from "./pages/Changelog";
 import AdminRegistros from "./pages/AdminRegistros";
 import Feed from "./pages/Feed";
+import Conselho from "./pages/Conselho";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="/conteudos" element={<Conteudos />} />
               <Route path="/ranking" element={<Ranking />} />
               <Route path="/convites" element={<Convites />} />
+              <Route path="/conselho" element={<Conselho />} />
               <Route path="/changelog" element={<Changelog />} />
               <Route path="/documentacao" element={<Documentacao />} />
               <Route path="/configuracoes" element={<Configuracoes />} />
