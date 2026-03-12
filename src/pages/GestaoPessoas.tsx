@@ -405,6 +405,16 @@ export default function GestaoPessoas() {
               {person.invited_at && ` em ${format(parseISO(person.invited_at), "dd/MM/yyyy", { locale: ptBR })}`}
             </p>
           )}
+          {showActions === 'guest' && person.confirmed_meeting_title && (
+            <p className="text-xs mt-1">
+              <Badge variant="outline" className="text-[10px] mr-1 border-green-500 text-green-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Confirmado
+              </Badge>
+              {person.confirmed_meeting_title}
+              {person.confirmed_meeting_date && ` — ${format(parseLocalDate(person.confirmed_meeting_date), "dd/MM/yyyy", { locale: ptBR })}`}
+            </p>
+          )}
           {showActions === 'inactive' && person.deactivated_at && (
             <p className="text-xs text-muted-foreground mt-1">
               Desativado em {format(new Date(person.deactivated_at), "dd/MM/yyyy", { locale: ptBR })}
