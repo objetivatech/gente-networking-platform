@@ -83,6 +83,47 @@ export default function Negocios() {
   const getInitials = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  const formatCurrencyValue = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
+  if (isAdmin) {
+    return (
+      <AdminDataView
+        title="Negócios Realizados"
+        description="Visão geral de todos os negócios registrados"
+        icon={<DollarSign className="w-6 h-6 text-primary" />}
+        table="business_deals"
+        onDelete={(id) => adminDeleteMutation.mutate(id)}
+        isDeleting={adminDeleteMutation.isPending}
+        renderItem={(item, profiles) => {
+          const closer = profiles[item.closed_by_user_id];
+          const referrer = item.referred_by_user_id ? profiles[item.referred_by_user_id] : null;
+          return (
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-lg font-bold text-primary">{formatCurrencyValue(Number(item.value))}</span>
+                {item.client_name && <span className="text-sm text-muted-foreground">• {item.client_name}</span>}
+              </div>
+              <div className="flex items-center gap-2 mt-1 text-sm">
+                <span className="text-muted-foreground">Fechado por:</span>
+                <span className="font-medium">{closer?.full_name || 'Usuário'}</span>
+                {referrer && (
+                  <>
+                    <span className="text-muted-foreground">| Indicado por:</span>
+                    <span className="font-medium">{referrer.full_name}</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(parseLocalDate(item.deal_date), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          );
+        }}
+      />
+    );
+  }
+
   const DealCard = ({ deal, type }: { deal: any; type: 'my' | 'referred' }) => {
     const showReferrer = type === 'my' && deal.referred_by;
     const showCloser = type === 'referred' && deal.closed_by;

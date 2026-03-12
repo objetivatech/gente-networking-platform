@@ -59,6 +59,42 @@ export default function Indicacoes() {
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  if (isAdmin) {
+    return (
+      <AdminDataView
+        title="Indicações"
+        description="Visão geral de todas as indicações realizadas"
+        icon={<Send className="w-6 h-6 text-primary" />}
+        table="referrals"
+        onDelete={(id) => adminDeleteMutation.mutate(id)}
+        isDeleting={adminDeleteMutation.isPending}
+        renderItem={(item, profiles) => {
+          const from = profiles[item.from_user_id];
+          const to = profiles[item.to_user_id];
+          const statusConfig = STATUS_CONFIG[item.status as ReferralStatus] || STATUS_CONFIG.morno;
+          return (
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-medium">{from?.full_name || 'Usuário'}</span>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-medium">{to?.full_name || 'Usuário'}</span>
+                <Badge variant="outline" className={`gap-1 ${statusConfig.bgColor} ${statusConfig.color} border`}>
+                  <Thermometer className="h-3 w-3" />{statusConfig.label}
+                </Badge>
+              </div>
+              <p className="text-sm font-medium mt-1">Contato: {item.contact_name}</p>
+              {item.notes && <p className="text-sm text-muted-foreground">{item.notes}</p>}
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(new Date(item.created_at), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          );
+        }}
+      />
+    );
+  }
+
+
   const StatusBadge = ({ status }: { status: ReferralStatus }) => {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.morno;
     return (
