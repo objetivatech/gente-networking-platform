@@ -93,12 +93,13 @@ export default function AdminDataView({ title, description, icon, table, onDelet
       const userIdField = table === 'referrals' ? 'from_user_id' : table === 'testimonials' ? 'from_user_id' : table === 'business_deals' ? 'closed_by_user_id' : table === 'invitations' ? 'invited_by' : 'user_id';
       filtered = filtered.filter(r => {
         const profile = profilesMap[r[userIdField]];
+        const rec = r as any;
         return profile?.full_name?.toLowerCase().includes(q) || 
                profile?.company?.toLowerCase().includes(q) ||
-               r.contact_name?.toLowerCase().includes(q) ||
-               r.guest_name?.toLowerCase().includes(q) ||
-               r.client_name?.toLowerCase().includes(q) ||
-               r.content?.toLowerCase().includes(q);
+               rec.contact_name?.toLowerCase().includes(q) ||
+               rec.guest_name?.toLowerCase().includes(q) ||
+               rec.client_name?.toLowerCase().includes(q) ||
+               rec.content?.toLowerCase().includes(q);
       });
     }
 
