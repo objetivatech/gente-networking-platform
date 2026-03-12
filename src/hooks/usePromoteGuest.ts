@@ -68,6 +68,7 @@ export function usePromoteGuest() {
       queryClient.invalidateQueries({ queryKey: ['admin-members'] });
       queryClient.invalidateQueries({ queryKey: ['members-directory'] });
       queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['all-people-admin'] });
       
       const roleLabel = variables.targetRole === 'facilitador' ? 'Facilitador' : 'Membro';
       toast({
