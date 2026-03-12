@@ -39,7 +39,9 @@ export default function AdminDashboard() {
     topMembers, 
     recentActivity,
     loadingActivity,
-    invitationMetrics
+    invitationMetrics,
+    attendanceKpis,
+    teamKpis,
   } = useAdminDashboard();
   
   // Enable realtime for activity feed
@@ -116,7 +118,9 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats?.totalBusinessValue || 0)}</div>
-            <p className="text-xs text-muted-foreground">valor total acumulado</p>
+            <p className="text-xs text-muted-foreground">
+              {formatCurrency(stats?.annualBusinessValue || 0)} no ano
+            </p>
           </CardContent>
         </Card>
 
@@ -225,7 +229,89 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* Invitation Metrics */}
+      {/* Attendance KPIs */}
+      {attendanceKpis && attendanceKpis.byMeeting?.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              % de Presença por Encontro
+            </CardTitle>
+            <CardDescription>
+              Presença geral: <span className="font-bold text-foreground">{attendanceKpis.overall}%</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {attendanceKpis.byMeeting.map((m: any) => (
+                <div key={m.id} className="flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{m.title}</p>
+                    <p className="text-xs text-muted-foreground">{m.date}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary rounded-full transition-all"
+                        style={{ width: `${Math.min(m.percentage, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium w-12 text-right">{m.percentage}%</span>
+                    <Badge variant="outline" className="text-xs">{m.attendees}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* KPIs por Grupo */}
+      {teamKpis && teamKpis.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              KPIs por Grupo
+            </CardTitle>
+            <CardDescription>Métricas acumuladas de cada grupo</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Grupo</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Membros</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Gente em Ação</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Indicações</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Depoimentos</th>
+                    <th className="text-right py-2 pl-2 font-medium text-muted-foreground">Negócios (R$)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {teamKpis.map((team: any) => (
+                    <tr key={team.id} className="border-b last:border-0">
+                      <td className="py-2 pr-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: team.color || 'hsl(var(--primary))' }} />
+                          <span className="font-medium">{team.name}</span>
+                        </div>
+                      </td>
+                      <td className="text-center py-2 px-2">{team.memberCount}</td>
+                      <td className="text-center py-2 px-2">{team.genteEmAcao}</td>
+                      <td className="text-center py-2 px-2">{team.referrals}</td>
+                      <td className="text-center py-2 px-2">{team.testimonials}</td>
+                      <td className="text-right py-2 pl-2">{formatCurrency(team.businessValue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

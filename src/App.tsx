@@ -47,6 +47,7 @@ import GestaoConvidados from "./pages/GestaoConvidados";
 import GestaoPessoas from "./pages/GestaoPessoas";
 import Changelog from "./pages/Changelog";
 import AdminRegistros from "./pages/AdminRegistros";
+import Feed from "./pages/Feed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/instalar" element={<Instalar />} />
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/feed" element={<Feed />} />
               <Route path="/perfil" element={<Profile />} />
               <Route path="/membros" element={<Membros />} />
               <Route path="/membro/:slug" element={<MemberProfile />} />
