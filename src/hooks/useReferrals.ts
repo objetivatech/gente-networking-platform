@@ -25,6 +25,7 @@ export interface CreateReferralInput {
   contact_phone?: string;
   contact_email?: string;
   notes?: string;
+  status?: ReferralStatus;
 }
 
 export function useReferrals() {
