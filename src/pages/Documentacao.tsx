@@ -98,10 +98,10 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                      <p className="font-semibold text-primary">Novidade v2.3.0!</p>
+                      <p className="font-semibold text-primary">Versão 3.0.0</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Os pontos agora são contabilizados <strong>mensalmente</strong> e por <strong>grupo</strong>. 
-                        A cada novo mês, o ranking reinicia, dando oportunidade para todos competirem novamente!
+                        Pontuação mensal por grupo, Feed de Atividades com filtros, Dashboard Admin com KPIs, 
+                        navegação mobile otimizada e gestão unificada de pessoas.
                       </p>
                     </div>
 
