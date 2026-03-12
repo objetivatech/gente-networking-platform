@@ -20,7 +20,9 @@ import {
   Calendar,
   GraduationCap,
   UserPlus,
-  BarChart3
+  BarChart3,
+  Rss,
+  Smartphone,
 } from 'lucide-react';
 
 export default function Documentacao() {
