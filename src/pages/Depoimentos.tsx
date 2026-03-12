@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTestimonials } from '@/hooks/useTestimonials';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MemberSelect from '@/components/MemberSelect';
+import AdminDataView from '@/components/AdminDataView';
+import { useAdminDelete } from '@/hooks/useAdminData';
 import { Loader2, Plus, MessageSquare, Send, Inbox, Trash2, Quote } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
