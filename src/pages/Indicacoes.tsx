@@ -13,6 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, Send, Inbox, Trash2, Phone, Mail, User, Thermometer } from 'lucide-react';
+import AdminDataView from '@/components/AdminDataView';
+import { useAdminDelete } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { z } from 'zod';
