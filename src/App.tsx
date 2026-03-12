@@ -47,6 +47,7 @@ import GestaoConvidados from "./pages/GestaoConvidados";
 import GestaoPessoas from "./pages/GestaoPessoas";
 import Changelog from "./pages/Changelog";
 import AdminRegistros from "./pages/AdminRegistros";
+import Feed from "./pages/Feed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
