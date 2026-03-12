@@ -16,6 +16,7 @@ import { useScrollToTop } from '@/hooks/useScrollToTop';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from './Footer';
+import BottomNav from './BottomNav';
 import { Loader2 } from 'lucide-react';
 
 export default function MainLayout() {
