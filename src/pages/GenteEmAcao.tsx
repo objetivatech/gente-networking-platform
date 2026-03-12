@@ -271,6 +271,42 @@ export default function GenteEmAcao() {
   const getInitials = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  const adminDeleteMutation = useAdminDelete('gente_em_acao');
+
+  // Admin vê painel de gestão
+  if (isAdmin) {
+    return (
+      <AdminDataView
+        title="Gente em Ação"
+        description="Visão geral de todas as reuniões 1-a-1 registradas"
+        icon={<Handshake className="w-6 h-6 text-primary" />}
+        table="gente_em_acao"
+        onDelete={(id) => adminDeleteMutation.mutate(id)}
+        isDeleting={adminDeleteMutation.isPending}
+        renderItem={(item, profiles) => {
+          const user = profiles[item.user_id];
+          const partner = item.partner_id ? profiles[item.partner_id] : null;
+          return (
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-medium">{user?.full_name || 'Usuário'}</span>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-medium">{partner?.full_name || item.guest_name || 'Convidado'}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${item.meeting_type === 'membro' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
+                  {item.meeting_type === 'membro' ? 'Membro' : 'Convidado'}
+                </span>
+              </div>
+              {item.notes && <p className="text-sm text-muted-foreground mt-1">{item.notes}</p>}
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(parseLocalDate(item.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          );
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
