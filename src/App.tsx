@@ -69,6 +69,7 @@ const App = () => (
             <Route path="/instalar" element={<Instalar />} />
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/feed" element={<Feed />} />
               <Route path="/perfil" element={<Profile />} />
               <Route path="/membros" element={<Membros />} />
               <Route path="/membro/:slug" element={<MemberProfile />} />
