@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface PersonData {
   id: string;
