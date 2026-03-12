@@ -38,6 +38,7 @@ interface SidebarProps {
 // roles: undefined = todos podem ver, array = apenas roles listados
 const menuItems = [
   { icon: Home, label: 'Início', path: '/', roles: undefined },
+  { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro'] },
   { icon: User, label: 'Meu Perfil', path: '/perfil', roles: undefined },
   { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'] },
