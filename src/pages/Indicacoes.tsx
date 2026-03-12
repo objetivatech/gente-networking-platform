@@ -36,8 +36,9 @@ const formSchema = z.object({
 
 export default function Indicacoes() {
   const { sentReferrals, receivedReferrals, isLoading, createReferral, deleteReferral, updateReferralStatus } = useReferrals();
+  const { isAdmin } = useAdmin();
+  const adminDeleteMutation = useAdminDelete('referrals');
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ to_user_id: '', contact_name: '', contact_phone: '', contact_email: '', notes: '', status: 'morno' as ReferralStatus });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
