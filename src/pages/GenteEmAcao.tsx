@@ -71,6 +71,7 @@ async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promis
 
 export default function GenteEmAcao() {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const { toast } = useToast();
   const { meetings, isLoading, createMeeting, deleteMeeting } = useGenteEmAcao();
   const [open, setOpen] = useState(false);
