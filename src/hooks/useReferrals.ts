@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+export type ReferralStatus = 'frio' | 'morno' | 'quente';
+
 export interface Referral {
   id: string;
   from_user_id: string;
@@ -11,6 +13,7 @@ export interface Referral {
   contact_phone: string | null;
   contact_email: string | null;
   notes: string | null;
+  status: ReferralStatus;
   created_at: string;
   from_user?: { full_name: string; company: string | null; avatar_url: string | null };
   to_user?: { full_name: string; company: string | null; avatar_url: string | null };
