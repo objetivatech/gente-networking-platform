@@ -47,12 +47,13 @@ export default function MainLayout() {
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
           <Header onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 p-4 lg:p-6">
+          <main className="flex-1 p-4 lg:p-6 pb-20 lg:pb-6">
             <Outlet />
           </main>
           <Footer />
         </div>
       </div>
+      <BottomNav />
     </div>
   );
 }
