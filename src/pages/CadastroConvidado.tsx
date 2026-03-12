@@ -202,6 +202,26 @@ export default function CadastroConvidado() {
     const isValid = await validateForm();
     if (!isValid) return;
 
+    if (!turnstileToken) {
+      toast({ title: 'Verificação necessária', description: 'Complete a verificação anti-bot antes de continuar.', variant: 'destructive' });
+      return;
+    }
+
+    // Verify turnstile token server-side
+    try {
+      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-turnstile', {
+        body: { token: turnstileToken },
+      });
+      if (verifyError || !verifyResult?.success) {
+        toast({ title: 'Verificação falhou', description: 'Não foi possível verificar. Tente novamente.', variant: 'destructive' });
+        setTurnstileToken(null);
+        return;
+      }
+    } catch {
+      toast({ title: 'Erro', description: 'Erro ao verificar. Tente novamente.', variant: 'destructive' });
+      return;
+    }
+
     setLoading(true);
     const { error, data } = await signUp(email, password, fullName, phone, company, businessSegment);
 
