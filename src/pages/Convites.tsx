@@ -34,6 +34,8 @@ function getEffectiveStatus(invitation: Invitation): string {
 
 export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
+  const { isAdmin } = useAdmin();
+  const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
