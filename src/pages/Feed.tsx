@@ -107,13 +107,10 @@ export default function Feed() {
     if (!activities) return [];
     return activities.filter(a => {
       if (typeFilter !== 'all' && a.activity_type !== typeFilter) return false;
-      if (teamFilter !== 'all' && teamMembersMap) {
-        const members = teamMembersMap.get(teamFilter);
-        if (!members || !members.has(a.user_id)) return false;
-      }
+      if (teamFilter !== 'all' && a.team_id !== teamFilter) return false;
       return true;
     });
-  }, [activities, typeFilter, teamFilter, teamMembersMap]);
+  }, [activities, typeFilter, teamFilter]);
 
   const activityTypes = useMemo(() => {
     if (!activities) return [];
