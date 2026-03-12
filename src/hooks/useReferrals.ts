@@ -102,5 +102,16 @@ export function useReferrals() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['referrals'] }); toast({ title: 'Sucesso!', description: 'Indicação removida' }); },
   });
 
-  return { sentReferrals, receivedReferrals, isLoading: loadingSent || loadingReceived, createReferral, deleteReferral };
+  const updateReferralStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: ReferralStatus }) => {
+      const { error } = await supabase.from('referrals').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['referrals'] });
+      toast({ title: 'Status atualizado!' });
+    },
+  });
+
+  return { sentReferrals, receivedReferrals, isLoading: loadingSent || loadingReceived, createReferral, deleteReferral, updateReferralStatus };
 }
