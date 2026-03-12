@@ -22,6 +22,7 @@ export function useActivityFeed(limit: number = 10) {
 
   const { data: activities, isLoading } = useQuery({
     queryKey: ['activity-feed', limit],
+    staleTime: 60 * 1000, // 1 min - feed updates via realtime anyway
     queryFn: async () => {
       const { data, error } = await supabase
         .from('activity_feed')

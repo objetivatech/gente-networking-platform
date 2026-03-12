@@ -45,6 +45,7 @@ export interface MembersByTeam {
 export function useMembers(includeInactive = false) {
   const query = useQuery({
     queryKey: ['members-directory', includeInactive],
+    staleTime: 5 * 60 * 1000, // 5 min - member list changes rarely
     queryFn: async () => {
       // 1. Get all profiles
       let profilesQuery = supabase

@@ -20,6 +20,7 @@ export function useMonthlyRanking(teamId?: string, yearMonth?: string) {
   
   return useQuery({
     queryKey: ['monthly-ranking', teamId, currentMonth],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_monthly_ranking', {
         _team_id: teamId || null,

@@ -16,6 +16,7 @@ export interface RankedMember {
 export function useRanking(teamId?: string) {
   return useQuery({
     queryKey: ['ranking', teamId],
+    staleTime: 5 * 60 * 1000, // 5 min - ranking changes infrequently
     queryFn: async () => {
       // First get all members with their points
       const { data: profiles, error: profilesError } = await supabase
