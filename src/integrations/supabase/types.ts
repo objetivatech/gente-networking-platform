@@ -22,6 +22,7 @@ export type Database = {
           id: string
           metadata: Json | null
           reference_id: string | null
+          team_id: string | null
           title: string
           user_id: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reference_id?: string | null
+          team_id?: string | null
           title: string
           user_id: string
         }
@@ -42,10 +44,19 @@ export type Database = {
           id?: string
           metadata?: Json | null
           reference_id?: string | null
+          team_id?: string | null
           title?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "activity_feed_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       attendances: {
         Row: {
@@ -646,17 +657,30 @@ export type Database = {
         Args: { _code: string; _user_id: string }
         Returns: Json
       }
-      add_activity_feed: {
-        Args: {
-          _activity_type: string
-          _description?: string
-          _metadata?: Json
-          _reference_id?: string
-          _title: string
-          _user_id: string
-        }
-        Returns: string
-      }
+      add_activity_feed:
+        | {
+            Args: {
+              _activity_type: string
+              _description?: string
+              _metadata?: Json
+              _reference_id?: string
+              _title: string
+              _user_id: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _activity_type: string
+              _description?: string
+              _metadata?: Json
+              _reference_id?: string
+              _team_id?: string
+              _title: string
+              _user_id: string
+            }
+            Returns: string
+          }
       are_same_team: {
         Args: { p_user_id1: string; p_user_id2: string }
         Returns: boolean
