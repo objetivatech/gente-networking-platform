@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, Handshake, User, Users, Trash2, Calendar, ImagePlus, X } from 'lucide-react';
+import AdminDataView from '@/components/AdminDataView';
+import { useAdminDelete } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
