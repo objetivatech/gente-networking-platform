@@ -28,6 +28,8 @@ const formSchema = z.object({
 
 export default function Negocios() {
   const { myDeals, referredDeals, isLoading, createDeal, deleteDeal } = useBusinessDeals();
+  const { isAdmin } = useAdmin();
+  const adminDeleteMutation = useAdminDelete('business_deals');
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     referred_by_user_id: '',
