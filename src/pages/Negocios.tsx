@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, DollarSign, TrendingUp, Award, Trash2, Calendar, ArrowRight } from 'lucide-react';
+import AdminDataView from '@/components/AdminDataView';
+import { useAdminDelete } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
