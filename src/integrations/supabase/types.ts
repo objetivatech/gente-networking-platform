@@ -87,6 +87,53 @@ export type Database = {
           },
         ]
       }
+      business_cases: {
+        Row: {
+          business_deal_id: string | null
+          client_name: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          result: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_deal_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          result?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_deal_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          result?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_cases_business_deal_id_fkey"
+            columns: ["business_deal_id"]
+            isOneToOne: false
+            referencedRelation: "business_deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_deals: {
         Row: {
           client_name: string | null
@@ -399,7 +446,9 @@ export type Database = {
           email: string | null
           email_notifications_enabled: boolean | null
           full_name: string
+          how_to_refer_me: string | null
           id: string
+          ideal_client: string | null
           instagram_url: string | null
           is_active: boolean
           linkedin_url: string | null
@@ -412,8 +461,10 @@ export type Database = {
           rank: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at: string | null
           slug: string | null
+          tags: string[] | null
           updated_at: string | null
           website_url: string | null
+          what_i_do: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -428,7 +479,9 @@ export type Database = {
           email?: string | null
           email_notifications_enabled?: boolean | null
           full_name: string
+          how_to_refer_me?: string | null
           id: string
+          ideal_client?: string | null
           instagram_url?: string | null
           is_active?: boolean
           linkedin_url?: string | null
@@ -441,8 +494,10 @@ export type Database = {
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
           slug?: string | null
+          tags?: string[] | null
           updated_at?: string | null
           website_url?: string | null
+          what_i_do?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -457,7 +512,9 @@ export type Database = {
           email?: string | null
           email_notifications_enabled?: boolean | null
           full_name?: string
+          how_to_refer_me?: string | null
           id?: string
+          ideal_client?: string | null
           instagram_url?: string | null
           is_active?: boolean
           linkedin_url?: string | null
@@ -470,8 +527,10 @@ export type Database = {
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
           slug?: string | null
+          tags?: string[] | null
           updated_at?: string | null
           website_url?: string | null
+          what_i_do?: string | null
         }
         Relationships: []
       }
