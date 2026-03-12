@@ -97,7 +97,7 @@ export default function Convites() {
               <DialogTitle>Criar Convite</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-rd-no-capture="true">
                 <FormField
                   control={form.control}
                   name="name"

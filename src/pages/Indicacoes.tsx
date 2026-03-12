@@ -113,7 +113,7 @@ export default function Indicacoes() {
           <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Indicação</Button></DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Enviar Indicação</DialogTitle></DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" data-rd-no-capture="true">
               <div className="space-y-2">
                 <Label>Para qual membro?</Label>
                 <MemberSelect value={formData.to_user_id} onChange={(v) => setFormData({ ...formData, to_user_id: v })} placeholder="Selecione o membro" />

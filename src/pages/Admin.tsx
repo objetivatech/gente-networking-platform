@@ -325,7 +325,7 @@ export default function Admin() {
                 <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Novo Grupo</Button></DialogTrigger>
                 <DialogContent>
                   <DialogHeader><DialogTitle>Criar Grupo</DialogTitle></DialogHeader>
-                  <form onSubmit={handleCreateTeam} className="space-y-4">
+                  <form onSubmit={handleCreateTeam} className="space-y-4" data-rd-no-capture="true">
                     <div className="space-y-2">
                       <Label htmlFor="name">Nome do Grupo</Label>
                       <Input id="name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="Nome do grupo" required />
