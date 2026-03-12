@@ -51,6 +51,7 @@ interface ActivityDetail {
   reference_id: string | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
+  team_id: string | null;
   user?: { full_name: string; avatar_url: string | null };
 }
 
