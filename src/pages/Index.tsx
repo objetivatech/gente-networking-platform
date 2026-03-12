@@ -30,7 +30,7 @@ import {
   MapPin,
   Clock,
 } from 'lucide-react';
-import { format, isFuture } from 'date-fns';
+import { format, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
