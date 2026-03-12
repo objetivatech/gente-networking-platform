@@ -167,9 +167,38 @@ export default function GestaoPessoas() {
         inviterNamesMap[p.id] = p.full_name;
       });
 
+      // 7. Buscar presenças de convidados em encontros futuros
+      const guestUserIds = Object.keys(invitationMap);
+      let guestAttendanceMap: Record<string, { title: string; meeting_date: string }> = {};
+      if (guestUserIds.length > 0) {
+        const { data: attendancesData } = await supabase
+          .from('attendances')
+          .select('user_id, meeting_id')
+          .in('user_id', guestUserIds);
+
+        if (attendancesData && attendancesData.length > 0) {
+          const meetingIds = [...new Set(attendancesData.map(a => a.meeting_id))];
+          const { data: meetingsData } = await supabase
+            .from('meetings')
+            .select('id, title, meeting_date')
+            .in('id', meetingIds);
+
+          const meetingsMap: Record<string, any> = {};
+          meetingsData?.forEach(m => { meetingsMap[m.id] = m; });
+
+          attendancesData.forEach(a => {
+            const meeting = meetingsMap[a.meeting_id];
+            if (meeting) {
+              guestAttendanceMap[a.user_id] = { title: meeting.title, meeting_date: meeting.meeting_date };
+            }
+          });
+        }
+      }
+
       // Montar dados
       return (profiles || []).map(profile => {
         const invitation = invitationMap[profile.id];
+        const guestAttendance = guestAttendanceMap[profile.id];
         return {
           ...profile,
           role: (rolesMap[profile.id] as any) || null,
@@ -179,6 +208,8 @@ export default function GestaoPessoas() {
           invitation_status: invitation?.status,
           invited_by_name: invitation ? inviterNamesMap[invitation.invited_by] : undefined,
           invited_at: invitation?.created_at,
+          confirmed_meeting_title: guestAttendance?.title,
+          confirmed_meeting_date: guestAttendance?.meeting_date,
         };
       }) as PersonData[];
     },
