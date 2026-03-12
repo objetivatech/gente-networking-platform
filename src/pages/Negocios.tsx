@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useBusinessDeals } from '@/hooks/useBusinessDeals';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

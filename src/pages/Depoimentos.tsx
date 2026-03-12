@@ -23,6 +23,8 @@ const formSchema = z.object({
 
 export default function Depoimentos() {
   const { sentTestimonials, receivedTestimonials, isLoading, createTestimonial, deleteTestimonial } = useTestimonials();
+  const { isAdmin } = useAdmin();
+  const adminDeleteMutation = useAdminDelete('testimonials');
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ to_user_id: '', content: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
