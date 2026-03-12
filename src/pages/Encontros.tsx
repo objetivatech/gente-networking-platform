@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2 } from 'lucide-react';
-import { format, isPast, isToday, isFuture } from 'date-fns';
+import { format, isPast, isToday, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 
@@ -41,8 +41,11 @@ export default function Encontros() {
   const MeetingCard = ({ meeting }: { meeting: typeof meetings[0] }) => {
     const isPastMeeting = isPast(parseLocalDate(meeting.meeting_date)) && !isToday(parseLocalDate(meeting.meeting_date));
 
+    const daysUntil = differenceInDays(parseLocalDate(meeting.meeting_date), new Date());
+    const isSoon = !isPastMeeting && daysUntil <= 7 && daysUntil >= 0 && !isToday(parseLocalDate(meeting.meeting_date));
+
     return (
-      <Card className={`transition-all ${isPastMeeting ? 'opacity-70' : 'hover:shadow-md'}`}>
+      <Card className={`transition-all ${isPastMeeting ? 'opacity-70' : isSoon ? 'border-primary/50 shadow-md' : 'hover:shadow-md'}`}>
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
@@ -54,6 +57,7 @@ export default function Encontros() {
                   </Badge>
                 )}
                 {isToday(parseLocalDate(meeting.meeting_date)) && <Badge className="bg-primary">Hoje</Badge>}
+                {isSoon && <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Em breve</Badge>}
               </div>
               {meeting.description && <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>}
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">

@@ -10,6 +10,7 @@
  */
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
 import { useMeetings } from '@/hooks/useMeetings';
@@ -30,7 +31,7 @@ import {
   MapPin,
   Clock,
 } from 'lucide-react';
-import { format, isFuture } from 'date-fns';
+import { format, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
@@ -122,27 +123,36 @@ export default function Index() {
               </div>
             ) : upcomingMeetings?.length ? (
               <div className="space-y-3">
-                {upcomingMeetings.map((meeting) => (
-                  <div key={meeting.id} className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <h4 className="font-medium text-sm">{meeting.title}</h4>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      {format(parseLocalDate(meeting.meeting_date), "dd 'de' MMM", { locale: ptBR })}
-                      {meeting.meeting_time && (
-                        <>
-                          <Clock className="h-3 w-3 ml-2" />
-                          {meeting.meeting_time.slice(0, 5)}
-                        </>
+                {upcomingMeetings.map((meeting) => {
+                  const daysUntil = differenceInDays(parseLocalDate(meeting.meeting_date), new Date());
+                  const isSoon = daysUntil <= 7 && daysUntil >= 0;
+                  return (
+                    <div key={meeting.id} className={`p-3 rounded-lg transition-colors ${isSoon ? 'bg-primary/5 border border-primary/30 hover:bg-primary/10' : 'bg-muted/50 hover:bg-muted'}`}>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-sm">{meeting.title}</h4>
+                        {isSoon && (
+                          <Badge variant="default" className="text-[10px] px-1.5 py-0">Em breve</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {format(parseLocalDate(meeting.meeting_date), "dd 'de' MMM", { locale: ptBR })}
+                        {meeting.meeting_time && (
+                          <>
+                            <Clock className="h-3 w-3 ml-2" />
+                            {meeting.meeting_time.slice(0, 5)}
+                          </>
+                        )}
+                      </div>
+                      {meeting.location && (
+                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                          <MapPin className="h-3 w-3" />
+                          {meeting.location}
+                        </div>
                       )}
                     </div>
-                    {meeting.location && (
-                      <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {meeting.location}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
                 <Button variant="outline" size="sm" className="w-full mt-2" asChild>
                   <Link to="/encontros">Ver todos</Link>
                 </Button>

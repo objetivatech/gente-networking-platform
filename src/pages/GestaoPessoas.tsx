@@ -50,6 +50,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface PersonData {
   id: string;
@@ -71,6 +72,9 @@ interface PersonData {
   invitation_status?: string;
   invited_by_name?: string;
   invited_at?: string;
+  // Dados de encontro confirmado (para convidados)
+  confirmed_meeting_title?: string;
+  confirmed_meeting_date?: string;
 }
 
 export default function GestaoPessoas() {
@@ -164,9 +168,38 @@ export default function GestaoPessoas() {
         inviterNamesMap[p.id] = p.full_name;
       });
 
+      // 7. Buscar presenças de convidados em encontros futuros
+      const guestUserIds = Object.keys(invitationMap);
+      let guestAttendanceMap: Record<string, { title: string; meeting_date: string }> = {};
+      if (guestUserIds.length > 0) {
+        const { data: attendancesData } = await supabase
+          .from('attendances')
+          .select('user_id, meeting_id')
+          .in('user_id', guestUserIds);
+
+        if (attendancesData && attendancesData.length > 0) {
+          const meetingIds = [...new Set(attendancesData.map(a => a.meeting_id))];
+          const { data: meetingsData } = await supabase
+            .from('meetings')
+            .select('id, title, meeting_date')
+            .in('id', meetingIds);
+
+          const meetingsMap: Record<string, any> = {};
+          meetingsData?.forEach(m => { meetingsMap[m.id] = m; });
+
+          attendancesData.forEach(a => {
+            const meeting = meetingsMap[a.meeting_id];
+            if (meeting) {
+              guestAttendanceMap[a.user_id] = { title: meeting.title, meeting_date: meeting.meeting_date };
+            }
+          });
+        }
+      }
+
       // Montar dados
       return (profiles || []).map(profile => {
         const invitation = invitationMap[profile.id];
+        const guestAttendance = guestAttendanceMap[profile.id];
         return {
           ...profile,
           role: (rolesMap[profile.id] as any) || null,
@@ -176,6 +209,8 @@ export default function GestaoPessoas() {
           invitation_status: invitation?.status,
           invited_by_name: invitation ? inviterNamesMap[invitation.invited_by] : undefined,
           invited_at: invitation?.created_at,
+          confirmed_meeting_title: guestAttendance?.title,
+          confirmed_meeting_date: guestAttendance?.meeting_date,
         };
       }) as PersonData[];
     },
@@ -369,6 +404,16 @@ export default function GestaoPessoas() {
             <p className="text-xs text-muted-foreground mt-1">
               Convidado por: {person.invited_by_name}
               {person.invited_at && ` em ${format(parseISO(person.invited_at), "dd/MM/yyyy", { locale: ptBR })}`}
+            </p>
+          )}
+          {showActions === 'guest' && person.confirmed_meeting_title && (
+            <p className="text-xs mt-1">
+              <Badge variant="outline" className="text-[10px] mr-1 border-green-500 text-green-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Confirmado
+              </Badge>
+              {person.confirmed_meeting_title}
+              {person.confirmed_meeting_date && ` — ${format(parseLocalDate(person.confirmed_meeting_date), "dd/MM/yyyy", { locale: ptBR })}`}
             </p>
           )}
           {showActions === 'inactive' && person.deactivated_at && (
