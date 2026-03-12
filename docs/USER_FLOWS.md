@@ -1,9 +1,9 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-02-08
-> **Versão:** 2.3.0
+> **Última atualização:** 2026-03-12
+> **Versão:** 3.0.0
 
-Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking e sistema de pontuação mensal por grupo.
+Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades e dashboard administrativo.
 
 ---
 
@@ -12,7 +12,10 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 1. [Ciclo de Vida do Usuário](#ciclo-de-vida-do-usuário)
 2. [Fluxos de Atividades](#fluxos-de-atividades)
 3. [Sistema de Pontuação](#sistema-de-pontuação)
-4. [Validações e Triggers](#validações-e-triggers)
+4. [Feed de Atividades](#feed-de-atividades)
+5. [Dashboard Administrativo](#dashboard-administrativo)
+6. [Navegação Mobile](#navegação-mobile)
+7. [Validações e Triggers](#validações-e-triggers)
 
 ---
 
@@ -48,14 +51,12 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 │                                                   │                          │
 │                                                   ▼                          │
 │                                        ┌────────────────┐                    │
-│                                        │ Formulário de  │                    │
-│                                        │ Cadastro       │                    │
-│                                        │ - Nome         │                    │
-│                                        │ - Email        │                    │
-│                                        │ - WhatsApp     │                    │
-│                                        │ - Empresa      │                    │
-│                                        │ - Segmento     │                    │
-│                                        │ - Senha        │                    │
+│                                        │ Formulário     │                    │
+│                                        │ Nome, Email,   │                    │
+│                                        │ WhatsApp,      │                    │
+│                                        │ Empresa,       │                    │
+│                                        │ Segmento,      │                    │
+│                                        │ Senha          │                    │
 │                                        └────────────────┘                    │
 │                                                   │                          │
 │                                                   ▼                          │
@@ -65,6 +66,7 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 │                                        │ 2. Criar profile│                   │
 │                                        │ 3. Accept invite│                   │
 │                                        │ 4. Role=convidado│                  │
+│                                        │ 5. Email convite│                   │
 │                                        └────────────────┘                    │
 │                                                   │                          │
 │                                                   ▼                          │
@@ -75,15 +77,9 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Tabelas envolvidas:**
-- `invitations` - Registro do convite
-- `auth.users` - Usuário criado pelo Supabase Auth
-- `profiles` - Perfil criado pelo trigger `handle_new_user()`
-- `user_roles` - Role inicial (convidado ou nenhum)
-
-**Triggers acionados:**
-1. `handle_new_user()` - Cria perfil automaticamente
-2. `accept_invitation()` - Atualiza convite e adiciona ao feed
+**Tabelas:** `invitations`, `auth.users`, `profiles`, `user_roles`  
+**Triggers:** `handle_new_user()`, `accept_invitation()`  
+**Edge Function:** `send-notification` (tipo: invitation)
 
 ---
 
@@ -93,161 +89,42 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         FLUXO DE PROMOÇÃO                                    │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
 │  [Admin ou Facilitador]                                                      │
 │        │                                                                     │
 │        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ /admin/pessoas  │                                                         │
-│  │ Tab: Convidados │                                                         │
-│  └─────────────────┘                                                         │
+│  /admin/pessoas → Tab: Convidados → Botão "Promover"                        │
 │        │                                                                     │
 │        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ Botão "Promover"│                                                         │
-│  └─────────────────┘                                                         │
+│  Modal: Selecionar role (Membro/Facilitador) + Grupo (opcional)             │
 │        │                                                                     │
 │        ▼                                                                     │
-│  ┌─────────────────────────────────────────────┐                            │
-│  │ Modal de Promoção:                          │                            │
-│  │ - Selecionar novo perfil (Membro/Facilitador)│                           │
-│  │ - Selecionar grupo (opcional)               │                            │
-│  └─────────────────────────────────────────────┘                            │
+│  usePromoteGuest: Atualizar user_roles + Adicionar a team_members           │
 │        │                                                                     │
 │        ▼                                                                     │
-│  ┌─────────────────────────────────────────────┐                            │
-│  │ Hook: usePromoteGuest                        │                            │
-│  │ 1. Verificar role existente                 │                            │
-│  │ 2. Atualizar/Inserir em user_roles          │                            │
-│  │ 3. Adicionar ao grupo (se selecionado)      │                            │
-│  └─────────────────────────────────────────────┘                            │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ Status: MEMBRO  │                                                         │
-│  │ ou FACILITADOR  │                                                         │
-│  └─────────────────┘                                                         │
+│  Status: MEMBRO ou FACILITADOR                                               │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
-**Tabelas modificadas:**
-- `user_roles` - Atualiza ou insere role
-- `team_members` - Adiciona ao grupo (se selecionado)
-
-**Queries invalidadas:**
-- `admin-guest-records`
-- `admin-members`
-- `members-directory`
-- `teams`
 
 ---
 
 ### 3. Fluxo de Desativação
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       FLUXO DE DESATIVAÇÃO                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Administrador]                                                             │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ /admin/pessoas  │                                                         │
-│  │ Tab: Membros    │                                                         │
-│  └─────────────────┘                                                         │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ Botão "Desativar"│                                                        │
-│  └─────────────────┘                                                         │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────────────────────────────────┐                            │
-│  │ Modal de Desativação:                       │                            │
-│  │ - Motivo (opcional)                         │                            │
-│  └─────────────────────────────────────────────┘                            │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────────────────────────────────┐                            │
-│  │ Função: deactivate_member()                 │                            │
-│  │ SECURITY DEFINER - Executa como owner       │                            │
-│  │                                              │                            │
-│  │ 1. Verificar se chamador é admin            │                            │
-│  │ 2. DELETE FROM team_members                 │                            │
-│  │    (remove de TODOS os grupos)              │                            │
-│  │ 3. UPDATE profiles SET                      │                            │
-│  │    - is_active = false                      │                            │
-│  │    - deactivated_at = now()                 │                            │
-│  │    - deactivation_reason = motivo           │                            │
-│  │ 4. Retornar quantidade de grupos removidos  │                            │
-│  └─────────────────────────────────────────────┘                            │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ Status: INATIVO │                                                         │
-│  │ Histórico       │                                                         │
-│  └─────────────────┘                                                         │
-└─────────────────────────────────────────────────────────────────────────────┘
+/admin/pessoas → Tab: Membros → Botão "Desativar" → Modal (motivo)
+    → Função: deactivate_member() (SECURITY DEFINER)
+    → 1. Remove de TODOS os grupos
+    → 2. is_active = false, deactivated_at, deactivation_reason
+    → Status: INATIVO
 ```
-
-**Função do banco utilizada:** `deactivate_member(_member_id, _reason)`
-
-**Garantias:**
-- ✅ Membro é removido de TODOS os grupos
-- ✅ Perfil é marcado como inativo
-- ✅ Data e motivo são registrados
-- ✅ Dados são mantidos para histórico
-
----
 
 ### 4. Fluxo de Reativação
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       FLUXO DE REATIVAÇÃO                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Administrador]                                                             │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ /admin/pessoas  │                                                         │
-│  │ Tab: Inativos   │                                                         │
-│  └─────────────────┘                                                         │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ Botão "Reativar"│                                                         │
-│  └─────────────────┘                                                         │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────────────────────────────────┐                            │
-│  │ Função: reactivate_member()                 │                            │
-│  │ SECURITY DEFINER - Executa como owner       │                            │
-│  │                                              │                            │
-│  │ 1. Verificar se chamador é admin            │                            │
-│  │ 2. UPDATE profiles SET                      │                            │
-│  │    - is_active = true                       │                            │
-│  │    - deactivated_at = NULL                  │                            │
-│  │    - deactivation_reason = NULL             │                            │
-│  └─────────────────────────────────────────────┘                            │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────┐                                                         │
-│  │ Status: ATIVO   │                                                         │
-│  │ (sem grupo)     │                                                         │
-│  └─────────────────┘                                                         │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌─────────────────────────────────────────────┐                            │
-│  │ Admin deve adicionar manualmente ao grupo   │                            │
-│  │ via página Admin → Grupos → Adicionar       │                            │
-│  └─────────────────────────────────────────────┘                            │
-└─────────────────────────────────────────────────────────────────────────────┘
+/admin/pessoas → Tab: Inativos → Botão "Reativar"
+    → Função: reactivate_member() (SECURITY DEFINER)
+    → is_active = true, limpa campos de desativação
+    → Status: ATIVO (sem grupo, admin deve adicionar manualmente)
 ```
-
-**Nota:** Ao reativar, o membro não é automaticamente adicionado a nenhum grupo. O administrador deve fazer isso manualmente.
 
 ---
 
@@ -256,356 +133,182 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 ### Gente em Ação (Reuniões 1-a-1)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       GENTE EM AÇÃO                                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Membro]                                                                    │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────┐                                                      │
-│  │ /gente-em-acao     │                                                      │
-│  │ Novo registro      │                                                      │
-│  └────────────────────┘                                                      │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Formulário:                            │                                  │
-│  │ - Tipo (1-a-1, Online, Presencial)    │                                  │
-│  │ - Data da reunião                      │                                  │
-│  │ - Com quem? (Membro OU Convidado)     │                                  │
-│  │ - Observações                          │                                  │
-│  │ - Foto (opcional)                      │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ INSERT gente_em_acao                   │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Trigger: handle_gente_em_acao_insert() │                                  │
-│  │ 1. Adiciona ao activity_feed           │                                  │
-│  │ 2. Chama update_user_points_and_rank() │                                  │
-│  │    → +25 pontos                         │                                  │
-│  │ 3. Registra em points_history          │                                  │
-│  └────────────────────────────────────────┘                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
+/gente-em-acao → Novo registro
+    → Tipo (1-a-1, Online, Presencial)
+    → Data, Parceiro (membro OU convidado externo), Observações, Foto
+    → INSERT gente_em_acao
+    → Trigger: handle_gente_em_acao_insert()
+        1. Adiciona ao activity_feed (com team_id = grupo em comum)
+        2. +25 pontos mensais por grupo
 ```
-
-**Pontos:** +25 por reunião registrada
-
----
 
 ### Depoimentos
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          DEPOIMENTOS                                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Membro A]                                                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────┐                                                      │
-│  │ /depoimentos       │                                                      │
-│  │ Novo depoimento    │                                                      │
-│  └────────────────────┘                                                      │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Formulário:                            │                                  │
-│  │ - Para quem (select de membros)        │                                  │
-│  │ - Conteúdo do depoimento               │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ INSERT testimonials                    │                                  │
-│  │ from_user_id = Membro A                │                                  │
-│  │ to_user_id = Membro B                  │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Trigger: handle_testimonial_insert()   │                                  │
-│  │ 1. Adiciona ao activity_feed           │                                  │
-│  │ 2. Atualiza pontos do Membro A         │                                  │
-│  │    → +15 pontos (quem ENVIA)            │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Edge Function: send-notification       │                                  │
-│  │ Envia email para Membro B              │                                  │
-│  └────────────────────────────────────────┘                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
+/depoimentos → Novo depoimento
+    → Selecionar membro do grupo + Conteúdo
+    → INSERT testimonials
+    → Trigger: handle_testimonial_insert()
+        1. Adiciona ao activity_feed (com team_id = grupo em comum)
+        2. +15 pontos para quem ENVIA
+    → Edge Function: send-notification (email para destinatário)
 ```
-
-**Pontos:** +15 para quem ENVIA o depoimento
-
----
 
 ### Indicações
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          INDICAÇÕES                                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Membro A]                                                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────┐                                                      │
-│  │ /indicacoes        │                                                      │
-│  │ Nova indicação     │                                                      │
-│  └────────────────────┘                                                      │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Formulário:                            │                                  │
-│  │ - Para quem (membro que receberá)      │                                  │
-│  │ - Nome do contato indicado             │                                  │
-│  │ - Telefone do contato                  │                                  │
-│  │ - Email do contato                     │                                  │
-│  │ - Observações                          │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ INSERT referrals                       │                                  │
-│  │ from_user_id = Membro A                │                                  │
-│  │ to_user_id = Membro B                  │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Trigger: handle_referral_insert()      │                                  │
-│  │ 1. Adiciona ao activity_feed           │                                  │
-│  │ 2. Atualiza pontos do Membro A         │                                  │
-│  │    → +20 pontos (quem INDICA)           │                                  │
-│  └────────────────────────────────────────┘                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
+/indicacoes → Nova indicação
+    → Membro destinatário + Nome/Telefone/Email do contato + Observações
+    → INSERT referrals (status: morno)
+    → Trigger: handle_referral_insert()
+        1. Adiciona ao activity_feed (com team_id = grupo em comum)
+        2. +20 pontos para quem INDICA
+    → Edge Function: send-notification (email para destinatário)
 ```
-
-**Pontos:** +20 para quem FAZ a indicação
-
----
 
 ### Negócios Realizados
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       NEGÓCIOS REALIZADOS                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Membro]                                                                    │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────┐                                                      │
-│  │ /negocios          │                                                      │
-│  │ Novo negócio       │                                                      │
-│  └────────────────────┘                                                      │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Formulário:                            │                                  │
-│  │ - Nome do cliente                      │                                  │
-│  │ - Valor do negócio (R$)                │                                  │
-│  │ - Data do negócio                      │                                  │
-│  │ - Indicação de quem? (opcional)        │                                  │
-│  │ - Descrição                            │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ INSERT business_deals                  │                                  │
-│  │ closed_by_user_id = Membro             │                                  │
-│  │ referred_by_user_id = Indicador        │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Trigger: handle_business_deal_insert() │                                  │
-│  │ 1. Adiciona ao activity_feed           │                                  │
-│  │ 2. Atualiza pontos do fechador         │                                  │
-│  │    → +5 pontos por R$100                │                                  │
-│  └────────────────────────────────────────┘                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
+/negocios → Novo negócio
+    → Cliente, Valor (R$), Data, Indicação de quem? (opcional), Descrição
+    → INSERT business_deals
+    → Trigger: handle_business_deal_insert()
+        1. Adiciona ao activity_feed (com team_id = grupo do usuário)
+        2. +5 pontos por R$100
 ```
 
-**Pontos:** +5 pontos por cada R$100 do valor do negócio
+### Presenças em Encontros
+
+```
+/encontros → Confirmar presença
+    → INSERT attendances
+    → Trigger: handle_attendance_insert()
+        1. Adiciona ao activity_feed (com team_id = grupo do encontro)
+        2. +20 pontos
+    → Se convidado: handle_guest_attendance_insert()
+        → +15 pontos para o convidador
+```
 
 ---
 
-### Presença em Encontros
+## Sistema de Pontuação
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                     PRESENÇA EM ENCONTROS                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  [Membro]                                                                    │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────┐                                                      │
-│  │ /encontros         │                                                      │
-│  │ Confirmar presença │                                                      │
-│  └────────────────────┘                                                      │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ INSERT attendances                     │                                  │
-│  │ user_id = Membro                       │                                  │
-│  │ meeting_id = ID do encontro            │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ Trigger: handle_attendance_insert()    │                                  │
-│  │ 1. Adiciona ao activity_feed           │                                  │
-│  │ 2. Atualiza pontos do membro           │                                  │
-│  │    → +20 pontos                         │                                  │
-│  └────────────────────────────────────────┘                                  │
-│        │                                                                     │
-│        ▼                                                                     │
-│  ┌────────────────────────────────────────┐                                  │
-│  │ SE o membro foi convidado por alguém:  │                                  │
-│  │ Trigger: handle_guest_attendance_insert│                                  │
-│  │ → +15 pontos para quem CONVIDOU         │                                  │
-│  └────────────────────────────────────────┘                                  │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+### Modelo Mensal por Grupo (v2.3.0+)
 
-**Pontos:** 
-- +20 pontos para quem confirma presença
-- +15 pontos BÔNUS para quem convidou (se aplicável)
+- Pontos são calculados **mensalmente** e por **grupo**
+- A cada novo mês, ranking reinicia
+- Tabela `monthly_points`: (user_id, team_id, year_month, points, rank)
+- Triggers recalculam automaticamente após cada atividade
+
+### Contexto de Grupo das Atividades
+
+| Atividade | Lógica de Grupo |
+|-----------|----------------|
+| Presença | Grupo do encontro (meetings.team_id) |
+| Gente em Ação | Grupo em comum com parceiro, ou primeiro grupo do usuário |
+| Depoimentos | Grupo em comum entre remetente e destinatário |
+| Indicações | Grupo em comum entre remetente e destinatário |
+| Negócios | Primeiro grupo do usuário |
+| Convites | Grupo do convidador |
 
 ---
 
-## Sistema de Pontuação Mensal por Grupo
+## Feed de Atividades
 
-### Visão Geral
-
-A partir da versão 2.3.0, o sistema de gamificação opera com **ciclos mensais** e **pontuação por grupo**:
-
-- **Pontos são zerados mensalmente** - A cada novo mês, inicia-se um ciclo
-- **Histórico de pontos** - Consulta de desempenho de meses anteriores
-- **Pontuação por grupo** - Membros em múltiplos grupos têm pontuação separada
+### Página /feed (v3.0.0)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    MODELO DE PONTUAÇÃO MENSAL                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────┐                                                    │
-│  │ monthly_points      │  ← TABELA PRINCIPAL                               │
-│  │ - user_id           │                                                    │
-│  │ - team_id           │  ← Pontuação POR GRUPO                            │
-│  │ - year_month        │  ← Ex: "2026-02" (ciclo mensal)                   │
-│  │ - points            │  ← Total de pontos do mês/grupo                   │
-│  │ - rank              │  ← Rank calculado para este mês/grupo             │
-│  └─────────────────────┘                                                    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+/feed → Filtros: Tipo + Período + Grupo
+    → Tipo: Gente em Ação, Depoimento, Negócio, Indicação, Presença, Convite
+    → Período: Este mês, Mês passado, 3 meses, 6 meses, Todo período
+    → Grupo: Filtra diretamente pela coluna team_id na activity_feed
+    → Clique no item → Dialog com detalhes completos (metadata, data)
 ```
 
-### Tabela de Pontos
+### Coluna team_id na activity_feed
 
-| Atividade | Pontos | Quem Recebe | Contexto de Grupo |
-|-----------|--------|-------------|-------------------|
-| Gente em Ação | +25 | Quem registra | Grupo em comum com parceiro |
-| Depoimento | +15 | Quem envia | Grupo em comum com destinatário |
-| Indicação | +20 | Quem indica | Grupo em comum com destinatário |
-| Negócio | +5/R$100 | Quem fecha | Todos os grupos do usuário |
-| Presença | +20 | Quem comparece | Grupo do encontro |
-| Convite Aceito* | +15 | Quem convidou | Grupos do convidador |
+Cada atividade registrada pelos triggers recebe automaticamente o `team_id` do grupo relevante, permitindo filtro direto sem necessidade de join com `team_members`.
 
-*Bônus quando convidado comparece a um encontro
+---
 
-### Ranks
+## Dashboard Administrativo
 
-| Rank | Pontos Mínimos | Emoji |
-|------|----------------|-------|
-| Iniciante | 0 | 🌱 |
-| Bronze | 50 | 🥉 |
-| Prata | 150 | 🥈 |
-| Ouro | 300 | 🥇 |
-| Diamante | 500 | 💎 |
+### Página /dashboard (v3.0.0)
 
-### Funções de Cálculo
+```
+/dashboard (Admin/Facilitador)
+    │
+    ├── Stats Cards: Membros ativos, Negócios (acumulado + anual),
+    │   Gente em Ação, Interações, Convites aceitos
+    │
+    ├── Gráfico: Atividades por mês (últimos 6 meses)
+    ├── Gráfico: Distribuição por rank (pizza)
+    │
+    ├── % Presença por Encontro (barras visuais)
+    ├── KPIs por Grupo (tabela: membros, GA, indicações, depoimentos, R$)
+    │
+    ├── Métricas de Convites por Membro (enviados, aceitos, nos encontros)
+    ├── Top 10 Membros
+    └── Atividades Recentes (realtime)
+```
 
-| Função | Descrição |
-|--------|-----------|
-| `get_current_year_month()` | Retorna "YYYY-MM" atual |
-| `calculate_monthly_points_for_team()` | Calcula pontos de um usuário em um grupo/mês |
-| `update_monthly_points_for_team()` | Atualiza a tabela monthly_points |
-| `update_all_monthly_points_for_user()` | Atualiza pontos em todos os grupos |
-| `get_monthly_ranking()` | Retorna ranking ordenado por grupo/mês |
-| `get_user_monthly_points()` | Retorna pontos do usuário no mês |
-| `recalculate_all_monthly_points()` | Recalcula pontos de todos os usuários |
+---
+
+## Navegação Mobile
+
+### BottomNav (v3.0.0)
+
+Visível apenas em telas < 768px (`lg:hidden`).
+
+| Role | Atalhos |
+|------|---------|
+| Membro | Gente em Ação, Negócios, Indicações, Convites, Perfil |
+| Admin | Dashboard, Pessoas, Admin, Ranking |
+| Facilitador | Admin, Pessoas, Encontros, Estatísticas |
+
+Layout com `pb-20` e `safe-area-inset-bottom` para compatibilidade mobile.
 
 ---
 
 ## Validações e Triggers
 
-### Triggers de INSERT (Adição de Pontos Mensais)
+### Triggers de Inserção
 
-| Tabela | Trigger | Função | Ação |
-|--------|---------|--------|------|
-| `gente_em_acao` | AFTER INSERT | `handle_gente_em_acao_insert()` | Atualiza pontos mensais |
-| `testimonials` | AFTER INSERT | `handle_testimonial_insert()` | Atualiza pontos mensais |
-| `referrals` | AFTER INSERT | `handle_referral_insert()` | Atualiza pontos mensais |
-| `business_deals` | AFTER INSERT | `handle_business_deal_insert()` | Atualiza pontos mensais |
-| `attendances` | AFTER INSERT | `handle_attendance_insert()` | Atualiza pontos mensais |
-| `attendances` | AFTER INSERT | `handle_guest_attendance_insert()` | Atualiza pontos do convidador |
+| Trigger | Tabela | Ações |
+|---------|--------|-------|
+| `handle_new_user()` | auth.users | Cria perfil automaticamente |
+| `handle_gente_em_acao_insert()` | gente_em_acao | Feed + pontos + team_id |
+| `handle_testimonial_insert()` | testimonials | Feed + pontos + team_id |
+| `handle_referral_insert()` | referrals | Feed + pontos + team_id |
+| `handle_business_deal_insert()` | business_deals | Feed + pontos + team_id |
+| `handle_attendance_insert()` | attendances | Feed + pontos + team_id |
+| `handle_guest_attendance_insert()` | attendances | Pontos para convidador + team_id |
+| `handle_invitation_accepted()` | invitations | Feed + pontos do convidador |
+| `handle_profile_slug()` | profiles | Gera slug único |
 
-### Triggers de DELETE (Remoção de Pontos Mensais)
+### Triggers de Deleção
 
-| Tabela | Trigger | Função |
-|--------|---------|--------|
-| `gente_em_acao` | AFTER DELETE | `handle_gente_em_acao_delete()` |
-| `testimonials` | AFTER DELETE | `handle_testimonial_delete()` |
-| `referrals` | AFTER DELETE | `handle_referral_delete()` |
-| `business_deals` | AFTER DELETE | `handle_business_deal_delete()` |
-| `attendances` | AFTER DELETE | `handle_attendance_delete()` |
+| Trigger | Tabela | Ação |
+|---------|--------|------|
+| `handle_testimonial_delete()` | testimonials | Recalcula pontos |
+| `handle_referral_delete()` | referrals | Recalcula pontos |
+| `handle_business_deal_delete()` | business_deals | Recalcula pontos |
+| `handle_gente_em_acao_delete()` | gente_em_acao | Recalcula pontos |
+| `handle_attendance_delete()` | attendances | Recalcula pontos (usuário + convidador) |
 
-### Funções SECURITY DEFINER
+### Notificações por Email
 
-| Função | Propósito | Quem pode chamar |
-|--------|-----------|------------------|
-| `deactivate_member()` | Desativa membro e remove de grupos | Admin |
-| `reactivate_member()` | Reativa membro | Admin |
-| `has_role()` | Verifica role do usuário | Qualquer (sistema) |
-| `calculate_monthly_points_for_team()` | Calcula pontos mensais | Qualquer (sistema) |
-| `update_monthly_points_for_team()` | Atualiza pontos mensais | Qualquer (sistema) |
-| `accept_invitation()` | Processa aceite de convite | Qualquer (sistema) |
+| Evento | Destinatário | Template |
+|--------|-------------|----------|
+| Novo depoimento | Membro que recebeu | testimonialEmailTemplate |
+| Nova indicação | Membro que recebeu | referralEmailTemplate |
+| Convite enviado | Email do convidado | invitationEmailTemplate |
+| Convite aceito | Membro que convidou | invitationAcceptedEmailTemplate |
+| Convidado no encontro | Membro que convidou | guestAttendedEmailTemplate |
+| Boas-vindas | Novo membro | welcomeEmailTemplate |
 
----
-
-## Changelog
-
-### 2026-02-08 (v2.3.0)
-- **Sistema de gamificação mensal por grupo**
-  - Pontos agora são contabilizados por mês e por grupo
-  - Nova tabela `monthly_points` para armazenar pontuação
-  - Rankings mensais com filtro por mês e grupo
-  - Gráfico de evolução mensal no perfil
-- Atualização de todos os triggers para o novo sistema
-- Novos hooks: `useMonthlyRanking`, `useMonthlyPoints`
-- Componentes: `MonthlyPointsSummary`, `MonthlyPointsEvolutionChart`
-
-### 2025-02-08 (v2.2.0)
-- Corrigido fluxo de desativação (agora remove de grupos corretamente)
-- Adicionadas funções SECURITY DEFINER para desativar/reativar
-- Criada página unificada de Gestão de Pessoas
-- Documentação completa de fluxos
-
-### 2025-02-06
-- Corrigido fluxo de convites (validade 30 dias)
-- Corrigido acesso a perfis convertidos
-
----
-
-**Documento mantido pela equipe de desenvolvimento.**
+**Preferências:** Cada usuário pode desabilitar notificações em `/configuracoes`:
+- `email_notifications_enabled` — master toggle
+- `notify_on_testimonial` — depoimentos
+- `notify_on_referral` — indicações
+- `notify_on_meeting` — encontros

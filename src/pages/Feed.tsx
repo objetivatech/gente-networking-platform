@@ -51,6 +51,7 @@ interface ActivityDetail {
   reference_id: string | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
+  team_id: string | null;
   user?: { full_name: string; avatar_url: string | null };
 }
 
@@ -61,20 +62,6 @@ export default function Feed() {
   const [selectedActivity, setSelectedActivity] = useState<ActivityDetail | null>(null);
 
   const { teams } = useTeams();
-
-  // Get team members for filtering
-  const { data: teamMembersMap } = useQuery({
-    queryKey: ['team-members-map'],
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('user_id, team_id');
-      const map = new Map<string, Set<string>>();
-      data?.forEach(tm => {
-        if (!map.has(tm.team_id)) map.set(tm.team_id, new Set());
-        map.get(tm.team_id)!.add(tm.user_id);
-      });
-      return map;
-    },
-  });
 
   const { data: activities, isLoading } = useQuery({
     queryKey: ['feed-activities', periodFilter],
@@ -120,13 +107,10 @@ export default function Feed() {
     if (!activities) return [];
     return activities.filter(a => {
       if (typeFilter !== 'all' && a.activity_type !== typeFilter) return false;
-      if (teamFilter !== 'all' && teamMembersMap) {
-        const members = teamMembersMap.get(teamFilter);
-        if (!members || !members.has(a.user_id)) return false;
-      }
+      if (teamFilter !== 'all' && a.team_id !== teamFilter) return false;
       return true;
     });
-  }, [activities, typeFilter, teamFilter, teamMembersMap]);
+  }, [activities, typeFilter, teamFilter]);
 
   const activityTypes = useMemo(() => {
     if (!activities) return [];

@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-02-08
-> **Versão:** 2.3.0
+> **Última atualização:** 2026-03-12
+> **Versão:** 3.0.0
 
 ## Índice
 
@@ -17,6 +17,10 @@
 10. [Edge Functions](#edge-functions)
 11. [Integrações](#integrações)
 12. [PWA](#pwa)
+13. [Sistema de Roles e Permissões](#sistema-de-roles-e-permissões)
+14. [Feed de Atividades](#feed-de-atividades)
+15. [Dashboard Administrativo](#dashboard-administrativo)
+16. [Mobile UX](#mobile-ux)
 
 ---
 
@@ -24,13 +28,16 @@
 
 O **Gente Networking** é uma plataforma de gestão de comunidade de networking profissional. O sistema permite:
 
-- Gerenciamento de grupos e membros
+- Gerenciamento de grupos e membros com 4 perfis de usuário (Admin, Facilitador, Membro, Convidado)
 - Registro de atividades de networking (Gente em Ação, Depoimentos, Indicações, Negócios)
-- Sistema de gamificação com pontos e ranks
+- Sistema de gamificação com pontos mensais por grupo e ranks
 - Calendário de encontros quinzenais
-- Convites personalizados
-- Dashboard de estatísticas
+- Convites personalizados com email automático
+- Dashboard de estatísticas com KPIs por grupo
+- Feed de atividades com filtros avançados
+- Notificações por email (Resend) e push (local)
 - **Sistema de privacidade por grupo**: Membros só visualizam informações de outros membros do mesmo grupo
+- Navegação mobile otimizada com BottomNav por role
 
 ---
 
@@ -47,7 +54,7 @@ O **Gente Networking** é uma plataforma de gestão de comunidade de networking 
 | React Router DOM | Roteamento |
 | Recharts | Visualização de dados |
 | Zod | Validação de schemas |
-| Supabase | Backend (Auth, Database, Edge Functions) |
+| Supabase | Backend (Auth, Database, Edge Functions, Realtime) |
 | Resend | Envio de emails |
 
 ---
@@ -58,7 +65,7 @@ O **Gente Networking** é uma plataforma de gestão de comunidade de networking 
 src/
 ├── assets/              # Imagens e recursos estáticos
 ├── components/          # Componentes React
-│   ├── layout/          # Componentes de layout (Header, Sidebar, MainLayout)
+│   ├── layout/          # Layout (Header, Sidebar, MainLayout, BottomNav, Footer)
 │   └── ui/              # Componentes Shadcn/UI
 ├── contexts/            # Contextos React (AuthContext)
 ├── hooks/               # Hooks customizados
@@ -72,12 +79,15 @@ supabase/
 │   ├── _shared/         # Código compartilhado (email-templates)
 │   ├── birthday-notifications/ # Notificações de aniversários
 │   ├── send-email/      # Envio de emails
-│   └── send-notification/ # Notificações
+│   └── send-notification/ # Notificações (depoimentos, indicações, convites, etc.)
 └── migrations/          # Migrações SQL
 
 docs/
 ├── CLOUDFLARE_PAGES_DEPLOY.md
+├── CLOUDFLARE_ENV_SETUP.md
 ├── PWA_IMPLEMENTATION.md
+├── USER_FLOWS.md
+├── DOCUMENTATION_UPDATE_GUIDE.md
 └── TECHNICAL_DOCUMENTATION.md (este arquivo)
 ```
 
@@ -90,7 +100,9 @@ docs/
 | Rota | Arquivo | Descrição |
 |------|---------|-----------|
 | `/auth` | `Auth.tsx` | Login, cadastro e recuperação de senha |
+| `/redefinir-senha` | `RedefinirSenha.tsx` | Redefinição de senha |
 | `/convite/:code` | `ConvitePublico.tsx` | Página pública de convite |
+| `/convite/:code/cadastrar` | `CadastroConvidado.tsx` | Cadastro via convite |
 | `/instalar` | `Instalar.tsx` | Instruções de instalação PWA |
 
 ### Autenticadas
@@ -98,8 +110,12 @@ docs/
 | Rota | Arquivo | Descrição | Acesso |
 |------|---------|-----------|--------|
 | `/` | `Index.tsx` | Dashboard com feed de atividades | Todos |
+| `/feed` | `Feed.tsx` | Feed completo com filtros (tipo, período, grupo) | Membros+ |
 | `/perfil` | `Profile.tsx` | Perfil com histórico de pontos | Todos |
-| `/ranking` | `Ranking.tsx` | Ranking de membros | Membros+ |
+| `/membros` | `Membros.tsx` | Diretório de membros com filtros e exportação | Membros+ |
+| `/membro/:slug` | `MemberProfile.tsx` | Perfil individual com URL amigável | Membros+ |
+| `/aniversarios` | `Aniversarios.tsx` | Calendário de aniversários | Membros+ |
+| `/ranking` | `Ranking.tsx` | Ranking mensal por grupo | Membros+ |
 | `/gente-em-acao` | `GenteEmAcao.tsx` | Reuniões 1-a-1 | Membros+ |
 | `/depoimentos` | `Depoimentos.tsx` | Envio de depoimentos | Membros+ |
 | `/indicacoes` | `Indicacoes.tsx` | Indicações de contatos | Membros+ |
@@ -109,10 +125,18 @@ docs/
 | `/equipes` | `Equipes.tsx` | Gestão de grupos | Admin/Facilitador |
 | `/estatisticas` | `Estatisticas.tsx` | Gráficos e métricas | Membros+ |
 | `/conteudos` | `Conteudos.tsx` | Materiais educativos | Membros+ |
-| `/admin` | `Admin.tsx` | Painel administrativo | Admin |
-| `/admin/dashboard` | `AdminDashboard.tsx` | Dashboard admin | Admin |
-| `/configuracoes` | `Configuracoes.tsx` | Configurações | Todos |
+| `/changelog` | `Changelog.tsx` | Histórico de versões | Membros+ |
 | `/documentacao` | `Documentacao.tsx` | Documentação do sistema | Membros+ |
+| `/configuracoes` | `Configuracoes.tsx` | Configurações e preferências de notificação | Todos |
+
+### Administrativas
+
+| Rota | Arquivo | Descrição | Acesso |
+|------|---------|-----------|--------|
+| `/dashboard` | `AdminDashboard.tsx` | Dashboard com KPIs, gráficos e métricas | Admin |
+| `/admin` | `Admin.tsx` | Painel administrativo | Admin/Facilitador |
+| `/admin/pessoas` | `GestaoPessoas.tsx` | Gestão unificada de Membros/Convidados/Inativos | Admin/Facilitador |
+| `/admin/registros` | `AdminRegistros.tsx` | Gestão CRUD de registros (todas as tabelas) | Admin |
 
 ---
 
@@ -122,51 +146,63 @@ docs/
 
 | Componente | Descrição |
 |------------|-----------|
-| `MainLayout` | Layout principal com sidebar e header |
-| `Header` | Cabeçalho com navegação e perfil |
-| `Sidebar` | Menu lateral com navegação |
-| `NavLink` | Link de navegação estilizado |
+| `MainLayout` | Layout principal com sidebar, header e bottom nav |
+| `Header` | Cabeçalho com navegação, sininho de notificações e perfil |
+| `Sidebar` | Menu lateral com navegação filtrada por role |
+| `BottomNav` | Navegação mobile inferior com atalhos por role (< 768px) |
+| `Footer` | Rodapé |
 
 ### Funcionalidades
 
-| Componente | Arquivo | Descrição |
-|------------|---------|-----------|
-| `PasswordStrengthIndicator` | `PasswordStrengthIndicator.tsx` | Indicador visual de força da senha |
-| `PointsEvolutionChart` | `PointsEvolutionChart.tsx` | Gráfico de evolução de pontos |
-| `PointsHistoryCard` | `PointsHistoryCard.tsx` | Card com histórico de pontos |
-| `RankBadge` | `RankBadge.tsx` | Badge visual do rank |
-| `ActivityFeed` | `ActivityFeed.tsx` | Feed de atividades em tempo real |
-| `MemberSelect` | `MemberSelect.tsx` | Seletor de membros |
-| `ScoringRulesCard` | `ScoringRulesCard.tsx` | Regras de pontuação |
-| `OfflineIndicator` | `OfflineIndicator.tsx` | Indicador de modo offline |
-| `PWAInstallPrompt` | `PWAInstallPrompt.tsx` | Prompt de instalação PWA |
-| `NotificationSettings` | `NotificationSettings.tsx` | Configurações de notificação |
+| Componente | Descrição |
+|------------|-----------|
+| `ActivityFeed` | Feed de atividades em tempo real (dashboard) |
+| `MonthlyPointsSummary` | Resumo de pontos mensais por grupo |
+| `MonthlyPointsEvolutionChart` | Gráfico de evolução mensal |
+| `PointsEvolutionChart` | Gráfico de evolução de pontos |
+| `PointsHistoryCard` | Card com histórico de pontos |
+| `RankBadge` | Badge visual do rank |
+| `MemberSelect` | Seletor de membros |
+| `ScoringRulesCard` | Regras de pontuação |
+| `AdminDataView` | Visualização de dados administrativos |
+| `NotificationSettings` | Configurações de notificação por tipo |
+| `PasswordStrengthIndicator` | Indicador visual de força da senha |
+| `OfflineIndicator` | Indicador de modo offline |
+| `PWAInstallPrompt` | Prompt de instalação PWA |
 
 ---
 
 ## Hooks Customizados
 
-| Hook | Arquivo | Descrição |
-|------|---------|-----------|
-| `useAuth` | `AuthContext.tsx` | Autenticação (login, signup, logout, resetPassword) |
-| `useAdmin` | `useAdmin.ts` | Verificação de roles (isAdmin, isFacilitator, etc) |
-| `useProfile` | `useProfile.ts` | Dados do perfil do usuário |
-| `useMembers` | `useMembers.ts` | Lista de membros |
-| `useTeams` | `useTeams.ts` | Gestão de grupos |
-| `useMeetings` | `useMeetings.ts` | Encontros e presenças |
-| `useGenteEmAcao` | `useGenteEmAcao.ts` | Reuniões 1-a-1 |
-| `useTestimonials` | `useTestimonials.ts` | Depoimentos |
-| `useReferrals` | `useReferrals.ts` | Indicações |
-| `useBusinessDeals` | `useBusinessDeals.ts` | Negócios |
-| `useInvitations` | `useInvitations.ts` | Convites |
-| `useRanking` | `useRanking.ts` | Ranking de membros |
-| `useStats` | `useStats.ts` | Estatísticas gerais |
-| `usePointsHistory` | `usePointsHistory.ts` | Histórico de pontos |
-| `useActivityFeed` | `useActivityFeed.ts` | Feed de atividades |
-| `useContents` | `useContents.ts` | Conteúdos educativos |
-| `useOfflineData` | `useOfflineData.ts` | Cache offline |
-| `usePWAInstall` | `usePWAInstall.ts` | Instalação PWA |
-| `usePushNotifications` | `usePushNotifications.ts` | Notificações push |
+| Hook | Descrição |
+|------|-----------|
+| `useAuth` | Autenticação (login, signup, logout, resetPassword) |
+| `useAdmin` | Verificação de roles (isAdmin, isFacilitator, isMember, isGuest) |
+| `useProfile` | Dados do perfil do usuário |
+| `useMembers` | Lista de membros |
+| `useTeams` | Gestão de grupos |
+| `useMeetings` | Encontros e presenças |
+| `useGenteEmAcao` | Reuniões 1-a-1 |
+| `useTestimonials` | Depoimentos |
+| `useReferrals` | Indicações |
+| `useBusinessDeals` | Negócios |
+| `useInvitations` | Convites |
+| `useRanking` | Ranking geral |
+| `useMonthlyRanking` | Rankings mensais por grupo |
+| `useMonthlyPoints` | Pontos do usuário no mês/grupo |
+| `useStats` | Estatísticas gerais |
+| `usePointsHistory` | Histórico de pontos |
+| `useActivityFeed` | Feed de atividades com realtime |
+| `useRealtimeActivity` | Subscrição realtime do feed |
+| `useAdminDashboard` | Stats, KPIs, gráficos para o dashboard admin |
+| `useAdminData` | Dados administrativos para gestão de registros |
+| `useAdminGuests` | Gestão de convidados |
+| `usePromoteGuest` | Promoção de convidados para membros |
+| `useContents` | Conteúdos educativos |
+| `useOfflineData` | Cache offline |
+| `usePWAInstall` | Instalação PWA |
+| `usePushNotifications` | Notificações push locais |
+| `useGuestData` | Dados de convidados |
 
 ---
 
@@ -176,279 +212,223 @@ docs/
 
 1. Usuário acessa `/auth`
 2. Insere email e senha
-3. `signIn()` do AuthContext chama `supabase.auth.signInWithPassword()`
+3. `signIn()` chama `supabase.auth.signInWithPassword()`
 4. Sucesso: redirect para `/`
-5. Erro: exibe toast com mensagem
+5. Erro: exibe toast
 
 ### Fluxo de Cadastro
 
-1. Usuário preenche formulário com:
-   - Nome Completo (obrigatório)
-   - Email (obrigatório, validado, verificado duplicidade)
-   - WhatsApp (obrigatório, máscara brasileira)
-   - Nome da Empresa (obrigatório)
-   - Segmento de Negócio (obrigatório)
-   - Senha (obrigatório, indicador de força)
-   - Confirmação de Senha (obrigatório)
+1. Usuário preenche: Nome, Email, WhatsApp, Empresa, Segmento, Senha
 2. Validação frontend com Zod
-3. Verificação de email duplicado via `profiles` table
+3. Verificação de email duplicado via `profiles`
 4. `signUp()` cria usuário com metadata
-5. Trigger `handle_new_user()` cria perfil automaticamente
-6. Se há código de convite, `accept_invitation()` é chamado
-7. Email de confirmação é enviado
-
-### Recuperação de Senha
-
-1. Usuário clica em "Esqueci minha senha" na tela de login
-2. Insere email no modal
-3. `resetPassword()` chama `supabase.auth.resetPasswordForEmail()`
-4. Email com link de recuperação é enviado
-5. Usuário clica no link e redefine a senha
+5. Trigger `handle_new_user()` cria perfil
+6. Se convite, `accept_invitation()` é chamado
 
 ### Roles
 
 | Role | Descrição |
 |------|-----------|
-| `admin` | Acesso total ao sistema |
-| `facilitador` | Gerencia seu grupo |
-| `membro` | Participa de atividades |
-| `convidado` | Acesso limitado, aguarda promoção |
+| `admin` | Acesso total. Dashboard, gestão global, CRUD de registros |
+| `facilitador` | Gerencia seu grupo. Promove convidados, gerencia presenças |
+| `membro` | Participa de atividades. Registra eventos, cria convites |
+| `convidado` | Acesso limitado. Aguarda promoção após primeiro encontro |
 
 ---
 
 ## Sistema de Pontuação Mensal
 
-### Modelo de Dados
-
-A partir da versão 2.3.0, o sistema de gamificação opera com **ciclos mensais** e **pontuação por grupo**:
-
-```sql
--- Tabela principal de pontuação
-CREATE TABLE monthly_points (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES profiles(id),
-  team_id UUID REFERENCES teams(id),
-  year_month TEXT NOT NULL,  -- "YYYY-MM"
-  points INTEGER DEFAULT 0,
-  rank member_rank DEFAULT 'iniciante',
-  UNIQUE(user_id, team_id, year_month)
-);
-```
-
-### Regras de Pontuação
+### Regras
 
 | Atividade | Pontos | Contexto de Grupo |
 |-----------|--------|-------------------|
-| Gente em Ação (reunião 1-a-1) | 25 pts | Grupo em comum com parceiro |
+| Gente em Ação | 25 pts | Grupo em comum com parceiro |
 | Presença em Encontro | 20 pts | Grupo do encontro |
-| Indicação de Contato | 20 pts | Grupo em comum com destinatário |
+| Indicação | 20 pts | Grupo em comum com destinatário |
 | Depoimento | 15 pts | Grupo em comum com destinatário |
-| Convite Aceito | 15 pts | Grupos do convidador |
-| Negócio Realizado | 5 pts / R$ 100 | Todos os grupos |
+| Convite Aceito (com presença) | 15 pts | Grupos do convidador |
+| Negócio | 5 pts / R$ 100 | Todos os grupos do usuário |
 
 ### Ranks
 
-| Rank | Pontos | Emoji |
-|------|--------|-------|
-| Iniciante | 0-49 | 🌱 |
-| Bronze | 50-149 | 🥉 |
-| Prata | 150-299 | 🥈 |
-| Ouro | 300-499 | 🥇 |
-| Diamante | 500+ | 💎 |
+| Rank | Pontos |
+|------|--------|
+| 🌱 Iniciante | 0-49 |
+| 🥉 Bronze | 50-149 |
+| 🥈 Prata | 150-299 |
+| 🥇 Ouro | 300-499 |
+| 💎 Diamante | 500+ |
 
-### Funções de Banco de Dados
+### Funções SQL
 
 | Função | Descrição |
 |--------|-----------|
-| `get_current_year_month()` | Retorna mês atual "YYYY-MM" |
+| `get_current_year_month()` | Retorna "YYYY-MM" atual |
 | `calculate_monthly_points_for_team()` | Calcula pontos por grupo/mês |
-| `update_monthly_points_for_team()` | Atualiza pontuação mensal |
-| `get_monthly_ranking()` | Retorna ranking ordenado |
+| `update_monthly_points_for_team()` | Atualiza tabela monthly_points |
+| `get_monthly_ranking()` | Ranking ordenado (exclui admin/facilitador) |
 | `recalculate_all_monthly_points()` | Recalcula todos os usuários |
-
-### Hooks React
-
-| Hook | Descrição |
-|------|-----------|
-| `useMonthlyRanking(teamId?, yearMonth?)` | Rankings mensais |
-| `useMonthlyPoints(userId, teamId?)` | Pontos do usuário no mês |
-| `useMonthlyPointsHistory(userId, teamId?)` | Histórico de meses |
-| `useRecalculateMonthlyPoints()` | Mutation para recálculo |
-
-### Triggers Automáticos
-
-Os pontos são calculados automaticamente via triggers PostgreSQL:
-- `update_all_monthly_points_for_user()` atualiza pontos após cada atividade
-- Histórico salvo em `monthly_points` para visualização de evolução
+| `add_activity_feed()` | Insere no feed com team_id |
 
 ---
 
 ## Banco de Dados
 
-**Supabase (PostgreSQL)** com Row Level Security (RLS) em todas as tabelas.
+**Supabase (PostgreSQL)** com Row Level Security (RLS).
 
-### Sistema de Privacidade por Grupo
-
-A partir da versão 2.0.0, o sistema implementa restrições de acesso baseadas em grupos:
-
-#### Funções Auxiliares
-
-- `get_user_teams(user_id)`: Retorna lista de times do usuário
-- `are_same_team(user_id1, user_id2)`: Verifica se dois usuários estão no mesmo time
-- `has_role(user_id, role)`: Verifica role do usuário
-
-#### Políticas de Acesso
-
-**Membros regulares:**
-- Visualizam apenas perfis de membros do mesmo grupo
-- Podem enviar depoimentos e indicações apenas para membros do mesmo grupo
-- Veem apenas atividades de membros do mesmo grupo
-
-**Facilitadores:**
-- Acesso amplo a todos os grupos
-- Podem gerenciar apenas sua própria equipe
-
-**Administradores:**
-- Acesso completo sem restrições
-- Podem gerenciar todas as equipes e membros
-
-### Tabelas Principais
+### Tabelas
 
 | Tabela | Descrição |
 |--------|-----------|
-| `profiles` | Perfis de usuários (nome, empresa, pontos, rank) |
-| `user_roles` | Roles dos usuários |
+| `profiles` | Perfis (nome, empresa, pontos, rank, slug, preferências de notificação) |
+| `user_roles` | Roles (admin, facilitador, membro, convidado) |
 | `teams` | Grupos de networking |
-| `team_members` | Membros dos grupos |
-| `meetings` | Encontros quinzenais |
+| `team_members` | Membros dos grupos (is_facilitator) |
+| `meetings` | Encontros (título, data, horário, local, team_id) |
 | `attendances` | Presenças em encontros |
-| `gente_em_acao` | Reuniões 1-a-1 |
+| `gente_em_acao` | Reuniões 1-a-1 (partner_id, guest_name, meeting_type) |
 | `testimonials` | Depoimentos |
-| `referrals` | Indicações de contatos |
-| `business_deals` | Negócios fechados |
-| `activity_feed` | Feed de atividades |
+| `referrals` | Indicações (status: morno/quente/frio) |
+| `business_deals` | Negócios (valor, referred_by) |
+| `activity_feed` | Feed de atividades (com team_id para filtro por grupo) |
+| `monthly_points` | Pontuação mensal por grupo |
+| `points_history` | Histórico de pontos (team_id, year_month) |
 | `contents` | Conteúdos educativos |
-| `invitations` | Convites de membros |
-| `points_history` | Histórico de pontos |
+| `invitations` | Convites (code, status, expires_at, metadata) |
+| `system_changelog` | Changelog do sistema |
 
-### Funções PostgreSQL
+### Funções de Privacidade
 
 | Função | Descrição |
 |--------|-----------|
-| `has_role(_role, _user_id)` | Verifica se usuário tem role |
-| `is_guest(_user_id)` | Verifica se é convidado |
-| `is_team_facilitator(_team_id, _user_id)` | Verifica se é facilitador do grupo |
-| `calculate_user_points(_user_id)` | Calcula pontos do usuário |
-| `get_rank_from_points(_points)` | Retorna rank baseado em pontos |
-| `update_user_points_and_rank(_user_id)` | Atualiza pontos e rank |
-| `accept_invitation(_code, _user_id)` | Aceita convite |
-| `add_activity_feed(...)` | Adiciona ao feed |
+| `get_user_teams(user_id)` | Times do usuário |
+| `are_same_team(user_id1, user_id2)` | Verifica mesmo time |
+| `has_role(user_id, role)` | Verifica role |
+| `is_team_facilitator(team_id, user_id)` | Verifica facilitador |
+| `is_guest(user_id)` | Verifica convidado |
+| `deactivate_member(member_id, reason)` | Desativa membro (SECURITY DEFINER) |
+| `reactivate_member(member_id)` | Reativa membro (SECURITY DEFINER) |
 
 ---
 
 ## Edge Functions
 
+### send-notification
+
+Notificações por email para múltiplos tipos de eventos.
+
+**Tipos suportados:** `testimonial`, `referral`, `welcome`, `invitation_accepted`, `guest_attended`, `invitation`
+
+**Funcionalidades:**
+- Respeita preferências de notificação do usuário (email_notifications_enabled, notify_on_testimonial, notify_on_referral)
+- Templates HTML com identidade visual Gente Networking
+- Envio via Resend API
+
 ### send-email
 
 Envio de emails genéricos via Resend.
 
-**Endpoint:** `POST /send-email`
-
-**Body:**
-```json
-{
-  "to": "email@exemplo.com",
-  "subject": "Assunto",
-  "html": "<p>Conteúdo</p>"
-}
-```
-
-### send-notification
-
-Notificações de depoimentos e indicações.
-
-**Endpoint:** `POST /send-notification`
-
-**Body:**
-```json
-{
-  "type": "testimonial" | "referral",
-  "toUserId": "uuid",
-  "fromUserId": "uuid",
-  "content": "texto"
-}
-```
-
 ### birthday-notifications
 
-Notificações automáticas de aniversários dos membros.
-
-**Endpoint:** `POST /birthday-notifications`
-
-**Funcionalidade:**
-- Executa diariamente via cron job
-- Envia notificações por email para membros com aniversário
-- Lista aniversariantes do dia na dashboard
+Notificações automáticas de aniversários via cron job.
 
 ---
 
-## Integrações
+## Feed de Atividades
 
-### Resend
+### Página `/feed` (v3.0.0)
 
-- Envio de emails transacionais
-- Templates centralizados em `_shared/email-templates.ts`
-- Identidade visual consistente
+Feed completo com:
+- **Filtro por tipo:** Gente em Ação, Depoimento, Negócio, Indicação, Presença, Convite, Convidado presente
+- **Filtro por período:** Este mês, mês passado, últimos 3/6 meses, todo o período
+- **Filtro por grupo:** Filtra diretamente pela coluna `team_id` na tabela `activity_feed`
+- **Itens clicáveis:** Abre dialog com detalhes completos (metadata, data formatada)
+- **Realtime:** Novas atividades aparecem via Supabase Realtime
+
+### Tabela `activity_feed`
+
+Cada registro inclui `team_id` para filtro direto por grupo. Os triggers de inserção (handle_*_insert) populam automaticamente o `team_id` com base no contexto da atividade.
+
+---
+
+## Dashboard Administrativo
+
+### KPIs (v3.0.0)
+
+- **Stats gerais:** Total membros ativos, negócios (acumulado + anual), Gente em Ação, interações, convites
+- **% Presença por encontro:** Barra visual com percentual e contagem por encontro
+- **KPIs por grupo:** Tabela com membros, Gente em Ação, indicações, depoimentos e volume R$ por grupo
+- **Gráfico de atividades mensais:** Últimos 6 meses (Gente em Ação, Depoimentos, Indicações)
+- **Distribuição por rank:** Gráfico de pizza
+- **Top 10 membros:** Ranking por pontuação
+- **Métricas de convites:** Enviados, aceitos e presentes por membro
+- **Atividades recentes:** Feed realtime
+
+---
+
+## Mobile UX
+
+### BottomNav (v3.0.0)
+
+Navegação inferior fixa visível apenas em telas < 768px com atalhos por role:
+
+- **Membro:** Gente em Ação, Negócios, Indicações, Convites, Perfil
+- **Admin:** Dashboard, Pessoas, Admin, Ranking
+- **Facilitador:** Admin, Pessoas, Encontros, Estatísticas
+
+Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibilidade com iPhones.
 
 ---
 
 ## PWA
 
-### Recursos
-
 - Instalável em mobile e desktop
 - Modo offline com cache de dados
-- Push notifications
+- Push notifications (locais)
 - Splash screens para iOS
 - Ícones em múltiplos tamanhos
-
-### Configuração
-
-Arquivo `vite.config.ts` configura o `vite-plugin-pwa` com:
-- Manifest
-- Service Worker
-- Estratégias de cache
-
-Documentação completa em `docs/PWA_IMPLEMENTATION.md`.
 
 ---
 
 ## Changelog
 
-### 2025-02-08
-- **Gestão de Pessoas**: Nova página unificada em `/admin/pessoas` com abas Membros/Convidados/Inativos
-- **Fluxo de Desativação**: Corrigido para usar função SECURITY DEFINER que remove de grupos corretamente
-- **Funções do Banco**: Adicionadas `deactivate_member()` e `reactivate_member()`
-- **Documentação de Fluxos**: Criado `docs/USER_FLOWS.md` com diagramas detalhados
-- **Menu Simplificado**: Unificado gerenciamento de pessoas em uma única entrada no menu Admin
+### v3.0.0 (2026-03-12)
 
-### 2025-02-06
-- **Fluxo de Convidados**: Corrigido sistema de convites e expiração (30 dias)
-- **Gestão de Convidados**: Corrigido acesso a perfis de membros convertidos
-- **Página de Aceite de Convite**: Adicionado logo real e rodapé consistente
-- **Emails**: Corrigido carregamento do logo nos templates de email
-- **Permissões de Acesso**: Admins e Facilitadores podem visualizar todos os perfis
+**Bloco 1 — Privacidade e Convites:**
+- Privacidade RD Station
+- Sistema de convites com email automático
+- Indicações com status (morno/quente/frio)
 
-### 2024-12-08
-- Adicionado indicador de força de senha (`PasswordStrengthIndicator`)
-- Adicionado recuperação de senha via email
-- Adicionado máscara de telefone brasileiro
-- Adicionado verificação de email duplicado no cadastro
-- Adicionado campo de confirmação de senha
-- Atualizada documentação técnica
+**Bloco 2 — Papéis e Gestão:**
+- Papéis Admin/Facilitador com RLS CRUD
+- Gestão de Registros unificada (/admin/registros)
+- Gestão de Pessoas (/admin/pessoas) com abas Membros/Convidados/Inativos
+
+**Bloco 3 — Mobile UX:**
+- BottomNav com atalhos por role
+- Layout responsivo com safe-area-inset-bottom
+
+**Bloco 4 — Feed e Dashboard:**
+- Página /feed com filtros por tipo, período e grupo
+- Coluna team_id na activity_feed para filtro direto
+- KPIs no Dashboard Admin: % presença, métricas por grupo, volume financeiro anual
+- Triggers atualizados para popular team_id automaticamente
+
+### v2.3.0 (2026-02-08)
+- Sistema de pontuação mensal por grupo
+- Rankings mensais com filtros
+- Gestão de Pessoas unificada
+- Funções deactivate_member/reactivate_member
+
+### v2.0.0
+- Sistema de privacidade por grupo
+- Funções get_user_teams, are_same_team
+
+### v1.0.0
+- Lançamento inicial
 
 ---
 
 ## Contato
 
-Para dúvidas técnicas, consulte a documentação do sistema em `/documentacao` ou entre em contato com a equipe de desenvolvimento.
+Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equipe de desenvolvimento.

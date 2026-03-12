@@ -20,7 +20,9 @@ import {
   Calendar,
   GraduationCap,
   UserPlus,
-  BarChart3
+  BarChart3,
+  Rss,
+  Smartphone,
 } from 'lucide-react';
 
 export default function Documentacao() {
@@ -96,10 +98,10 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-                      <p className="font-semibold text-primary">Novidade v2.3.0!</p>
+                      <p className="font-semibold text-primary">Versão 3.0.0</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Os pontos agora são contabilizados <strong>mensalmente</strong> e por <strong>grupo</strong>. 
-                        A cada novo mês, o ranking reinicia, dando oportunidade para todos competirem novamente!
+                        Pontuação mensal por grupo, Feed de Atividades com filtros, Dashboard Admin com KPIs, 
+                        navegação mobile otimizada e gestão unificada de pessoas.
                       </p>
                     </div>
 
@@ -304,6 +306,41 @@ export default function Documentacao() {
                     </p>
                   </CardContent>
                 </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Rss className="h-5 w-5" />
+                      Feed de Atividades
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>Acompanhe todas as ações da comunidade em tempo real na página <strong>/feed</strong>.</p>
+                    <h4 className="font-semibold mt-4">Filtros disponíveis:</h4>
+                    <ul>
+                      <li><strong>Tipo:</strong> Gente em Ação, Depoimento, Negócio, Indicação, Presença, Convite</li>
+                      <li><strong>Período:</strong> Este mês, mês passado, últimos 3/6 meses ou todo o período</li>
+                      <li><strong>Grupo:</strong> Filtre atividades por grupo específico</li>
+                    </ul>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Clique em qualquer atividade para ver os detalhes completos.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Smartphone className="h-5 w-5" />
+                      Navegação Mobile
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>No celular, use a barra de navegação inferior para acessar rapidamente as funções mais usadas.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Os atalhos mudam automaticamente conforme seu perfil (Membro, Admin ou Facilitador).
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -499,10 +536,14 @@ export default function Documentacao() {
                     <p>Acompanhe métricas da comunidade:</p>
                     <ul>
                       <li>Total de membros e distribuição por rank</li>
-                      <li>Valor total de negócios realizados</li>
+                      <li>Valor total de negócios (acumulado e anual)</li>
                       <li>Quantidade de indicações e depoimentos</li>
+                      <li><strong>% de presença por encontro</strong> (barras visuais)</li>
+                      <li><strong>KPIs por grupo</strong> (membros, GA, indicações, depoimentos, volume R$)</li>
+                      <li>Métricas de convites por membro</li>
                       <li>Ranking de membros mais ativos</li>
                       <li>Evolução mensal das atividades</li>
+                      <li>Feed de atividades em tempo real</li>
                     </ul>
                   </CardContent>
                 </Card>
