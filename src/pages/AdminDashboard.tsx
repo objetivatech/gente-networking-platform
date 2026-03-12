@@ -39,7 +39,9 @@ export default function AdminDashboard() {
     topMembers, 
     recentActivity,
     loadingActivity,
-    invitationMetrics
+    invitationMetrics,
+    attendanceKpis,
+    teamKpis,
   } = useAdminDashboard();
   
   // Enable realtime for activity feed
