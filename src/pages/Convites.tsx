@@ -6,11 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
-import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2 } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2 } from 'lucide-react';
+import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +21,13 @@ const inviteSchema = z.object({
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
+
+function getEffectiveStatus(invitation: Invitation): string {
+  if (invitation.status === 'accepted') return 'accepted';
+  if (invitation.status === 'expired') return 'expired';
+  if (invitation.status === 'pending' && isPast(new Date(invitation.expires_at))) return 'expired';
+  return invitation.status;
+}
 
 export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
@@ -61,7 +69,8 @@ export default function Convites() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (invitation: Invitation) => {
+    const status = getEffectiveStatus(invitation);
     switch (status) {
       case 'pending':
         return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />Pendente</Badge>;
@@ -72,6 +81,14 @@ export default function Convites() {
       default:
         return null;
     }
+  };
+
+  // Compute stats with effective status
+  const effectiveStats = {
+    total: invitations?.length || 0,
+    pending: invitations?.filter(i => getEffectiveStatus(i) === 'pending').length || 0,
+    accepted: invitations?.filter(i => getEffectiveStatus(i) === 'accepted').length || 0,
+    expired: invitations?.filter(i => getEffectiveStatus(i) === 'expired').length || 0,
   };
 
   return (
@@ -143,25 +160,25 @@ export default function Convites() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold">{stats.total}</p>
+            <p className="text-3xl font-bold">{effectiveStats.total}</p>
             <p className="text-sm text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
+            <p className="text-3xl font-bold text-yellow-600">{effectiveStats.pending}</p>
             <p className="text-sm text-muted-foreground">Pendentes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-green-600">{stats.accepted}</p>
+            <p className="text-3xl font-bold text-green-600">{effectiveStats.accepted}</p>
             <p className="text-sm text-muted-foreground">Aceitos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-gray-400">{stats.expired}</p>
+            <p className="text-3xl font-bold text-muted-foreground">{effectiveStats.expired}</p>
             <p className="text-sm text-muted-foreground">Expirados</p>
           </CardContent>
         </Card>
@@ -191,47 +208,78 @@ export default function Convites() {
             </div>
           ) : (
             <div className="space-y-3">
-              {invitations?.map((invitation) => (
-                <div
-                  key={invitation.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <code className="text-lg font-mono font-bold text-primary">{invitation.code}</code>
-                      {getStatusBadge(invitation.status)}
+              {invitations?.map((invitation) => {
+                const effectiveStatus = getEffectiveStatus(invitation);
+                return (
+                  <div
+                    key={invitation.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <code className="text-lg font-mono font-bold text-primary">{invitation.code}</code>
+                        {getStatusBadge(invitation)}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {invitation.name && <span className="mr-2">{invitation.name}</span>}
+                        {invitation.email && (
+                          <span className="flex items-center gap-1 inline">
+                            <Mail className="h-3 w-3" />
+                            {invitation.email}
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Criado {formatDistanceToNow(new Date(invitation.created_at), { addSuffix: true, locale: ptBR })}
+                        {effectiveStatus === 'pending' && (
+                          <span className="ml-2">
+                            • Expira em {formatDistanceToNow(new Date(invitation.expires_at), { locale: ptBR })}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      {invitation.name && <span className="mr-2">{invitation.name}</span>}
-                      {invitation.email && (
-                        <span className="flex items-center gap-1 inline">
-                          <Mail className="h-3 w-3" />
-                          {invitation.email}
-                        </span>
+
+                    <div className="flex gap-2">
+                      {effectiveStatus === 'pending' && (
+                        <>
+                          <Button variant="outline" size="sm" onClick={() => copyLink(invitation.code)}>
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => shareInvite(invitation)}>
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Criado {formatDistanceToNow(new Date(invitation.created_at), { addSuffix: true, locale: ptBR })}
-                      {invitation.status === 'pending' && (
-                        <span className="ml-2">
-                          • Expira em {formatDistanceToNow(new Date(invitation.expires_at), { locale: ptBR })}
-                        </span>
+                      {effectiveStatus !== 'accepted' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir convite?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Essa ação não pode ser desfeita. O convite será removido permanentemente.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteInvitation.mutate(invitation.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       )}
                     </div>
                   </div>
-
-                  {invitation.status === 'pending' && (
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => copyLink(invitation.code)}>
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => shareInvite(invitation)}>
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
