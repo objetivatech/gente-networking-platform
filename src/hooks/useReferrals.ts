@@ -73,6 +73,7 @@ export function useReferrals() {
         contact_phone: input.contact_phone,
         contact_email: input.contact_email,
         notes: input.notes,
+        status: input.status || 'morno',
       }).select().single();
       if (error) throw error;
       
