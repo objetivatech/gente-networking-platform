@@ -71,6 +71,9 @@ interface PersonData {
   invitation_status?: string;
   invited_by_name?: string;
   invited_at?: string;
+  // Dados de encontro confirmado (para convidados)
+  confirmed_meeting_title?: string;
+  confirmed_meeting_date?: string;
 }
 
 export default function GestaoPessoas() {
