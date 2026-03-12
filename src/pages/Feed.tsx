@@ -63,20 +63,6 @@ export default function Feed() {
 
   const { teams } = useTeams();
 
-  // Get team members for filtering
-  const { data: teamMembersMap } = useQuery({
-    queryKey: ['team-members-map'],
-    queryFn: async () => {
-      const { data } = await supabase.from('team_members').select('user_id, team_id');
-      const map = new Map<string, Set<string>>();
-      data?.forEach(tm => {
-        if (!map.has(tm.team_id)) map.set(tm.team_id, new Set());
-        map.get(tm.team_id)!.add(tm.user_id);
-      });
-      return map;
-    },
-  });
-
   const { data: activities, isLoading } = useQuery({
     queryKey: ['feed-activities', periodFilter],
     queryFn: async () => {
