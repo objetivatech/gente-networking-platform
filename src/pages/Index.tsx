@@ -10,6 +10,7 @@
  */
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
 import { useMeetings } from '@/hooks/useMeetings';
