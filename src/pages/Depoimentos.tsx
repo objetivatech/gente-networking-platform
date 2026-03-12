@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTestimonials } from '@/hooks/useTestimonials';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MemberSelect from '@/components/MemberSelect';
+import AdminDataView from '@/components/AdminDataView';
+import { useAdminDelete } from '@/hooks/useAdminData';
 import { Loader2, Plus, MessageSquare, Send, Inbox, Trash2, Quote } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -20,6 +23,8 @@ const formSchema = z.object({
 
 export default function Depoimentos() {
   const { sentTestimonials, receivedTestimonials, isLoading, createTestimonial, deleteTestimonial } = useTestimonials();
+  const { isAdmin } = useAdmin();
+  const adminDeleteMutation = useAdminDelete('testimonials');
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ to_user_id: '', content: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -45,6 +50,36 @@ export default function Depoimentos() {
 
   const getInitials = (name: string) =>
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+
+  if (isAdmin) {
+    return (
+      <AdminDataView
+        title="Depoimentos"
+        description="Visão geral de todos os depoimentos registrados"
+        icon={<MessageSquare className="w-6 h-6 text-primary" />}
+        table="testimonials"
+        onDelete={(id) => adminDeleteMutation.mutate(id)}
+        isDeleting={adminDeleteMutation.isPending}
+        renderItem={(item, profiles) => {
+          const from = profiles[item.from_user_id];
+          const to = profiles[item.to_user_id];
+          return (
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{from?.full_name || 'Usuário'}</span>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-medium">{to?.full_name || 'Usuário'}</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1 italic line-clamp-2">"{item.content}"</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(new Date(item.created_at), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          );
+        }}
+      />
+    );
+  }
 
   const TestimonialCard = ({ testimonial, type }: { testimonial: any; type: 'sent' | 'received' }) => {
     const user = type === 'sent' ? testimonial.to_user : testimonial.from_user;

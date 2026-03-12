@@ -10,6 +10,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
+import { useAdmin } from '@/hooks/useAdmin';
+import AdminDataView from '@/components/AdminDataView';
+import { useAdminDelete } from '@/hooks/useAdminData';
 import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2 } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,6 +34,8 @@ function getEffectiveStatus(invitation: Invitation): string {
 
 export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
+  const { isAdmin } = useAdmin();
+  const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
@@ -90,6 +95,41 @@ export default function Convites() {
     accepted: invitations?.filter(i => getEffectiveStatus(i) === 'accepted').length || 0,
     expired: invitations?.filter(i => getEffectiveStatus(i) === 'expired').length || 0,
   };
+
+  if (isAdmin) {
+    return (
+      <AdminDataView
+        title="Convites"
+        description="Visão geral de todos os convites gerados"
+        icon={<UserPlus className="w-6 h-6 text-primary" />}
+        table="invitations"
+        onDelete={(id) => adminDeleteMutation.mutate(id)}
+        isDeleting={adminDeleteMutation.isPending}
+        renderItem={(item, profiles) => {
+          const inviter = profiles[item.invited_by];
+          const effStatus = getEffectiveStatus(item as Invitation);
+          return (
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <code className="font-mono font-bold text-primary">{item.code}</code>
+                {effStatus === 'pending' && <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />Pendente</Badge>}
+                {effStatus === 'accepted' && <Badge className="gap-1 bg-green-500"><CheckCircle className="h-3 w-3" />Aceito</Badge>}
+                {effStatus === 'expired' && <Badge variant="secondary" className="gap-1"><XCircle className="h-3 w-3" />Expirado</Badge>}
+              </div>
+              <p className="text-sm mt-1">
+                <span className="text-muted-foreground">Criado por:</span>{' '}{inviter?.full_name || 'Usuário'}
+                {item.name && <span className="ml-2">• Para: {item.name}</span>}
+                {item.email && <span className="ml-2">• {item.email}</span>}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(new Date(item.created_at), "dd/MM/yyyy", { locale: ptBR })}
+              </p>
+            </div>
+          );
+        }}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
