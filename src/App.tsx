@@ -46,6 +46,7 @@ import GerenciarMembros from "./pages/GerenciarMembros";
 import GestaoConvidados from "./pages/GestaoConvidados";
 import GestaoPessoas from "./pages/GestaoPessoas";
 import Changelog from "./pages/Changelog";
+import AdminRegistros from "./pages/AdminRegistros";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/pessoas" element={<GestaoPessoas />} />
+              <Route path="/admin/registros" element={<AdminRegistros />} />
               {/* Rotas antigas mantidas para compatibilidade */}
               <Route path="/admin/membros" element={<GerenciarMembros />} />
               <Route path="/admin/convidados" element={<GestaoConvidados />} />

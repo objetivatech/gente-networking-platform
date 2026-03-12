@@ -20,6 +20,7 @@ import {
   Contact,
   Cake,
   UsersRound,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -57,6 +58,7 @@ const menuItems = [
 const adminItems = [
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard', roles: ['admin'] },
   { icon: UsersRound, label: 'Gestão de Pessoas', path: '/admin/pessoas', roles: ['admin', 'facilitador'] },
+  { icon: ClipboardList, label: 'Gestão de Registros', path: '/admin/registros', roles: ['admin'] },
   { icon: Settings, label: 'Admin', path: '/admin', roles: ['admin', 'facilitador'] },
 ];
 
