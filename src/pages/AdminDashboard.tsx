@@ -118,7 +118,9 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(stats?.totalBusinessValue || 0)}</div>
-            <p className="text-xs text-muted-foreground">valor total acumulado</p>
+            <p className="text-xs text-muted-foreground">
+              {formatCurrency(stats?.annualBusinessValue || 0)} no ano
+            </p>
           </CardContent>
         </Card>
 
