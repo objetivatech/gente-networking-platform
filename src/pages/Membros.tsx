@@ -50,7 +50,9 @@ import {
   X,
   Download,
   FileSpreadsheet,
-  FileText
+  FileText,
+  Crown,
+  UserCheck
 } from 'lucide-react';
 import { toast } from 'sonner';
 
