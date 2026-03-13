@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
 import { useBusinessCases } from '@/hooks/useBusinessCases';
+import { useBusinessDeals } from '@/hooks/useBusinessDeals';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
