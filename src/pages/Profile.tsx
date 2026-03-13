@@ -31,6 +31,7 @@ export default function Profile() {
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { data: stats } = useStats();
   const { cases, createCase, deleteCase } = useBusinessCases();
+  const { myDeals } = useBusinessDeals();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
