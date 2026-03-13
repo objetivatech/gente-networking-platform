@@ -707,6 +707,7 @@ export default function Documentacao() {
                         { name: 'MemberSelect', desc: 'Seletor de membros reutilizável' },
                         { name: 'ScoringRulesCard', desc: 'Regras de pontuação (inclui Conselho e Cases)' },
                         { name: 'AdminCacheDiagnostics', desc: 'Diagnóstico de cache do Cloudflare Worker Proxy' },
+                        { name: 'AdminDataView', desc: 'Visualização admin com filtros e CRUD' },
                         { name: 'CloudflareTurnstile', desc: 'Widget anti-bot Cloudflare' },
                         { name: 'NotificationSettings', desc: 'Configurações de notificação por tipo' },
                         { name: 'OfflineIndicator', desc: 'Indicador de modo offline' },
