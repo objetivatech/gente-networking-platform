@@ -663,7 +663,7 @@ export default function Documentacao() {
                         { route: '/encontros', desc: 'Encontros ordenados com destaque "Em breve"' },
                         { route: '/convites', desc: 'Convites com expiração 30d e exclusão manual' },
                         { route: '/conselho', desc: 'Conselho 24/7 — help desk Kanban' },
-                        { route: '/equipes', desc: 'Gestão de grupos (Admin/Facilitador)' },
+                        { route: '/equipes', desc: 'Redireciona para /membros?tab=grupos' },
                         { route: '/estatisticas', desc: 'Gráficos e métricas do sistema' },
                         { route: '/conteudos', desc: 'Materiais educativos' },
                         { route: '/dashboard', desc: 'Dashboard Admin com KPIs' },
