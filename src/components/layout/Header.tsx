@@ -137,7 +137,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                       className={`p-3 hover:bg-muted/50 transition-colors cursor-pointer ${
                         isUnread(activity.created_at) ? 'bg-primary/5' : ''
                       }`}
-                      onClick={() => setOpen(false)}
+                      onClick={() => { setOpen(false); navigate('/feed'); }}
                     >
                       <div className="flex gap-3">
                         <div className="relative">
