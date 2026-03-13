@@ -37,7 +37,7 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showNewCase, setShowNewCase] = useState(false);
-  const [newCase, setNewCase] = useState({ title: '', description: '', client_name: '', result: '' });
+  const [newCase, setNewCase] = useState({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
