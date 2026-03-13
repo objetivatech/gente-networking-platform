@@ -134,7 +134,7 @@ export default function Feed() {
           <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
