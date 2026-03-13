@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, Legend } from 'recharts';
 import { Loader2, BarChart3, TrendingUp, Users, DollarSign, MessageSquare, Handshake, Send, Calendar, MessageCircle, Lightbulb, Briefcase, Award } from 'lucide-react';
-import { RankBadge } from '@/components/RankBadge';
+import RankBadge from '@/components/RankBadge';
 
 const RANK_COLORS = { iniciante: '#9ca3af', bronze: '#d97706', prata: '#6b7280', ouro: '#eab308', diamante: '#0ea5e9' };
 
