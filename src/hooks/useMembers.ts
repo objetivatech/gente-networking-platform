@@ -33,6 +33,8 @@ export interface Member {
   team_color: string | null;
   slug: string | null;
   is_active: boolean;
+  role: string | null;
+  is_facilitator: boolean;
 }
 
 export interface MembersByTeam {
