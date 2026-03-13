@@ -31,7 +31,7 @@ export function useTeams() {
       const { data: teamsData, error } = await supabaseReadOnly.from('teams').select('*').order('name');
       if (error) throw error;
 
-      const { data: membersData } = await supabase.from('team_members').select('*');
+      const { data: membersData } = await supabaseReadOnly.from('team_members').select('*');
       const userIds = membersData?.map(m => m.user_id) || [];
       
       let profiles: Record<string, any> = {};
