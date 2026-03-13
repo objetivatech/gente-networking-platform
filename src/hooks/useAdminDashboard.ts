@@ -212,7 +212,7 @@ export function useAdminDashboard() {
     queryFn: async () => {
       const { data } = await supabase
         .from('activity_feed')
-        .select('*, profiles:user_id(full_name, avatar_url)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(20);
       return data || [];
