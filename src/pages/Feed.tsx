@@ -131,10 +131,10 @@ export default function Feed() {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -148,7 +148,7 @@ export default function Feed() {
             </Select>
 
             <Select value={periodFilter} onValueChange={setPeriodFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -159,7 +159,7 @@ export default function Feed() {
             </Select>
 
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Grupo" />
               </SelectTrigger>
               <SelectContent>

@@ -663,7 +663,7 @@ export default function Documentacao() {
                         { route: '/encontros', desc: 'Encontros ordenados com destaque "Em breve"' },
                         { route: '/convites', desc: 'Convites com expiração 30d e exclusão manual' },
                         { route: '/conselho', desc: 'Conselho 24/7 — help desk Kanban' },
-                        { route: '/equipes', desc: 'Gestão de grupos (Admin/Facilitador)' },
+                        { route: '/equipes', desc: 'Redireciona para /membros?tab=grupos' },
                         { route: '/estatisticas', desc: 'Gráficos e métricas do sistema' },
                         { route: '/conteudos', desc: 'Materiais educativos' },
                         { route: '/dashboard', desc: 'Dashboard Admin com KPIs' },
@@ -706,6 +706,7 @@ export default function Documentacao() {
                         { name: 'ActivityFeed', desc: 'Feed de atividades em tempo real' },
                         { name: 'MemberSelect', desc: 'Seletor de membros reutilizável' },
                         { name: 'ScoringRulesCard', desc: 'Regras de pontuação (inclui Conselho e Cases)' },
+                        { name: 'AdminCacheDiagnostics', desc: 'Diagnóstico de cache do Cloudflare Worker Proxy' },
                         { name: 'AdminDataView', desc: 'Visualização admin com filtros e CRUD' },
                         { name: 'CloudflareTurnstile', desc: 'Widget anti-bot Cloudflare' },
                         { name: 'NotificationSettings', desc: 'Configurações de notificação por tipo' },
@@ -739,6 +740,7 @@ export default function Documentacao() {
                         { label: 'Forms', value: 'React Hook Form + Zod' },
                         { label: 'PWA', value: 'vite-plugin-pwa' },
                         { label: 'Backend', value: 'Supabase (Auth, DB, Edge Functions, Realtime)' },
+                        { label: 'Cache de Borda', value: 'Cloudflare Worker Proxy (api.gentenetworking.com.br)' },
                         { label: 'Hosting', value: 'Cloudflare Pages' },
                         { label: 'Anti-Bot', value: 'Cloudflare Turnstile' },
                         { label: 'Analytics', value: 'Cloudflare Web Analytics' },
@@ -812,6 +814,32 @@ export default function Documentacao() {
                         </div>
                       ))}
                     </div>
+
+                    <h4 className="font-semibold mt-6">Arquitetura de Performance (Cloudflare Worker Proxy)</h4>
+                    <p className="text-sm text-muted-foreground">
+                      O sistema utiliza um Cloudflare Worker como proxy reverso para cache de borda das requisições de leitura ao Supabase.
+                      Isso reduz a latência e a carga no banco de dados.
+                    </p>
+                    <div className="grid gap-2 text-sm mt-3">
+                      {[
+                        { label: 'Proxy URL', value: 'api.gentenetworking.com.br' },
+                        { label: 'Cache TTL', value: '60s a 600s (stale-while-revalidate)' },
+                        { label: 'Headers', value: 'X-Cache (HIT/MISS/BYPASS), X-Cache-TTL' },
+                        { label: 'Implementação', value: 'JavaScript puro no Cloudflare Dashboard' },
+                        { label: 'Diagnóstico', value: 'Componente AdminCacheDiagnostics no painel Admin' },
+                        { label: 'Ativação', value: 'Via VITE_PROXY_URL no ambiente (opcional)' },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="p-2 rounded bg-muted flex justify-between gap-2">
+                          <strong className="shrink-0">{label}:</strong>
+                          <span className="text-muted-foreground text-right">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      <strong>Importante:</strong> O frontend utiliza um único cliente Supabase autenticado.
+                      O proxy deve ser configurado como camada de infraestrutura transparente, sem criar um segundo
+                      cliente no frontend, para evitar quebra de sessão RLS.
+                    </p>
                   </CardContent>
                 </Card>
 
