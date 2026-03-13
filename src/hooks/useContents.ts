@@ -26,7 +26,7 @@ export function useContents() {
   const { data: contents, isLoading } = useQuery({
     queryKey: ['contents'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseReadOnly
         .from('contents')
         .select('*')
         .order('created_at', { ascending: false });
