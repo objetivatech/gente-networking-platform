@@ -597,6 +597,9 @@ export default function Admin() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Diagnóstico de Cache */}
+            <AdminCacheDiagnostics />
           </TabsContent>
         )}
       </Tabs>
