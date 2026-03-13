@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useMeetings, useMeetingAttendees } from '@/hooks/useMeetings';
+import { useMeetings, useMeetingAttendees, useMeetingGuests } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { Button } from '@/components/ui/button';
@@ -201,39 +199,7 @@ export default function Encontros() {
 
 function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
-  const { data: guests, isLoading: isLoadingGuests } = useQuery({
-    queryKey: ['meeting-guests', meetingId],
-    queryFn: async () => {
-      // Get all user_ids who confirmed attendance for this meeting
-      const { data: meetingAttendances } = await supabase
-        .from('attendances')
-        .select('user_id')
-        .eq('meeting_id', meetingId);
-      
-      if (!meetingAttendances?.length) return [];
-      
-      const attendeeIds = meetingAttendances.map(a => a.user_id);
-      
-      // Check which of these attendees have the 'convidado' role
-      const { data: guestRoles } = await supabase
-        .from('user_roles')
-        .select('user_id')
-        .in('user_id', attendeeIds)
-        .eq('role', 'convidado');
-      
-      const guestUserIds = guestRoles?.map(r => r.user_id) || [];
-      if (!guestUserIds.length) return [];
-      
-      // Get profiles with contact info
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, phone, avatar_url, company')
-        .in('id', guestUserIds);
-      
-      return profiles || [];
-    },
-    enabled: !!meetingId,
-  });
+  const { data: guests, isLoading: isLoadingGuests } = useMeetingGuests(meetingId);
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 

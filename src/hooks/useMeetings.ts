@@ -26,6 +26,15 @@ export interface Attendance {
   profile?: { full_name: string; company: string | null; avatar_url: string | null };
 }
 
+export interface MeetingGuest {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  company: string | null;
+}
+
 export function useMeetings() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -110,15 +119,70 @@ export function useMeetingAttendees(meetingId: string) {
     queryFn: async () => {
       const { data, error } = await supabase.from('attendances').select('*').eq('meeting_id', meetingId);
       if (error) throw error;
-      
+
       const userIds = data.map(a => a.user_id);
       let profiles: Record<string, any> = {};
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase.from('profiles').select('id, full_name, company, avatar_url').in('id', userIds);
         profilesData?.forEach(p => { profiles[p.id] = p; });
       }
-      
+
       return data.map(a => ({ ...a, profile: profiles[a.user_id] })) as Attendance[];
+    },
+    enabled: !!meetingId,
+  });
+}
+
+export function useMeetingGuests(meetingId: string) {
+  return useQuery({
+    queryKey: ['meeting-guests', meetingId],
+    queryFn: async () => {
+      const { data: meetingAttendances, error: attendancesError } = await supabase
+        .from('attendances')
+        .select('user_id')
+        .eq('meeting_id', meetingId);
+
+      if (attendancesError) throw attendancesError;
+      if (!meetingAttendances?.length) return [] as MeetingGuest[];
+
+      const attendeeIds = [...new Set(meetingAttendances.map(a => a.user_id))];
+
+      const [{ data: rolesData, error: rolesError }, { data: invitationsData, error: invitationsError }] = await Promise.all([
+        supabase.from('user_roles').select('user_id, role').in('user_id', attendeeIds),
+        supabase.from('invitations').select('accepted_by').eq('status', 'accepted').in('accepted_by', attendeeIds),
+      ]);
+
+      if (rolesError) throw rolesError;
+      if (invitationsError) throw invitationsError;
+
+      const rolesByUser = new Map<string, Set<string>>();
+      rolesData?.forEach(({ user_id, role }) => {
+        const roles = rolesByUser.get(user_id) ?? new Set<string>();
+        roles.add(role);
+        rolesByUser.set(user_id, roles);
+      });
+
+      const invitationGuestIds = new Set((invitationsData ?? []).map(inv => inv.accepted_by).filter(Boolean) as string[]);
+
+      const guestUserIds = attendeeIds.filter((userId) => {
+        const roles = rolesByUser.get(userId) ?? new Set<string>();
+        const hasMemberRole = roles.has('admin') || roles.has('facilitador') || roles.has('membro');
+        const hasGuestRole = roles.has('convidado');
+        const isGuestByInvitation = invitationGuestIds.has(userId) && !hasMemberRole;
+
+        return (hasGuestRole && !hasMemberRole) || isGuestByInvitation;
+      });
+
+      if (!guestUserIds.length) return [] as MeetingGuest[];
+
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone, avatar_url, company')
+        .in('id', guestUserIds);
+
+      if (profilesError) throw profilesError;
+
+      return (profiles ?? []) as MeetingGuest[];
     },
     enabled: !!meetingId,
   });
