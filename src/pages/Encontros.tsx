@@ -35,8 +35,10 @@ export default function Encontros() {
     setFormData({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '' });
   };
 
-  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [];
-  const pastMeetings = meetings?.filter(m => isPast(parseLocalDate(m.meeting_date)) && !isToday(parseLocalDate(m.meeting_date))) || [];
+  const upcomingMeetings = (meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [])
+    .sort((a, b) => parseLocalDate(a.meeting_date).getTime() - parseLocalDate(b.meeting_date).getTime());
+  const pastMeetings = (meetings?.filter(m => isPast(parseLocalDate(m.meeting_date)) && !isToday(parseLocalDate(m.meeting_date))) || [])
+    .sort((a, b) => parseLocalDate(b.meeting_date).getTime() - parseLocalDate(a.meeting_date).getTime());
 
   const MeetingCard = ({ meeting }: { meeting: typeof meetings[0] }) => {
     const isPastMeeting = isPast(parseLocalDate(meeting.meeting_date)) && !isToday(parseLocalDate(meeting.meeting_date));
