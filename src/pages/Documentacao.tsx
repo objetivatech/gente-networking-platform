@@ -739,6 +739,7 @@ export default function Documentacao() {
                         { label: 'Forms', value: 'React Hook Form + Zod' },
                         { label: 'PWA', value: 'vite-plugin-pwa' },
                         { label: 'Backend', value: 'Supabase (Auth, DB, Edge Functions, Realtime)' },
+                        { label: 'Cache de Borda', value: 'Cloudflare Worker Proxy (api.gentenetworking.com.br)' },
                         { label: 'Hosting', value: 'Cloudflare Pages' },
                         { label: 'Anti-Bot', value: 'Cloudflare Turnstile' },
                         { label: 'Analytics', value: 'Cloudflare Web Analytics' },
