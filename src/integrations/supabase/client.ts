@@ -18,3 +18,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+/**
+ * Read-only Supabase client that routes through the Cloudflare Worker proxy
+ * for edge-cached responses. Falls back to the regular client if PROXY_URL is not set.
+ * Use ONLY for read operations on cacheable endpoints (profiles, teams, meetings, etc.)
+ */
+export const supabaseReadOnly = PROXY_URL
+  ? createClient<Database>(PROXY_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        storage: localStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
+  : supabase;
