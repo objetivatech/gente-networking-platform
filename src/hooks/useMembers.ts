@@ -92,7 +92,7 @@ export function useMembers(includeInactive = false) {
       });
 
       // 4. Get all teams
-      const { data: teams, error: teamsError } = await supabase
+      const { data: teams, error: teamsError } = await supabaseReadOnly
         .from('teams')
         .select('id, name, color')
         .order('name');
