@@ -26,6 +26,7 @@ export default function MemberSelect({
   const { user } = useAuth();
   const { members, isLoading } = useMembers();
 
+  // Exclude self if needed — admins are already excluded by useMembers
   const filteredMembers = excludeSelf
     ? members?.filter((m) => m.id !== user?.id)
     : members;
@@ -62,7 +63,12 @@ export default function MemberSelect({
                   {getInitials(member.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <span>{member.full_name}</span>
+              <span>
+                {member.full_name}
+                {member.role === 'facilitador' && (
+                  <span className="text-amber-600 font-medium"> (Facilitador)</span>
+                )}
+              </span>
               {member.company && (
                 <span className="text-muted-foreground text-xs">
                   ({member.company})
