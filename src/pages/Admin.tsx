@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check, RefreshCw } from 'lucide-react';
+import AdminCacheDiagnostics from '@/components/AdminCacheDiagnostics';
 import { Navigate } from 'react-router-dom';
 import { format, isFuture, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
