@@ -145,10 +145,10 @@ export default function Profile() {
   };
 
   const handleCreateCase = () => {
-    if (!newCase.title.trim()) return;
-    createCase.mutate(newCase);
+    if (!newCase.title.trim() || !newCase.business_deal_id) return;
+    createCase.mutate({ ...newCase, business_deal_id: newCase.business_deal_id });
     setShowNewCase(false);
-    setNewCase({ title: '', description: '', client_name: '', result: '' });
+    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
   };
 
   if (isLoading) {
