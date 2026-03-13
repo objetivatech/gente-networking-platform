@@ -204,52 +204,32 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
   const { data: guests, isLoading: isLoadingGuests } = useQuery({
     queryKey: ['meeting-guests', meetingId],
     queryFn: async () => {
-      const { data: meeting } = await supabase.from('meetings').select('team_id').eq('id', meetingId).single();
-
-      let invitationsQuery = supabase
-        .from('invitations')
-        .select('id, name, email, accepted_by, invited_by, status')
-        .eq('status', 'accepted');
-
-      if (meeting?.team_id) {
-        const { data: teamMemberIds } = await supabase.from('team_members').select('user_id').eq('team_id', meeting.team_id);
-        if (!teamMemberIds?.length) return [];
-
-        const inviterIds = teamMemberIds.map((tm) => tm.user_id);
-        invitationsQuery = invitationsQuery.in('invited_by', inviterIds);
-      }
-
-      const { data: invitations } = await invitationsQuery;
-      if (!invitations?.length) return [];
-
-      const acceptedInviteeIds = invitations.map((i) => i.accepted_by).filter(Boolean) as string[];
-      if (!acceptedInviteeIds.length) return [];
-
-      // Apenas usuários que ainda têm papel de convidado entram na seção "Convidados"
+      // Get all user_ids who confirmed attendance for this meeting
+      const { data: meetingAttendances } = await supabase
+        .from('attendances')
+        .select('user_id')
+        .eq('meeting_id', meetingId);
+      
+      if (!meetingAttendances?.length) return [];
+      
+      const attendeeIds = meetingAttendances.map(a => a.user_id);
+      
+      // Check which of these attendees have the 'convidado' role
       const { data: guestRoles } = await supabase
         .from('user_roles')
         .select('user_id')
-        .in('user_id', acceptedInviteeIds)
+        .in('user_id', attendeeIds)
         .eq('role', 'convidado');
-
-      const guestUserIds = guestRoles?.map((r) => r.user_id) || [];
+      
+      const guestUserIds = guestRoles?.map(r => r.user_id) || [];
       if (!guestUserIds.length) return [];
-
-      const { data: guestAttendances } = await supabase
-        .from('attendances')
-        .select('user_id')
-        .eq('meeting_id', meetingId)
-        .in('user_id', guestUserIds);
-
-      const attendingGuestIds = new Set(guestAttendances?.map((a) => a.user_id) || []);
-      if (attendingGuestIds.size === 0) return [];
-
-      // Get profiles of attending guests
+      
+      // Get profiles with contact info
       const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, email, phone, avatar_url, company')
-        .in('id', Array.from(attendingGuestIds));
-
+        .in('id', guestUserIds);
+      
       return profiles || [];
     },
     enabled: !!meetingId,
