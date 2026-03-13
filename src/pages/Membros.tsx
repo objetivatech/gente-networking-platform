@@ -601,144 +601,282 @@ export default function Membros() {
         )}
       </div>
 
-      {/* Search and Filters */}
-      <div className="space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nome, empresa ou segmento..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        {/* Advanced Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+      <Tabs defaultValue={defaultTab} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="membros">Membros</TabsTrigger>
+          <TabsTrigger value="grupos">Grupos</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="membros" className="space-y-4">
+          {/* Search and Filters */}
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome, empresa ou segmento..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Filter className="h-4 w-4" />
+                <span>Filtros:</span>
+              </div>
+              
+              <Select value={teamFilter} onValueChange={setTeamFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Grupo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os grupos</SelectItem>
+                  {uniqueTeams.map(team => (
+                    <SelectItem key={team.id} value={team.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: team.color }} />
+                        {team.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="no-team">Sem Grupo</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Segmento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os segmentos</SelectItem>
+                  {uniqueSegments.map(segment => (
+                    <SelectItem key={segment} value={segment}>{segment}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={rankFilter} onValueChange={setRankFilter}>
+                <SelectTrigger className="w-full sm:w-[150px]">
+                  <SelectValue placeholder="Rank" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os ranks</SelectItem>
+                  {uniqueRanks.map(rank => (
+                    <SelectItem key={rank} value={rank}>{RANK_LABELS[rank] || rank}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
+                  <X className="h-4 w-4 mr-1" /> Limpar
+                </Button>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Filter className="h-4 w-4" />
-            <span>Filtros:</span>
+            <Briefcase className="h-4 w-4" />
+            <span>{filteredCount} membros encontrados</span>
           </div>
-          
-          {/* Team Filter */}
-          <Select value={teamFilter} onValueChange={setTeamFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Grupo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os grupos</SelectItem>
-              {uniqueTeams.map(team => (
-                <SelectItem key={team.id} value={team.id}>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: team.color }}
-                    />
-                    {team.name}
-                  </div>
-                </SelectItem>
+
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-12 w-full" />
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="pt-6">
+                      <div className="flex items-start gap-4">
+                        <Skeleton className="h-14 w-14 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                          <Skeleton className="h-3 w-2/3" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-8 w-full mt-4" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : filteredMembersByTeam.length === 0 ? (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  {hasActiveFilters ? 'Nenhum membro encontrado com esses critérios' : 'Nenhum membro cadastrado'}
+                </p>
+                {hasActiveFilters && (
+                  <Button variant="link" onClick={clearFilters} className="mt-2">Limpar filtros</Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {filteredMembersByTeam.map(team => (
+                <TeamSection 
+                  key={team.team_id || 'no-team'} 
+                  team={team} 
+                  search={search}
+                  segmentFilter={segmentFilter}
+                  rankFilter={rankFilter}
+                  onViewProfile={handleViewProfile}
+                />
               ))}
-              <SelectItem value="no-team">Sem Grupo</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {/* Segment Filter */}
-          <Select value={segmentFilter} onValueChange={setSegmentFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Segmento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os segmentos</SelectItem>
-              {uniqueSegments.map(segment => (
-                <SelectItem key={segment} value={segment}>
-                  {segment}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {/* Rank Filter */}
-          <Select value={rankFilter} onValueChange={setRankFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Rank" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os ranks</SelectItem>
-              {uniqueRanks.map(rank => (
-                <SelectItem key={rank} value={rank}>
-                  {RANK_LABELS[rank] || rank}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-1" />
-              Limpar filtros
-            </Button>
+            </div>
           )}
-        </div>
-      </div>
+        </TabsContent>
 
+        <TabsContent value="grupos" className="space-y-6">
+          <GruposTab teams={teams} isLoading={teamsLoading} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// ─── Grupos Tab (inline from Equipes) ────────────────────────
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import RankBadge from '@/components/RankBadge';
+import { Crown, UserCheck } from 'lucide-react';
+import type { Team } from '@/hooks/useTeams';
+
+function GruposTab({ teams, isLoading: loading }: { teams: Team[] | undefined; isLoading: boolean }) {
+  const getInitials = (name: string) =>
+    name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Skeleton className="h-8 w-8 rounded-full" />
+      </div>
+    );
+  }
+
+  return (
+    <>
       {/* Stats */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Briefcase className="h-4 w-4" />
-        <span>{filteredCount} membros encontrados</span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-primary">{teams?.length || 0}</p>
+              <p className="text-sm text-muted-foreground">Grupos</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-blue-600">
+                {teams?.reduce((sum, t) => sum + (t.members?.length || 0), 0) || 0}
+              </p>
+              <p className="text-sm text-muted-foreground">Total de Membros</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-amber-600">
+                {teams?.reduce((sum, t) => sum + (t.members?.filter(m => m.is_facilitator).length || 0), 0) || 0}
+              </p>
+              <p className="text-sm text-muted-foreground">Facilitadores</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i}>
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-4">
-                    <Skeleton className="h-14 w-14 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                      <Skeleton className="h-3 w-2/3" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-8 w-full mt-4" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      ) : filteredMembersByTeam.length === 0 ? (
+      {/* Team Cards */}
+      {!teams?.length ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
-              {hasActiveFilters ? 'Nenhum membro encontrado com esses critérios' : 'Nenhum membro cadastrado'}
-            </p>
-            {hasActiveFilters && (
-              <Button variant="link" onClick={clearFilters} className="mt-2">
-                Limpar filtros
-              </Button>
-            )}
+          <CardContent className="py-16 text-center text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="font-medium">Nenhum grupo cadastrado</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
-          {filteredMembersByTeam.map(team => (
-            <TeamSection 
-              key={team.team_id || 'no-team'} 
-              team={team} 
-              search={search}
-              segmentFilter={segmentFilter}
-              rankFilter={rankFilter}
-              onViewProfile={handleViewProfile}
-            />
-          ))}
+        <div className="grid md:grid-cols-2 gap-6">
+          {teams.map((team) => {
+            const facilitators = team.members?.filter((m) => m.is_facilitator) || [];
+            const members = team.members?.filter((m) => !m.is_facilitator) || [];
+            return (
+              <Card key={team.id} className="overflow-hidden">
+                <div className="h-2" style={{ backgroundColor: team.color || 'hsl(var(--primary))' }} />
+                <CardContent className="pt-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5" style={{ color: team.color }} />
+                      <h3 className="font-semibold text-lg">{team.name}</h3>
+                    </div>
+                    <Badge variant="secondary">{team.members?.length || 0} membros</Badge>
+                  </div>
+                  {team.description && <p className="text-sm text-muted-foreground">{team.description}</p>}
+
+                  {facilitators.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                        <Crown className="w-4 h-4 text-amber-500" /> Facilitadores
+                      </h4>
+                      <div className="space-y-2">
+                        {facilitators.map((member) => (
+                          <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
+                            <Avatar className="h-8 w-8 border-2 border-amber-300">
+                              <AvatarImage src={member.profile.avatar_url || ''} />
+                              <AvatarFallback className="text-xs">{getInitials(member.profile.full_name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{member.profile.full_name}</p>
+                              {member.profile.company && <p className="text-xs text-muted-foreground truncate">{member.profile.company}</p>}
+                            </div>
+                            <RankBadge rank={member.profile.rank} size="sm" showLabel={false} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {members.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                        <UserCheck className="w-4 h-4" /> Membros
+                      </h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {members.map((member) => {
+                          const isGuestRole = member.role === 'convidado';
+                          return (
+                            <div key={member.id} className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${isGuestRole ? 'bg-secondary/10 border border-secondary/20' : 'bg-muted/50 hover:bg-muted'}`}>
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={member.profile.avatar_url || ''} />
+                                <AvatarFallback className="text-xs">{getInitials(member.profile.full_name)}</AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium text-sm truncate">{member.profile.full_name}</p>
+                                  {isGuestRole && <Badge variant="outline" className="text-xs text-secondary border-secondary">Convidado</Badge>}
+                                </div>
+                                {member.profile.company && <p className="text-xs text-muted-foreground truncate">{member.profile.company}</p>}
+                              </div>
+                              <RankBadge rank={member.profile.rank} size="sm" showLabel={false} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {!team.members?.length && (
+                    <div className="text-center py-4 text-muted-foreground text-sm">Nenhum membro neste grupo</div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
-    </div>
+    </>
   );
 }
