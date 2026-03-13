@@ -3,7 +3,7 @@
 > **Última atualização:** 2026-03-12
 > **Versão:** 3.0.0
 
-Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades e dashboard administrativo.
+Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
 ---
 
@@ -11,11 +11,14 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 
 1. [Ciclo de Vida do Usuário](#ciclo-de-vida-do-usuário)
 2. [Fluxos de Atividades](#fluxos-de-atividades)
-3. [Sistema de Pontuação](#sistema-de-pontuação)
-4. [Feed de Atividades](#feed-de-atividades)
-5. [Dashboard Administrativo](#dashboard-administrativo)
-6. [Navegação Mobile](#navegação-mobile)
-7. [Validações e Triggers](#validações-e-triggers)
+3. [Conselho 24/7](#conselho-247)
+4. [Cases de Negócio](#cases-de-negócio)
+5. [Sistema de Pontuação](#sistema-de-pontuação)
+6. [Feed de Atividades](#feed-de-atividades)
+7. [Dashboard Administrativo](#dashboard-administrativo)
+8. [Navegação Mobile](#navegação-mobile)
+9. [Segurança (Cloudflare Turnstile)](#segurança-cloudflare-turnstile)
+10. [Validações e Triggers](#validações-e-triggers)
 
 ---
 
@@ -57,16 +60,21 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 │                                        │ Empresa,       │                    │
 │                                        │ Segmento,      │                    │
 │                                        │ Senha          │                    │
+│                                        ├────────────────┤                    │
+│                                        │ ⚡ Turnstile   │                    │
+│                                        │ (anti-bot)     │                    │
 │                                        └────────────────┘                    │
 │                                                   │                          │
 │                                                   ▼                          │
 │                                        ┌────────────────┐                    │
-│                                        │ Triggers:      │                    │
-│                                        │ 1. Criar user  │                    │
-│                                        │ 2. Criar profile│                   │
-│                                        │ 3. Accept invite│                   │
-│                                        │ 4. Role=convidado│                  │
-│                                        │ 5. Email convite│                   │
+│                                        │ Verificações:  │                    │
+│                                        │ 1. Turnstile   │                    │
+│                                        │    server-side │                    │
+│                                        │ 2. Criar user  │                    │
+│                                        │ 3. Criar profile│                   │
+│                                        │ 4. Accept invite│                   │
+│                                        │ 5. Role=convidado│                  │
+│                                        │ 6. Email convite│                   │
 │                                        └────────────────┘                    │
 │                                                   │                          │
 │                                                   ▼                          │
@@ -79,7 +87,7 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 
 **Tabelas:** `invitations`, `auth.users`, `profiles`, `user_roles`  
 **Triggers:** `handle_new_user()`, `accept_invitation()`  
-**Edge Function:** `send-notification` (tipo: invitation)
+**Edge Functions:** `verify-turnstile` (anti-bot), `send-notification` (tipo: invitation)
 
 ---
 
@@ -158,8 +166,10 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 
 ```
 /indicacoes → Nova indicação
-    → Membro destinatário + Nome/Telefone/Email do contato + Observações
-    → INSERT referrals (status: morno)
+    → Membro destinatário + Nome/Telefone/Email do contato
+    → Status: Frio 🔵 / Morno 🟡 / Quente 🔴
+    → Observações
+    → INSERT referrals (status: morno por padrão)
     → Trigger: handle_referral_insert()
         1. Adiciona ao activity_feed (com team_id = grupo em comum)
         2. +20 pontos para quem INDICA
@@ -191,6 +201,87 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 
 ---
 
+## Conselho 24/7
+
+### Fluxo de Criação de Tópico
+
+```
+/conselho → Novo Tópico
+    → Título + Descrição + Grupo (opcional)
+    → INSERT council_posts (status: 'aberto')
+    → Atividade registrada no feed
+    → Autor NÃO pontua
+```
+
+### Fluxo de Resposta
+
+```
+/conselho → Abrir tópico → Responder
+    → INSERT council_replies
+    → Trigger: handle_council_reply_insert()
+        1. Adiciona ao activity_feed
+        2. +5 pontos para quem responde
+```
+
+### Fluxo de Melhor Resposta
+
+```
+/conselho → Abrir tópico → Marcar melhor resposta (apenas autor do tópico)
+    → UPDATE council_replies (is_best_answer = true)
+    → Trigger: handle_best_answer_update()
+        → +5 pontos adicionais para quem respondeu
+```
+
+### Status Kanban
+
+```
+Aberto → Em Andamento → Resolvido
+(autor pode alterar o status do seu tópico)
+```
+
+---
+
+## Cases de Negócio
+
+### Fluxo de Registro
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     FLUXO DE CASE DE NEGÓCIO                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [Membro]                                                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│  1. Registrar negócio em /negocios (pré-requisito)                          │
+│        │                                                                     │
+│        ▼                                                                     │
+│  2. Acessar perfil → Aba "Cases" → "Novo Case"                             │
+│        │                                                                     │
+│        ▼                                                                     │
+│  3. Preencher: Título, Descrição, Resultado, Cliente                        │
+│     Vincular ao negócio fechado                                              │
+│     Adicionar imagem (opcional)                                              │
+│        │                                                                     │
+│        ▼                                                                     │
+│  4. INSERT business_cases                                                    │
+│        │                                                                     │
+│        ▼                                                                     │
+│  5. Pontuação:                                                               │
+│     +15 pts → Autor do case                                                  │
+│     +20 pts → Membro que indicou o negócio original                         │
+│        │                                                                     │
+│        ▼                                                                     │
+│  6. Aparece no feed de atividades                                            │
+│     Aparece como slider de cards no perfil do membro                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Tabelas:** `business_cases`, `business_deals`  
+**Exibição:** Slider de cards no perfil (máx 3 visíveis, rotação automática)
+
+---
+
 ## Sistema de Pontuação
 
 ### Modelo Mensal por Grupo (v2.3.0+)
@@ -199,6 +290,22 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 - A cada novo mês, ranking reinicia
 - Tabela `monthly_points`: (user_id, team_id, year_month, points, rank)
 - Triggers recalculam automaticamente após cada atividade
+- **Admin e Facilitador não pontuam** (retorno 0 na função de cálculo)
+
+### Tabela Completa de Pontuação
+
+| Atividade | Pontos | Contexto de Grupo |
+|-----------|--------|-------------------|
+| Gente em Ação | 25 pts | Grupo em comum com parceiro |
+| Presença em Encontro | 20 pts | Grupo do encontro |
+| Indicação | 20 pts | Grupo em comum com destinatário |
+| Case de Negócio (indicador) | 20 pts | Grupos do indicador |
+| Depoimento | 15 pts | Grupo em comum com destinatário |
+| Convite Aceito (com presença) | 15 pts | Grupos do convidador |
+| Case de Negócio (autor) | 15 pts | Grupos do autor |
+| Negócio | 5 pts / R$100 | Todos os grupos do usuário |
+| Resposta no Conselho | 5 pts | Grupo do tópico |
+| Melhor Resposta (Conselho) | +5 pts | Grupo do tópico |
 
 ### Contexto de Grupo das Atividades
 
@@ -210,6 +317,8 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 | Indicações | Grupo em comum entre remetente e destinatário |
 | Negócios | Primeiro grupo do usuário |
 | Convites | Grupo do convidador |
+| Conselho | team_id do tópico, ou global |
+| Cases | Grupos do autor |
 
 ---
 
@@ -219,7 +328,8 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 
 ```
 /feed → Filtros: Tipo + Período + Grupo
-    → Tipo: Gente em Ação, Depoimento, Negócio, Indicação, Presença, Convite
+    → Tipo: Gente em Ação, Depoimento, Negócio, Indicação, Presença,
+            Convite, Convidado presente, Conselho
     → Período: Este mês, Mês passado, 3 meses, 6 meses, Todo período
     → Grupo: Filtra diretamente pela coluna team_id na activity_feed
     → Clique no item → Dialog com detalhes completos (metadata, data)
@@ -270,6 +380,43 @@ Layout com `pb-20` e `safe-area-inset-bottom` para compatibilidade mobile.
 
 ---
 
+## Segurança (Cloudflare Turnstile)
+
+### Fluxo de Verificação Anti-Bot
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     CLOUDFLARE TURNSTILE - ANTI-BOT                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  [Convidado no formulário de cadastro]                                       │
+│        │                                                                     │
+│        ▼                                                                     │
+│  1. Widget Turnstile carrega automaticamente                                │
+│        │                                                                     │
+│        ▼                                                                     │
+│  2. Usuário resolve desafio (invisível ou interativo)                       │
+│        │                                                                     │
+│        ▼                                                                     │
+│  3. Token gerado → botão "Criar Conta" habilitado                          │
+│        │                                                                     │
+│        ▼                                                                     │
+│  4. Ao submeter → supabase.functions.invoke('verify-turnstile', { token })  │
+│        │                                                                     │
+│        ▼                                                                     │
+│  5. Edge Function valida token contra API Cloudflare (siteverify)           │
+│        │                                                                     │
+│        ├── Sucesso → Prossegue com criação da conta                         │
+│        └── Falha → Erro "Verificação de segurança falhou"                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Componente:** `CloudflareTurnstile.tsx`  
+**Edge Function:** `verify-turnstile` (`verify_jwt = false`)  
+**Secret:** `TURNSTILE_SECRET_KEY`
+
+---
+
 ## Validações e Triggers
 
 ### Triggers de Inserção
@@ -285,6 +432,8 @@ Layout com `pb-20` e `safe-area-inset-bottom` para compatibilidade mobile.
 | `handle_guest_attendance_insert()` | attendances | Pontos para convidador + team_id |
 | `handle_invitation_accepted()` | invitations | Feed + pontos do convidador |
 | `handle_profile_slug()` | profiles | Gera slug único |
+| `handle_council_reply_insert()` | council_replies | Feed + pontos para respondente |
+| `handle_best_answer_update()` | council_replies | +5 pontos para melhor resposta |
 
 ### Triggers de Deleção
 

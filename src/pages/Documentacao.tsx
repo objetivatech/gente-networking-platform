@@ -23,6 +23,10 @@ import {
   BarChart3,
   Rss,
   Smartphone,
+  HelpCircle,
+  Briefcase,
+  User,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function Documentacao() {
@@ -100,8 +104,8 @@ export default function Documentacao() {
                     <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                       <p className="font-semibold text-primary">Versão 3.0.0</p>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Pontuação mensal por grupo, Feed de Atividades com filtros, Dashboard Admin com KPIs, 
-                        navegação mobile otimizada e gestão unificada de pessoas.
+                        Pontuação mensal por grupo, Feed de Atividades, Conselho 24/7, Cases de Negócio,
+                        Perfil v3 com pitch IA, proteção Cloudflare Turnstile e Analytics.
                       </p>
                     </div>
 
@@ -114,24 +118,40 @@ export default function Documentacao() {
                         <Badge>25 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                        <span className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Depoimentos</span>
-                        <Badge>15 pts</Badge>
+                        <span className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Presenças</span>
+                        <Badge>20 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><Send className="h-4 w-4" /> Indicações</span>
                         <Badge>20 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                        <span className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Presenças</span>
+                        <span className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> Case de Negócio (indicador)</span>
                         <Badge>20 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                        <span className="flex items-center gap-2"><UserPlus className="h-4 w-4" /> Convites Aceitos</span>
+                        <span className="flex items-center gap-2"><MessageSquare className="h-4 w-4" /> Depoimentos</span>
+                        <Badge>15 pts</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                        <span className="flex items-center gap-2"><UserPlus className="h-4 w-4" /> Convites Aceitos (com presença)</span>
+                        <Badge>15 pts</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                        <span className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> Case de Negócio (autor)</span>
                         <Badge>15 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><DollarSign className="h-4 w-4" /> Negócios</span>
                         <Badge>5 pts / R$100</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                        <span className="flex items-center gap-2"><HelpCircle className="h-4 w-4" /> Resposta no Conselho 24/7</span>
+                        <Badge>5 pts</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                        <span className="flex items-center gap-2"><HelpCircle className="h-4 w-4" /> Melhor Resposta (Conselho)</span>
+                        <Badge>+5 pts</Badge>
                       </div>
                     </div>
                     
@@ -150,6 +170,7 @@ export default function Documentacao() {
                       <li>• O ranking mostra a classificação mensal, com filtros por mês e grupo</li>
                       <li>• No seu perfil, você pode ver um gráfico de evolução mensal</li>
                       <li>• Atividades realizadas em um mês contam apenas para aquele mês</li>
+                      <li>• Administradores e Facilitadores não pontuam — a gamificação é exclusiva para membros</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -197,14 +218,10 @@ export default function Documentacao() {
                       <li>Acesse o menu "Depoimentos"</li>
                       <li>Clique em "Novo Depoimento"</li>
                       <li>Selecione o membro do seu grupo para quem deseja enviar o depoimento</li>
-                      <li>Escreva um depoimento sincero destacando qualidades profissionais, trabalhos realizados ou experiências positivas</li>
+                      <li>Escreva um depoimento sincero destacando qualidades profissionais</li>
                       <li>Clique em "Enviar" para ganhar 15 pontos</li>
-                      <li>O membro receberá uma notificação por email e o depoimento aparecerá no perfil dele</li>
+                      <li>O membro receberá uma notificação por email</li>
                     </ol>
-
-                    <p className="text-sm text-muted-foreground mt-4">
-                      <strong>Nota:</strong> Você só pode enviar depoimentos para membros do mesmo grupo.
-                    </p>
                   </CardContent>
                 </Card>
 
@@ -222,21 +239,14 @@ export default function Documentacao() {
                     <ol>
                       <li>Acesse o menu "Indicações"</li>
                       <li>Clique em "Nova Indicação"</li>
-                      <li>Selecione o membro do seu grupo que receberá a indicação</li>
-                      <li>Preencha os dados do contato:
-                        <ul>
-                          <li>Nome completo</li>
-                          <li>Telefone (WhatsApp)</li>
-                          <li>Email</li>
-                        </ul>
-                      </li>
-                      <li>Adicione notas sobre o contexto da indicação, necessidades do contato ou como conheceu a pessoa</li>
+                      <li>Selecione o membro destinatário</li>
+                      <li>Preencha os dados do contato (Nome, Telefone, Email)</li>
+                      <li>Selecione o status: <strong>Frio 🔵</strong>, <strong>Morno 🟡</strong> ou <strong>Quente 🔴</strong></li>
+                      <li>Adicione notas sobre o contexto</li>
                       <li>Clique em "Enviar" para ganhar 20 pontos</li>
-                      <li>O membro receberá uma notificação por email com os dados do contato</li>
                     </ol>
-
-                    <p className="text-sm text-muted-foreground mt-4">
-                      <strong>Nota:</strong> Você só pode fazer indicações para membros do mesmo grupo.
+                    <p className="text-sm text-muted-foreground mt-2">
+                      O destinatário pode atualizar o status da indicação conforme o andamento do contato.
                     </p>
                   </CardContent>
                 </Card>
@@ -255,22 +265,76 @@ export default function Documentacao() {
                     <ol>
                       <li>Acesse o menu "Negócios"</li>
                       <li>Clique em "Registrar Negócio"</li>
-                      <li>Preencha os dados:
-                        <ul>
-                          <li>Nome do cliente</li>
-                          <li>Valor do negócio em R$</li>
-                          <li>Data de fechamento</li>
-                          <li>Descrição do negócio (opcional)</li>
-                        </ul>
-                      </li>
-                      <li>Se o negócio veio de uma indicação, selecione o membro que fez a indicação</li>
+                      <li>Preencha: Nome do cliente, Valor (R$), Data, Descrição</li>
+                      <li>Se o negócio veio de uma indicação, selecione o membro que indicou</li>
                       <li>Clique em "Salvar"</li>
-                      <li>Você ganha 5 pontos a cada R$ 100,00 do valor do negócio</li>
+                      <li>Você ganha 5 pontos a cada R$ 100,00</li>
                     </ol>
-
-                    <p className="text-sm text-muted-foreground mt-4">
+                    <p className="text-sm text-muted-foreground mt-2">
                       <strong>Exemplo:</strong> Um negócio de R$ 5.000,00 = 250 pontos
                     </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Briefcase className="h-5 w-5" />
+                      Cases de Negócio
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>Registre cases vinculados a negócios fechados para destacar no seu perfil.</p>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Primeiro, registre o negócio fechado em "Negócios"</li>
+                      <li>No seu perfil, acesse a aba "Cases"</li>
+                      <li>Clique em "Novo Case"</li>
+                      <li>Preencha: Título, Descrição do case, Resultado obtido, Cliente</li>
+                      <li>Vincule ao negócio fechado correspondente</li>
+                      <li>Adicione uma imagem (opcional)</li>
+                      <li>Clique em "Salvar"</li>
+                    </ol>
+
+                    <h4 className="font-semibold mt-4">Pontuação:</h4>
+                    <ul>
+                      <li><strong>Autor do case:</strong> +15 pontos</li>
+                      <li><strong>Membro que indicou o negócio:</strong> +20 pontos</li>
+                    </ul>
+
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Os cases aparecem como cards no seu perfil (slider automático) e no feed de atividades.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <HelpCircle className="h-5 w-5" />
+                      Conselho 24/7
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>Help desk interno da comunidade. Poste problemas de negócio e receba ajuda de colegas.</p>
+
+                    <h4 className="font-semibold mt-4">Como usar:</h4>
+                    <ol>
+                      <li>Acesse o menu "Conselho 24/7"</li>
+                      <li>Clique em "Novo Tópico" para criar uma dúvida ou questão</li>
+                      <li>Preencha título e descrição do problema</li>
+                      <li>Outros membros podem responder com sugestões</li>
+                      <li>Marque a "Melhor Resposta" quando encontrar a solução ideal</li>
+                      <li>Altere o status: Aberto → Em Andamento → Resolvido</li>
+                    </ol>
+
+                    <h4 className="font-semibold mt-4">Pontuação:</h4>
+                    <ul>
+                      <li><strong>Quem responde:</strong> +5 pontos por resposta</li>
+                      <li><strong>Melhor resposta:</strong> +5 pontos adicionais</li>
+                      <li><strong>Quem cria o tópico:</strong> não pontua</li>
+                    </ul>
                   </CardContent>
                 </Card>
 
@@ -288,24 +352,41 @@ export default function Documentacao() {
                     <ol>
                       <li>Acesse o menu "Convites"</li>
                       <li>Clique em "Criar Novo Convite"</li>
-                      <li>Preencha:
-                        <ul>
-                          <li>Nome do convidado</li>
-                          <li>Email do convidado</li>
-                        </ul>
-                      </li>
-                      <li>Clique em "Gerar Convite"</li>
-                      <li>Copie o link gerado e envie para o convidado por WhatsApp, email ou outro meio</li>
-                      <li>O convidado clicará no link, criará sua conta e será adicionado como "Convidado"</li>
-                      <li>Quando o convidado participar do primeiro encontro presencial, você ganha 15 pontos</li>
-                      <li>Um administrador ou facilitador precisará promovê-lo para "Membro" após o primeiro encontro</li>
+                      <li>Preencha nome e email do convidado</li>
+                      <li>Copie o link e envie por WhatsApp, email ou outro meio</li>
+                      <li>O convidado criará sua conta e será adicionado como "Convidado"</li>
+                      <li>Quando participar do primeiro encontro, você ganha 15 pontos</li>
                     </ol>
-
-                    <p className="text-sm text-muted-foreground mt-4">
-                      <strong>Importante:</strong> Convites expiram em 30 dias. Você pode acompanhar o status de todos os seus convites na página de Convites.
+                    <p className="text-sm text-muted-foreground mt-2">
+                      <strong>Importante:</strong> Convites expiram em 30 dias. Você pode excluir convites pendentes antes da expiração.
                     </p>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Perfil v3
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>Seu perfil é organizado em abas para melhor visualização:</p>
+                    <ul>
+                      <li><strong>Sobre:</strong> Informações pessoais, empresa, bio, tags/habilidades, "O que faço", "Cliente ideal" e "Como me indicar"</li>
+                      <li><strong>Atividades:</strong> Histórico de Gente em Ação, Depoimentos, Indicações e Negócios</li>
+                      <li><strong>Estatísticas:</strong> Pontos mensais, evolução e gráficos</li>
+                      <li><strong>Cases:</strong> Cases de negócio (slider de cards)</li>
+                    </ul>
+
+                    <h4 className="font-semibold mt-4">Gerador de Pitch via IA</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Utilize a ferramenta de pitch para gerar automaticamente um texto de apresentação profissional 
+                      baseado nas informações do seu perfil. Ideal para usar em encontros e apresentações.
+                    </p>
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -317,7 +398,7 @@ export default function Documentacao() {
                     <p>Acompanhe todas as ações da comunidade em tempo real na página <strong>/feed</strong>.</p>
                     <h4 className="font-semibold mt-4">Filtros disponíveis:</h4>
                     <ul>
-                      <li><strong>Tipo:</strong> Gente em Ação, Depoimento, Negócio, Indicação, Presença, Convite</li>
+                      <li><strong>Tipo:</strong> Gente em Ação, Depoimento, Negócio, Indicação, Presença, Convite, Conselho</li>
                       <li><strong>Período:</strong> Este mês, mês passado, últimos 3/6 meses ou todo o período</li>
                       <li><strong>Grupo:</strong> Filtre atividades por grupo específico</li>
                     </ul>
@@ -360,8 +441,9 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
                     <p>
-                      Administradores têm acesso completo ao sistema, podendo gerenciar grupos, 
-                      membros, encontros e conteúdos.
+                      Administradores têm acesso completo ao sistema, incluindo gestão de grupos, 
+                      membros, encontros, conteúdos e registros de atividades. O admin não pontua 
+                      na gamificação e possui visão de gestão centralizada.
                     </p>
                   </CardContent>
                 </Card>
@@ -387,17 +469,8 @@ export default function Documentacao() {
                     <ol>
                       <li>Acesse o menu "Grupos"</li>
                       <li>Clique em "Novo Grupo"</li>
-                      <li>Preencha:
-                        <ul>
-                          <li>Nome do grupo</li>
-                          <li>Descrição (opcional)</li>
-                          <li>Escolha uma cor para identificação</li>
-                        </ul>
-                      </li>
-                      <li>Clique em "Salvar"</li>
-                      <li>Na lista de grupos, clique em "Gerenciar Membros"</li>
-                      <li>Adicione membros ao grupo</li>
-                      <li>Se necessário, promova um membro para Facilitador</li>
+                      <li>Preencha nome, descrição e cor</li>
+                      <li>Adicione membros e promova facilitadores</li>
                     </ol>
                   </CardContent>
                 </Card>
@@ -415,40 +488,25 @@ export default function Documentacao() {
                       de gerenciamento de membros, convidados e histórico de inativos.
                     </p>
 
-                    <h4 className="font-semibold mt-4">Acessando a Gestão de Pessoas:</h4>
-                    <ol>
-                      <li>No menu lateral, na seção Administração, clique em "Gestão de Pessoas"</li>
-                      <li>Você verá três abas: Membros, Convidados e Inativos</li>
-                      <li>Use os filtros para buscar por nome, email, perfil ou grupo</li>
-                    </ol>
-
                     <h4 className="font-semibold mt-4">Aba Membros:</h4>
                     <ul>
                       <li>Lista todos os membros ativos (Membro, Facilitador, Admin)</li>
                       <li>Botão "Desativar" para mover para histórico de inativos</li>
-                      <li>Ao desativar, o membro é automaticamente removido de todos os grupos</li>
+                      <li>Ao desativar, o membro é removido de todos os grupos automaticamente</li>
                     </ul>
 
                     <h4 className="font-semibold mt-4">Aba Convidados:</h4>
                     <ul>
-                      <li>Lista pessoas que aceitaram convites mas ainda não foram promovidas</li>
-                      <li>Mostra quem fez o convite e quando</li>
+                      <li>Lista pessoas que aceitaram convites mas não foram promovidas</li>
                       <li>Botão "Promover" para transformar em Membro ou Facilitador</li>
-                      <li>Opção de adicionar diretamente a um grupo durante a promoção</li>
+                      <li>Opção de adicionar a um grupo durante a promoção</li>
                     </ul>
 
                     <h4 className="font-semibold mt-4">Aba Inativos:</h4>
                     <ul>
-                      <li>Lista todas as pessoas desativadas (histórico)</li>
-                      <li>Mostra data e motivo da desativação</li>
-                      <li>Botão "Reativar" para trazer a pessoa de volta</li>
-                      <li>Após reativar, é necessário adicionar ao grupo manualmente</li>
+                      <li>Lista pessoas desativadas com data e motivo</li>
+                      <li>Botão "Reativar" para trazer de volta</li>
                     </ul>
-
-                    <p className="text-sm text-muted-foreground mt-4">
-                      <strong>Dica:</strong> Convites expiram em 30 dias. Convidados aceitos que não foram promovidos 
-                      continuam com acesso limitado até serem promovidos.
-                    </p>
                   </CardContent>
                 </Card>
 
@@ -463,25 +521,23 @@ export default function Documentacao() {
                     <h4>Admin</h4>
                     <ul>
                       <li>Acesso completo ao sistema</li>
-                      <li>Criar/editar/excluir grupos</li>
-                      <li>Definir facilitadores</li>
-                      <li>Migrar membros entre grupos</li>
-                      <li>Promover convidados a membros</li>
+                      <li>Criar/editar/excluir grupos e registros</li>
+                      <li>Gestão CRUD de todos os registros (/admin/registros)</li>
+                      <li>Não pontua na gamificação</li>
+                      <li>Único lançamento: Conteúdos</li>
                     </ul>
                     <h4>Facilitador</h4>
                     <ul>
-                      <li>Gerenciar apenas seu grupo</li>
+                      <li>Gerencia seu grupo (presenças, membros)</li>
+                      <li>Pode realizar lançamentos, mas não pontua</li>
                       <li>Promover convidados a membros</li>
-                      <li>Adicionar apenas convidados ao grupo (para encontros)</li>
-                      <li>Remover membros do seu grupo</li>
-                      <li>Criar convites</li>
                       <li>Acessar Gestão de Convidados</li>
                     </ul>
                     <h4>Membro</h4>
                     <ul>
-                      <li>Registrar atividades (Gente em Ação, Depoimentos, etc.)</li>
-                      <li>Criar convites</li>
-                      <li>Visualizar ranking e estatísticas</li>
+                      <li>Registrar atividades e pontuar</li>
+                      <li>Criar convites e cases de negócio</li>
+                      <li>Participar do Conselho 24/7</li>
                     </ul>
                     <h4>Convidado</h4>
                     <ul>
@@ -503,6 +559,8 @@ export default function Documentacao() {
                       <li><strong>Criar Encontros:</strong> Título, data, horário e local</li>
                       <li><strong>Vincular a Grupos:</strong> Associe encontros a grupos específicos</li>
                       <li><strong>Acompanhar Presenças:</strong> Visualize quem confirmou presença</li>
+                      <li><strong>Destaque "Em breve":</strong> Eventos nos próximos 7 dias recebem destaque visual</li>
+                      <li><strong>Ordenação:</strong> Eventos ordenados por data (mais próximos primeiro)</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -533,7 +591,7 @@ export default function Documentacao() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
-                    <p>Acompanhe métricas da comunidade:</p>
+                    <p>Acompanhe métricas da comunidade no Dashboard (/dashboard):</p>
                     <ul>
                       <li>Total de membros e distribuição por rank</li>
                       <li>Valor total de negócios (acumulado e anual)</li>
@@ -547,6 +605,28 @@ export default function Documentacao() {
                     </ul>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShieldCheck className="h-5 w-5" />
+                      Gestão de Registros (/admin/registros)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>O admin possui CRUD total sobre todos os registros do sistema:</p>
+                    <ul>
+                      <li>Gente em Ação — visualização e exclusão de registros</li>
+                      <li>Indicações — visualização e exclusão</li>
+                      <li>Depoimentos — visualização e exclusão</li>
+                      <li>Negócios — visualização e exclusão</li>
+                      <li>Convites — visualização e exclusão</li>
+                    </ul>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Todos os registros podem ser filtrados por grupo, período e busca textual.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -557,7 +637,6 @@ export default function Documentacao() {
           <TabsContent value="dev">
             <ScrollArea className="h-[calc(100vh-300px)]">
               <div className="space-y-6 pr-4">
-                {/* Rotas e Páginas */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -568,103 +647,46 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-2 text-sm">
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/auth</code>
-                        <p className="text-muted-foreground mt-1">Login, cadastro e recuperação de senha</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/</code>
-                        <p className="text-muted-foreground mt-1">Dashboard principal com feed de atividades</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/perfil</code>
-                        <p className="text-muted-foreground mt-1">Perfil do usuário com histórico de pontos</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/membros</code>
-                        <p className="text-muted-foreground mt-1">Diretório de membros com filtros avançados e exportação</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/membro/:slug</code>
-                        <p className="text-muted-foreground mt-1">Perfil individual de membro com URL amigável (ex: /membro/joao-silva)</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/aniversarios</code>
-                        <p className="text-muted-foreground mt-1">Calendário de aniversários da comunidade</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/ranking</code>
-                        <p className="text-muted-foreground mt-1">Ranking de membros por pontuação</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/gente-em-acao</code>
-                        <p className="text-muted-foreground mt-1">Registro de reuniões 1-a-1</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/depoimentos</code>
-                        <p className="text-muted-foreground mt-1">Envio e visualização de depoimentos</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/indicacoes</code>
-                        <p className="text-muted-foreground mt-1">Indicações de contatos</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/negocios</code>
-                        <p className="text-muted-foreground mt-1">Registro de negócios fechados</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/encontros</code>
-                        <p className="text-muted-foreground mt-1">Calendário de encontros</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/convites</code>
-                        <p className="text-muted-foreground mt-1">Gerenciamento de convites</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/equipes</code>
-                        <p className="text-muted-foreground mt-1">Gestão de grupos (Admin/Facilitador)</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/estatisticas</code>
-                        <p className="text-muted-foreground mt-1">Gráficos e métricas do sistema</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/conteudos</code>
-                        <p className="text-muted-foreground mt-1">Materiais educativos</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/admin</code>
-                        <p className="text-muted-foreground mt-1">Painel administrativo (apenas Admin)</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/admin/membros</code>
-                        <p className="text-muted-foreground mt-1">Gerenciamento de membros ativos/inativos (apenas Admin)</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/configuracoes</code>
-                        <p className="text-muted-foreground mt-1">Configurações e preferências</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/documentacao</code>
-                        <p className="text-muted-foreground mt-1">Esta página de documentação</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/changelog</code>
-                        <p className="text-muted-foreground mt-1">Histórico de versões e atualizações</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/instalar</code>
-                        <p className="text-muted-foreground mt-1">Instruções de instalação PWA</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">/convite/:code</code>
-                        <p className="text-muted-foreground mt-1">Página pública de convite</p>
-                      </div>
+                      {[
+                        { route: '/auth', desc: 'Login, cadastro e recuperação de senha' },
+                        { route: '/', desc: 'Dashboard principal com feed de atividades' },
+                        { route: '/feed', desc: 'Feed completo com filtros (tipo, período, grupo)' },
+                        { route: '/perfil', desc: 'Perfil v3 com abas (Sobre, Atividades, Estatísticas, Cases) e pitch IA' },
+                        { route: '/membros', desc: 'Diretório unificado de membros por grupo' },
+                        { route: '/membro/:slug', desc: 'Perfil individual com URL amigável e abas' },
+                        { route: '/aniversarios', desc: 'Calendário de aniversários da comunidade' },
+                        { route: '/ranking', desc: 'Ranking mensal por grupo' },
+                        { route: '/gente-em-acao', desc: 'Registro de reuniões 1-a-1' },
+                        { route: '/depoimentos', desc: 'Envio e visualização de depoimentos' },
+                        { route: '/indicacoes', desc: 'Indicações com status (frio/morno/quente)' },
+                        { route: '/negocios', desc: 'Registro de negócios fechados' },
+                        { route: '/encontros', desc: 'Encontros ordenados com destaque "Em breve"' },
+                        { route: '/convites', desc: 'Convites com expiração 30d e exclusão manual' },
+                        { route: '/conselho', desc: 'Conselho 24/7 — help desk Kanban' },
+                        { route: '/equipes', desc: 'Gestão de grupos (Admin/Facilitador)' },
+                        { route: '/estatisticas', desc: 'Gráficos e métricas do sistema' },
+                        { route: '/conteudos', desc: 'Materiais educativos' },
+                        { route: '/dashboard', desc: 'Dashboard Admin com KPIs' },
+                        { route: '/admin', desc: 'Painel administrativo' },
+                        { route: '/admin/pessoas', desc: 'Gestão de Membros/Convidados/Inativos' },
+                        { route: '/admin/registros', desc: 'Gestão CRUD de registros (Admin)' },
+                        { route: '/admin/convidados', desc: 'Gestão de convidados por encontro' },
+                        { route: '/configuracoes', desc: 'Configurações e preferências de notificação' },
+                        { route: '/documentacao', desc: 'Documentação do sistema (filtrada por role)' },
+                        { route: '/changelog', desc: 'Histórico de versões e atualizações' },
+                        { route: '/instalar', desc: 'Instruções de instalação PWA' },
+                        { route: '/convite/:code', desc: 'Página pública de convite' },
+                        { route: '/convite/:code/cadastrar', desc: 'Cadastro via convite (com Turnstile)' },
+                      ].map(({ route, desc }) => (
+                        <div key={route} className="p-3 rounded-lg bg-muted">
+                          <code className="font-bold">{route}</code>
+                          <p className="text-muted-foreground mt-1">{desc}</p>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Componentes */}
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -675,38 +697,26 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-2 text-sm">
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">PasswordStrengthIndicator</code>
-                        <p className="text-muted-foreground mt-1">Indicador visual de força da senha (fraca/média/forte)</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">PointsEvolutionChart</code>
-                        <p className="text-muted-foreground mt-1">Gráfico de evolução de pontos do usuário</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">RankBadge</code>
-                        <p className="text-muted-foreground mt-1">Badge visual do rank do usuário</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">ActivityFeed</code>
-                        <p className="text-muted-foreground mt-1">Feed de atividades em tempo real</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">MemberSelect</code>
-                        <p className="text-muted-foreground mt-1">Seletor de membros reutilizável</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">ScoringRulesCard</code>
-                        <p className="text-muted-foreground mt-1">Exibe regras de pontuação</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">OfflineIndicator</code>
-                        <p className="text-muted-foreground mt-1">Indicador de modo offline</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">PWAInstallPrompt</code>
-                        <p className="text-muted-foreground mt-1">Prompt de instalação PWA</p>
-                      </div>
+                      {[
+                        { name: 'PasswordStrengthIndicator', desc: 'Indicador visual de força da senha' },
+                        { name: 'PointsEvolutionChart', desc: 'Gráfico de evolução de pontos' },
+                        { name: 'MonthlyPointsSummary', desc: 'Resumo de pontos mensais por grupo' },
+                        { name: 'PointsHistoryCard', desc: 'Histórico de pontos no perfil' },
+                        { name: 'RankBadge', desc: 'Badge visual do rank' },
+                        { name: 'ActivityFeed', desc: 'Feed de atividades em tempo real' },
+                        { name: 'MemberSelect', desc: 'Seletor de membros reutilizável' },
+                        { name: 'ScoringRulesCard', desc: 'Regras de pontuação (inclui Conselho e Cases)' },
+                        { name: 'AdminDataView', desc: 'Visualização admin com filtros e CRUD' },
+                        { name: 'CloudflareTurnstile', desc: 'Widget anti-bot Cloudflare' },
+                        { name: 'NotificationSettings', desc: 'Configurações de notificação por tipo' },
+                        { name: 'OfflineIndicator', desc: 'Indicador de modo offline' },
+                        { name: 'PWAInstallPrompt', desc: 'Prompt de instalação PWA' },
+                      ].map(({ name, desc }) => (
+                        <div key={name} className="p-3 rounded-lg bg-muted">
+                          <code className="font-bold">{name}</code>
+                          <p className="text-muted-foreground mt-1">{desc}</p>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -720,27 +730,23 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-3">
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>Frontend:</strong> React + TypeScript + Vite
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>Estilização:</strong> Tailwind CSS + Shadcn/UI
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>Estado:</strong> React Query (TanStack Query)
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>Roteamento:</strong> React Router DOM
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>Gráficos:</strong> Recharts
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>Forms:</strong> React Hook Form + Zod
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <strong>PWA:</strong> vite-plugin-pwa
-                      </div>
+                      {[
+                        { label: 'Frontend', value: 'React + TypeScript + Vite' },
+                        { label: 'Estilização', value: 'Tailwind CSS + Shadcn/UI' },
+                        { label: 'Estado', value: 'React Query (TanStack Query)' },
+                        { label: 'Roteamento', value: 'React Router DOM' },
+                        { label: 'Gráficos', value: 'Recharts' },
+                        { label: 'Forms', value: 'React Hook Form + Zod' },
+                        { label: 'PWA', value: 'vite-plugin-pwa' },
+                        { label: 'Backend', value: 'Supabase (Auth, DB, Edge Functions, Realtime)' },
+                        { label: 'Hosting', value: 'Cloudflare Pages' },
+                        { label: 'Anti-Bot', value: 'Cloudflare Turnstile' },
+                        { label: 'Analytics', value: 'Cloudflare Web Analytics' },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="p-3 rounded-lg bg-muted">
+                          <strong>{label}:</strong> {value}
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -755,62 +761,32 @@ export default function Documentacao() {
                   <CardContent className="space-y-4">
                     <h4 className="font-semibold">Tabelas Principais:</h4>
                     <div className="grid gap-2 text-sm font-mono">
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>profiles</code>
-                        <span className="text-muted-foreground text-xs">Perfis de usuários</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>user_roles</code>
-                        <span className="text-muted-foreground text-xs">Roles (admin, facilitador, membro, convidado)</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>teams</code>
-                        <span className="text-muted-foreground text-xs">Grupos de networking</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>team_members</code>
-                        <span className="text-muted-foreground text-xs">Membros dos grupos</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>meetings</code>
-                        <span className="text-muted-foreground text-xs">Encontros quinzenais</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>attendances</code>
-                        <span className="text-muted-foreground text-xs">Presenças em encontros</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>gente_em_acao</code>
-                        <span className="text-muted-foreground text-xs">Reuniões 1-a-1</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>testimonials</code>
-                        <span className="text-muted-foreground text-xs">Depoimentos</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>business_deals</code>
-                        <span className="text-muted-foreground text-xs">Negócios fechados</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>referrals</code>
-                        <span className="text-muted-foreground text-xs">Indicações de contatos</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>activity_feed</code>
-                        <span className="text-muted-foreground text-xs">Feed de atividades</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>contents</code>
-                        <span className="text-muted-foreground text-xs">Conteúdos educativos</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>invitations</code>
-                        <span className="text-muted-foreground text-xs">Convites de membros</span>
-                      </div>
-                      <div className="p-2 rounded bg-muted flex justify-between">
-                        <code>points_history</code>
-                        <span className="text-muted-foreground text-xs">Histórico de pontos</span>
-                      </div>
+                      {[
+                        { table: 'profiles', desc: 'Perfis (nome, empresa, tags, what_i_do, ideal_client, how_to_refer_me)' },
+                        { table: 'user_roles', desc: 'Roles (admin, facilitador, membro, convidado)' },
+                        { table: 'teams', desc: 'Grupos de networking' },
+                        { table: 'team_members', desc: 'Membros dos grupos' },
+                        { table: 'meetings', desc: 'Encontros quinzenais' },
+                        { table: 'attendances', desc: 'Presenças em encontros' },
+                        { table: 'gente_em_acao', desc: 'Reuniões 1-a-1' },
+                        { table: 'testimonials', desc: 'Depoimentos' },
+                        { table: 'business_deals', desc: 'Negócios fechados' },
+                        { table: 'business_cases', desc: 'Cases de negócio' },
+                        { table: 'referrals', desc: 'Indicações (frio/morno/quente)' },
+                        { table: 'council_posts', desc: 'Tópicos do Conselho 24/7' },
+                        { table: 'council_replies', desc: 'Respostas no Conselho' },
+                        { table: 'activity_feed', desc: 'Feed de atividades' },
+                        { table: 'monthly_points', desc: 'Pontuação mensal por grupo' },
+                        { table: 'points_history', desc: 'Histórico de pontos' },
+                        { table: 'contents', desc: 'Conteúdos educativos' },
+                        { table: 'invitations', desc: 'Convites de membros' },
+                        { table: 'system_changelog', desc: 'Changelog do sistema' },
+                      ].map(({ table, desc }) => (
+                        <div key={table} className="p-2 rounded bg-muted flex justify-between">
+                          <code>{table}</code>
+                          <span className="text-muted-foreground text-xs">{desc}</span>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -824,18 +800,17 @@ export default function Documentacao() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid gap-3">
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">send-email</code>
-                        <p className="text-sm text-muted-foreground mt-1">Envio de emails via Resend</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">send-notification</code>
-                        <p className="text-sm text-muted-foreground mt-1">Notificações de depoimentos e indicações</p>
-                      </div>
-                      <div className="p-3 rounded-lg bg-muted">
-                        <code className="font-bold">birthday-notifications</code>
-                        <p className="text-sm text-muted-foreground mt-1">Notificações automáticas de aniversários</p>
-                      </div>
+                      {[
+                        { fn: 'send-email', desc: 'Envio de emails via Resend' },
+                        { fn: 'send-notification', desc: 'Notificações de depoimentos, indicações, convites, boas-vindas' },
+                        { fn: 'birthday-notifications', desc: 'Notificações automáticas de aniversários' },
+                        { fn: 'verify-turnstile', desc: 'Verificação anti-bot Cloudflare Turnstile (server-side)' },
+                      ].map(({ fn, desc }) => (
+                        <div key={fn} className="p-3 rounded-lg bg-muted">
+                          <code className="font-bold">{fn}</code>
+                          <p className="text-sm text-muted-foreground mt-1">{desc}</p>
+                        </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -855,14 +830,14 @@ export default function Documentacao() {
                       <li>Função <code>is_team_facilitator()</code> para validar facilitadores</li>
                       <li>Função <code>is_guest()</code> para validar convidados</li>
                       <li>Políticas específicas por ação (SELECT, INSERT, UPDATE, DELETE)</li>
-                      <li>Facilitadores só podem adicionar convidados aos seus grupos</li>
+                      <li>Admin tem CRUD total sobre todos os registros via RLS</li>
+                      <li>Cloudflare Turnstile protege formulário de cadastro contra bots</li>
                     </ul>
 
                     <h4 className="font-semibold mt-4">Hardening de Segurança (v1.4.1)</h4>
                     <ul>
-                      <li>Todas as funções PostgreSQL possuem <code>SET search_path = public</code> para evitar hijacking de search path</li>
-                      <li>Extensões <code>unaccent</code> e <code>pg_trgm</code> movidas para schema <code>extensions</code> dedicado</li>
-                      <li>Funções que usam extensões definem <code>search_path = public, extensions</code></li>
+                      <li>Todas as funções PostgreSQL possuem <code>SET search_path = public</code></li>
+                      <li>Extensões <code>unaccent</code> e <code>pg_trgm</code> em schema <code>extensions</code></li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -880,11 +855,8 @@ export default function Documentacao() {
                       <li>Rodapé de copyright com marca Ranktop</li>
                       <li>Créditos de licenciamento visual (Freepik, Flaticon, FontAwesome, LottieFiles)</li>
                       <li>Meta tags de autoria no <code>index.html</code></li>
-                      <li>Cabeçalhos JSDoc em arquivos core do sistema</li>
+                      <li>Cloudflare Web Analytics (beacon) no <code>index.html</code></li>
                     </ul>
-                    <p className="text-sm text-muted-foreground">
-                      Páginas públicas com rodapé: Login, Cadastro de Convidado, Redefinir Senha, Instalar, Convite Público.
-                    </p>
                   </CardContent>
                 </Card>
               </div>
