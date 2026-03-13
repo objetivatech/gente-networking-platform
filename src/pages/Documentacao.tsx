@@ -813,6 +813,32 @@ export default function Documentacao() {
                         </div>
                       ))}
                     </div>
+
+                    <h4 className="font-semibold mt-6">Arquitetura de Performance (Cloudflare Worker Proxy)</h4>
+                    <p className="text-sm text-muted-foreground">
+                      O sistema utiliza um Cloudflare Worker como proxy reverso para cache de borda das requisições de leitura ao Supabase.
+                      Isso reduz a latência e a carga no banco de dados.
+                    </p>
+                    <div className="grid gap-2 text-sm mt-3">
+                      {[
+                        { label: 'Proxy URL', value: 'api.gentenetworking.com.br' },
+                        { label: 'Cache TTL', value: '60s a 600s (stale-while-revalidate)' },
+                        { label: 'Headers', value: 'X-Cache (HIT/MISS/BYPASS), X-Cache-TTL' },
+                        { label: 'Implementação', value: 'JavaScript puro no Cloudflare Dashboard' },
+                        { label: 'Diagnóstico', value: 'Componente AdminCacheDiagnostics no painel Admin' },
+                        { label: 'Ativação', value: 'Via VITE_PROXY_URL no ambiente (opcional)' },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="p-2 rounded bg-muted flex justify-between gap-2">
+                          <strong className="shrink-0">{label}:</strong>
+                          <span className="text-muted-foreground text-right">{value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      <strong>Importante:</strong> O frontend utiliza um único cliente Supabase autenticado.
+                      O proxy deve ser configurado como camada de infraestrutura transparente, sem criar um segundo
+                      cliente no frontend, para evitar quebra de sessão RLS.
+                    </p>
                   </CardContent>
                 </Card>
 
