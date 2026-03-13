@@ -159,7 +159,7 @@ export default function Feed() {
             </Select>
 
             <Select value={teamFilter} onValueChange={setTeamFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Grupo" />
               </SelectTrigger>
               <SelectContent>
