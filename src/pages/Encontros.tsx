@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useMeetings, useMeetingAttendees } from '@/hooks/useMeetings';
+import { useMeetings, useMeetingAttendees, useMeetingGuests } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
+import { useTeams } from '@/hooks/useTeams';
 import { useTeams } from '@/hooks/useTeams';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
