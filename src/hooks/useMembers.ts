@@ -76,7 +76,7 @@ export function useMembers(includeInactive = false) {
       });
 
       // 3. Get team memberships (a user can belong to multiple teams)
-      const { data: teamMembers, error: teamMembersError } = await supabase
+      const { data: teamMembers, error: teamMembersError } = await supabaseReadOnly
         .from('team_members')
         .select('user_id, team_id');
 
