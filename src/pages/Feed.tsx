@@ -64,18 +64,22 @@ export default function Feed() {
   const { teams } = useTeams();
 
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['feed-activities', periodFilter],
+    queryKey: ['feed-activities', periodFilter, teamFilter],
     queryFn: async () => {
       let query = supabase
         .from('activity_feed')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(500);
 
       if (periodFilter !== 'all') {
         const monthsBack = parseInt(periodFilter);
         const startDate = startOfMonth(subMonths(new Date(), monthsBack));
         query = query.gte('created_at', startDate.toISOString());
+      }
+
+      if (teamFilter !== 'all') {
+        query = query.eq('team_id', teamFilter);
       }
 
       const { data, error } = await query;
@@ -107,11 +111,9 @@ export default function Feed() {
     if (!activities) return [];
     return activities.filter(a => {
       if (typeFilter !== 'all' && a.activity_type !== typeFilter) return false;
-      // Include activities with matching team_id OR null team_id (global/legacy activities)
-      if (teamFilter !== 'all' && a.team_id !== null && a.team_id !== teamFilter) return false;
       return true;
     });
-  }, [activities, typeFilter, teamFilter]);
+  }, [activities, typeFilter]);
 
   const activityTypes = useMemo(() => {
     if (!activities) return [];

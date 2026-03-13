@@ -1,86 +1,231 @@
 
+# Plano: Sistema de Gamificação Mensal por Grupo
 
-## Plano de Correções — Eventos, Feed, Cases e Responsividade
+## Resumo Executivo
 
-### 1. Ordenação de Eventos (Encontros + GuestWelcome)
+Este plano implementa uma **reformulação completa do sistema de gamificação** para operar com ciclos mensais e pontuação por grupo, conforme solicitado. As principais mudanças são:
 
-**Problema**: `useMeetings.ts` linha 37 usa `ascending: false` (mais recente primeiro). O correto é `ascending: true` para próximos eventos, com separação já feita no frontend.
-
-**Correção**:
-- `src/hooks/useMeetings.ts`: Alterar order para `ascending: true`
-- `src/pages/Encontros.tsx`: Ordenar `upcomingMeetings` por data ascendente e `pastMeetings` por data descendente (via `.sort()` no frontend)
-- `src/hooks/useGuestData.ts`: Já usa `ascending: true` — OK. Verificar que a ordenação está correta na página `GuestWelcome.tsx`
-
----
-
-### 2. Lista de Convidados por Encontro
-
-**Problema**: A `AttendeesList` mostra apenas membros confirmados (da tabela `attendances`). Não há relação de **convidados (guests)** — pessoas convidadas via `invitations` que confirmaram presença em cada encontro.
-
-**Correção**:
-- Na `AttendeesList` do `Encontros.tsx`, além dos attendees (membros), buscar convidados que confirmaram presença no mesmo encontro
-- Separar visualmente: "Membros confirmados" e "Convidados presentes"
-- Exibir dados de contato (telefone, email) dos convidados obtidos da tabela `profiles` (ou `invitations`)
-- Isso já é acessível via o botão `<Users>` que expande `AttendeesList` — basta enriquecer o componente
+1. **Pontos zerados mensalmente** - A cada novo mês, inicia-se um novo ciclo de pontuação
+2. **Histórico de pontos mensais** - Consulta de desempenho de meses anteriores
+3. **Pontuação por grupo** - Membros que pertencem a múltiplos grupos têm pontuação separada em cada um
+4. **Rankings mensais** - Exibição sempre do mês corrente, global e por grupo
 
 ---
 
-### 3. Filtros do Feed
+## Arquitetura da Solução
 
-**Problema**: O filtro por período usa `startOfMonth(subMonths(new Date(), monthsBack))` mas o valor `'0'` (Este mês) gera `startOfMonth(subMonths(now, 0))` = início do mês atual. Porém o `limit(200)` pode cortar resultados. O filtro por grupo não funciona porque a maioria dos registros tem `team_id = null`.
+### Nova Estrutura de Dados
 
-**Correção**:
-- Período: O filtro server-side com `.gte()` parece correto. O problema é que "Este mês" é o padrão e filtra corretamente, mas ao selecionar "Todo o período" com `periodFilter = 'all'`, o limite de 200 pode ser insuficiente. Aumentar para 500 e garantir que a query recarregue ao mudar filtro (queryKey já inclui `periodFilter` — OK).
-- Grupo: O problema real é que `team_id` é null na maioria dos registros antigos. Quando se seleciona um grupo, o filtro atual inclui `team_id === null` junto com o grupo selecionado — isso mostra tudo. A correção deve filtrar server-side via `.eq('team_id', teamFilter)` ou `.or()` para incluir nulls, mas a lógica precisa ser: ao filtrar por grupo, mostrar APENAS registros daquele grupo (excluindo nulls), ou opcionalmente incluir registros globais.
-- Solução: Adicionar `teamFilter` ao queryKey e ao filtro server-side. Para o filtro por grupo, usar `.eq('team_id', teamFilter)` quando um grupo está selecionado, filtrando no servidor ao invés de no client-side.
-
----
-
-### 4. Cases vinculados a Negócios
-
-**Problema**: O formulário de Case em `/perfil` não tem vínculo com negócios. O fluxo correto é: 1º registra negócio em `/negocios`, 2º cria case vinculado ao negócio.
-
-**Correção**:
-- `src/pages/Profile.tsx`: No dialog de novo case, adicionar um `Select` para escolher o negócio (`business_deal_id`) entre os negócios do usuário (usar `useBusinessDeals`)
-- Se não há negócios registrados, desabilitar o botão "Novo Case" com tooltip explicativo
-- O campo `business_deal_id` já existe na tabela `business_cases`
-- Hook `useBusinessCases.ts`: Garantir que `business_deal_id` é passado no `createCase`
-
----
-
-### 5. MemberSelect transbordando no desktop
-
-**Problema**: No dialog de `/negocios`, o `MemberSelect` (dropdown com avatares) ultrapassa a largura do dialog.
-
-**Correção**:
-- `src/components/MemberSelect.tsx`: Adicionar `className="overflow-hidden"` no `SelectContent` e `max-w-full truncate` nos itens
-- Limitar largura do `SelectItem` conteúdo com `overflow-hidden text-ellipsis`
-
----
-
-### 6. Responsividade Mobile Global
-
-Auditoria e correções em:
-
-| Página/Componente | Problema | Correção |
-|---|---|---|
-| `Negocios.tsx` | Dialog form grid-cols-2 em mobile | `grid-cols-1 sm:grid-cols-2` |
-| `Negocios.tsx` | Stats grid-cols-2/4 comprime valores | `grid-cols-1 sm:grid-cols-2 md:grid-cols-4` |
-| `Profile.tsx` | Stats grid comprime | `grid-cols-2 sm:grid-cols-3 md:grid-cols-5` |
-| `Encontros.tsx` | Botões lado a lado comprimem | `flex-wrap` nos botões |
-| `Feed.tsx` | Filtros já ajustados — confirmar |
-| `Membros.tsx` | Dialog cards | Confirmar `max-w-[calc(100vw-2rem)]` |
-| `MemberSelect` | Itens com avatar+nome+empresa overflow | Truncate text |
-| `GuestWelcome.tsx` | Cards de encontro | `w-full` e `break-words` |
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MODELO DE DADOS - PONTUAÇÃO MENSAL                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ANTES (atual):                                                             │
+│  ┌─────────────┐                                                            │
+│  │ profiles    │                                                            │
+│  │ - points    │  ← Pontos acumulados globalmente, sem contexto de grupo   │
+│  │ - rank      │                                                            │
+│  └─────────────┘                                                            │
+│                                                                             │
+│  DEPOIS (proposto):                                                         │
+│  ┌─────────────────────┐                                                    │
+│  │ monthly_points      │  (NOVA TABELA)                                     │
+│  │ - user_id           │                                                    │
+│  │ - team_id           │  ← Pontuação POR GRUPO                            │
+│  │ - year_month        │  ← Ex: "2026-02" (ciclo mensal)                   │
+│  │ - points            │  ← Total de pontos do mês para este grupo         │
+│  │ - rank              │  ← Rank calculado para este mês/grupo             │
+│  │ - updated_at        │                                                    │
+│  └─────────────────────┘                                                    │
+│           │                                                                 │
+│           ▼                                                                 │
+│  ┌─────────────────────┐                                                    │
+│  │ points_history      │  (ATUALIZADA)                                      │
+│  │ - user_id           │                                                    │
+│  │ - team_id           │  ← NOVO: Contexto do grupo                        │
+│  │ - year_month        │  ← NOVO: Mês de referência                        │
+│  │ - activity_type     │                                                    │
+│  │ - points_change     │                                                    │
+│  │ - created_at        │                                                    │
+│  └─────────────────────┘                                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-### Ordem de Execução
+## Detalhamento Técnico
 
-1. Fix ordenação de eventos (`useMeetings.ts` + `Encontros.tsx`)
-2. Enriquecer `AttendeesList` com convidados e dados de contato
-3. Fix filtros do Feed (server-side team filter + queryKey)
-4. Vincular Cases a Negócios no Profile
-5. Fix MemberSelect overflow
-6. Responsividade mobile global
+### 1. Alterações no Banco de Dados
 
+#### 1.1 Nova tabela: `monthly_points`
+```sql
+CREATE TABLE monthly_points (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  year_month TEXT NOT NULL, -- formato "YYYY-MM"
+  points INTEGER NOT NULL DEFAULT 0,
+  rank member_rank DEFAULT 'iniciante',
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, team_id, year_month)
+);
+```
+
+#### 1.2 Alterações na tabela `points_history`
+Adicionar colunas:
+- `team_id UUID` - Para contexto do grupo
+- `year_month TEXT` - Para vincular ao mês
+
+#### 1.3 Novas funções de banco de dados
+
+| Função | Descrição |
+|--------|-----------|
+| `get_current_year_month()` | Retorna "YYYY-MM" atual |
+| `calculate_monthly_points(user_id, team_id, year_month)` | Calcula pontos de um usuário em um grupo/mês |
+| `update_monthly_points_and_rank(user_id, team_id)` | Atualiza a tabela monthly_points |
+| `get_monthly_ranking(team_id, year_month)` | Retorna ranking ordenado |
+
+#### 1.4 Atualização dos Triggers
+Todos os triggers de atividades (gente_em_acao, testimonials, referrals, etc.) precisam:
+1. Identificar o grupo do contexto da atividade
+2. Chamar `update_monthly_points_and_rank()` para cada grupo do usuário
+
+### 2. Lógica de Contexto de Grupo
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│           COMO DETERMINAR O GRUPO DE UMA ATIVIDADE?                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ATIVIDADE              │  LÓGICA DE GRUPO                                  │
+│  ───────────────────────┼──────────────────────────────────────────────────│
+│  Presença (attendances) │  Grupo do encontro (meetings.team_id)            │
+│                         │  Se encontro sem grupo: todos os grupos do user  │
+│                         │                                                   │
+│  Gente em Ação          │  Grupo em comum com o parceiro, ou               │
+│                         │  todos os grupos do usuário se com convidado     │
+│                         │                                                   │
+│  Depoimentos            │  Grupo em comum entre from_user e to_user        │
+│                         │  Se múltiplos: pontua em cada um                 │
+│                         │                                                   │
+│  Indicações             │  Grupo em comum entre from_user e to_user        │
+│                         │                                                   │
+│  Negócios               │  Todos os grupos do usuário que fechou           │
+│                         │                                                   │
+│  Convites               │  Grupo do convidador                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3. Alterações no Frontend
+
+#### 3.1 Página de Ranking (`/ranking`)
+- Adicionar seletor de mês (padrão: mês atual)
+- Filtro por grupo (já existe, manter)
+- Exibir claramente "Ranking de [Mês/Ano]"
+- Remover exibição de pontos globais/acumulados
+
+#### 3.2 Perfil do Usuário (`/perfil`)
+- Substituir "pontos totais" por "pontos do mês"
+- Adicionar seletor de grupo (se pertence a múltiplos)
+- Gráfico de evolução: mostrar mês a mês
+
+#### 3.3 Dashboard (`/`)
+- Exibir pontos do mês atual
+- Se usuário pertence a múltiplos grupos, mostrar resumo por grupo
+
+#### 3.4 Histórico de Pontos
+- Adicionar filtros: mês e grupo
+- Agrupar histórico por mês com totais
+
+#### 3.5 Estatísticas (`/estatisticas`)
+- Ajustar para refletir dados mensais
+
+### 4. Novos Hooks
+
+| Hook | Descrição |
+|------|-----------|
+| `useMonthlyRanking(teamId?, yearMonth?)` | Rankings mensais por grupo |
+| `useMonthlyPoints(userId, teamId?)` | Pontos do usuário no mês/grupo |
+| `usePointsHistoryByMonth(userId, yearMonth?)` | Histórico filtrado por mês |
+
+### 5. Migração de Dados Existentes
+
+A migração não irá "converter" os pontos antigos, pois o modelo era diferente. Opções:
+
+1. **Zerar e começar do zero** - Simples, mas perde histórico
+2. **Migrar como "mês genérico"** - Criar um registro especial para pontos legados
+3. **Manter pontos antigos apenas para consulta** - Recomendado
+
+**Recomendação:** Manter os campos `points` e `rank` na tabela `profiles` como "pontos históricos/legados" e usar o novo sistema a partir do mês de implementação.
+
+---
+
+## Cronograma de Implementação
+
+### Fase 1: Estrutura de Dados
+- [ ] Criar tabela `monthly_points`
+- [ ] Adicionar colunas à `points_history`
+- [ ] Criar índices para performance
+- [ ] Criar funções de cálculo mensal
+- [ ] Atualizar triggers das atividades
+
+### Fase 2: Backend/Hooks
+- [ ] Criar `useMonthlyRanking`
+- [ ] Criar `useMonthlyPoints`
+- [ ] Atualizar `usePointsHistory`
+- [ ] Atualizar `useStats` para contexto mensal
+
+### Fase 3: Frontend
+- [ ] Atualizar página Ranking
+- [ ] Atualizar página Perfil
+- [ ] Atualizar Dashboard
+- [ ] Atualizar Estatísticas
+
+### Fase 4: Documentação
+- [ ] Atualizar USER_FLOWS.md
+- [ ] Atualizar TECHNICAL_DOCUMENTATION.md
+- [ ] Atualizar página /documentacao
+- [ ] Adicionar entrada no Changelog
+
+---
+
+## Considerações e Melhorias Sugeridas
+
+### Melhorias Adicionais (Opcionais)
+
+1. **Notificações de Reset Mensal**
+   - Enviar email no início de cada mês informando pontuação final do mês anterior
+
+2. **Badges de Conquistas Mensais**
+   - Criar badges visuais para "Top 3 do mês" em cada grupo
+
+3. **Comparativo Mês-a-Mês**
+   - Gráfico comparando desempenho entre meses
+
+4. **Meta Mensal**
+   - Permitir que o usuário defina uma meta de pontos para o mês
+
+5. **Leaderboard em Tempo Real**
+   - Usar Supabase Realtime para atualizar ranking ao vivo
+
+### Pontos de Atenção
+
+- **Performance**: Com pontuação por grupo/mês, o volume de dados aumenta. Índices adequados são essenciais.
+- **Retroatividade**: Atividades registradas devem ser contabilizadas no mês em que ocorreram (`meeting_date`, `deal_date`), não na data de criação.
+- **Membros sem grupo**: Precisam ser tratados (não recebem pontos ou recebem em um "grupo geral"?).
+
+---
+
+## Resumo das Entregas
+
+| Item | Descrição |
+|------|-----------|
+| **Nova tabela** | `monthly_points` para armazenar pontuação mensal por grupo |
+| **Colunas novas** | `team_id` e `year_month` em `points_history` |
+| **Funções SQL** | Cálculo e atualização de pontos mensais |
+| **Triggers atualizados** | Todas as 6 atividades com lógica de grupo |
+| **Hooks React** | `useMonthlyRanking`, `useMonthlyPoints` |
+| **Páginas atualizadas** | Ranking, Perfil, Dashboard, Estatísticas |
+| **Documentação** | USER_FLOWS.md, TECHNICAL_DOCUMENTATION.md, /documentacao, Changelog |

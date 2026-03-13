@@ -50,27 +50,27 @@ export default function MemberSelect({
 
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger>
+      <SelectTrigger className="w-full">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="max-w-[min(400px,calc(100vw-2rem))]">
         {filteredMembers?.map((member) => (
           <SelectItem key={member.id} value={member.id}>
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
+            <div className="flex items-center gap-2 max-w-full overflow-hidden">
+              <Avatar className="h-6 w-6 shrink-0">
                 <AvatarImage src={member.avatar_url || ''} />
                 <AvatarFallback className="text-xs">
                   {getInitials(member.full_name)}
                 </AvatarFallback>
               </Avatar>
-              <span>
+              <span className="truncate">
                 {member.full_name}
                 {member.role === 'facilitador' && (
                   <span className="text-amber-600 font-medium"> (Facilitador)</span>
                 )}
               </span>
               {member.company && (
-                <span className="text-muted-foreground text-xs">
+                <span className="text-muted-foreground text-xs truncate shrink-0">
                   ({member.company})
                 </span>
               )}

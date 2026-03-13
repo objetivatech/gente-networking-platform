@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useMeetings, useMeetingAttendees } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
@@ -35,8 +37,10 @@ export default function Encontros() {
     setFormData({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '' });
   };
 
-  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [];
-  const pastMeetings = meetings?.filter(m => isPast(parseLocalDate(m.meeting_date)) && !isToday(parseLocalDate(m.meeting_date))) || [];
+  const upcomingMeetings = (meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [])
+    .sort((a, b) => parseLocalDate(a.meeting_date).getTime() - parseLocalDate(b.meeting_date).getTime());
+  const pastMeetings = (meetings?.filter(m => isPast(parseLocalDate(m.meeting_date)) && !isToday(parseLocalDate(m.meeting_date))) || [])
+    .sort((a, b) => parseLocalDate(b.meeting_date).getTime() - parseLocalDate(a.meeting_date).getTime());
 
   const MeetingCard = ({ meeting }: { meeting: typeof meetings[0] }) => {
     const isPastMeeting = isPast(parseLocalDate(meeting.meeting_date)) && !isToday(parseLocalDate(meeting.meeting_date));
@@ -83,7 +87,7 @@ export default function Encontros() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
               {!isPastMeeting && (
                 <Button
                   variant={meeting.is_attending ? "default" : "outline"}
@@ -131,7 +135,7 @@ export default function Encontros() {
                   <Label htmlFor="title">Título</Label>
                   <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Encontro Quinzenal" required />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="meeting_date">Data</Label>
                     <Input id="meeting_date" type="date" value={formData.meeting_date} onChange={(e) => setFormData({ ...formData, meeting_date: e.target.value })} required />
@@ -197,54 +201,121 @@ export default function Encontros() {
 
 function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
+  const { data: guests, isLoading: isLoadingGuests } = useQuery({
+    queryKey: ['meeting-guests', meetingId],
+    queryFn: async () => {
+      // Get the meeting to find team_id
+      const { data: meeting } = await supabase.from('meetings').select('team_id').eq('id', meetingId).single();
+      if (!meeting?.team_id) return [];
+      
+      // Get invitations from members of this team whose accepted guests have attendance for this meeting
+      const { data: teamMemberIds } = await supabase.from('team_members').select('user_id').eq('team_id', meeting.team_id);
+      if (!teamMemberIds?.length) return [];
+
+      const inviterIds = teamMemberIds.map(tm => tm.user_id);
+      const { data: invitations } = await supabase
+        .from('invitations')
+        .select('id, name, email, accepted_by, invited_by, status')
+        .in('invited_by', inviterIds)
+        .eq('status', 'accepted');
+      
+      if (!invitations?.length) return [];
+
+      // Check which accepted guests have attendance for this meeting
+      const guestUserIds = invitations.map(i => i.accepted_by).filter(Boolean) as string[];
+      if (!guestUserIds.length) return [];
+
+      const { data: guestAttendances } = await supabase
+        .from('attendances')
+        .select('user_id')
+        .eq('meeting_id', meetingId)
+        .in('user_id', guestUserIds);
+
+      const attendingGuestIds = new Set(guestAttendances?.map(a => a.user_id) || []);
+      if (attendingGuestIds.size === 0) return [];
+
+      // Get profiles of attending guests
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone, avatar_url, company')
+        .in('id', Array.from(attendingGuestIds));
+
+      return profiles || [];
+    },
+    enabled: !!meetingId,
+  });
+
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  if (isLoading) return <div className="mt-4 pt-4 border-t"><Loader2 className="h-4 w-4 animate-spin" /></div>;
-  if (!attendees?.length) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
+  if (isLoading || isLoadingGuests) return <div className="mt-4 pt-4 border-t"><Loader2 className="h-4 w-4 animate-spin" /></div>;
+  
+  const memberAttendees = attendees?.filter(a => !guests?.some(g => g.id === a.user_id)) || [];
+  const hasGuests = guests && guests.length > 0;
+  const hasMembers = memberAttendees.length > 0;
+
+  if (!hasMembers && !hasGuests) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
 
   return (
-    <div className="mt-4 pt-4 border-t">
-      <p className="text-sm font-medium mb-2">Confirmados ({attendees.length})</p>
-      <div className="flex flex-wrap gap-2">
-        {attendees.map((a) => (
-          <div key={a.id} className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted text-sm group">
-            <Avatar className="h-5 w-5">
-              <AvatarImage src={a.profile?.avatar_url || ''} />
-              <AvatarFallback className="text-[10px]">{getInitials(a.profile?.full_name || 'U')}</AvatarFallback>
-            </Avatar>
-            <span>{a.profile?.full_name}</span>
-            {canRemove && onRemove && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button 
-                    className="ml-1 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    title="Remover presença"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Remover presença?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Tem certeza que deseja remover a presença de <strong>{a.profile?.full_name}</strong> deste encontro?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={() => onRemove(a.user_id)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Remover
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
+    <div className="mt-4 pt-4 border-t space-y-3">
+      {hasMembers && (
+        <div>
+          <p className="text-sm font-medium mb-2">Membros Confirmados ({memberAttendees.length})</p>
+          <div className="flex flex-wrap gap-2">
+            {memberAttendees.map((a) => (
+              <div key={a.id} className="flex items-center gap-2 px-2 py-1 rounded-full bg-muted text-sm group">
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={a.profile?.avatar_url || ''} />
+                  <AvatarFallback className="text-[10px]">{getInitials(a.profile?.full_name || 'U')}</AvatarFallback>
+                </Avatar>
+                <span>{a.profile?.full_name}</span>
+                {canRemove && onRemove && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <button className="ml-1 p-0.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" title="Remover presença">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remover presença?</AlertDialogTitle>
+                        <AlertDialogDescription>Tem certeza que deseja remover a presença de <strong>{a.profile?.full_name}</strong> deste encontro?</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onRemove(a.user_id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Remover</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+      {hasGuests && (
+        <div>
+          <p className="text-sm font-medium mb-2 text-amber-600">Convidados Presentes ({guests.length})</p>
+          <div className="flex flex-wrap gap-2">
+            {guests.map((g) => (
+              <div key={g.id} className="flex items-center gap-2 px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm">
+                <Avatar className="h-5 w-5">
+                  <AvatarImage src={g.avatar_url || ''} />
+                  <AvatarFallback className="text-[10px] bg-amber-100 text-amber-700">{getInitials(g.full_name || 'C')}</AvatarFallback>
+                </Avatar>
+                <span>{g.full_name}</span>
+                {g.company && <span className="text-xs text-muted-foreground">({g.company})</span>}
+                {(g.phone || g.email) && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    {g.phone && <span title="Telefone">📱 {g.phone}</span>}
+                    {g.phone && g.email && ' · '}
+                    {g.email && <span title="Email">✉️ {g.email}</span>}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

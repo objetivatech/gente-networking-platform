@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
 import { useBusinessCases } from '@/hooks/useBusinessCases';
+import { useBusinessDeals } from '@/hooks/useBusinessDeals';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
 import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
@@ -30,12 +32,13 @@ export default function Profile() {
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { data: stats } = useStats();
   const { cases, createCase, deleteCase } = useBusinessCases();
+  const { myDeals } = useBusinessDeals();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showNewCase, setShowNewCase] = useState(false);
-  const [newCase, setNewCase] = useState({ title: '', description: '', client_name: '', result: '' });
+  const [newCase, setNewCase] = useState({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -143,10 +146,10 @@ export default function Profile() {
   };
 
   const handleCreateCase = () => {
-    if (!newCase.title.trim()) return;
-    createCase.mutate(newCase);
+    if (!newCase.title.trim() || !newCase.business_deal_id) return;
+    createCase.mutate({ ...newCase, business_deal_id: newCase.business_deal_id });
     setShowNewCase(false);
-    setNewCase({ title: '', description: '', client_name: '', result: '' });
+    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
   };
 
   if (isLoading) {
@@ -326,7 +329,7 @@ export default function Profile() {
             <Card>
               <CardHeader><CardTitle>Minhas Estatísticas</CardTitle></CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                   <div className="text-center p-4 rounded-lg bg-muted"><p className="text-2xl font-bold text-primary">{stats?.attendances || 0}</p><p className="text-sm text-muted-foreground">Presenças</p></div>
                   <div className="text-center p-4 rounded-lg bg-muted"><p className="text-2xl font-bold text-primary">{stats?.genteEmAcao?.total || 0}</p><p className="text-sm text-muted-foreground">Gente em Ação</p></div>
                   <div className="text-center p-4 rounded-lg bg-muted"><p className="text-2xl font-bold text-primary">{stats?.testimonials?.sent || 0}</p><p className="text-sm text-muted-foreground">Depoimentos</p></div>
@@ -340,9 +343,13 @@ export default function Profile() {
           </TabsContent>
 
           <TabsContent value="cases" className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-lg font-semibold">Meus Cases de Negócio</h3>
-              <Button size="sm" onClick={() => setShowNewCase(true)}><Plus className="h-4 w-4 mr-1" /> Novo Case</Button>
+              {myDeals && myDeals.length > 0 ? (
+                <Button size="sm" onClick={() => setShowNewCase(true)}><Plus className="h-4 w-4 mr-1" /> Novo Case</Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">Registre um negócio em <a href="/negocios" className="text-primary underline">Negócios</a> primeiro para criar um case.</p>
+              )}
             </div>
             {cases?.length ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -382,6 +389,20 @@ export default function Profile() {
         <DialogContent>
           <DialogHeader><DialogTitle>Novo Case de Negócio</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Negócio vinculado *</Label>
+              <Select value={newCase.business_deal_id} onValueChange={v => setNewCase({ ...newCase, business_deal_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione um negócio" /></SelectTrigger>
+                <SelectContent>
+                  {myDeals?.map(deal => (
+                    <SelectItem key={deal.id} value={deal.id}>
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(deal.value))}
+                      {deal.client_name ? ` - ${deal.client_name}` : ''} ({deal.deal_date})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2"><Label>Título</Label><Input value={newCase.title} onChange={e => setNewCase({ ...newCase, title: e.target.value })} placeholder="Ex: Projeto de Marketing Digital" /></div>
             <div className="space-y-2"><Label>Cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={newCase.description} onChange={e => setNewCase({ ...newCase, description: e.target.value })} placeholder="Descreva o projeto..." rows={3} /></div>
@@ -389,7 +410,7 @@ export default function Profile() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewCase(false)}>Cancelar</Button>
-            <Button onClick={handleCreateCase} disabled={createCase.isPending || !newCase.title.trim()}>
+            <Button onClick={handleCreateCase} disabled={createCase.isPending || !newCase.title.trim() || !newCase.business_deal_id}>
               {createCase.isPending ? 'Criando...' : 'Criar Case'}
             </Button>
           </DialogFooter>
