@@ -135,7 +135,7 @@ export default function Encontros() {
                   <Label htmlFor="title">Título</Label>
                   <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Encontro Quinzenal" required />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="meeting_date">Data</Label>
                     <Input id="meeting_date" type="date" value={formData.meeting_date} onChange={(e) => setFormData({ ...formData, meeting_date: e.target.value })} required />

@@ -329,7 +329,7 @@ export default function Profile() {
             <Card>
               <CardHeader><CardTitle>Minhas Estatísticas</CardTitle></CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                   <div className="text-center p-4 rounded-lg bg-muted"><p className="text-2xl font-bold text-primary">{stats?.attendances || 0}</p><p className="text-sm text-muted-foreground">Presenças</p></div>
                   <div className="text-center p-4 rounded-lg bg-muted"><p className="text-2xl font-bold text-primary">{stats?.genteEmAcao?.total || 0}</p><p className="text-sm text-muted-foreground">Gente em Ação</p></div>
                   <div className="text-center p-4 rounded-lg bg-muted"><p className="text-2xl font-bold text-primary">{stats?.testimonials?.sent || 0}</p><p className="text-sm text-muted-foreground">Depoimentos</p></div>

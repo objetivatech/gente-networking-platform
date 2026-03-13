@@ -111,11 +111,9 @@ export default function Feed() {
     if (!activities) return [];
     return activities.filter(a => {
       if (typeFilter !== 'all' && a.activity_type !== typeFilter) return false;
-      // Include activities with matching team_id OR null team_id (global/legacy activities)
-      if (teamFilter !== 'all' && a.team_id !== null && a.team_id !== teamFilter) return false;
       return true;
     });
-  }, [activities, typeFilter, teamFilter]);
+  }, [activities, typeFilter]);
 
   const activityTypes = useMemo(() => {
     if (!activities) return [];

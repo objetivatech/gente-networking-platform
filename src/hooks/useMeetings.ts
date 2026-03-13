@@ -34,7 +34,7 @@ export function useMeetings() {
   const { data: meetings, isLoading } = useQuery({
     queryKey: ['meetings'],
     queryFn: async () => {
-      const { data, error } = await supabaseReadOnly.from('meetings').select('*').order('meeting_date', { ascending: false });
+      const { data, error } = await supabaseReadOnly.from('meetings').select('*').order('meeting_date', { ascending: true });
       if (error) throw error;
 
       // Fetch teams
