@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-03-12
-> **Versão:** 3.0.0
+> **Última atualização:** 2026-03-13
+> **Versão:** 3.1.0
 
 ## Índice
 
