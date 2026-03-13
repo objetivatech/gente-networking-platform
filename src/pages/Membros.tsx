@@ -74,6 +74,8 @@ interface MemberProfile {
   team_name?: string | null;
   team_color?: string | null;
   slug?: string | null;
+  role?: string | null;
+  is_facilitator?: boolean;
 }
 
 function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewProfile: () => void }) {
