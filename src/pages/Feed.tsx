@@ -78,6 +78,10 @@ export default function Feed() {
         query = query.gte('created_at', startDate.toISOString());
       }
 
+      if (teamFilter !== 'all') {
+        query = query.eq('team_id', teamFilter);
+      }
+
       const { data, error } = await query;
       if (error) throw error;
 
