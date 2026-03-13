@@ -76,7 +76,7 @@ export default function Ranking() {
 
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Selecionar mês" />
             </SelectTrigger>
             <SelectContent>
