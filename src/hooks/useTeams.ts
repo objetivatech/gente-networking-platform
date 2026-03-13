@@ -28,7 +28,7 @@ export function useTeams() {
   const { data: teams, isLoading } = useQuery({
     queryKey: ['teams'],
     queryFn: async () => {
-      const { data: teamsData, error } = await supabase.from('teams').select('*').order('name');
+      const { data: teamsData, error } = await supabaseReadOnly.from('teams').select('*').order('name');
       if (error) throw error;
 
       const { data: membersData } = await supabase.from('team_members').select('*');
