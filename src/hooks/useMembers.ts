@@ -107,35 +107,38 @@ export function useMembers(includeInactive = false) {
         teamsMap[t.id] = { name: t.name, color: t.color || '#22c55e' };
       });
 
-      // 5. Filter out guests and create member entries for each team membership
-      // A member who belongs to 2 teams will appear once per team
+      // 5. Filter out guests and admins, create member entries for each team membership
       const membersWithTeam: Member[] = [];
       
       (profiles || []).forEach(profile => {
         const role = rolesMap[profile.id];
-        // Exclude guests - users with role 'convidado' or without any role are considered guests
-        if (!role || role === 'convidado') return;
+        // Exclude guests and admins from listing
+        if (!role || role === 'convidado' || role === 'admin') return;
         
-        const userTeamIds = teamMembershipMap[profile.id] || [];
+        const userTeamEntries = teamMembershipMap[profile.id] || [];
         
-        if (userTeamIds.length === 0) {
+        if (userTeamEntries.length === 0) {
           // Member without team - add once with null team
           membersWithTeam.push({
             ...profile,
             team_id: null,
             team_name: null,
             team_color: null,
+            role,
+            is_facilitator: false,
           });
         } else {
           // Member with teams - add once for each team
-          userTeamIds.forEach(teamId => {
-            const teamInfo = teamsMap[teamId];
+          userTeamEntries.forEach(entry => {
+            const teamInfo = teamsMap[entry.team_id];
             if (teamInfo) {
               membersWithTeam.push({
                 ...profile,
-                team_id: teamId,
+                team_id: entry.team_id,
                 team_name: teamInfo.name,
                 team_color: teamInfo.color,
+                role,
+                is_facilitator: entry.is_facilitator,
               });
             }
           });

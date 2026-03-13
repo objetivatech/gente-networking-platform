@@ -86,8 +86,10 @@ function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewPr
     .slice(0, 2)
     .toUpperCase();
 
+  const isFacilitator = member.is_facilitator || member.role === 'facilitador';
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`hover:shadow-md transition-shadow ${isFacilitator ? 'border-amber-400 border-2 shadow-amber-100' : ''}`}>
       <CardContent className="pt-6">
         <div className="flex items-start gap-4">
           <Avatar className="h-14 w-14">
@@ -104,6 +106,13 @@ function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewPr
                 <RankBadge rank={member.rank as any} size="sm" />
               )}
             </div>
+            
+            {isFacilitator && (
+              <Badge className="bg-amber-100 text-amber-800 border-amber-300 mb-1 text-xs">
+                <Crown className="h-3 w-3 mr-1" />
+                Facilitador
+              </Badge>
+            )}
             
             {member.position && (
               <p className="text-sm text-muted-foreground truncate">{member.position}</p>
