@@ -20,6 +20,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { activities } = useActivityFeed();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [lastSeen, setLastSeen] = useState<Date | null>(null);
 
