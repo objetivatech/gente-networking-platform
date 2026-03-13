@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useMeetings, useMeetingAttendees, useMeetingGuests } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
-import { useTeams } from '@/hooks/useTeams';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
