@@ -48,7 +48,7 @@ export function useMembers(includeInactive = false) {
     staleTime: 5 * 60 * 1000, // 5 min - member list changes rarely
     queryFn: async () => {
       // 1. Get all profiles
-      let profilesQuery = supabase
+      let profilesQuery = supabaseReadOnly
         .from('profiles')
         .select('id, full_name, email, phone, company, position, bio, avatar_url, linkedin_url, instagram_url, website_url, business_segment, points, rank, slug, is_active')
         .order('full_name');
