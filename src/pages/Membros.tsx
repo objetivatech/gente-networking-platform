@@ -739,9 +739,7 @@ export default function Membros() {
 }
 
 // ─── Grupos Tab (inline from Equipes) ────────────────────────
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import RankBadge from '@/components/RankBadge';
-import { Crown, UserCheck } from 'lucide-react';
+// Imports already at top of file
 import type { Team } from '@/hooks/useTeams';
 
 function GruposTab({ teams, isLoading: loading }: { teams: Team[] | undefined; isLoading: boolean }) {
