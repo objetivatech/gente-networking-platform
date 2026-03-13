@@ -342,9 +342,13 @@ export default function Profile() {
           </TabsContent>
 
           <TabsContent value="cases" className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-lg font-semibold">Meus Cases de Negócio</h3>
-              <Button size="sm" onClick={() => setShowNewCase(true)}><Plus className="h-4 w-4 mr-1" /> Novo Case</Button>
+              {myDeals && myDeals.length > 0 ? (
+                <Button size="sm" onClick={() => setShowNewCase(true)}><Plus className="h-4 w-4 mr-1" /> Novo Case</Button>
+              ) : (
+                <p className="text-sm text-muted-foreground">Registre um negócio em <a href="/negocios" className="text-primary underline">Negócios</a> primeiro para criar um case.</p>
+              )}
             </div>
             {cases?.length ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
