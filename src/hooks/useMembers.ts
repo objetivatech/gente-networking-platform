@@ -77,20 +77,20 @@ export function useMembers(includeInactive = false) {
         rolesMap[r.user_id] = r.role;
       });
 
-      // 3. Get team memberships (a user can belong to multiple teams)
+      // 3. Get team memberships with facilitator info
       const { data: teamMembers, error: teamMembersError } = await supabaseReadOnly
         .from('team_members')
-        .select('user_id, team_id');
+        .select('user_id, team_id, is_facilitator');
 
       if (teamMembersError) throw teamMembersError;
 
-      // Create a map of user_id -> team_ids[] (multiple teams per user)
-      const teamMembershipMap: Record<string, string[]> = {};
+      // Create a map of user_id -> team membership info[]
+      const teamMembershipMap: Record<string, { team_id: string; is_facilitator: boolean }[]> = {};
       teamMembers?.forEach(tm => {
         if (!teamMembershipMap[tm.user_id]) {
           teamMembershipMap[tm.user_id] = [];
         }
-        teamMembershipMap[tm.user_id].push(tm.team_id);
+        teamMembershipMap[tm.user_id].push({ team_id: tm.team_id, is_facilitator: tm.is_facilitator || false });
       });
 
       // 4. Get all teams
