@@ -49,7 +49,7 @@ const menuItems = [
   { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro'] },
   { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro'] },
-  { icon: Users, label: 'Grupos', path: '/equipes', roles: ['admin', 'facilitador', 'membro'] },
+  
   { icon: Calendar, label: 'Encontros', path: '/encontros', roles: ['admin', 'facilitador', 'membro'] },
   { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos', roles: ['admin', 'facilitador', 'membro'] },
   { icon: MessageCircle, label: 'Conselho 24/7', path: '/conselho', roles: ['admin', 'facilitador', 'membro'] },

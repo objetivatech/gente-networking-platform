@@ -164,7 +164,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               )}
             </div>
             <div className="p-2 border-t">
-              <Link to="/" onClick={() => setOpen(false)}>
+              <Link to="/feed" onClick={() => setOpen(false)}>
                 <Button variant="ghost" size="sm" className="w-full text-xs">
                   Ver todas as atividades
                 </Button>
