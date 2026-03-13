@@ -64,13 +64,13 @@ export default function Feed() {
   const { teams } = useTeams();
 
   const { data: activities, isLoading } = useQuery({
-    queryKey: ['feed-activities', periodFilter],
+    queryKey: ['feed-activities', periodFilter, teamFilter],
     queryFn: async () => {
       let query = supabase
         .from('activity_feed')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(200);
+        .limit(500);
 
       if (periodFilter !== 'all') {
         const monthsBack = parseInt(periodFilter);
