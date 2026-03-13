@@ -632,6 +632,19 @@ Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibi
 - Cloudflare Turnstile no cadastro de convidados (anti-bot)
 - Edge Function verify-turnstile para validação server-side
 - Cloudflare Web Analytics para monitoramento de Core Web Vitals
+- Cloudflare Worker Proxy para cache de borda (api.gentenetworking.com.br)
+
+### v3.1.0 (2026-03-13)
+
+**Triggers de Gamificação e Correções:**
+- 16 triggers automáticos para pontuação mensal (Gente em Ação, Depoimentos, Indicações, Negócios, Presenças, Conselho 24/7, Cases, Convites)
+- Componente AdminCacheDiagnostics para monitoramento de cache HIT/MISS/BYPASS
+- Correção do supabaseReadOnly que não compartilhava sessão de autenticação (RLS)
+- Unificação das páginas /membros e /grupos em abas
+- ScoringRulesCard atualizado com todas as 8 atividades
+- Links de notificações (sininho) agora direcionam para /feed
+- Melhorias de responsividade mobile (overflow-x-hidden, grids adaptativos, filtros empilhados)
+- Documentação /documentacao atualizada com seção de Arquitetura de Performance
 
 ### v2.3.0 (2026-02-08)
 - Sistema de pontuação mensal por grupo
