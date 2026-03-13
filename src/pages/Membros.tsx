@@ -571,10 +571,10 @@ export default function Membros() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <Users className="h-8 w-8 text-primary" />
+          <Users className="h-7 w-7 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Diretório de Membros</h1>
-            <p className="text-muted-foreground">Conheça os membros da comunidade</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Comunidade</h1>
+            <p className="text-muted-foreground text-sm">Membros e grupos da comunidade</p>
           </div>
         </div>
         
