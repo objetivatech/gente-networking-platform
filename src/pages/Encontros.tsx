@@ -204,25 +204,35 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
   const { data: guests, isLoading: isLoadingGuests } = useQuery({
     queryKey: ['meeting-guests', meetingId],
     queryFn: async () => {
-      // Get the meeting to find team_id
       const { data: meeting } = await supabase.from('meetings').select('team_id').eq('id', meetingId).single();
-      if (!meeting?.team_id) return [];
-      
-      // Get invitations from members of this team whose accepted guests have attendance for this meeting
-      const { data: teamMemberIds } = await supabase.from('team_members').select('user_id').eq('team_id', meeting.team_id);
-      if (!teamMemberIds?.length) return [];
 
-      const inviterIds = teamMemberIds.map(tm => tm.user_id);
-      const { data: invitations } = await supabase
+      let invitationsQuery = supabase
         .from('invitations')
         .select('id, name, email, accepted_by, invited_by, status')
-        .in('invited_by', inviterIds)
         .eq('status', 'accepted');
-      
+
+      if (meeting?.team_id) {
+        const { data: teamMemberIds } = await supabase.from('team_members').select('user_id').eq('team_id', meeting.team_id);
+        if (!teamMemberIds?.length) return [];
+
+        const inviterIds = teamMemberIds.map((tm) => tm.user_id);
+        invitationsQuery = invitationsQuery.in('invited_by', inviterIds);
+      }
+
+      const { data: invitations } = await invitationsQuery;
       if (!invitations?.length) return [];
 
-      // Check which accepted guests have attendance for this meeting
-      const guestUserIds = invitations.map(i => i.accepted_by).filter(Boolean) as string[];
+      const acceptedInviteeIds = invitations.map((i) => i.accepted_by).filter(Boolean) as string[];
+      if (!acceptedInviteeIds.length) return [];
+
+      // Apenas usuários que ainda têm papel de convidado entram na seção "Convidados"
+      const { data: guestRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('user_id', acceptedInviteeIds)
+        .eq('role', 'convidado');
+
+      const guestUserIds = guestRoles?.map((r) => r.user_id) || [];
       if (!guestUserIds.length) return [];
 
       const { data: guestAttendances } = await supabase
@@ -231,7 +241,7 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
         .eq('meeting_id', meetingId)
         .in('user_id', guestUserIds);
 
-      const attendingGuestIds = new Set(guestAttendances?.map(a => a.user_id) || []);
+      const attendingGuestIds = new Set(guestAttendances?.map((a) => a.user_id) || []);
       if (attendingGuestIds.size === 0) return [];
 
       // Get profiles of attending guests
