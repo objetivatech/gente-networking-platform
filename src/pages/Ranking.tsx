@@ -74,9 +74,9 @@ export default function Ranking() {
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Selecionar mês" />
             </SelectTrigger>
             <SelectContent>
@@ -90,7 +90,7 @@ export default function Ranking() {
           </Select>
 
           <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Filtrar por grupo" />
             </SelectTrigger>
             <SelectContent>

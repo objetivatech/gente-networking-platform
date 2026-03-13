@@ -1,17 +1,19 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, MessageSquare, Handshake, UserCheck, DollarSign, UserPlus } from 'lucide-react';
+import { Handshake, UserCheck, Send, MessageSquare, DollarSign, UserPlus, MessageCircle, Briefcase } from 'lucide-react';
 
 interface ScoringRulesCardProps {
   compact?: boolean;
 }
 
 const scoringRules = [
-  { icon: Users, label: 'Gente em Ação', points: '25 pts', description: 'por reunião 1-a-1' },
-  { icon: MessageSquare, label: 'Depoimentos', points: '15 pts', description: 'por depoimento' },
-  { icon: Handshake, label: 'Indicações', points: '20 pts', description: 'por indicação' },
+  { icon: Handshake, label: 'Gente em Ação', points: '25 pts', description: 'por reunião 1-a-1' },
+  { icon: Send, label: 'Indicações', points: '20 pts', description: 'por indicação' },
   { icon: UserCheck, label: 'Presenças', points: '20 pts', description: 'por encontro' },
-  { icon: DollarSign, label: 'Negócios', points: '5 pts', description: 'por R$ 100' },
+  { icon: MessageSquare, label: 'Depoimentos', points: '15 pts', description: 'por depoimento' },
   { icon: UserPlus, label: 'Convites', points: '15 pts', description: 'por convidado presente' },
+  { icon: Briefcase, label: 'Case de Negócio', points: '15 pts', description: 'por case publicado' },
+  { icon: MessageCircle, label: 'Conselho 24/7', points: '5-10 pts', description: '5 resposta + 5 melhor' },
+  { icon: DollarSign, label: 'Negócios', points: '5 pts', description: 'por R$ 100' },
 ];
 
 export default function ScoringRulesCard({ compact = false }: ScoringRulesCardProps) {

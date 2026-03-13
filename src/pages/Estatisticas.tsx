@@ -30,7 +30,7 @@ function StatsCards({ stats }: { stats: any }) {
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
       {cards.map((stat) => (
         <Card key={stat.label}>
           <CardContent className="p-3">
@@ -147,7 +147,7 @@ function CommunityTab() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {[
           { icon: Users, label: 'Membros', value: stats.totalMembers, color: 'text-primary', bg: 'bg-primary/10' },
           { icon: Handshake, label: 'Gente em Ação', value: stats.totalGenteEmAcao, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },

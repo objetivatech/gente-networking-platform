@@ -8,7 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useActivityFeed } from '@/hooks/useActivityFeed';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -20,6 +20,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { activities } = useActivityFeed();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [lastSeen, setLastSeen] = useState<Date | null>(null);
 
@@ -136,7 +137,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                       className={`p-3 hover:bg-muted/50 transition-colors cursor-pointer ${
                         isUnread(activity.created_at) ? 'bg-primary/5' : ''
                       }`}
-                      onClick={() => setOpen(false)}
+                      onClick={() => { setOpen(false); navigate('/feed'); }}
                     >
                       <div className="flex gap-3">
                         <div className="relative">
@@ -163,7 +164,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
               )}
             </div>
             <div className="p-2 border-t">
-              <Link to="/" onClick={() => setOpen(false)}>
+              <Link to="/feed" onClick={() => setOpen(false)}>
                 <Button variant="ghost" size="sm" className="w-full text-xs">
                   Ver todas as atividades
                 </Button>

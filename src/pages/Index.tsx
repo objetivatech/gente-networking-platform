@@ -182,26 +182,26 @@ export default function Index() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="text-center p-4 rounded-lg bg-muted/50">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
               <RankBadge rank="iniciante" size="lg" />
-              <p className="text-xs text-muted-foreground mt-2">0 - 49 pts</p>
+              <p className="text-xs text-muted-foreground mt-2">0-49 pts</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
               <RankBadge rank="bronze" size="lg" />
-              <p className="text-xs text-muted-foreground mt-2">50 - 199 pts</p>
+              <p className="text-xs text-muted-foreground mt-2">50-149 pts</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
               <RankBadge rank="prata" size="lg" />
-              <p className="text-xs text-muted-foreground mt-2">200 - 499 pts</p>
+              <p className="text-xs text-muted-foreground mt-2">150-299 pts</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
               <RankBadge rank="ouro" size="lg" />
-              <p className="text-xs text-muted-foreground mt-2">500 - 999 pts</p>
+              <p className="text-xs text-muted-foreground mt-2">300-499 pts</p>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50">
               <RankBadge rank="diamante" size="lg" />
-              <p className="text-xs text-muted-foreground mt-2">1000+ pts</p>
+              <p className="text-xs text-muted-foreground mt-2">500+ pts</p>
             </div>
           </div>
           <ScoringRulesCard compact />
