@@ -26,6 +26,15 @@ export interface Attendance {
   profile?: { full_name: string; company: string | null; avatar_url: string | null };
 }
 
+export interface MeetingGuest {
+  id: string;
+  full_name: string;
+  email: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  company: string | null;
+}
+
 export function useMeetings() {
   const { user } = useAuth();
   const { toast } = useToast();
