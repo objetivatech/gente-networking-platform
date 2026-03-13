@@ -30,7 +30,7 @@ const GenteEmAcao = lazy(() => import("./pages/GenteEmAcao"));
 const Depoimentos = lazy(() => import("./pages/Depoimentos"));
 const Negocios = lazy(() => import("./pages/Negocios"));
 const Indicacoes = lazy(() => import("./pages/Indicacoes"));
-const Membros = lazy(() => import("./pages/Membros"));
+const Equipes = lazy(() => import("./pages/Equipes"));
 const Encontros = lazy(() => import("./pages/Encontros"));
 const Estatisticas = lazy(() => import("./pages/Estatisticas"));
 const Admin = lazy(() => import("./pages/Admin"));
