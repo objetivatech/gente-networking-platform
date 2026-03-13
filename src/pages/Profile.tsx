@@ -388,6 +388,20 @@ export default function Profile() {
         <DialogContent>
           <DialogHeader><DialogTitle>Novo Case de Negócio</DialogTitle></DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Negócio vinculado *</Label>
+              <Select value={newCase.business_deal_id} onValueChange={v => setNewCase({ ...newCase, business_deal_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione um negócio" /></SelectTrigger>
+                <SelectContent>
+                  {myDeals?.map(deal => (
+                    <SelectItem key={deal.id} value={deal.id}>
+                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(deal.value))}
+                      {deal.client_name ? ` - ${deal.client_name}` : ''} ({deal.deal_date})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2"><Label>Título</Label><Input value={newCase.title} onChange={e => setNewCase({ ...newCase, title: e.target.value })} placeholder="Ex: Projeto de Marketing Digital" /></div>
             <div className="space-y-2"><Label>Cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={newCase.description} onChange={e => setNewCase({ ...newCase, description: e.target.value })} placeholder="Descreva o projeto..." rows={3} /></div>
