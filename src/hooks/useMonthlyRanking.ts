@@ -38,7 +38,7 @@ export function useAvailableMonths() {
   return useQuery({
     queryKey: ['available-months'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseReadOnly
         .from('monthly_points')
         .select('year_month')
         .order('year_month', { ascending: false });

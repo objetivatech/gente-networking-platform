@@ -63,7 +63,7 @@ export function useMembers(includeInactive = false) {
       if (profilesError) throw profilesError;
 
       // 2. Get user roles to filter out guests
-      const { data: roles, error: rolesError } = await supabase
+      const { data: roles, error: rolesError } = await supabaseReadOnly
         .from('user_roles')
         .select('user_id, role');
 

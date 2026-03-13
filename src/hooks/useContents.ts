@@ -38,7 +38,7 @@ export function useContents() {
       
       let creatorsMap: Record<string, string> = {};
       if (creatorIds.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles } = await supabaseReadOnly
           .from('profiles')
           .select('id, full_name')
           .in('id', creatorIds);

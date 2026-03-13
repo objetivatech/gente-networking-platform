@@ -41,7 +41,7 @@ export function useTeams() {
         const { data: profilesData } = await supabaseReadOnly.from('profiles').select('id, full_name, company, avatar_url, rank').in('id', userIds);
         profilesData?.forEach(p => { profiles[p.id] = p; });
         
-        const { data: rolesData } = await supabase.from('user_roles').select('user_id, role').in('user_id', userIds);
+        const { data: rolesData } = await supabaseReadOnly.from('user_roles').select('user_id, role').in('user_id', userIds);
         rolesData?.forEach(r => { roles[r.user_id] = r.role; });
       }
 

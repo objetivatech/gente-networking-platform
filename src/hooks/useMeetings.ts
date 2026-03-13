@@ -41,7 +41,7 @@ export function useMeetings() {
       const teamIds = data.filter(m => m.team_id).map(m => m.team_id);
       let teams: Record<string, any> = {};
       if (teamIds.length > 0) {
-        const { data: teamsData } = await supabase.from('teams').select('id, name, color').in('id', teamIds);
+        const { data: teamsData } = await supabaseReadOnly.from('teams').select('id, name, color').in('id', teamIds);
         teamsData?.forEach(t => { teams[t.id] = t; });
       }
 

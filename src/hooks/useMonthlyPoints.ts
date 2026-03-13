@@ -71,7 +71,7 @@ export function useMonthlyPointsHistory(userId?: string, teamId?: string) {
     queryFn: async () => {
       if (!userId) return [];
       
-      let query = supabase
+      let query = supabaseReadOnly
         .from('monthly_points')
         .select(`
           *,
