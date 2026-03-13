@@ -490,6 +490,35 @@ Ferramenta que captura informações do perfil (nome, empresa, what_i_do, ideal_
 - Preview deployments por PR
 - Compressão Brotli/Gzip
 
+### Cloudflare Worker — Supabase Proxy Cache (v3.0.0)
+
+Worker de edge caching para endpoints REST de leitura frequente:
+
+- **Código:** `cloudflare-worker/src/index.ts`
+- **Configuração:** `cloudflare-worker/wrangler.toml`
+- **Documentação completa:** `docs/CLOUDFLARE_WORKER_PROXY.md`
+
+**Endpoints cacheados e TTLs:**
+
+| Endpoint | TTL | Justificativa |
+|----------|-----|---------------|
+| `profiles` | 120s | Perfis mudam raramente |
+| `teams` | 300s | Times quase nunca mudam |
+| `team_members` | 120s | Mudanças são admin-only |
+| `monthly_points` / `get_monthly_ranking` | 60s | Ranking é hot path |
+| `system_changelog` | 600s | Raramente muda |
+| `contents` | 300s | Conteúdos mudam pouco |
+| `meetings` | 120s | Consultado frequentemente |
+
+**Funcionalidades:**
+- CORS restrito a origens autorizadas
+- Headers de diagnóstico (`X-Cache: HIT/MISS/BYPASS`)
+- Endpoint `/purge` para invalidação manual
+- Health check em `/health`
+- Stale-while-revalidate para respostas rápidas durante revalidação
+
+**Deploy:** `cd cloudflare-worker && wrangler deploy`
+
 ---
 
 ## Feed de Atividades

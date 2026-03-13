@@ -1,0 +1,19 @@
+name = "gente-supabase-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Rotas — ajuste o pattern para o domínio do Worker
+# routes = [
+#   { pattern = "api.gentenetworking.com.br/*", zone_name = "gentenetworking.com.br" }
+# ]
+
+[vars]
+# Variáveis públicas (não-secretas)
+# SUPABASE_URL e SUPABASE_ANON_KEY devem ser configurados como secrets:
+# wrangler secret put SUPABASE_URL
+# wrangler secret put SUPABASE_ANON_KEY
+
+[observability]
+enabled = true
+head_sampling_rate = 1
