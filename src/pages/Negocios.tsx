@@ -214,7 +214,7 @@ export default function Negocios() {
               <DialogTitle>Registrar Negócio</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4" data-rd-no-capture="true">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="value">Valor (R$)</Label>
                   <Input
