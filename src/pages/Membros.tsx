@@ -369,12 +369,16 @@ const RANK_LABELS: Record<string, string> = {
 
 export default function Membros() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { members, membersByTeam, isLoading } = useMembers();
+  const { teams, isLoading: teamsLoading } = useTeams();
   const { isGuest, canManage, isLoading: isLoadingRole } = useAdmin();
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [segmentFilter, setSegmentFilter] = useState<string>('all');
   const [rankFilter, setRankFilter] = useState<string>('all');
+  
+  const defaultTab = searchParams.get('tab') === 'grupos' ? 'grupos' : 'membros';
 
   const handleViewProfile = (memberSlug: string) => {
     navigate(`/membro/${memberSlug}`);
