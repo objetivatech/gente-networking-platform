@@ -409,7 +409,7 @@ export default function Profile() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewCase(false)}>Cancelar</Button>
-            <Button onClick={handleCreateCase} disabled={createCase.isPending || !newCase.title.trim()}>
+            <Button onClick={handleCreateCase} disabled={createCase.isPending || !newCase.title.trim() || !newCase.business_deal_id}>
               {createCase.isPending ? 'Criando...' : 'Criar Case'}
             </Button>
           </DialogFooter>
