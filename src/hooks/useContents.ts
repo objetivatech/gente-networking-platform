@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseReadOnly } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,7 +26,7 @@ export function useContents() {
   const { data: contents, isLoading } = useQuery({
     queryKey: ['contents'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseReadOnly
         .from('contents')
         .select('*')
         .order('created_at', { ascending: false });
@@ -38,7 +38,7 @@ export function useContents() {
       
       let creatorsMap: Record<string, string> = {};
       if (creatorIds.length > 0) {
-        const { data: profiles } = await supabase
+        const { data: profiles } = await supabaseReadOnly
           .from('profiles')
           .select('id, full_name')
           .in('id', creatorIds);

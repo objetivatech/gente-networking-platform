@@ -11,7 +11,7 @@
  */
 
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseReadOnly } from '@/integrations/supabase/client';
 
 export interface Member {
   id: string;
@@ -48,7 +48,7 @@ export function useMembers(includeInactive = false) {
     staleTime: 5 * 60 * 1000, // 5 min - member list changes rarely
     queryFn: async () => {
       // 1. Get all profiles
-      let profilesQuery = supabase
+      let profilesQuery = supabaseReadOnly
         .from('profiles')
         .select('id, full_name, email, phone, company, position, bio, avatar_url, linkedin_url, instagram_url, website_url, business_segment, points, rank, slug, is_active')
         .order('full_name');
@@ -63,7 +63,7 @@ export function useMembers(includeInactive = false) {
       if (profilesError) throw profilesError;
 
       // 2. Get user roles to filter out guests
-      const { data: roles, error: rolesError } = await supabase
+      const { data: roles, error: rolesError } = await supabaseReadOnly
         .from('user_roles')
         .select('user_id, role');
 
@@ -76,7 +76,7 @@ export function useMembers(includeInactive = false) {
       });
 
       // 3. Get team memberships (a user can belong to multiple teams)
-      const { data: teamMembers, error: teamMembersError } = await supabase
+      const { data: teamMembers, error: teamMembersError } = await supabaseReadOnly
         .from('team_members')
         .select('user_id, team_id');
 
@@ -92,7 +92,7 @@ export function useMembers(includeInactive = false) {
       });
 
       // 4. Get all teams
-      const { data: teams, error: teamsError } = await supabase
+      const { data: teams, error: teamsError } = await supabaseReadOnly
         .from('teams')
         .select('id, name, color')
         .order('name');

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseReadOnly } from '@/integrations/supabase/client';
 
 export interface TeamMember {
   id: string;
@@ -28,20 +28,20 @@ export function useTeams() {
   const { data: teams, isLoading } = useQuery({
     queryKey: ['teams'],
     queryFn: async () => {
-      const { data: teamsData, error } = await supabase.from('teams').select('*').order('name');
+      const { data: teamsData, error } = await supabaseReadOnly.from('teams').select('*').order('name');
       if (error) throw error;
 
-      const { data: membersData } = await supabase.from('team_members').select('*');
+      const { data: membersData } = await supabaseReadOnly.from('team_members').select('*');
       const userIds = membersData?.map(m => m.user_id) || [];
       
       let profiles: Record<string, any> = {};
       let roles: Record<string, string> = {};
       
       if (userIds.length > 0) {
-        const { data: profilesData } = await supabase.from('profiles').select('id, full_name, company, avatar_url, rank').in('id', userIds);
+        const { data: profilesData } = await supabaseReadOnly.from('profiles').select('id, full_name, company, avatar_url, rank').in('id', userIds);
         profilesData?.forEach(p => { profiles[p.id] = p; });
         
-        const { data: rolesData } = await supabase.from('user_roles').select('user_id, role').in('user_id', userIds);
+        const { data: rolesData } = await supabaseReadOnly.from('user_roles').select('user_id, role').in('user_id', userIds);
         rolesData?.forEach(r => { roles[r.user_id] = r.role; });
       }
 

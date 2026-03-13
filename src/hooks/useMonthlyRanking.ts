@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabaseReadOnly } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
 export interface MonthlyRankedMember {
@@ -22,7 +22,7 @@ export function useMonthlyRanking(teamId?: string, yearMonth?: string) {
     queryKey: ['monthly-ranking', teamId, currentMonth],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_monthly_ranking', {
+      const { data, error } = await supabaseReadOnly.rpc('get_monthly_ranking', {
         _team_id: teamId || null,
         _year_month: currentMonth,
       });
@@ -38,7 +38,7 @@ export function useAvailableMonths() {
   return useQuery({
     queryKey: ['available-months'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseReadOnly
         .from('monthly_points')
         .select('year_month')
         .order('year_month', { ascending: false });

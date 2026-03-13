@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseReadOnly } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 
@@ -19,7 +19,7 @@ export function useMonthlyPoints(userId?: string, teamId?: string, yearMonth?: s
     queryFn: async () => {
       if (!userId) return [];
       
-      const { data, error } = await supabase.rpc('get_user_monthly_points', {
+      const { data, error } = await supabaseReadOnly.rpc('get_user_monthly_points', {
         _user_id: userId,
         _team_id: teamId || null,
         _year_month: currentMonth,
@@ -71,7 +71,7 @@ export function useMonthlyPointsHistory(userId?: string, teamId?: string) {
     queryFn: async () => {
       if (!userId) return [];
       
-      let query = supabase
+      let query = supabaseReadOnly
         .from('monthly_points')
         .select(`
           *,

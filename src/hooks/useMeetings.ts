@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, supabaseReadOnly } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -34,14 +34,14 @@ export function useMeetings() {
   const { data: meetings, isLoading } = useQuery({
     queryKey: ['meetings'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('meetings').select('*').order('meeting_date', { ascending: false });
+      const { data, error } = await supabaseReadOnly.from('meetings').select('*').order('meeting_date', { ascending: false });
       if (error) throw error;
 
       // Fetch teams
       const teamIds = data.filter(m => m.team_id).map(m => m.team_id);
       let teams: Record<string, any> = {};
       if (teamIds.length > 0) {
-        const { data: teamsData } = await supabase.from('teams').select('id, name, color').in('id', teamIds);
+        const { data: teamsData } = await supabaseReadOnly.from('teams').select('id, name, color').in('id', teamIds);
         teamsData?.forEach(t => { teams[t.id] = t; });
       }
 
