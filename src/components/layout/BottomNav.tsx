@@ -20,6 +20,10 @@ interface NavItem {
   path: string;
 }
 
+interface BottomNavProps {
+  hidden?: boolean;
+}
+
 const memberItems: NavItem[] = [
   { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao' },
   { icon: DollarSign, label: 'Negócios', path: '/negocios' },
@@ -42,11 +46,11 @@ const facilitadorItems: NavItem[] = [
   { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas' },
 ];
 
-export default function BottomNav() {
+export default function BottomNav({ hidden = false }: BottomNavProps) {
   const { role, isLoading } = useAdmin();
   const location = useLocation();
 
-  if (isLoading) return null;
+  if (isLoading || hidden) return null;
 
   const items = role === 'admin' ? adminItems : role === 'facilitador' ? facilitadorItems : memberItems;
 

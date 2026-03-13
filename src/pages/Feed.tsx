@@ -70,16 +70,32 @@ export default function Feed() {
         .from('activity_feed')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(500);
+        .limit(1000);
 
-      if (periodFilter !== 'all') {
-        const monthsBack = parseInt(periodFilter);
-        const startDate = startOfMonth(subMonths(new Date(), monthsBack));
-        query = query.gte('created_at', startDate.toISOString());
+      const now = new Date();
+      if (periodFilter === '0' || periodFilter === '1') {
+        const targetMonth = periodFilter === '1' ? subMonths(now, 1) : now;
+        query = query
+          .gte('created_at', startOfMonth(targetMonth).toISOString())
+          .lte('created_at', endOfMonth(targetMonth).toISOString());
+      } else if (periodFilter === '2' || periodFilter === '5') {
+        const monthsBack = periodFilter === '2' ? 2 : 5;
+        query = query.gte('created_at', startOfMonth(subMonths(now, monthsBack)).toISOString());
       }
 
       if (teamFilter !== 'all') {
-        query = query.eq('team_id', teamFilter);
+        const { data: teamMembers, error: teamMembersError } = await supabase
+          .from('team_members')
+          .select('user_id')
+          .eq('team_id', teamFilter);
+
+        if (teamMembersError) throw teamMembersError;
+
+        const memberIds = [...new Set((teamMembers || []).map((tm) => tm.user_id))];
+        if (memberIds.length === 0) return [];
+
+        const memberIdsFilter = memberIds.map((id) => `"${id}"`).join(',');
+        query = query.or(`team_id.eq.${teamFilter},and(team_id.is.null,user_id.in.(${memberIdsFilter}))`);
       }
 
       const { data, error } = await query;
