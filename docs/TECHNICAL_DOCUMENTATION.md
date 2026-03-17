@@ -348,10 +348,11 @@ docs/
 
 Notificações por email para múltiplos tipos de eventos.
 
-**Tipos suportados:** `testimonial`, `referral`, `welcome`, `invitation_accepted`, `guest_attended`, `invitation`
+**Tipos suportados:** `testimonial`, `referral`, `welcome`, `invitation_accepted`, `guest_attended`, `invitation`, `new_meeting`, `council_post`, `rank_change`
 
 **Funcionalidades:**
-- Respeita preferências de notificação do usuário (email_notifications_enabled, notify_on_testimonial, notify_on_referral)
+- Respeita preferências de notificação do usuário (email_notifications_enabled, notify_on_testimonial, notify_on_referral, notify_on_meeting)
+- Suporte a notificações em lote (to_user_ids) para encontros e conselho
 - Templates HTML com identidade visual Gente Networking
 - Envio via Resend API
 
