@@ -125,24 +125,32 @@ export function useAdminDashboard(teamId?: string) {
       const { data: teams } = await supabase.from('teams').select('id, name, color');
       if (!teams) return [];
 
-      const { data: teamMembers } = await supabase.from('team_members').select('team_id, user_id');
-      const { data: allGente } = await supabase.from('gente_em_acao').select('user_id');
-      const { data: allReferrals } = await supabase.from('referrals').select('from_user_id, to_user_id');
-      const { data: allDeals } = await supabase.from('business_deals').select('closed_by_user_id, value');
-      const { data: allTestimonials } = await supabase.from('testimonials').select('from_user_id');
+      const [tmRes, gaRes, refRes, dealsRes, testRes, crRes, bcRes] = await Promise.all([
+        supabase.from('team_members').select('team_id, user_id'),
+        supabase.from('gente_em_acao').select('user_id'),
+        supabase.from('referrals').select('from_user_id, to_user_id'),
+        supabase.from('business_deals').select('closed_by_user_id, value'),
+        supabase.from('testimonials').select('from_user_id'),
+        supabase.from('council_replies').select('user_id'),
+        supabase.from('business_cases').select('user_id'),
+      ]);
 
+      const teamMembers = tmRes.data || [];
       const membersByTeam = new Map<string, Set<string>>();
-      teamMembers?.forEach(tm => {
+      teamMembers.forEach(tm => {
         if (!membersByTeam.has(tm.team_id)) membersByTeam.set(tm.team_id, new Set());
         membersByTeam.get(tm.team_id)!.add(tm.user_id);
       });
 
       return teams.map(team => {
         const members = membersByTeam.get(team.id) || new Set();
-        const genteCount = allGente?.filter(g => members.has(g.user_id)).length || 0;
-        const referralCount = allReferrals?.filter(r => members.has(r.from_user_id)).length || 0;
-        const dealsValue = allDeals?.filter(d => members.has(d.closed_by_user_id)).reduce((acc, d) => acc + Number(d.value), 0) || 0;
-        const testimonialCount = allTestimonials?.filter(t => members.has(t.from_user_id)).length || 0;
+        const genteCount = gaRes.data?.filter(g => members.has(g.user_id)).length || 0;
+        const referralCount = refRes.data?.filter(r => members.has(r.from_user_id)).length || 0;
+        const dealsValue = dealsRes.data?.filter(d => members.has(d.closed_by_user_id)).reduce((acc, d) => acc + Number(d.value), 0) || 0;
+        const dealsCount = dealsRes.data?.filter(d => members.has(d.closed_by_user_id)).length || 0;
+        const testimonialCount = testRes.data?.filter(t => members.has(t.from_user_id)).length || 0;
+        const councilCount = crRes.data?.filter(c => members.has(c.user_id)).length || 0;
+        const casesCount = bcRes.data?.filter(c => members.has(c.user_id)).length || 0;
 
         return {
           id: team.id,
@@ -152,7 +160,10 @@ export function useAdminDashboard(teamId?: string) {
           genteEmAcao: genteCount,
           referrals: referralCount,
           businessValue: dealsValue,
+          businessCount: dealsCount,
           testimonials: testimonialCount,
+          councilReplies: councilCount,
+          businessCases: casesCount,
         };
       });
     },
