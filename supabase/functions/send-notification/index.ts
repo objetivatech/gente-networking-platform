@@ -22,9 +22,10 @@ const corsHeaders = {
 };
 
 interface NotificationPayload {
-  type: "testimonial" | "referral" | "welcome" | "invitation_accepted" | "guest_attended" | "invitation";
+  type: "testimonial" | "referral" | "welcome" | "invitation_accepted" | "guest_attended" | "invitation" | "new_meeting" | "council_post" | "rank_change";
   from_user_id?: string;
-  to_user_id: string;
+  to_user_id?: string;
+  to_user_ids?: string[];
   content?: string;
   contact_name?: string;
   contact_phone?: string;
@@ -33,8 +34,15 @@ interface NotificationPayload {
   new_member_name?: string;
   guest_name?: string;
   meeting_title?: string;
+  meeting_date?: string;
+  meeting_time?: string;
+  location?: string;
+  team_name?: string;
   invite_link?: string;
   guest_email?: string;
+  post_title?: string;
+  old_rank?: string;
+  new_rank?: string;
 }
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; data?: any; error?: any }> {
