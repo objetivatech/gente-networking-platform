@@ -22,6 +22,8 @@ import {
   UserCheck,
   Filter,
   Loader2,
+  Lightbulb,
+  UserCog,
 } from 'lucide-react';
 
 const activityTypeConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
