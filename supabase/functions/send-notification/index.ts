@@ -110,6 +110,60 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Batch notification types (new_meeting, council_post) send to multiple users
+    if ((payload.type === "new_meeting" || payload.type === "council_post") && payload.to_user_ids && payload.to_user_ids.length > 0) {
+      const { data: recipients } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, email_notifications_enabled, notify_on_meeting")
+        .in("id", payload.to_user_ids);
+
+      if (!recipients) {
+        return new Response(JSON.stringify({ success: true, sent: 0 }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+
+      let fromUser = { full_name: "Gente Networking" };
+      if (payload.from_user_id) {
+        const { data: fromData } = await supabase.from("profiles").select("full_name").eq("id", payload.from_user_id).single();
+        if (fromData) fromUser = fromData;
+      }
+
+      let sent = 0;
+      for (const recipient of recipients) {
+        if (!recipient.email || !recipient.email_notifications_enabled) continue;
+        if (payload.type === "new_meeting" && !recipient.notify_on_meeting) continue;
+
+        let subject: string;
+        let html: string;
+
+        if (payload.type === "new_meeting") {
+          subject = `📅 Novo encontro agendado: ${payload.meeting_title}`;
+          html = newMeetingEmailTemplate(recipient.full_name, payload.meeting_title || "Encontro", payload.meeting_date || "", payload.meeting_time, payload.location, payload.team_name);
+        } else {
+          subject = `💡 Novo desafio no Conselho 24/7: ${payload.post_title}`;
+          html = councilPostEmailTemplate(recipient.full_name, fromUser.full_name, payload.post_title || "Desafio", payload.team_name);
+        }
+
+        const result = await sendEmail(recipient.email, subject, html);
+        if (result.success) sent++;
+      }
+
+      return new Response(JSON.stringify({ success: true, sent }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    // Single recipient notifications
+    if (!payload.to_user_id) {
+      return new Response(JSON.stringify({ success: false, reason: "no_to_user_id" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Fetch recipient profile with notification preferences
     const { data: toUser, error: toUserError } = await supabase
       .from("profiles")
@@ -125,7 +179,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Check if user has email notifications enabled
     if (!toUser.email_notifications_enabled) {
       console.log("User has disabled email notifications");
       return new Response(JSON.stringify({ success: false, reason: "notifications_disabled" }), {
@@ -134,9 +187,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Check specific notification preferences
     if (payload.type === "testimonial" && !toUser.notify_on_testimonial) {
-      console.log("User has disabled testimonial notifications");
       return new Response(JSON.stringify({ success: false, reason: "testimonial_notifications_disabled" }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -144,7 +195,6 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     if (payload.type === "referral" && !toUser.notify_on_referral) {
-      console.log("User has disabled referral notifications");
       return new Response(JSON.stringify({ success: false, reason: "referral_notifications_disabled" }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -153,11 +203,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     let fromUser = { full_name: "Gente Networking" };
     if (payload.from_user_id) {
-      const { data: fromData } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", payload.from_user_id)
-        .single();
+      const { data: fromData } = await supabase.from("profiles").select("full_name").eq("id", payload.from_user_id).single();
       if (fromData) fromUser = fromData;
     }
 
@@ -167,23 +213,12 @@ const handler = async (req: Request): Promise<Response> => {
     switch (payload.type) {
       case "testimonial":
         subject = `🎉 ${fromUser.full_name} enviou um depoimento para você!`;
-        html = testimonialEmailTemplate(
-          fromUser.full_name,
-          toUser.full_name,
-          payload.content || "Depoimento não disponível"
-        );
+        html = testimonialEmailTemplate(fromUser.full_name, toUser.full_name, payload.content || "Depoimento não disponível");
         break;
 
       case "referral":
         subject = `📞 ${fromUser.full_name} indicou um contato para você!`;
-        html = referralEmailTemplate(
-          fromUser.full_name,
-          toUser.full_name,
-          payload.contact_name || "Contato",
-          payload.contact_phone,
-          payload.contact_email,
-          payload.notes
-        );
+        html = referralEmailTemplate(fromUser.full_name, toUser.full_name, payload.contact_name || "Contato", payload.contact_phone, payload.contact_email, payload.notes);
         break;
 
       case "welcome":
@@ -193,19 +228,17 @@ const handler = async (req: Request): Promise<Response> => {
 
       case "invitation_accepted":
         subject = `🎉 Seu convite foi aceito! ${payload.new_member_name} entrou na comunidade`;
-        html = invitationAcceptedEmailTemplate(
-          toUser.full_name,
-          payload.new_member_name || "Novo membro"
-        );
+        html = invitationAcceptedEmailTemplate(toUser.full_name, payload.new_member_name || "Novo membro");
         break;
 
       case "guest_attended":
         subject = `🎉 Seu convidado ${payload.guest_name} compareceu a um encontro!`;
-        html = guestAttendedEmailTemplate(
-          toUser.full_name,
-          payload.guest_name || "Convidado",
-          payload.meeting_title || "Encontro da comunidade"
-        );
+        html = guestAttendedEmailTemplate(toUser.full_name, payload.guest_name || "Convidado", payload.meeting_title || "Encontro da comunidade");
+        break;
+
+      case "rank_change":
+        subject = `🏆 Parabéns! Você subiu para o nível ${payload.new_rank}!`;
+        html = rankChangeEmailTemplate(toUser.full_name, payload.old_rank || "iniciante", payload.new_rank || "bronze");
         break;
 
       default:
