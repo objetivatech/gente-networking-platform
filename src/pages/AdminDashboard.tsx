@@ -7,6 +7,8 @@ import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { useRealtimeActivity } from '@/hooks/useRealtimeActivity';
 import { useUserRole } from '@/hooks/useAdmin';
 import { Navigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTeams } from '@/hooks/useTeams';
 import RankBadge from '@/components/RankBadge';
 import { 
   Users, 
