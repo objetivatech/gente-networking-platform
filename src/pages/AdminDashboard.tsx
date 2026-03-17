@@ -49,6 +49,8 @@ export default function AdminDashboard() {
     teamKpis,
   } = useAdminDashboard(teamIdParam);
   
+  const { teams } = useTeams();
+  
   // Enable realtime for activity feed
   useRealtimeActivity();
 
