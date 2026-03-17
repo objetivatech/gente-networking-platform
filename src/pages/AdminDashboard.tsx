@@ -101,10 +101,23 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-foreground">Dashboard Administrativo</h1>
           <p className="text-muted-foreground">Visão geral da comunidade</p>
         </div>
-        <Badge variant="outline" className="ml-auto flex items-center gap-1">
-          <Zap className="h-3 w-3 text-green-500" />
-          Realtime
-        </Badge>
+        <div className="flex items-center gap-3 ml-auto">
+          <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Todos os grupos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os grupos</SelectItem>
+              {teams?.map(team => (
+                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-green-500" />
+            Realtime
+          </Badge>
+        </div>
       </div>
 
       {/* Stats Cards */}
