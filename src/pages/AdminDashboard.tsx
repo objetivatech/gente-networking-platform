@@ -307,10 +307,13 @@ export default function AdminDashboard() {
                   <tr className="border-b">
                     <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Grupo</th>
                     <th className="text-center py-2 px-2 font-medium text-muted-foreground">Membros</th>
-                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Gente em Ação</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">GA</th>
                     <th className="text-center py-2 px-2 font-medium text-muted-foreground">Indicações</th>
                     <th className="text-center py-2 px-2 font-medium text-muted-foreground">Depoimentos</th>
-                    <th className="text-right py-2 pl-2 font-medium text-muted-foreground">Negócios (R$)</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Conselho</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Cases</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Neg.</th>
+                    <th className="text-right py-2 pl-2 font-medium text-muted-foreground">R$ Negócios</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -326,6 +329,9 @@ export default function AdminDashboard() {
                       <td className="text-center py-2 px-2">{team.genteEmAcao}</td>
                       <td className="text-center py-2 px-2">{team.referrals}</td>
                       <td className="text-center py-2 px-2">{team.testimonials}</td>
+                      <td className="text-center py-2 px-2">{team.councilReplies}</td>
+                      <td className="text-center py-2 px-2">{team.businessCases}</td>
+                      <td className="text-center py-2 px-2">{team.businessCount}</td>
                       <td className="text-right py-2 pl-2">{formatCurrency(team.businessValue)}</td>
                     </tr>
                   ))}
