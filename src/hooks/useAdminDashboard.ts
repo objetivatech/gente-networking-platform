@@ -5,8 +5,21 @@ import { startOfMonth, endOfMonth, subMonths, format, startOfYear, endOfYear } f
 export function useAdminDashboard(teamId?: string) {
   // Stats gerais
   const { data: stats, isLoading: loadingStats } = useQuery({
-    queryKey: ['admin-dashboard-stats'],
+    queryKey: ['admin-dashboard-stats', teamId],
     queryFn: async () => {
+      // If teamId is set, get members of that team first
+      let memberIds: string[] | null = null;
+      if (teamId) {
+        const { data: tm } = await supabase.from('team_members').select('user_id').eq('team_id', teamId);
+        memberIds = tm?.map(t => t.user_id) || [];
+        if (memberIds.length === 0) return { totalMembers: 0, totalTeams: 0, totalBusinessValue: 0, annualBusinessValue: 0, totalTestimonials: 0, totalReferrals: 0, totalGenteEmAcao: 0, totalInvitations: 0, acceptedInvitations: 0, totalCouncilReplies: 0, totalBusinessCases: 0 };
+      }
+
+      const filterByMembers = (query: any, col: string) => {
+        if (memberIds) return query.in(col, memberIds);
+        return query;
+      };
+
       const [
         { count: totalMembers },
         { count: totalTeams },
@@ -16,15 +29,21 @@ export function useAdminDashboard(teamId?: string) {
         { count: totalGenteEmAcao },
         { count: totalInvitations },
         { data: invitationsData },
+        { count: totalCouncilReplies },
+        { count: totalBusinessCases },
       ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        teamId
+          ? supabase.from('team_members').select('*', { count: 'exact', head: true }).eq('team_id', teamId)
+          : supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('teams').select('*', { count: 'exact', head: true }),
-        supabase.from('business_deals').select('value'),
-        supabase.from('testimonials').select('*', { count: 'exact', head: true }),
-        supabase.from('referrals').select('*', { count: 'exact', head: true }),
-        supabase.from('gente_em_acao').select('*', { count: 'exact', head: true }),
-        supabase.from('invitations').select('*', { count: 'exact', head: true }),
-        supabase.from('invitations').select('status'),
+        filterByMembers(supabase.from('business_deals').select('value'), 'closed_by_user_id'),
+        filterByMembers(supabase.from('testimonials').select('*', { count: 'exact', head: true }), 'from_user_id'),
+        filterByMembers(supabase.from('referrals').select('*', { count: 'exact', head: true }), 'from_user_id'),
+        filterByMembers(supabase.from('gente_em_acao').select('*', { count: 'exact', head: true }), 'user_id'),
+        filterByMembers(supabase.from('invitations').select('*', { count: 'exact', head: true }), 'invited_by'),
+        filterByMembers(supabase.from('invitations').select('status'), 'invited_by'),
+        filterByMembers(supabase.from('council_replies').select('*', { count: 'exact', head: true }), 'user_id'),
+        filterByMembers(supabase.from('business_cases').select('*', { count: 'exact', head: true }), 'user_id'),
       ]);
 
       const totalBusinessValue = dealsData?.reduce((acc, deal) => acc + Number(deal.value), 0) || 0;
@@ -33,11 +52,9 @@ export function useAdminDashboard(teamId?: string) {
       // Annual business value
       const yearStart = format(startOfYear(new Date()), 'yyyy-MM-dd');
       const yearEnd = format(endOfYear(new Date()), 'yyyy-MM-dd');
-      const { data: yearDeals } = await supabase
-        .from('business_deals')
-        .select('value')
-        .gte('deal_date', yearStart)
-        .lte('deal_date', yearEnd);
+      let yearDealsQuery = supabase.from('business_deals').select('value').gte('deal_date', yearStart).lte('deal_date', yearEnd);
+      if (memberIds) yearDealsQuery = yearDealsQuery.in('closed_by_user_id', memberIds);
+      const { data: yearDeals } = await yearDealsQuery;
       const annualBusinessValue = yearDeals?.reduce((acc, d) => acc + Number(d.value), 0) || 0;
 
       return {
@@ -50,6 +67,8 @@ export function useAdminDashboard(teamId?: string) {
         totalGenteEmAcao: totalGenteEmAcao || 0,
         totalInvitations: totalInvitations || 0,
         acceptedInvitations,
+        totalCouncilReplies: totalCouncilReplies || 0,
+        totalBusinessCases: totalBusinessCases || 0,
       };
     },
   });
