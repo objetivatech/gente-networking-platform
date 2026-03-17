@@ -10,7 +10,9 @@ import {
   DollarSign, 
   UserPlus, 
   Calendar,
-  Activity as ActivityIcon 
+  Activity as ActivityIcon,
+  Lightbulb,
+  UserCog,
 } from 'lucide-react';
 
 const activityTypeConfig: Record<string, { icon: React.ElementType; color: string }> = {
