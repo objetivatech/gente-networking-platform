@@ -402,8 +402,10 @@ Help desk interno em formato Kanban onde membros postam problemas de negócio e 
 
 | Trigger | Ação |
 |---------|------|
+| `handle_council_post_insert()` | Feed (tipo `council_post`) + notifica membros do grupo por email |
 | `handle_council_reply_insert()` | Feed + recalcula pontos do respondente |
 | `handle_best_answer_update()` | Recalcula pontos quando marcada como melhor resposta |
+| `handle_profile_update()` | Feed (tipo `profile_update`) quando campos significativos do perfil são alterados |
 
 ### Tabelas
 
