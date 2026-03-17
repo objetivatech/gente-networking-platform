@@ -100,8 +100,8 @@ export function useCommunityStats(teamId?: string) {
 
       const [profiles, deals, testimonials, genteEmAcao, referrals, councilReplies, businessCases, attendances, meetings] = await Promise.all([
         filterByMembers(supabase.from('profiles').select('id, rank'), 'id'),
-        filterByMembers(supabase.from('business_deals').select('value, deal_date'), 'closed_by_user_id'),
-        filterByMembers(supabase.from('testimonials').select('id, created_at'), 'from_user_id'),
+        filterByMembers(supabase.from('business_deals').select('value, deal_date, closed_by_user_id'), 'closed_by_user_id'),
+        filterByMembers(supabase.from('testimonials').select('id, created_at, from_user_id'), 'from_user_id'),
         filterByMembers(supabase.from('gente_em_acao').select('id, meeting_date, user_id'), 'user_id'),
         filterByMembers(supabase.from('referrals').select('id, created_at, from_user_id, to_user_id'), 'from_user_id'),
         filterByMembers(supabase.from('council_replies').select('id, created_at'), 'user_id'),
@@ -163,7 +163,7 @@ export function useCommunityStats(teamId?: string) {
           negocios: dealsData.filter(d => members.includes((d as any).closed_by_user_id)).length,
           valorNegocios: dealsData.filter(d => members.includes((d as any).closed_by_user_id)).reduce((s, d) => s + Number(d.value), 0),
           indicacoes: referralsData.filter(r => members.includes(r.from_user_id)).length,
-          depoimentos: (testimonials.data || []).filter(() => false).length, // handled below
+          depoimentos: (testimonials.data || []).filter(t => members.includes((t as any).from_user_id)).length,
         };
       });
 

@@ -340,3 +340,82 @@ ${ctaButton('Aceitar Convite', inviteLink)}
 
   return emailWrapper(emailContent);
 }
+
+// New meeting scheduled notification
+export function newMeetingEmailTemplate(name: string, meetingTitle: string, meetingDate: string, meetingTime?: string, location?: string, teamName?: string): string {
+  const timeInfo = meetingTime ? ` às ${meetingTime}` : '';
+  const locationInfo = location ? `<p style="color: #475569; font-size: 14px; margin: 4px 0;">📍 ${location}</p>` : '';
+  const teamInfo = teamName ? `<p style="color: #475569; font-size: 14px; margin: 4px 0;">👥 Grupo: ${teamName}</p>` : '';
+  
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Novo Encontro Agendado! 📅</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${name}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Um novo encontro foi agendado para a sua comunidade:
+</p>
+<div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; margin: 24px 0;">
+  <p style="color: #1e3a5f; font-size: 20px; font-weight: 700; margin: 0 0 12px;">${meetingTitle}</p>
+  <p style="color: #475569; font-size: 14px; margin: 4px 0;">📅 ${meetingDate}${timeInfo}</p>
+  ${locationInfo}
+  ${teamInfo}
+</div>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Acesse a plataforma para confirmar sua presença!
+</p>
+${ctaButton('Ver Encontros', `${APP_URL}/encontros`)}`;
+
+  return emailWrapper(emailContent);
+}
+
+// Council post notification
+export function councilPostEmailTemplate(name: string, authorName: string, postTitle: string, teamName?: string): string {
+  const teamInfo = teamName ? ` no grupo ${teamName}` : '';
+  
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Novo Desafio no Conselho 24/7! 💡</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${name}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  <strong style="color: #1e3a5f;">${authorName}</strong> abriu um novo desafio${teamInfo}:
+</p>
+${infoBox(`<p style="color: #1e40af; font-size: 16px; font-weight: 600; line-height: 1.6; margin: 0;">"${postTitle}"</p>`, 'blue')}
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Compartilhe sua experiência e ajude a resolver este desafio!
+</p>
+${ctaButton('Responder no Conselho', `${APP_URL}/conselho`)}`;
+
+  return emailWrapper(emailContent);
+}
+
+// Rank change notification
+export function rankChangeEmailTemplate(name: string, oldRank: string, newRank: string): string {
+  const rankLabels: Record<string, string> = {
+    iniciante: '🌱 Iniciante',
+    bronze: '🥉 Bronze',
+    prata: '🥈 Prata',
+    ouro: '🥇 Ouro',
+    diamante: '💎 Diamante',
+  };
+
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Parabéns! Você subiu de nível! 🏆</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${name}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Seu esforço e dedicação foram reconhecidos! Você acaba de subir de nível:
+</p>
+<div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; padding: 24px; border-radius: 12px; margin: 24px 0; text-align: center;">
+  <p style="color: #92400e; font-size: 16px; margin: 0 0 8px;">De: ${rankLabels[oldRank] || oldRank}</p>
+  <p style="color: #1e3a5f; font-size: 28px; font-weight: 700; margin: 0;">→ ${rankLabels[newRank] || newRank}</p>
+</div>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Continue participando e acumulando pontos para alcançar novos patamares!
+</p>
+${ctaButton('Ver Meu Ranking', `${APP_URL}/ranking`)}`;
+
+  return emailWrapper(emailContent);
+}

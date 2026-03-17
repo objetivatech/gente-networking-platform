@@ -105,9 +105,36 @@ export function useAdminMeetings() {
         created_by: user?.id,
       }).select().single();
       if (error) throw error;
-      return data;
+      return { meeting: data, team_id: input.team_id };
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['meetings'] }); toast({ title: 'Sucesso!', description: 'Encontro criado' }); },
+    onSuccess: async (result) => {
+      queryClient.invalidateQueries({ queryKey: ['meetings'] });
+      toast({ title: 'Sucesso!', description: 'Encontro criado' });
+
+      // Notify team members about new meeting
+      try {
+        const teamId = result.team_id;
+        if (teamId) {
+          const { data: teamMembers } = await supabase.from('team_members').select('user_id').eq('team_id', teamId);
+          const { data: team } = await supabase.from('teams').select('name').eq('id', teamId).single();
+          const memberIds = (teamMembers || []).map(m => m.user_id).filter(id => id !== user?.id);
+          if (memberIds.length > 0) {
+            await supabase.functions.invoke('send-notification', {
+              body: {
+                type: 'new_meeting',
+                from_user_id: user?.id,
+                to_user_ids: memberIds,
+                meeting_title: result.meeting.title,
+                meeting_date: result.meeting.meeting_date,
+                meeting_time: result.meeting.meeting_time,
+                location: result.meeting.location,
+                team_name: team?.name,
+              },
+            });
+          }
+        }
+      } catch (e) { console.error('Failed to send meeting notification:', e); }
+    },
     onError: () => { toast({ title: 'Erro', description: 'Erro ao criar encontro', variant: 'destructive' }); },
   });
 

@@ -22,6 +22,8 @@ import {
   UserCheck,
   Filter,
   Loader2,
+  Lightbulb,
+  UserCog,
 } from 'lucide-react';
 
 const activityTypeConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
@@ -32,6 +34,10 @@ const activityTypeConfig: Record<string, { icon: React.ElementType; color: strin
   attendance: { icon: Calendar, color: 'text-primary', label: 'Presença' },
   invitation: { icon: Users, color: 'text-pink-500', label: 'Convite' },
   guest_attendance: { icon: UserCheck, color: 'text-emerald-500', label: 'Convidado presente' },
+  council_post: { icon: Lightbulb, color: 'text-indigo-500', label: 'Desafio no Conselho' },
+  council_reply: { icon: MessageSquare, color: 'text-indigo-400', label: 'Resposta no Conselho' },
+  business_case: { icon: DollarSign, color: 'text-teal-500', label: 'Case de Negócio' },
+  profile_update: { icon: UserCog, color: 'text-slate-500', label: 'Atualização de Perfil' },
 };
 
 const periodOptions = [

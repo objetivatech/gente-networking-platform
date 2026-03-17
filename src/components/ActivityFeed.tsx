@@ -10,7 +10,9 @@ import {
   DollarSign, 
   UserPlus, 
   Calendar,
-  Activity as ActivityIcon 
+  Activity as ActivityIcon,
+  Lightbulb,
+  UserCog,
 } from 'lucide-react';
 
 const activityTypeConfig: Record<string, { icon: React.ElementType; color: string }> = {
@@ -19,6 +21,10 @@ const activityTypeConfig: Record<string, { icon: React.ElementType; color: strin
   business_deal: { icon: DollarSign, color: 'text-green-500' },
   referral: { icon: UserPlus, color: 'text-orange-500' },
   attendance: { icon: Calendar, color: 'text-primary' },
+  council_post: { icon: Lightbulb, color: 'text-indigo-500' },
+  council_reply: { icon: MessageSquare, color: 'text-indigo-400' },
+  business_case: { icon: DollarSign, color: 'text-teal-500' },
+  profile_update: { icon: UserCog, color: 'text-slate-500' },
 };
 
 interface ActivityItemProps {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -6,6 +7,8 @@ import { useAdminDashboard } from '@/hooks/useAdminDashboard';
 import { useRealtimeActivity } from '@/hooks/useRealtimeActivity';
 import { useUserRole } from '@/hooks/useAdmin';
 import { Navigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTeams } from '@/hooks/useTeams';
 import RankBadge from '@/components/RankBadge';
 import { 
   Users, 
@@ -31,6 +34,8 @@ const COLORS = ['#22c55e', '#f59e0b', '#6b7280', '#f97316', '#8b5cf6'];
 
 export default function AdminDashboard() {
   const { data: userRole, isLoading: loadingRole } = useUserRole();
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('all');
+  const teamIdParam = selectedTeamId === 'all' ? undefined : selectedTeamId;
   const { 
     stats, 
     loadingStats, 
@@ -42,7 +47,9 @@ export default function AdminDashboard() {
     invitationMetrics,
     attendanceKpis,
     teamKpis,
-  } = useAdminDashboard();
+  } = useAdminDashboard(teamIdParam);
+  
+  const { teams } = useTeams();
   
   // Enable realtime for activity feed
   useRealtimeActivity();
@@ -78,6 +85,10 @@ export default function AdminDashboard() {
       case 'attendance': return <Users className="h-4 w-4 text-cyan-500" />;
       case 'invitation': return <UserPlus className="h-4 w-4 text-pink-500" />;
       case 'guest_attendance': return <UserCheck className="h-4 w-4 text-emerald-500" />;
+      case 'council_post': return <Activity className="h-4 w-4 text-indigo-500" />;
+      case 'council_reply': return <MessageSquare className="h-4 w-4 text-indigo-400" />;
+      case 'business_case': return <DollarSign className="h-4 w-4 text-teal-500" />;
+      case 'profile_update': return <Users className="h-4 w-4 text-slate-500" />;
       default: return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
@@ -90,10 +101,23 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-foreground">Dashboard Administrativo</h1>
           <p className="text-muted-foreground">Visão geral da comunidade</p>
         </div>
-        <Badge variant="outline" className="ml-auto flex items-center gap-1">
-          <Zap className="h-3 w-3 text-green-500" />
-          Realtime
-        </Badge>
+        <div className="flex items-center gap-3 ml-auto">
+          <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Todos os grupos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os grupos</SelectItem>
+              {teams?.map(team => (
+                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-green-500" />
+            Realtime
+          </Badge>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -283,10 +307,13 @@ export default function AdminDashboard() {
                   <tr className="border-b">
                     <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Grupo</th>
                     <th className="text-center py-2 px-2 font-medium text-muted-foreground">Membros</th>
-                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Gente em Ação</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">GA</th>
                     <th className="text-center py-2 px-2 font-medium text-muted-foreground">Indicações</th>
                     <th className="text-center py-2 px-2 font-medium text-muted-foreground">Depoimentos</th>
-                    <th className="text-right py-2 pl-2 font-medium text-muted-foreground">Negócios (R$)</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Conselho</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Cases</th>
+                    <th className="text-center py-2 px-2 font-medium text-muted-foreground">Neg.</th>
+                    <th className="text-right py-2 pl-2 font-medium text-muted-foreground">R$ Negócios</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -302,6 +329,9 @@ export default function AdminDashboard() {
                       <td className="text-center py-2 px-2">{team.genteEmAcao}</td>
                       <td className="text-center py-2 px-2">{team.referrals}</td>
                       <td className="text-center py-2 px-2">{team.testimonials}</td>
+                      <td className="text-center py-2 px-2">{team.councilReplies}</td>
+                      <td className="text-center py-2 px-2">{team.businessCases}</td>
+                      <td className="text-center py-2 px-2">{team.businessCount}</td>
                       <td className="text-right py-2 pl-2">{formatCurrency(team.businessValue)}</td>
                     </tr>
                   ))}
