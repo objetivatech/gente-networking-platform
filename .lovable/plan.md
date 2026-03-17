@@ -1,231 +1,153 @@
-
-# Plano: Sistema de Gamificação Mensal por Grupo
-
-## Resumo Executivo
-
-Este plano implementa uma **reformulação completa do sistema de gamificação** para operar com ciclos mensais e pontuação por grupo, conforme solicitado. As principais mudanças são:
-
-1. **Pontos zerados mensalmente** - A cada novo mês, inicia-se um novo ciclo de pontuação
-2. **Histórico de pontos mensais** - Consulta de desempenho de meses anteriores
-3. **Pontuação por grupo** - Membros que pertencem a múltiplos grupos têm pontuação separada em cada um
-4. **Rankings mensais** - Exibição sempre do mês corrente, global e por grupo
+## Plano de Correções e Melhorias — 6 Itens + Documentação
 
 ---
 
-## Arquitetura da Solução
+### 1. Correção dos contadores de Negócios no "Comparativo por Grupo" (Estatísticas)
 
-### Nova Estrutura de Dados
+**Problema identificado**: Em `useStats.ts`, linha 103, a query de `business_deals` seleciona apenas `value, deal_date` — **sem `closed_by_user_id**`. Na seção `perTeam` (linha 163), o código tenta filtrar por `(d as any).closed_by_user_id`, que é `undefined` porque o campo não foi selecionado. Resultado: 0 negócios e R$0 para todos os grupos.
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    MODELO DE DADOS - PONTUAÇÃO MENSAL                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ANTES (atual):                                                             │
-│  ┌─────────────┐                                                            │
-│  │ profiles    │                                                            │
-│  │ - points    │  ← Pontos acumulados globalmente, sem contexto de grupo   │
-│  │ - rank      │                                                            │
-│  └─────────────┘                                                            │
-│                                                                             │
-│  DEPOIS (proposto):                                                         │
-│  ┌─────────────────────┐                                                    │
-│  │ monthly_points      │  (NOVA TABELA)                                     │
-│  │ - user_id           │                                                    │
-│  │ - team_id           │  ← Pontuação POR GRUPO                            │
-│  │ - year_month        │  ← Ex: "2026-02" (ciclo mensal)                   │
-│  │ - points            │  ← Total de pontos do mês para este grupo         │
-│  │ - rank              │  ← Rank calculado para este mês/grupo             │
-│  │ - updated_at        │                                                    │
-│  └─────────────────────┘                                                    │
-│           │                                                                 │
-│           ▼                                                                 │
-│  ┌─────────────────────┐                                                    │
-│  │ points_history      │  (ATUALIZADA)                                      │
-│  │ - user_id           │                                                    │
-│  │ - team_id           │  ← NOVO: Contexto do grupo                        │
-│  │ - year_month        │  ← NOVO: Mês de referência                        │
-│  │ - activity_type     │                                                    │
-│  │ - points_change     │                                                    │
-│  │ - created_at        │                                                    │
-│  └─────────────────────┘                                                    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+**Correção**:
+
+- `useCommunityStats`: Adicionar `closed_by_user_id` ao select de `business_deals` (linha 103)
+- Corrigir também `depoimentos` no `perTeam` (linha 166) que está hardcoded como `filter(() => false)` — substituir por filtro real usando `from_user_id`
+- Na query de testimonials, incluir `from_user_id` no select
+
+**Admin Global Tab** (`useAdminGlobalStats`): Aparentemente correto — já seleciona `closed_by_user_id`. Verificar se o problema é de cache (staleTime) ou se há limite de 1000 rows cortando dados.
 
 ---
 
-## Detalhamento Técnico
+### 2. Auditoria Completa dos Contadores
 
-### 1. Alterações no Banco de Dados
+Há múltiplos locais que calculam contagens. Todos devem ser consistentes:
 
-#### 1.1 Nova tabela: `monthly_points`
+
+| Local                   | Hook/Componente                 | Ação                                                                                       |
+| ----------------------- | ------------------------------- | ------------------------------------------------------------------------------------------ |
+| Dashboard Admin         | `useAdminDashboard.ts`          | Verificar contagem de council_replies e business_cases (ausentes nos stats gerais)         |
+| Estatísticas Comunidade | `useCommunityStats`             | Fix deals (item 1). Adicionar depoimentos e conselho ao perTeam                            |
+| Estatísticas Admin      | `useAdminGlobalStats`           | Verificar limite 1000 rows — se há mais de 1000 negócios/perfis/etc, dados serão truncados |
+| Cards do Perfil         | `Profile.tsx`                   | Verificar se contadores pessoais batem com useStats                                        |
+| Admin Dashboard KPIs    | `useAdminDashboard.ts` teamKpis | Não inclui council_replies nem business_cases — adicionar                                  |
+
+
+**Ações**:
+
+- Adicionar `totalCouncilReplies` e `totalBusinessCases` ao `useAdminDashboard` stats
+- No `teamKpis`, adicionar contagem de `council_replies` e `business_cases` por grupo
+- Garantir que nenhuma query ultrapasse o limite de 1000 rows sem paginação (adicionar `.limit(10000)` ou usar `count: 'exact'` onde aplicável)
+
+---
+
+### 3. Trigger para Council Posts no Activity Feed
+
+**Problema**: Não existe trigger `handle_council_post_insert` no banco de dados. Quando um tópico é criado no Conselho 24/7, nenhum registro é adicionado ao `activity_feed`. Apenas respostas (`council_reply`) geram atividade (via `handle_council_reply_insert`).
+
+**Correção**: Criar uma SQL function + trigger:
+
 ```sql
-CREATE TABLE monthly_points (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-  year_month TEXT NOT NULL, -- formato "YYYY-MM"
-  points INTEGER NOT NULL DEFAULT 0,
-  rank member_rank DEFAULT 'iniciante',
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(user_id, team_id, year_month)
-);
+CREATE FUNCTION handle_council_post_insert()
+  -- Insere no activity_feed com tipo 'council_post'
+  -- Título: "{nome} abriu um desafio no Conselho 24/7"
+  -- Descrição: título do post
+
+CREATE TRIGGER on_council_post_insert
+  AFTER INSERT ON council_posts
+  FOR EACH ROW EXECUTE FUNCTION handle_council_post_insert();
 ```
 
-#### 1.2 Alterações na tabela `points_history`
-Adicionar colunas:
-- `team_id UUID` - Para contexto do grupo
-- `year_month TEXT` - Para vincular ao mês
+- Adicionar `council_post` ao `activityTypeConfig` em `Feed.tsx` com ícone `Lightbulb` e label "Desafio no Conselho"
 
-#### 1.3 Novas funções de banco de dados
+---
 
-| Função | Descrição |
-|--------|-----------|
-| `get_current_year_month()` | Retorna "YYYY-MM" atual |
-| `calculate_monthly_points(user_id, team_id, year_month)` | Calcula pontos de um usuário em um grupo/mês |
-| `update_monthly_points_and_rank(user_id, team_id)` | Atualiza a tabela monthly_points |
-| `get_monthly_ranking(team_id, year_month)` | Retorna ranking ordenado |
+### 4. Atividade no Feed ao Atualizar Perfil
 
-#### 1.4 Atualização dos Triggers
-Todos os triggers de atividades (gente_em_acao, testimonials, referrals, etc.) precisam:
-1. Identificar o grupo do contexto da atividade
-2. Chamar `update_monthly_points_and_rank()` para cada grupo do usuário
+**Problema**: Não existe trigger para `profiles` UPDATE gerando atividade no feed.
 
-### 2. Lógica de Contexto de Grupo
+**Correção**: Criar trigger que detecta mudanças significativas no perfil (não disparar para atualizações triviais como `updated_at`):
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│           COMO DETERMINAR O GRUPO DE UMA ATIVIDADE?                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ATIVIDADE              │  LÓGICA DE GRUPO                                  │
-│  ───────────────────────┼──────────────────────────────────────────────────│
-│  Presença (attendances) │  Grupo do encontro (meetings.team_id)            │
-│                         │  Se encontro sem grupo: todos os grupos do user  │
-│                         │                                                   │
-│  Gente em Ação          │  Grupo em comum com o parceiro, ou               │
-│                         │  todos os grupos do usuário se com convidado     │
-│                         │                                                   │
-│  Depoimentos            │  Grupo em comum entre from_user e to_user        │
-│                         │  Se múltiplos: pontua em cada um                 │
-│                         │                                                   │
-│  Indicações             │  Grupo em comum entre from_user e to_user        │
-│                         │                                                   │
-│  Negócios               │  Todos os grupos do usuário que fechou           │
-│                         │                                                   │
-│  Convites               │  Grupo do convidador                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+```sql
+CREATE FUNCTION handle_profile_update()
+  -- Só dispara se houve mudança em campos relevantes:
+  -- full_name, company, position, bio, avatar_url, banner_url,
+  -- what_i_do, ideal_client, how_to_refer_me, tags
+  -- Insere no activity_feed: "{nome} atualizou seu perfil"
+  -- activity_type: 'profile_update'
 ```
 
-### 3. Alterações no Frontend
-
-#### 3.1 Página de Ranking (`/ranking`)
-- Adicionar seletor de mês (padrão: mês atual)
-- Filtro por grupo (já existe, manter)
-- Exibir claramente "Ranking de [Mês/Ano]"
-- Remover exibição de pontos globais/acumulados
-
-#### 3.2 Perfil do Usuário (`/perfil`)
-- Substituir "pontos totais" por "pontos do mês"
-- Adicionar seletor de grupo (se pertence a múltiplos)
-- Gráfico de evolução: mostrar mês a mês
-
-#### 3.3 Dashboard (`/`)
-- Exibir pontos do mês atual
-- Se usuário pertence a múltiplos grupos, mostrar resumo por grupo
-
-#### 3.4 Histórico de Pontos
-- Adicionar filtros: mês e grupo
-- Agrupar histórico por mês com totais
-
-#### 3.5 Estatísticas (`/estatisticas`)
-- Ajustar para refletir dados mensais
-
-### 4. Novos Hooks
-
-| Hook | Descrição |
-|------|-----------|
-| `useMonthlyRanking(teamId?, yearMonth?)` | Rankings mensais por grupo |
-| `useMonthlyPoints(userId, teamId?)` | Pontos do usuário no mês/grupo |
-| `usePointsHistoryByMonth(userId, yearMonth?)` | Histórico filtrado por mês |
-
-### 5. Migração de Dados Existentes
-
-A migração não irá "converter" os pontos antigos, pois o modelo era diferente. Opções:
-
-1. **Zerar e começar do zero** - Simples, mas perde histórico
-2. **Migrar como "mês genérico"** - Criar um registro especial para pontos legados
-3. **Manter pontos antigos apenas para consulta** - Recomendado
-
-**Recomendação:** Manter os campos `points` e `rank` na tabela `profiles` como "pontos históricos/legados" e usar o novo sistema a partir do mês de implementação.
+- Adicionar `profile_update` ao `activityTypeConfig` em `Feed.tsx`
 
 ---
 
-## Cronograma de Implementação
+### 5. KPIs do Dashboard filtráveis por Grupo/Membro
 
-### Fase 1: Estrutura de Dados
-- [ ] Criar tabela `monthly_points`
-- [ ] Adicionar colunas à `points_history`
-- [ ] Criar índices para performance
-- [ ] Criar funções de cálculo mensal
-- [ ] Atualizar triggers das atividades
+**Problema**: O Admin Dashboard (`useAdminDashboard.ts`) mostra KPIs globais sem filtro por grupo. Para apresentações em reuniões de grupo, é necessário poder filtrar.
 
-### Fase 2: Backend/Hooks
-- [ ] Criar `useMonthlyRanking`
-- [ ] Criar `useMonthlyPoints`
-- [ ] Atualizar `usePointsHistory`
-- [ ] Atualizar `useStats` para contexto mensal
+**Correção**:
 
-### Fase 3: Frontend
-- [ ] Atualizar página Ranking
-- [ ] Atualizar página Perfil
-- [ ] Atualizar Dashboard
-- [ ] Atualizar Estatísticas
-
-### Fase 4: Documentação
-- [ ] Atualizar USER_FLOWS.md
-- [ ] Atualizar TECHNICAL_DOCUMENTATION.md
-- [ ] Atualizar página /documentacao
-- [ ] Adicionar entrada no Changelog
+- Adicionar um `Select` de grupo no topo do `AdminDashboard.tsx`
+- Quando um grupo é selecionado, filtrar todas as métricas (stats, topMembers, monthlyActivity, attendanceKpis) pelos membros daquele grupo
+- Refatorar `useAdminDashboard` para aceitar um parâmetro `teamId?` que filtra os dados
+- Incluir `councilReplies` e `businessCases` nas métricas do dashboard
 
 ---
 
-## Considerações e Melhorias Sugeridas
+### 6. Levantamento Completo de Triggers de Email e Push
 
-### Melhorias Adicionais (Opcionais)
+Baseado na análise do código, aqui está o levantamento completo:
 
-1. **Notificações de Reset Mensal**
-   - Enviar email no início de cada mês informando pontuação final do mês anterior
+**Emails via Edge Function `send-notification**` (Resend API):
 
-2. **Badges de Conquistas Mensais**
-   - Criar badges visuais para "Top 3 do mês" em cada grupo
 
-3. **Comparativo Mês-a-Mês**
-   - Gráfico comparando desempenho entre meses
+| Momento                        | Tipo                  | Disparado por                               | Destinatário                    |
+| ------------------------------ | --------------------- | ------------------------------------------- | ------------------------------- |
+| Novo depoimento                | `testimonial`         | `useTestimonials.ts` (client-side)          | Membro que recebeu o depoimento |
+| Nova indicação                 | `referral`            | `useReferrals.ts` (client-side)             | Membro que recebeu a indicação  |
+| Convite criado                 | `invitation`          | Client-side                                 | Email do convidado              |
+| Convite aceito                 | `invitation_accepted` | Client-side                                 | Membro que convidou             |
+| Convidado presente em encontro | `guest_attended`      | DB trigger `handle_guest_attendance_insert` | Membro que convidou             |
+| Boas-vindas                    | `welcome`             | Client-side (no cadastro)                   | Novo membro                     |
 
-4. **Meta Mensal**
-   - Permitir que o usuário defina uma meta de pontos para o mês
 
-5. **Leaderboard em Tempo Real**
-   - Usar Supabase Realtime para atualizar ranking ao vivo
+**Edge Function `birthday-notifications**` (via cron ou invocação manual):
 
-### Pontos de Atenção
+- Envia email de parabéns para membros no dia do aniversário
 
-- **Performance**: Com pontuação por grupo/mês, o volume de dados aumenta. Índices adequados são essenciais.
-- **Retroatividade**: Atividades registradas devem ser contabilizadas no mês em que ocorreram (`meeting_date`, `deal_date`), não na data de criação.
-- **Membros sem grupo**: Precisam ser tratados (não recebem pontos ou recebem em um "grupo geral"?).
+**Push Notifications**: NÃO implementadas. O hook `usePushNotifications.ts` existe no projeto mas não há integração real com service workers ou web push API. É apenas placeholder.
+
+**O que NÃO gera notificação (oportunidades de melhoria)**:
+
+- Novo tópico no Conselho 24/7
+- Resposta no Conselho 24/7
+- Novo encontro agendado
+- Presença confirmada
+- Novo negócio fechado
+- Novo case publicado
+- Atualização de perfil
+- Mudança de rank/nível
+
+**APROVADO - Recomendação**: Adicionar disparos de email para pelo menos: novo encontro agendado (notificar membros do grupo), novo tópico no Conselho (notificar membros do grupo), e mudança de rank (parabenizar o membro). - **GOSTEI! PODE IMPLEMENTAR!**
 
 ---
 
-## Resumo das Entregas
+### 7. Documentação e Changelog
 
-| Item | Descrição |
-|------|-----------|
-| **Nova tabela** | `monthly_points` para armazenar pontuação mensal por grupo |
-| **Colunas novas** | `team_id` e `year_month` em `points_history` |
-| **Funções SQL** | Cálculo e atualização de pontos mensais |
-| **Triggers atualizados** | Todas as 6 atividades com lógica de grupo |
-| **Hooks React** | `useMonthlyRanking`, `useMonthlyPoints` |
-| **Páginas atualizadas** | Ranking, Perfil, Dashboard, Estatísticas |
-| **Documentação** | USER_FLOWS.md, TECHNICAL_DOCUMENTATION.md, /documentacao, Changelog |
+Após todas as correções:
+
+- Atualizar `docs/TECHNICAL_DOCUMENTATION.md` com novos triggers e fluxos
+- Atualizar `docs/USER_FLOWS.md` com diagramas dos novos fluxos de atividade
+- Atualizar página `/documentacao` com informações sobre notificações e feed
+- Adicionar entrada no `/changelog` com versão nova cobrindo todas as correções
+
+---
+
+### Ordem de Execução
+
+1. Fix contadores de negócios/depoimentos no `useCommunityStats` (item 1 — impacto imediato)
+2. Criar trigger `handle_council_post_insert` (item 3 — migration SQL)
+3. Criar trigger `handle_profile_update` (item 4 — migration SQL)
+4. Auditoria e correção de contadores globais (item 2)
+5. Adicionar filtro por grupo no AdminDashboard (item 5)
+6. Atualizar Feed.tsx com novos tipos de atividade
+7. Documentação e changelog (item 7)
+
+O item 6 (levantamento de triggers) é informativo e já foi respondido acima.
