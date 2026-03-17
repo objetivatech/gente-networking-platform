@@ -31,6 +31,8 @@ const COLORS = ['#22c55e', '#f59e0b', '#6b7280', '#f97316', '#8b5cf6'];
 
 export default function AdminDashboard() {
   const { data: userRole, isLoading: loadingRole } = useUserRole();
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('all');
+  const teamIdParam = selectedTeamId === 'all' ? undefined : selectedTeamId;
   const { 
     stats, 
     loadingStats, 
@@ -42,7 +44,7 @@ export default function AdminDashboard() {
     invitationMetrics,
     attendanceKpis,
     teamKpis,
-  } = useAdminDashboard();
+  } = useAdminDashboard(teamIdParam);
   
   // Enable realtime for activity feed
   useRealtimeActivity();
