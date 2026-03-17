@@ -163,7 +163,7 @@ export function useCommunityStats(teamId?: string) {
           negocios: dealsData.filter(d => members.includes((d as any).closed_by_user_id)).length,
           valorNegocios: dealsData.filter(d => members.includes((d as any).closed_by_user_id)).reduce((s, d) => s + Number(d.value), 0),
           indicacoes: referralsData.filter(r => members.includes(r.from_user_id)).length,
-          depoimentos: (testimonials.data || []).filter(() => false).length, // handled below
+          depoimentos: (testimonials.data || []).filter(t => members.includes((t as any).from_user_id)).length,
         };
       });
 
