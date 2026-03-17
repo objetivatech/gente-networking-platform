@@ -85,6 +85,10 @@ export default function AdminDashboard() {
       case 'attendance': return <Users className="h-4 w-4 text-cyan-500" />;
       case 'invitation': return <UserPlus className="h-4 w-4 text-pink-500" />;
       case 'guest_attendance': return <UserCheck className="h-4 w-4 text-emerald-500" />;
+      case 'council_post': return <Activity className="h-4 w-4 text-indigo-500" />;
+      case 'council_reply': return <MessageSquare className="h-4 w-4 text-indigo-400" />;
+      case 'business_case': return <DollarSign className="h-4 w-4 text-teal-500" />;
+      case 'profile_update': return <Users className="h-4 w-4 text-slate-500" />;
       default: return <Activity className="h-4 w-4 text-muted-foreground" />;
     }
   };
