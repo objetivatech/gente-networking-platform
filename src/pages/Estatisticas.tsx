@@ -234,6 +234,7 @@ function CommunityTab() {
                   <TableHead className="text-center">Negócios</TableHead>
                   <TableHead className="text-center">R$ Negócios</TableHead>
                   <TableHead className="text-center">Indicações</TableHead>
+                  <TableHead className="text-center">Depoimentos</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -250,6 +251,7 @@ function CommunityTab() {
                     <TableCell className="text-center">{team.negocios}</TableCell>
                     <TableCell className="text-center">{formatCurrency(team.valorNegocios)}</TableCell>
                     <TableCell className="text-center">{team.indicacoes}</TableCell>
+                    <TableCell className="text-center">{team.depoimentos}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
