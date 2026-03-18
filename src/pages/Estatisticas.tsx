@@ -20,7 +20,7 @@ const formatCurrency = (value: number) => new Intl.NumberFormat('pt-BR', { style
 // ─── Personal Stats Cards ────────────────────────────────────
 function StatsCards({ stats }: { stats: any }) {
   const cards = [
-    { icon: Handshake, label: 'Gente em Ação', value: stats?.genteEmAcao.total || 0, sub: `${stats?.genteEmAcao.withMembers || 0} membros · ${stats?.genteEmAcao.withGuests || 0} convidados`, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    { icon: Handshake, label: 'Gente em Ação', value: stats?.genteEmAcao.total || 0, sub: `${stats?.genteEmAcao.withMembers || 0} membros · ${stats?.genteEmAcao.withGuests || 0} externos`, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     { icon: MessageSquare, label: 'Depoimentos', value: `${stats?.testimonials.sent || 0} / ${stats?.testimonials.received || 0}`, sub: 'Enviados / Recebidos', color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-900/20' },
     { icon: DollarSign, label: 'Negócios', value: formatCurrency(stats?.businessDeals.value || 0), sub: `${stats?.businessDeals.total || 0} fechados`, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
     { icon: Send, label: 'Indicações', value: `${stats?.referrals.sent || 0} / ${stats?.referrals.received || 0}`, sub: 'Enviadas / Recebidas', color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20' },

@@ -227,7 +227,7 @@ export default function GenteEmAcao() {
     }
 
     if (formData.meeting_type === 'convidado' && !guestName?.trim()) {
-      setErrors({ guest_name: 'Nome do convidado é obrigatório' });
+      setErrors({ guest_name: 'Nome da pessoa é obrigatório' });
       return;
     }
 
@@ -291,9 +291,9 @@ export default function GenteEmAcao() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium">{user?.full_name || 'Usuário'}</span>
                 <span className="text-muted-foreground">→</span>
-                <span className="font-medium">{partner?.full_name || item.guest_name || 'Convidado'}</span>
+                <span className="font-medium">{partner?.full_name || item.guest_name || 'Pessoa Externa'}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${item.meeting_type === 'membro' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                  {item.meeting_type === 'membro' ? 'Membro' : 'Convidado'}
+                  {item.meeting_type === 'membro' ? 'Membro' : 'Externo'}
                 </span>
               </div>
               {item.notes && <p className="text-sm text-muted-foreground mt-1">{item.notes}</p>}
@@ -346,7 +346,7 @@ export default function GenteEmAcao() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="convidado" id="convidado" />
                     <Label htmlFor="convidado" className="flex items-center gap-1 cursor-pointer">
-                      <User className="w-4 h-4" /> Com Convidado
+                      <User className="w-4 h-4" /> Com Pessoa Externa
                     </Label>
                   </div>
                 </RadioGroup>
@@ -367,7 +367,7 @@ export default function GenteEmAcao() {
                   {/* Seleção de convidado do grupo */}
                   {teamGuests && teamGuests.length > 0 && (
                     <div className="space-y-2">
-                      <Label>Selecionar Convidado</Label>
+                      <Label>Selecionar Pessoa</Label>
                       <Select value={formData.selected_guest_id || 'manual'} onValueChange={handleGuestSelect}>
                         <SelectTrigger>
                           <SelectValue placeholder="Escolha um convidado ou preencha manualmente" />
@@ -395,7 +395,7 @@ export default function GenteEmAcao() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="guest_name">Nome do Convidado</Label>
+                      <Label htmlFor="guest_name">Nome da Pessoa</Label>
                       <Input
                         id="guest_name"
                         value={formData.guest_name}
@@ -526,7 +526,7 @@ export default function GenteEmAcao() {
               <p className="text-3xl font-bold text-orange-600">
                 {meetings?.filter((m) => m.meeting_type === 'convidado').length || 0}
               </p>
-              <p className="text-sm text-muted-foreground">Com Convidados</p>
+              <p className="text-sm text-muted-foreground">Com Externos</p>
             </div>
           </CardContent>
         </Card>
@@ -582,7 +582,7 @@ export default function GenteEmAcao() {
                             : 'bg-orange-100 text-orange-700'
                         }`}
                       >
-                        {meeting.meeting_type === 'membro' ? 'Membro' : 'Convidado'}
+                        {meeting.meeting_type === 'membro' ? 'Membro' : 'Externo'}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">

@@ -11,7 +11,7 @@ const scoringRules = [
   { icon: UserCheck, label: 'Presenças', points: '20 pts', description: 'por encontro' },
   { icon: MessageSquare, label: 'Depoimentos', points: '15 pts', description: 'por depoimento' },
   { icon: UserPlus, label: 'Convites', points: '15 pts', description: 'por convidado presente' },
-  { icon: Briefcase, label: 'Case de Negócio', points: '15 pts', description: 'por case publicado' },
+  { icon: Briefcase, label: 'Case de Negócio', points: '15 pts', description: 'por case publicado (20 pts para indicador)' },
   { icon: MessageCircle, label: 'Conselho 24/7', points: '5-10 pts', description: '5 resposta + 5 melhor' },
   { icon: DollarSign, label: 'Negócios', points: '5 pts', description: 'por R$ 100' },
 ];

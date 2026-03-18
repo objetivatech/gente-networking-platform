@@ -33,7 +33,7 @@ const activityTypeConfig: Record<string, { icon: React.ElementType; color: strin
   referral: { icon: UserPlus, color: 'text-orange-500', label: 'Indicação' },
   attendance: { icon: Calendar, color: 'text-primary', label: 'Presença' },
   invitation: { icon: Users, color: 'text-pink-500', label: 'Convite' },
-  guest_attendance: { icon: UserCheck, color: 'text-emerald-500', label: 'Convidado presente' },
+  guest_attendance: { icon: UserCheck, color: 'text-emerald-500', label: 'Convidado no Encontro' },
   council_post: { icon: Lightbulb, color: 'text-indigo-500', label: 'Desafio no Conselho' },
   council_reply: { icon: MessageSquare, color: 'text-indigo-400', label: 'Resposta no Conselho' },
   business_case: { icon: DollarSign, color: 'text-teal-500', label: 'Case de Negócio' },

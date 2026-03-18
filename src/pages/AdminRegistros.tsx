@@ -89,7 +89,7 @@ export default function AdminRegistros() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <ProfileInfo profile={profiles[item.user_id]} />
                   <span className="text-muted-foreground text-xs">→</span>
-                  <span className="text-sm font-medium">{item.guest_name || 'Membro'}</span>
+                  <span className="text-sm font-medium">{item.guest_name || 'Pessoa Externa'}</span>
                   {item.guest_company && <span className="text-xs text-muted-foreground">({item.guest_company})</span>}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
