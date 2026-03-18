@@ -346,7 +346,7 @@ export default function GenteEmAcao() {
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="convidado" id="convidado" />
                     <Label htmlFor="convidado" className="flex items-center gap-1 cursor-pointer">
-                      <User className="w-4 h-4" /> Com Convidado
+                      <User className="w-4 h-4" /> Com Pessoa Externa
                     </Label>
                   </div>
                 </RadioGroup>
