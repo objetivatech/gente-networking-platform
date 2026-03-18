@@ -291,9 +291,9 @@ export default function GenteEmAcao() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-medium">{user?.full_name || 'Usuário'}</span>
                 <span className="text-muted-foreground">→</span>
-                <span className="font-medium">{partner?.full_name || item.guest_name || 'Convidado'}</span>
+                <span className="font-medium">{partner?.full_name || item.guest_name || 'Pessoa Externa'}</span>
                 <span className={`text-xs px-2 py-0.5 rounded-full ${item.meeting_type === 'membro' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'}`}>
-                  {item.meeting_type === 'membro' ? 'Membro' : 'Convidado'}
+                  {item.meeting_type === 'membro' ? 'Membro' : 'Externo'}
                 </span>
               </div>
               {item.notes && <p className="text-sm text-muted-foreground mt-1">{item.notes}</p>}
