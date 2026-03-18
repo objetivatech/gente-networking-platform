@@ -1,231 +1,113 @@
 
-# Plano: Sistema de Gamificação Mensal por Grupo
 
-## Resumo Executivo
+## Plano: Padronização de Nomenclatura + Auditoria de Gamificação
 
-Este plano implementa uma **reformulação completa do sistema de gamificação** para operar com ciclos mensais e pontuação por grupo, conforme solicitado. As principais mudanças são:
+### Contexto do Problema
 
-1. **Pontos zerados mensalmente** - A cada novo mês, inicia-se um novo ciclo de pontuação
-2. **Histórico de pontos mensais** - Consulta de desempenho de meses anteriores
-3. **Pontuação por grupo** - Membros que pertencem a múltiplos grupos têm pontuação separada em cada um
-4. **Rankings mensais** - Exibição sempre do mês corrente, global e por grupo
+O sistema mistura dois significados da palavra "Convidado":
+1. **Role do sistema**: Usuário com papel `convidado` (pessoa que aceitou um convite e ainda não foi promovida a Membro)
+2. **Contexto do Gente em Ação**: "Com Convidado" = reunião com pessoa externa (fora do grupo), que pode ser alguém de fora do sistema OU um usuário com qualquer role
 
----
-
-## Arquitetura da Solução
-
-### Nova Estrutura de Dados
-
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    MODELO DE DADOS - PONTUAÇÃO MENSAL                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ANTES (atual):                                                             │
-│  ┌─────────────┐                                                            │
-│  │ profiles    │                                                            │
-│  │ - points    │  ← Pontos acumulados globalmente, sem contexto de grupo   │
-│  │ - rank      │                                                            │
-│  └─────────────┘                                                            │
-│                                                                             │
-│  DEPOIS (proposto):                                                         │
-│  ┌─────────────────────┐                                                    │
-│  │ monthly_points      │  (NOVA TABELA)                                     │
-│  │ - user_id           │                                                    │
-│  │ - team_id           │  ← Pontuação POR GRUPO                            │
-│  │ - year_month        │  ← Ex: "2026-02" (ciclo mensal)                   │
-│  │ - points            │  ← Total de pontos do mês para este grupo         │
-│  │ - rank              │  ← Rank calculado para este mês/grupo             │
-│  │ - updated_at        │                                                    │
-│  └─────────────────────┘                                                    │
-│           │                                                                 │
-│           ▼                                                                 │
-│  ┌─────────────────────┐                                                    │
-│  │ points_history      │  (ATUALIZADA)                                      │
-│  │ - user_id           │                                                    │
-│  │ - team_id           │  ← NOVO: Contexto do grupo                        │
-│  │ - year_month        │  ← NOVO: Mês de referência                        │
-│  │ - activity_type     │                                                    │
-│  │ - points_change     │                                                    │
-│  │ - created_at        │                                                    │
-│  └─────────────────────┘                                                    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+Isso causa confusão no feed, onde mensagens como "Reunião com convidado: Maria" aparecem mesmo quando Maria é uma Membro ativa. Além disso, labels e badges usam "Convidado" indiscriminadamente.
 
 ---
 
-## Detalhamento Técnico
+### 1. Padronização da Terminologia no Gente em Ação
 
-### 1. Alterações no Banco de Dados
+O `meeting_type` no banco tem valores `'membro'` e `'convidado'`. Proposta: manter os valores no banco (não alterar dados existentes), mas mudar TODA a nomenclatura visual:
 
-#### 1.1 Nova tabela: `monthly_points`
-```sql
-CREATE TABLE monthly_points (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  team_id UUID NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
-  year_month TEXT NOT NULL, -- formato "YYYY-MM"
-  points INTEGER NOT NULL DEFAULT 0,
-  rank member_rank DEFAULT 'iniciante',
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(user_id, team_id, year_month)
-);
-```
+| Atual | Novo |
+|---|---|
+| "Com Convidado" (radio button) | "Com Pessoa Externa" |
+| "Convidado" (badge na listagem) | "Externo" |
+| "Com Convidados" (stat card) | "Com Externos" |
+| "convidados" no sub-texto stats | "externos" |
+| "Nome do Convidado" (form label) | "Nome da Pessoa" |
 
-#### 1.2 Alterações na tabela `points_history`
-Adicionar colunas:
-- `team_id UUID` - Para contexto do grupo
-- `year_month TEXT` - Para vincular ao mês
+**Arquivos afetados**:
+- `src/pages/GenteEmAcao.tsx` — radio labels, badges, stat cards, form labels
+- `src/pages/Estatisticas.tsx` — linha 23: `${stats?.genteEmAcao.withGuests || 0} convidados` → `externos`
+- `src/pages/AdminRegistros.tsx` — badge "Convidado" → "Externo"
+- `src/pages/Documentacao.tsx` — "Com Convidado" → "Com Pessoa Externa"
 
-#### 1.3 Novas funções de banco de dados
+### 2. Correção dos Triggers SQL (Activity Feed)
 
-| Função | Descrição |
-|--------|-----------|
-| `get_current_year_month()` | Retorna "YYYY-MM" atual |
-| `calculate_monthly_points(user_id, team_id, year_month)` | Calcula pontos de um usuário em um grupo/mês |
-| `update_monthly_points_and_rank(user_id, team_id)` | Atualiza a tabela monthly_points |
-| `get_monthly_ranking(team_id, year_month)` | Retorna ranking ordenado |
+Os triggers geram mensagens hardcoded com terminologia incorreta.
 
-#### 1.4 Atualização dos Triggers
-Todos os triggers de atividades (gente_em_acao, testimonials, referrals, etc.) precisam:
-1. Identificar o grupo do contexto da atividade
-2. Chamar `update_monthly_points_and_rank()` para cada grupo do usuário
+**`handle_gente_em_acao_insert`**: Atualmente escreve `'Reunião com convidado: ' || guest_name`. Corrigir para `'Reunião com pessoa externa: ' || guest_name` (quando `meeting_type='convidado'`).
 
-### 2. Lógica de Contexto de Grupo
+**`handle_guest_attendance_insert`**: Escreve `inviter_name || ' ganhou pontos por convidado'`. Corrigir para `inviter_name || ' ganhou pontos — convidado presente no encontro'` com a descrição mostrando o nome correto.
 
-```text
-┌─────────────────────────────────────────────────────────────────────────────┐
-│           COMO DETERMINAR O GRUPO DE UMA ATIVIDADE?                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ATIVIDADE              │  LÓGICA DE GRUPO                                  │
-│  ───────────────────────┼──────────────────────────────────────────────────│
-│  Presença (attendances) │  Grupo do encontro (meetings.team_id)            │
-│                         │  Se encontro sem grupo: todos os grupos do user  │
-│                         │                                                   │
-│  Gente em Ação          │  Grupo em comum com o parceiro, ou               │
-│                         │  todos os grupos do usuário se com convidado     │
-│                         │                                                   │
-│  Depoimentos            │  Grupo em comum entre from_user e to_user        │
-│                         │  Se múltiplos: pontua em cada um                 │
-│                         │                                                   │
-│  Indicações             │  Grupo em comum entre from_user e to_user        │
-│                         │                                                   │
-│  Negócios               │  Todos os grupos do usuário que fechou           │
-│                         │                                                   │
-│  Convites               │  Grupo do convidador                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+**`handle_invitation_accepted`**: Escreve `'Novo membro através de convite'`. OK — manter.
 
-### 3. Alterações no Frontend
+**`handle_council_post_insert`**: OK — sem problemas de nomenclatura.
 
-#### 3.1 Página de Ranking (`/ranking`)
-- Adicionar seletor de mês (padrão: mês atual)
-- Filtro por grupo (já existe, manter)
-- Exibir claramente "Ranking de [Mês/Ano]"
-- Remover exibição de pontos globais/acumulados
+**`handle_profile_update`**: OK.
 
-#### 3.2 Perfil do Usuário (`/perfil`)
-- Substituir "pontos totais" por "pontos do mês"
-- Adicionar seletor de grupo (se pertence a múltiplos)
-- Gráfico de evolução: mostrar mês a mês
+**Migration SQL**: Criar uma migration que faça `CREATE OR REPLACE FUNCTION` para os triggers afetados.
 
-#### 3.3 Dashboard (`/`)
-- Exibir pontos do mês atual
-- Se usuário pertence a múltiplos grupos, mostrar resumo por grupo
+### 3. Labels no Feed e ActivityFeed
 
-#### 3.4 Histórico de Pontos
-- Adicionar filtros: mês e grupo
-- Agrupar histórico por mês com totais
+**`src/pages/Feed.tsx`** e **`src/components/ActivityFeed.tsx`**:
+- `guest_attendance` label: "Convidado presente" → "Convidado no Encontro" (aqui "Convidado" é correto pois refere-se ao papel)
+- Manter os demais labels — estão corretos
 
-#### 3.5 Estatísticas (`/estatisticas`)
-- Ajustar para refletir dados mensais
+### 4. Email Templates
 
-### 4. Novos Hooks
+**`supabase/functions/_shared/email-templates.ts`**:
+- Linha 199: "Quando o convidado comparecer a um encontro, você ganha mais 15 pontos." — OK, aqui "convidado" refere-se corretamente à pessoa convidada
+- `guestAttendedEmailTemplate`: "Seu convidado compareceu!" — OK, contexto correto
+- Todos os emails usam "convidado" no sentido correto (pessoa que foi convidada). Sem alterações necessárias nos emails.
 
-| Hook | Descrição |
-|------|-----------|
-| `useMonthlyRanking(teamId?, yearMonth?)` | Rankings mensais por grupo |
-| `useMonthlyPoints(userId, teamId?)` | Pontos do usuário no mês/grupo |
-| `usePointsHistoryByMonth(userId, yearMonth?)` | Histórico filtrado por mês |
+### 5. ScoringRulesCard
 
-### 5. Migração de Dados Existentes
+**`src/components/ScoringRulesCard.tsx`**:
+- "por convidado presente" — OK, refere-se ao papel. Manter.
 
-A migração não irá "converter" os pontos antigos, pois o modelo era diferente. Opções:
+### 6. Outras páginas com nomenclatura
 
-1. **Zerar e começar do zero** - Simples, mas perde histórico
-2. **Migrar como "mês genérico"** - Criar um registro especial para pontos legados
-3. **Manter pontos antigos apenas para consulta** - Recomendado
+**`src/pages/Membros.tsx`**:
+- Badge "Convidado" para role='convidado' — CORRETO, é a role
 
-**Recomendação:** Manter os campos `points` e `rank` na tabela `profiles` como "pontos históricos/legados" e usar o novo sistema a partir do mês de implementação.
+**`src/pages/GerenciarMembros.tsx`**:
+- Badge "Convidado" para quem tem role='convidado' — CORRETO
+
+**`src/pages/Encontros.tsx`**:
+- "Convidados Presentes" na lista de presença — CORRETO, são pessoas com role convidado
+
+### 7. Auditoria da Gamificação
+
+Verificar `calculate_monthly_points_for_team` contra as regras documentadas:
+
+| Ação | Esperado | No código SQL | Status |
+|---|---|---|---|
+| Gente em Ação | 25 pts | `gente_count * 25` | OK |
+| Depoimento dado | 15 pts | `testimonial_count * 15` | OK |
+| Indicação feita | 20 pts | `referral_count * 20` | OK |
+| Presença | 20 pts | `attendance_count * 20` | OK |
+| Negócio fechado | 5 pts/R$100 | `FLOOR(deals_value / 100) * 5` | OK |
+| Convidado presente | 15 pts | `invitation_count * 15` | OK |
+| Case de Negócio | 15 pts autor | `business_case_count * 15` | OK |
+| Resposta Conselho | 5 pts | `council_reply_count * 5` | OK |
+| Melhor resposta | +5 pts | `best_answer_count * 5` | OK |
+| Admin/Facilitador | 0 pts | `IF user_role IN ('admin','facilitador') RETURN 0` | OK |
+
+**Possível problema**: Na função `calculate_monthly_points_for_team`, o case de negócio com indicador deveria dar 20 pts para o indicador, mas a lógica no trigger `handle_business_case_insert` chama `update_all_monthly_points_for_user(referrer_id)` — porém NÃO há contagem de "cases indicados" na função de cálculo. O indicador só recebe pontos se ele próprio criou um case. **Isso é um bug** — o referrer do deal associado ao case deveria receber 20 pts pelo case, mas `calculate_monthly_points_for_team` não tem essa contagem.
+
+**Correção necessária**: Adicionar na função `calculate_monthly_points_for_team` a contagem de cases onde o `business_deal.referred_by_user_id = _user_id` (20 pts para o indicador do negócio associado ao case).
+
+### 8. Documentação e Changelog
+
+Atualizar `docs/TECHNICAL_DOCUMENTATION.md` e `/changelog` com:
+- Padronização de nomenclatura "Externo" vs "Convidado"
+- Correção do cálculo de pontos para indicadores de cases
 
 ---
 
-## Cronograma de Implementação
+### Ordem de Execução
 
-### Fase 1: Estrutura de Dados
-- [ ] Criar tabela `monthly_points`
-- [ ] Adicionar colunas à `points_history`
-- [ ] Criar índices para performance
-- [ ] Criar funções de cálculo mensal
-- [ ] Atualizar triggers das atividades
+1. Migration SQL: corrigir triggers `handle_gente_em_acao_insert` e `handle_guest_attendance_insert` + adicionar pontuação de indicador no `calculate_monthly_points_for_team`
+2. UI: Atualizar GenteEmAcao.tsx, Estatisticas.tsx, AdminRegistros.tsx, Documentacao.tsx com nova terminologia
+3. Feed labels: ajustar Feed.tsx e ActivityFeed.tsx
+4. Documentação e changelog
 
-### Fase 2: Backend/Hooks
-- [ ] Criar `useMonthlyRanking`
-- [ ] Criar `useMonthlyPoints`
-- [ ] Atualizar `usePointsHistory`
-- [ ] Atualizar `useStats` para contexto mensal
-
-### Fase 3: Frontend
-- [ ] Atualizar página Ranking
-- [ ] Atualizar página Perfil
-- [ ] Atualizar Dashboard
-- [ ] Atualizar Estatísticas
-
-### Fase 4: Documentação
-- [ ] Atualizar USER_FLOWS.md
-- [ ] Atualizar TECHNICAL_DOCUMENTATION.md
-- [ ] Atualizar página /documentacao
-- [ ] Adicionar entrada no Changelog
-
----
-
-## Considerações e Melhorias Sugeridas
-
-### Melhorias Adicionais (Opcionais)
-
-1. **Notificações de Reset Mensal**
-   - Enviar email no início de cada mês informando pontuação final do mês anterior
-
-2. **Badges de Conquistas Mensais**
-   - Criar badges visuais para "Top 3 do mês" em cada grupo
-
-3. **Comparativo Mês-a-Mês**
-   - Gráfico comparando desempenho entre meses
-
-4. **Meta Mensal**
-   - Permitir que o usuário defina uma meta de pontos para o mês
-
-5. **Leaderboard em Tempo Real**
-   - Usar Supabase Realtime para atualizar ranking ao vivo
-
-### Pontos de Atenção
-
-- **Performance**: Com pontuação por grupo/mês, o volume de dados aumenta. Índices adequados são essenciais.
-- **Retroatividade**: Atividades registradas devem ser contabilizadas no mês em que ocorreram (`meeting_date`, `deal_date`), não na data de criação.
-- **Membros sem grupo**: Precisam ser tratados (não recebem pontos ou recebem em um "grupo geral"?).
-
----
-
-## Resumo das Entregas
-
-| Item | Descrição |
-|------|-----------|
-| **Nova tabela** | `monthly_points` para armazenar pontuação mensal por grupo |
-| **Colunas novas** | `team_id` e `year_month` em `points_history` |
-| **Funções SQL** | Cálculo e atualização de pontos mensais |
-| **Triggers atualizados** | Todas as 6 atividades com lógica de grupo |
-| **Hooks React** | `useMonthlyRanking`, `useMonthlyPoints` |
-| **Páginas atualizadas** | Ranking, Perfil, Dashboard, Estatísticas |
-| **Documentação** | USER_FLOWS.md, TECHNICAL_DOCUMENTATION.md, /documentacao, Changelog |
