@@ -227,7 +227,7 @@ export default function GenteEmAcao() {
     }
 
     if (formData.meeting_type === 'convidado' && !guestName?.trim()) {
-      setErrors({ guest_name: 'Nome do convidado é obrigatório' });
+      setErrors({ guest_name: 'Nome da pessoa é obrigatório' });
       return;
     }
 
