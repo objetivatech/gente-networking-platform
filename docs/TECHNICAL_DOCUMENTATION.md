@@ -637,7 +637,18 @@ Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibi
 - Cloudflare Web Analytics para monitoramento de Core Web Vitals
 - Cloudflare Worker Proxy para cache de borda (api.gentenetworking.com.br)
 
-### v3.1.0 (2026-03-13)
+### v3.3.0 (2026-03-18)
+
+**Padronização de Nomenclatura e Auditoria de Gamificação:**
+- Padronização "Externo" vs "Convidado": reuniões com pessoas externas ao grupo agora usam "Pessoa Externa" / "Externo" em toda a UI, diferenciando do papel "Convidado" (role do sistema)
+- Trigger `handle_gente_em_acao_insert` corrigido: mensagens do feed agora distinguem "reunião com membro" de "reunião com pessoa externa"
+- Trigger `handle_guest_attendance_insert` corrigido: descrição mais clara no feed
+- Gamificação: adicionados 20 pontos para o indicador do negócio associado a um Case de Negócio na função `calculate_monthly_points_for_team`
+- ScoringRulesCard atualizado com informação sobre pontuação do indicador em cases
+- Labels do feed atualizados (guest_attendance → "Convidado no Encontro")
+- Documentação de Gente em Ação atualizada com nova terminologia
+
+### v3.2.0 (2026-03-17)
 
 **Triggers de Gamificação e Correções:**
 - 16 triggers automáticos para pontuação mensal (Gente em Ação, Depoimentos, Indicações, Negócios, Presenças, Conselho 24/7, Cases, Convites)
