@@ -367,7 +367,7 @@ export default function GenteEmAcao() {
                   {/* Seleção de convidado do grupo */}
                   {teamGuests && teamGuests.length > 0 && (
                     <div className="space-y-2">
-                      <Label>Selecionar Convidado</Label>
+                      <Label>Selecionar Pessoa</Label>
                       <Select value={formData.selected_guest_id || 'manual'} onValueChange={handleGuestSelect}>
                         <SelectTrigger>
                           <SelectValue placeholder="Escolha um convidado ou preencha manualmente" />
