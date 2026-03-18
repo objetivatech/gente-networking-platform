@@ -582,7 +582,7 @@ export default function GenteEmAcao() {
                             : 'bg-orange-100 text-orange-700'
                         }`}
                       >
-                        {meeting.meeting_type === 'membro' ? 'Membro' : 'Convidado'}
+                        {meeting.meeting_type === 'membro' ? 'Membro' : 'Externo'}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
