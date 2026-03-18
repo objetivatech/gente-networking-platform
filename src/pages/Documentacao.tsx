@@ -183,7 +183,7 @@ export default function Documentacao() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="prose dark:prose-invert max-w-none">
-                    <p>Registre suas reuniões 1-a-1 com outros membros ou convidados externos.</p>
+                    <p>Registre suas reuniões 1-a-1 com outros membros ou pessoas externas ao grupo.</p>
 
                     <h4 className="font-semibold mt-4">Como usar:</h4>
                     <ol>
@@ -192,7 +192,7 @@ export default function Documentacao() {
                       <li>Escolha o tipo de reunião:
                         <ul>
                           <li><strong>Com Membro:</strong> Selecione o membro do seu grupo</li>
-                          <li><strong>Com Convidado:</strong> Informe nome e empresa do convidado externo</li>
+                          <li><strong>Com Pessoa Externa:</strong> Informe nome e empresa da pessoa externa</li>
                         </ul>
                       </li>
                       <li>Selecione a data da reunião</li>
