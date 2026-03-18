@@ -648,7 +648,7 @@ Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibi
 - Labels do feed atualizados (guest_attendance → "Convidado no Encontro")
 - Documentação de Gente em Ação atualizada com nova terminologia
 
-### v3.2.0 (2026-03-17)
+### v3.1.0 (2026-03-13)
 
 **Triggers de Gamificação e Correções:**
 - 16 triggers automáticos para pontuação mensal (Gente em Ação, Depoimentos, Indicações, Negócios, Presenças, Conselho 24/7, Cases, Convites)
