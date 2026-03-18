@@ -395,7 +395,7 @@ export default function GenteEmAcao() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="guest_name">Nome do Convidado</Label>
+                      <Label htmlFor="guest_name">Nome da Pessoa</Label>
                       <Input
                         id="guest_name"
                         value={formData.guest_name}
