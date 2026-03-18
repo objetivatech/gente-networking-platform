@@ -526,7 +526,7 @@ export default function GenteEmAcao() {
               <p className="text-3xl font-bold text-orange-600">
                 {meetings?.filter((m) => m.meeting_type === 'convidado').length || 0}
               </p>
-              <p className="text-sm text-muted-foreground">Com Convidados</p>
+              <p className="text-sm text-muted-foreground">Com Externos</p>
             </div>
           </CardContent>
         </Card>
