@@ -121,10 +121,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Membros</CardTitle>
+            <CardTitle className="text-sm font-medium">Membros</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -137,7 +137,20 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Negócios Realizados</CardTitle>
+            <CardTitle className="text-sm font-medium">Convidados</CardTitle>
+            <UserCheck className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalGuests || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats?.pendingInvitations || 0} pendentes · {stats?.expiredInvitations || 0} expirados
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Negócios</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -169,7 +182,7 @@ export default function AdminDashboard() {
               {(stats?.totalTestimonials || 0) + (stats?.totalReferrals || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {stats?.totalTestimonials || 0} depoimentos, {stats?.totalReferrals || 0} indicações
+              {stats?.totalTestimonials || 0} dep. · {stats?.totalReferrals || 0} ind.
             </p>
           </CardContent>
         </Card>
