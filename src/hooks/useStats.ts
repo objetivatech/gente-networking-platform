@@ -80,18 +80,20 @@ export function useCommunityStats(teamId?: string) {
   return useQuery({
     queryKey: ['community-stats', teamId || 'all'],
     queryFn: async () => {
-      // Base queries - optionally filter by team
-      const [teamsRes, allTeamMembers] = await Promise.all([
+      // Base queries - optionally filter by team, only count valid members
+      const [teamsRes, allTeamMembers, validRolesRes] = await Promise.all([
         supabase.from('teams').select('id, name, color'),
         supabase.from('team_members').select('user_id, team_id, is_facilitator'),
+        supabase.from('user_roles').select('user_id').in('role', ['membro', 'facilitador']),
       ]);
       const teams = teamsRes.data || [];
       const teamMembers = allTeamMembers.data || [];
+      const validMemberIds = new Set((validRolesRes.data || []).map(r => r.user_id));
 
-      // Get member IDs for the selected team (or all)
+      // Get member IDs for the selected team (or all valid members)
       const relevantMembers = teamId
-        ? teamMembers.filter(tm => tm.team_id === teamId).map(tm => tm.user_id)
-        : null; // null = all
+        ? teamMembers.filter(tm => tm.team_id === teamId && validMemberIds.has(tm.user_id)).map(tm => tm.user_id)
+        : Array.from(validMemberIds);
 
       const filterByMembers = (query: any, col: string) => {
         if (relevantMembers && relevantMembers.length > 0) return query.in(col, relevantMembers);
@@ -99,7 +101,7 @@ export function useCommunityStats(teamId?: string) {
       };
 
       const [profiles, deals, testimonials, genteEmAcao, referrals, councilReplies, businessCases, attendances, meetings] = await Promise.all([
-        filterByMembers(supabase.from('profiles').select('id, rank'), 'id'),
+        filterByMembers(supabase.from('profiles').select('id, rank').eq('is_active', true), 'id'),
         filterByMembers(supabase.from('business_deals').select('value, deal_date, closed_by_user_id'), 'closed_by_user_id'),
         filterByMembers(supabase.from('testimonials').select('id, created_at, from_user_id'), 'from_user_id'),
         filterByMembers(supabase.from('gente_em_acao').select('id, meeting_date, user_id'), 'user_id'),

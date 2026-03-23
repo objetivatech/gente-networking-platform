@@ -266,9 +266,19 @@ export function useAdminDashboard(teamId?: string) {
   const { data: topMembers } = useQuery({
     queryKey: ['admin-top-members'],
     queryFn: async () => {
+      // Only show members (not admin/facilitador/convidado)
+      const { data: memberRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'membro');
+      const memberIds = memberRoles?.map(r => r.user_id) || [];
+      if (memberIds.length === 0) return [];
+      
       const { data } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, points, rank, company')
+        .in('id', memberIds)
+        .eq('is_active', true)
         .order('points', { ascending: false })
         .limit(10);
       return data || [];
