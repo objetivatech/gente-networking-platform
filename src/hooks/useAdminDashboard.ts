@@ -113,10 +113,12 @@ export function useAdminDashboard(teamId?: string) {
 
       if (!meetings || meetings.length === 0) return { overall: 0, byMeeting: [] };
 
-      const { count: totalActiveMembers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
+      // Count only members+facilitadores for attendance percentage
+      const { data: memberRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['membro', 'facilitador']);
+      const totalActiveMembers = memberRoles?.length || 0;
 
       const { data: attendances } = await supabase
         .from('attendances')
