@@ -470,10 +470,11 @@ export default function CadastroConvidado() {
               <CloudflareTurnstile
                 onVerify={(token) => setTurnstileToken(token)}
                 onExpire={() => setTurnstileToken(null)}
-                onError={() => setTurnstileToken(null)}
+                onError={() => { setTurnstileToken(null); setTurnstileAvailable(false); }}
+                onStatusChange={(status) => setTurnstileStatus(status)}
               />
 
-              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail || !turnstileToken}>
+              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail || (turnstileAvailable && turnstileStatus !== 'error' && !turnstileToken)}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
