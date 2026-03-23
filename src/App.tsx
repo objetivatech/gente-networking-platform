@@ -88,8 +88,8 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-              <Route path="/convite/:code" element={<ConvitePublico />} />
-              <Route path="/convite/:code/cadastrar" element={<CadastroConvidado />} />
+              <Route path="/convite/:code" element={<ErrorBoundary fallbackMessage="Erro ao carregar o convite. Tente recarregar a página."><ConvitePublico /></ErrorBoundary>} />
+              <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
               <Route path="/instalar" element={<Instalar />} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
