@@ -7,12 +7,28 @@ export function useAdminDashboard(teamId?: string) {
   const { data: stats, isLoading: loadingStats } = useQuery({
     queryKey: ['admin-dashboard-stats', teamId],
     queryFn: async () => {
+      // Get valid member/facilitador IDs for accurate counting
+      const { data: validRoles } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['membro', 'facilitador']);
+      const allMemberIds = validRoles?.filter(r => r.role === 'membro' || r.role === 'facilitador').map(r => r.user_id) || [];
+
+      // Get guest counts
+      const { data: guestRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'convidado');
+      const guestIds = guestRoles?.map(r => r.user_id) || [];
+
       // If teamId is set, get members of that team first
       let memberIds: string[] | null = null;
       if (teamId) {
         const { data: tm } = await supabase.from('team_members').select('user_id').eq('team_id', teamId);
-        memberIds = tm?.map(t => t.user_id) || [];
-        if (memberIds.length === 0) return { totalMembers: 0, totalTeams: 0, totalBusinessValue: 0, annualBusinessValue: 0, totalTestimonials: 0, totalReferrals: 0, totalGenteEmAcao: 0, totalInvitations: 0, acceptedInvitations: 0, totalCouncilReplies: 0, totalBusinessCases: 0 };
+        const teamUserIds = tm?.map(t => t.user_id) || [];
+        // Intersect with valid roles
+        memberIds = teamUserIds.filter(id => allMemberIds.includes(id));
+        if (memberIds.length === 0) return { totalMembers: 0, totalGuests: 0, pendingInvitations: 0, expiredInvitations: 0, totalTeams: 0, totalBusinessValue: 0, annualBusinessValue: 0, totalTestimonials: 0, totalReferrals: 0, totalGenteEmAcao: 0, totalInvitations: 0, acceptedInvitations: 0, totalCouncilReplies: 0, totalBusinessCases: 0 };
       }
 
       const filterByMembers = (query: any, col: string) => {
@@ -20,8 +36,21 @@ export function useAdminDashboard(teamId?: string) {
         return query;
       };
 
+      // Count active guests
+      const activeGuests = guestIds.length;
+
+      // Pending and expired invitations
+      const { data: allInvitations } = await supabase
+        .from('invitations')
+        .select('status, expires_at');
+      const now = new Date();
+      const pendingInvitations = allInvitations?.filter(i => i.status === 'pending' && new Date(i.expires_at) > now).length || 0;
+      const expiredInvitations = allInvitations?.filter(i => i.status === 'pending' && new Date(i.expires_at) <= now).length || 0;
+
+      // For totalMembers, count only members+facilitadores (filtered by team if needed)
+      const totalMembersCount = memberIds ? memberIds.length : allMemberIds.length;
+
       const [
-        { count: totalMembers },
         { count: totalTeams },
         { data: dealsData },
         { count: totalTestimonials },
@@ -32,9 +61,6 @@ export function useAdminDashboard(teamId?: string) {
         { count: totalCouncilReplies },
         { count: totalBusinessCases },
       ] = await Promise.all([
-        teamId
-          ? supabase.from('team_members').select('*', { count: 'exact', head: true }).eq('team_id', teamId)
-          : supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('teams').select('*', { count: 'exact', head: true }),
         filterByMembers(supabase.from('business_deals').select('value'), 'closed_by_user_id'),
         filterByMembers(supabase.from('testimonials').select('*', { count: 'exact', head: true }), 'from_user_id'),
@@ -45,7 +71,6 @@ export function useAdminDashboard(teamId?: string) {
         filterByMembers(supabase.from('council_replies').select('*', { count: 'exact', head: true }), 'user_id'),
         filterByMembers(supabase.from('business_cases').select('*', { count: 'exact', head: true }), 'user_id'),
       ]);
-
       const totalBusinessValue = dealsData?.reduce((acc, deal) => acc + Number(deal.value), 0) || 0;
       const acceptedInvitations = invitationsData?.filter(i => i.status === 'accepted').length || 0;
 
