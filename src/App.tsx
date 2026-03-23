@@ -20,6 +20,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
@@ -87,8 +88,8 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-              <Route path="/convite/:code" element={<ConvitePublico />} />
-              <Route path="/convite/:code/cadastrar" element={<CadastroConvidado />} />
+              <Route path="/convite/:code" element={<ErrorBoundary fallbackMessage="Erro ao carregar o convite. Tente recarregar a página."><ConvitePublico /></ErrorBoundary>} />
+              <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
               <Route path="/instalar" element={<Instalar />} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />

@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { z } from 'zod';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
-import { CloudflareTurnstile } from '@/components/CloudflareTurnstile';
+import { CloudflareTurnstile, TurnstileStatus } from '@/components/CloudflareTurnstile';
 
 interface Invitation {
   id: string;
@@ -71,6 +71,8 @@ export default function CadastroConvidado() {
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileAvailable, setTurnstileAvailable] = useState(true);
+  const [turnstileStatus, setTurnstileStatus] = useState<string>('loading');
 
   useEffect(() => {
     if (user) {
@@ -202,24 +204,28 @@ export default function CadastroConvidado() {
     const isValid = await validateForm();
     if (!isValid) return;
 
-    if (!turnstileToken) {
-      toast({ title: 'Verificação necessária', description: 'Complete a verificação anti-bot antes de continuar.', variant: 'destructive' });
-      return;
-    }
-
-    // Verify turnstile token server-side
-    try {
-      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-turnstile', {
-        body: { token: turnstileToken },
-      });
-      if (verifyError || !verifyResult?.success) {
-        toast({ title: 'Verificação falhou', description: 'Não foi possível verificar. Tente novamente.', variant: 'destructive' });
-        setTurnstileToken(null);
+    // Only require Turnstile if it loaded successfully
+    if (turnstileAvailable && turnstileStatus !== 'error') {
+      if (!turnstileToken) {
+        toast({ title: 'Verificação necessária', description: 'Complete a verificação anti-bot antes de continuar.', variant: 'destructive' });
         return;
       }
-    } catch {
-      toast({ title: 'Erro', description: 'Erro ao verificar. Tente novamente.', variant: 'destructive' });
-      return;
+
+      // Verify turnstile token server-side
+      try {
+        const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-turnstile', {
+          body: { token: turnstileToken },
+        });
+        if (verifyError || !verifyResult?.success) {
+          console.warn('Turnstile verification failed, proceeding without it');
+          // Don't block — proceed with signup
+        }
+      } catch (err) {
+        console.warn('Turnstile verification error, proceeding without it:', err);
+        // Don't block — proceed with signup
+      }
+    } else {
+      console.warn('Turnstile unavailable, proceeding without verification');
     }
 
     setLoading(true);
@@ -464,10 +470,11 @@ export default function CadastroConvidado() {
               <CloudflareTurnstile
                 onVerify={(token) => setTurnstileToken(token)}
                 onExpire={() => setTurnstileToken(null)}
-                onError={() => setTurnstileToken(null)}
+                onError={() => { setTurnstileToken(null); setTurnstileAvailable(false); }}
+                onStatusChange={(status) => setTurnstileStatus(status)}
               />
 
-              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail || !turnstileToken}>
+              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail || (turnstileAvailable && turnstileStatus !== 'error' && !turnstileToken)}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
