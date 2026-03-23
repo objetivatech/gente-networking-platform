@@ -203,7 +203,16 @@ export function useAdminDashboard(teamId?: string) {
   const { data: rankDistribution } = useQuery({
     queryKey: ['admin-rank-distribution'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('rank');
+      // Only count ranks for members and facilitadores
+      const { data: memberRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['membro', 'facilitador']);
+      const memberIds = memberRoles?.map(r => r.user_id) || [];
+      
+      const { data } = memberIds.length > 0
+        ? await supabase.from('profiles').select('rank').in('id', memberIds).eq('is_active', true)
+        : { data: [] };
       const distribution = { iniciante: 0, bronze: 0, prata: 0, ouro: 0, diamante: 0 };
       data?.forEach((p) => {
         const rank = p.rank || 'iniciante';
