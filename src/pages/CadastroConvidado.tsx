@@ -71,6 +71,8 @@ export default function CadastroConvidado() {
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileAvailable, setTurnstileAvailable] = useState(true);
+  const [turnstileStatus, setTurnstileStatus] = useState<string>('loading');
 
   useEffect(() => {
     if (user) {
