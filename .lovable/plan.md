@@ -1,83 +1,63 @@
+## Plano: Correção URGENTE do Fluxo de Convites
 
+### Diagnóstico
 
-## Plano: Correção de Roles Ausentes + Auditoria de Contadores
+Dois problemas identificados:
 
-### Diagnóstico Confirmado
+**Problema 1 — "Verificação falhou" (Turnstile)**: O widget Cloudflare Turnstile está falhando na verificação. A edge function `verify-turnstile` está funcionando (testei e retorna corretamente), mas o token gerado pelo widget está sendo rejeitado pelo Cloudflare. Causa provável: **o site key `0x4AAAAAACp4c13EYVpO8Vxd` está configurado no Cloudflare para domínios específicos** que não incluem os domínios atuais (`comunidadegente.lovable.app` e `id-preview--*.lovable.app`). Quando o domínio não bate, o Turnstile gera um token inválido que falha na verificação server-side.
 
-**Dados reais do banco**:
-- Roles existentes: admin=1, facilitador=2, membro=31
-- Perfis sem role: 22
-  - **17 aceitaram convite** → deveriam ter role `convidado`
-  - **5 sem convite** → contas criadas manualmente (teste ou cadastro direto)
-- Causa raiz: a função `accept_invitation` **não atribui** a role `convidado` ao novo usuário
-
-Os 5 perfis sem convite:
-1. Diogo Devitte (inativo) — provável teste
-2. ABEL ANSELMO GREGO — cadastro direto
-3. Lucas Voss Martins — duplicata (já existe Lucas Voss com convite)
-4. Joao Henrique Barbi — duplicata (já existe João Barbi com convite)
-5. Ricardo Marçal — cadastro direto
-
----
+**Problema 2 — Página em branco**: Pode ocorrer se o script do Turnstile falhar ao carregar (bloqueado por ad-blocker, falha de rede, etc.), ou se algum erro JS no `ConvitePublico.tsx` ocorre antes do render.
 
 ### Correções
 
-#### 1. Migration SQL — Corrigir `accept_invitation` para atribuir role `convidado`
+#### 1. Tornar Turnstile resiliente a falhas (correção imediata)
 
-```sql
-CREATE OR REPLACE FUNCTION accept_invitation(...)
-  -- Após aceitar o convite, inserir role 'convidado' se não existir
-  INSERT INTO user_roles (user_id, role) VALUES (_user_id, 'convidado')
-  ON CONFLICT (user_id, role) DO NOTHING;
+Em `CadastroConvidado.tsx`:
+
+- Adicionar tratamento de erro no Turnstile: se o widget falhar ao carregar ou verificar, permitir o cadastro sem ele (fallback graceful)
+- Adicionar timeout: se o Turnstile não carregar em 5 segundos, considerar como indisponível e prosseguir
+- Manter a verificação quando funciona, mas não bloquear o fluxo quando falha
+
+Em `CloudflareTurnstile.tsx`:
+
+- Adicionar callback `onLoad` para indicar quando o widget carregou
+- Adicionar estado de erro para quando o script falha ao carregar
+
+#### 2. Adicionar Error Boundary nas páginas públicas
+
+Envolver `ConvitePublico` e `CadastroConvidado` em um error boundary simples para evitar tela em branco por erros de JS.
+
+#### 3. Mover o site key para variável de ambiente
+
+Mover `TURNSTILE_SITE_KEY` de hardcoded para `VITE_TURNSTILE_SITE_KEY` no `.env`, facilitando a troca quando necessário.
+
+### Detalhes Técnicos
+
+`**CloudflareTurnstile.tsx**`: Adicionar estados `error` e `timedOut`, com timeout de 5s. Chamar `onError` se o script não carrega. Expor estado via novo prop `onStatusChange`.
+
+`**CadastroConvidado.tsx**`: Modificar a lógica de verificação:
+
+```
+// Se Turnstile está disponível e gerou token → verificar
+// Se Turnstile falhou ao carregar → pular verificação (log warning)
+// Se Turnstile carregou mas token expirou → pedir retry
 ```
 
-#### 2. Migration SQL — Atribuir role `convidado` aos 17 perfis existentes sem role que aceitaram convite
+`**.env**`: Adicionar `VITE_TURNSTILE_SITE_KEY=0x4AAAAAACp4c13EYVpO8Vxd`
 
-```sql
-INSERT INTO user_roles (user_id, role)
-SELECT p.id, 'convidado'
-FROM profiles p
-WHERE NOT EXISTS (SELECT 1 FROM user_roles ur WHERE ur.user_id = p.id)
-AND EXISTS (SELECT 1 FROM invitations i WHERE i.accepted_by = p.id AND i.status = 'accepted');
-```
+### Recomendação Importante - JA FOI REALIZADO NO CLOUDFLARE!
 
-#### 3. Corrigir contadores em todos os hooks
+O site key do Turnstile precisa ser reconfigurado no painel do Cloudflare para incluir os domínios corretos:
 
-**`useAdminDashboard.ts`**:
-- Linha 37: `totalMembers` conta `profiles WHERE is_active=true` (52) → Filtrar por `user_roles IN ('membro','facilitador')` para obter contagem real de membros (33)
-- Linha 88-91: `totalActiveMembers` no `attendanceKpis` usa mesma query errada → Corrigir
-- Linha 176: `rankDistribution` conta todos os perfis → Filtrar por roles válidas
+- `comunidadegente.lovable.app`
+- `*.lovable.app` (para preview)
+- Qualquer domínio customizado futuro
 
-**`useStats.ts` — `useCommunityStats`**:
-- Linha 102: `profiles.select('id, rank')` sem filtro de role → Filtrar por `membro`/`facilitador`
-- Linha 171: `totalMembers: profilesData.length` → Será automaticamente correto após filtro
-
-**`useStats.ts` — `useAdminGlobalStats`**:
-- Linha 202: busca todos os perfis → Filtrar por roles válidas
-
-**Padrão aplicado em cada hook**:
-```typescript
-const { data: validRoles } = await supabase
-  .from('user_roles')
-  .select('user_id')
-  .in('role', ['membro', 'facilitador']);
-const validMemberIds = new Set(validRoles?.map(r => r.user_id) || []);
-// Filtrar profiles por validMemberIds
-```
-
-#### 4. Adicionar KPI de Convidados no Admin Dashboard
-
-Além de "Membros Ativos", exibir:
-- **Convidados Ativos**: profiles com role `convidado` e `is_active=true`
-- **Convites Pendentes**: invitations com status `pending` e não expirados
-- **Convites Expirados**: invitations com status `expired` ou `expires_at < now()`
-
----
+Sem isso, o Turnstile continuará falhando. A correção no código garante que o fluxo não seja bloqueado enquanto a configuração é ajustada.
 
 ### Ordem de Execução
 
-1. Migration SQL: corrigir `accept_invitation` + atribuir roles aos 17 perfis sem role
-2. Corrigir `useAdminDashboard.ts` — totalMembers, attendanceKpis, rankDistribution
-3. Corrigir `useStats.ts` — useCommunityStats e useAdminGlobalStats
-4. Adicionar KPIs de convidados no AdminDashboard
-
+1. Atualizar `CloudflareTurnstile.tsx` com fallback e timeout
+2. Atualizar `CadastroConvidado.tsx` para não bloquear quando Turnstile falha
+3. Adicionar variável de ambiente para o site key
+4. Adicionar error boundary nas páginas públicas
