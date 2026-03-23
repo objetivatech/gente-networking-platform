@@ -193,6 +193,13 @@ export function useAdminGlobalStats() {
   return useQuery({
     queryKey: ['admin-global-stats'],
     queryFn: async () => {
+      // Only include members and facilitadores
+      const { data: validRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .in('role', ['membro', 'facilitador']);
+      const validIds = validRoles?.map(r => r.user_id) || [];
+
       const [allGA, allDeals, allReferrals, allTestimonials, allCouncil, allCases, allAttendances, allProfiles, allTeams, allTeamMembers] = await Promise.all([
         supabase.from('gente_em_acao').select('id, user_id, meeting_date, meeting_type'),
         supabase.from('business_deals').select('id, closed_by_user_id, value, deal_date'),
@@ -201,7 +208,9 @@ export function useAdminGlobalStats() {
         supabase.from('council_replies').select('id, user_id, created_at'),
         supabase.from('business_cases').select('id, user_id, created_at'),
         supabase.from('attendances').select('id, user_id, meeting_id'),
-        supabase.from('profiles').select('id, full_name, points, rank, company, avatar_url'),
+        validIds.length > 0
+          ? supabase.from('profiles').select('id, full_name, points, rank, company, avatar_url').in('id', validIds).eq('is_active', true)
+          : { data: [] },
         supabase.from('teams').select('id, name, color'),
         supabase.from('team_members').select('user_id, team_id'),
       ]);
