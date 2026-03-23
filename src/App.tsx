@@ -20,6 +20,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Lazy-loaded pages
 const Index = lazy(() => import("./pages/Index"));
