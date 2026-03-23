@@ -155,7 +155,7 @@ export function useCommunityStats(teamId?: string) {
 
       // Per-team breakdown
       const perTeam = teams.map(team => {
-        const members = teamMembers.filter(tm => tm.team_id === team.id).map(tm => tm.user_id);
+        const members = teamMembers.filter(tm => tm.team_id === team.id && validMemberIds.has(tm.user_id)).map(tm => tm.user_id);
         return {
           id: team.id,
           name: team.name,
