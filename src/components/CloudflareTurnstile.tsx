@@ -18,6 +18,7 @@ export function CloudflareTurnstile({ onVerify, onExpire, onError, onStatusChang
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const updateStatus = useCallback((status: TurnstileStatus) => {
     onStatusChange?.(status);
@@ -62,6 +63,11 @@ export function CloudflareTurnstile({ onVerify, onExpire, onError, onStatusChang
 
   useEffect(() => {
     const win = window as any;
+    const markLoaded = () => {
+      setLoaded(true);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
 
     // Start timeout
     timeoutRef.current = setTimeout(() => {
@@ -71,35 +77,35 @@ export function CloudflareTurnstile({ onVerify, onExpire, onError, onStatusChang
       }
     }, TURNSTILE_TIMEOUT_MS);
 
+    pollRef.current = setInterval(() => {
+      if (win.turnstile) {
+        markLoaded();
+      }
+    }, 150);
+
     if (win.turnstile) {
-      setLoaded(true);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      markLoaded();
       return;
     }
 
     // Check if script is already being loaded
     const existingScript = document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]');
     if (existingScript) {
-      existingScript.addEventListener('load', () => {
-        setLoaded(true);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      });
-      existingScript.addEventListener('error', () => handleError());
+      existingScript.addEventListener('load', markLoaded);
+      existingScript.addEventListener('error', handleError);
       return;
     }
 
     const script = document.createElement('script');
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     script.async = true;
-    script.onload = () => {
-      setLoaded(true);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-    script.onerror = () => handleError();
+    script.onload = markLoaded;
+    script.onerror = handleError;
     document.head.appendChild(script);
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
       if (widgetIdRef.current !== null) {
         try { win.turnstile?.remove(widgetIdRef.current); } catch {}
         widgetIdRef.current = null;

@@ -72,7 +72,7 @@ export default function CadastroConvidado() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [turnstileAvailable, setTurnstileAvailable] = useState(true);
-  const [turnstileStatus, setTurnstileStatus] = useState<string>('loading');
+  const [turnstileStatus, setTurnstileStatus] = useState<TurnstileStatus>('loading');
 
   useEffect(() => {
     if (user) {
@@ -204,28 +204,20 @@ export default function CadastroConvidado() {
     const isValid = await validateForm();
     if (!isValid) return;
 
-    // Only require Turnstile if it loaded successfully
-    if (turnstileAvailable && turnstileStatus !== 'error') {
-      if (!turnstileToken) {
-        toast({ title: 'Verificação necessária', description: 'Complete a verificação anti-bot antes de continuar.', variant: 'destructive' });
-        return;
-      }
-
-      // Verify turnstile token server-side
+    // Try Turnstile verification when a token exists, but never block signup on anti-bot issues.
+    if (turnstileAvailable && turnstileToken) {
       try {
         const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-turnstile', {
           body: { token: turnstileToken },
         });
         if (verifyError || !verifyResult?.success) {
           console.warn('Turnstile verification failed, proceeding without it');
-          // Don't block — proceed with signup
         }
       } catch (err) {
         console.warn('Turnstile verification error, proceeding without it:', err);
-        // Don't block — proceed with signup
       }
     } else {
-      console.warn('Turnstile unavailable, proceeding without verification');
+      console.warn('Turnstile skipped, proceeding without verification', { turnstileAvailable, turnstileStatus });
     }
 
     setLoading(true);
@@ -474,7 +466,7 @@ export default function CadastroConvidado() {
                 onStatusChange={(status) => setTurnstileStatus(status)}
               />
 
-              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail || (turnstileAvailable && turnstileStatus !== 'error' && !turnstileToken)}>
+              <Button type="submit" className="w-full" size="lg" disabled={loading || checkingEmail}>
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
