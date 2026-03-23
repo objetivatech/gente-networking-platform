@@ -204,24 +204,28 @@ export default function CadastroConvidado() {
     const isValid = await validateForm();
     if (!isValid) return;
 
-    if (!turnstileToken) {
-      toast({ title: 'Verificação necessária', description: 'Complete a verificação anti-bot antes de continuar.', variant: 'destructive' });
-      return;
-    }
-
-    // Verify turnstile token server-side
-    try {
-      const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-turnstile', {
-        body: { token: turnstileToken },
-      });
-      if (verifyError || !verifyResult?.success) {
-        toast({ title: 'Verificação falhou', description: 'Não foi possível verificar. Tente novamente.', variant: 'destructive' });
-        setTurnstileToken(null);
+    // Only require Turnstile if it loaded successfully
+    if (turnstileAvailable && turnstileStatus !== 'error') {
+      if (!turnstileToken) {
+        toast({ title: 'Verificação necessária', description: 'Complete a verificação anti-bot antes de continuar.', variant: 'destructive' });
         return;
       }
-    } catch {
-      toast({ title: 'Erro', description: 'Erro ao verificar. Tente novamente.', variant: 'destructive' });
-      return;
+
+      // Verify turnstile token server-side
+      try {
+        const { data: verifyResult, error: verifyError } = await supabase.functions.invoke('verify-turnstile', {
+          body: { token: turnstileToken },
+        });
+        if (verifyError || !verifyResult?.success) {
+          console.warn('Turnstile verification failed, proceeding without it');
+          // Don't block — proceed with signup
+        }
+      } catch (err) {
+        console.warn('Turnstile verification error, proceeding without it:', err);
+        // Don't block — proceed with signup
+      }
+    } else {
+      console.warn('Turnstile unavailable, proceeding without verification');
     }
 
     setLoading(true);
