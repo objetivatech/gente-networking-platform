@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { z } from 'zod';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
-import { CloudflareTurnstile } from '@/components/CloudflareTurnstile';
+import { CloudflareTurnstile, TurnstileStatus } from '@/components/CloudflareTurnstile';
 
 interface Invitation {
   id: string;
