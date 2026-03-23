@@ -83,7 +83,10 @@ export function useAdminDashboard(teamId?: string) {
       const annualBusinessValue = yearDeals?.reduce((acc, d) => acc + Number(d.value), 0) || 0;
 
       return {
-        totalMembers: totalMembers || 0,
+        totalMembers: totalMembersCount,
+        totalGuests: activeGuests,
+        pendingInvitations,
+        expiredInvitations,
         totalTeams: totalTeams || 0,
         totalBusinessValue,
         annualBusinessValue,
