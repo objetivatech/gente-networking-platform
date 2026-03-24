@@ -213,19 +213,11 @@ export default function Auth() {
       return;
     }
 
-    // Check if there's an invitation code to accept
+    // Invitation acceptance is now handled in /auth/confirm after email confirmation
+    // Just store the code for later
     const inviteCode = localStorage.getItem('invitation_code');
-    if (inviteCode && data?.user?.id) {
-      try {
-        const { supabase } = await import('@/integrations/supabase/client');
-        await supabase.rpc('accept_invitation', {
-          _code: inviteCode,
-          _user_id: data.user.id
-        });
-        localStorage.removeItem('invitation_code');
-      } catch (err) {
-        console.error('Failed to accept invitation:', err);
-      }
+    if (inviteCode) {
+      console.log('Invite code stored for post-confirmation:', inviteCode);
     }
     
     setLoading(false);
