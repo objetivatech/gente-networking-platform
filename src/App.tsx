@@ -54,6 +54,7 @@ const Changelog = lazy(() => import("./pages/Changelog"));
 const AdminRegistros = lazy(() => import("./pages/AdminRegistros"));
 const Feed = lazy(() => import("./pages/Feed"));
 const Conselho = lazy(() => import("./pages/Conselho"));
+const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
