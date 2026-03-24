@@ -11,7 +11,8 @@ export interface GuestInvitationData {
     code: string;
     invited_by: string;
     created_at: string;
-    metadata: Record<string, unknown> | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    metadata: any;
   } | null;
   inviter: {
     id: string;
