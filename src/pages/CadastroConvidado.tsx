@@ -53,7 +53,7 @@ const formatPhoneBR = (value: string): string => {
 export default function CadastroConvidado() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { signUp, signIn, user } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const [invitation, setInvitation] = useState<Invitation | null>(null);
