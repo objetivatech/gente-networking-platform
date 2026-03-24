@@ -53,7 +53,7 @@ const formatPhoneBR = (value: string): string => {
 export default function CadastroConvidado() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { signUp, signIn, user } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const [invitation, setInvitation] = useState<Invitation | null>(null);
@@ -216,17 +216,31 @@ export default function CadastroConvidado() {
       } catch (err) {
         console.warn('Turnstile verification error, proceeding without it:', err);
       }
-    } else {
-      console.warn('Turnstile skipped, proceeding without verification', { turnstileAvailable, turnstileStatus });
     }
 
     setLoading(true);
-    const { error, data } = await signUp(email, password, fullName, phone, company, businessSegment);
 
-    if (error) {
+    // Use redirect to AuthConfirm page, passing the invite code
+    const confirmUrl = `${window.location.origin}/auth/confirm?invite=${code}`;
+
+    const { error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: confirmUrl,
+        data: {
+          full_name: fullName,
+          phone: phone,
+          company: company,
+          business_segment: businessSegment,
+        },
+      },
+    });
+
+    if (signUpError) {
       setLoading(false);
       let message = 'Erro ao cadastrar';
-      if (error.message.includes('User already registered')) {
+      if (signUpError.message.includes('User already registered')) {
         message = 'Este email já está cadastrado';
       }
       toast({
@@ -237,37 +251,19 @@ export default function CadastroConvidado() {
       return;
     }
 
-    if (code && data?.user?.id) {
-      try {
-        await supabase.rpc('accept_invitation', {
-          _code: code,
-          _user_id: data.user.id
-        });
-        localStorage.removeItem('invitation_code');
-      } catch (err) {
-        console.error('Failed to accept invitation:', err);
-      }
-    }
-
-    toast({
-      title: 'Bem-vindo ao Gente Networking!',
-      description: 'Sua conta foi criada com sucesso. Redirecionando...',
-    });
-
-    const loginResult = await signIn(email, password);
-
-    if (loginResult.error) {
-      console.error('Auto-login failed:', loginResult.error);
-      setLoading(false);
-      toast({
-        title: 'Cadastro realizado',
-        description: 'Por favor, faça login para continuar',
-      });
-      navigate('/auth');
-      return;
+    // Store invite code for the confirm callback
+    if (code) {
+      localStorage.setItem('invitation_code', code);
     }
 
     setLoading(false);
+    toast({
+      title: 'Cadastro realizado!',
+      description: 'Verifique seu email para confirmar a conta e ativar seu convite.',
+    });
+
+    // Do NOT call accept_invitation here — it will be called in /auth/confirm after email confirmation
+    // Do NOT auto-login — user must confirm email first
   };
 
   if (validating) {

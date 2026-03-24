@@ -54,6 +54,7 @@ const Changelog = lazy(() => import("./pages/Changelog"));
 const AdminRegistros = lazy(() => import("./pages/AdminRegistros"));
 const Feed = lazy(() => import("./pages/Feed"));
 const Conselho = lazy(() => import("./pages/Conselho"));
+const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="/convite/:code" element={<ErrorBoundary fallbackMessage="Erro ao carregar o convite. Tente recarregar a página."><ConvitePublico /></ErrorBoundary>} />
               <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
               <Route path="/instalar" element={<Instalar />} />
+              <Route path="/auth/confirm" element={<ErrorBoundary fallbackMessage="Erro ao confirmar email. Tente recarregar a página."><AuthConfirm /></ErrorBoundary>} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/feed" element={<Feed />} />
