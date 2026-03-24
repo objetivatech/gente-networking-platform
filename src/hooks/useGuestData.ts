@@ -11,7 +11,6 @@ export interface GuestInvitationData {
     code: string;
     invited_by: string;
     created_at: string;
-    accepted_at: string | null;
     metadata: Record<string, unknown> | null;
   } | null;
   inviter: {
