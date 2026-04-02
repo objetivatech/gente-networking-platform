@@ -103,10 +103,15 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 │  /admin/pessoas → Tab: Convidados → Botão "Promover"                        │
 │        │                                                                     │
 │        ▼                                                                     │
-│  Modal: Selecionar role (Membro/Facilitador) + Grupo (opcional)             │
+│  Modal: Selecionar role + Grupo                                             │
+│    - Admin: pode escolher Membro ou Facilitador, grupo opcional             │
+│    - Facilitador: apenas Membro, grupo pré-selecionado (seu grupo)          │
 │        │                                                                     │
 │        ▼                                                                     │
-│  usePromoteGuest: Atualizar user_roles + Adicionar a team_members           │
+│  RPC: promote_guest_to_member (SECURITY DEFINER)                            │
+│    - Valida permissões do chamador                                           │
+│    - Upsert em user_roles (remove 'convidado', insere novo role)            │
+│    - Adiciona a team_members se grupo informado                              │
 │        │                                                                     │
 │        ▼                                                                     │
 │  Status: MEMBRO ou FACILITADOR                                               │
