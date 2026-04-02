@@ -882,6 +882,14 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
+      promote_guest_to_member: {
+        Args: {
+          _guest_id: string
+          _target_role?: Database["public"]["Enums"]["app_role"]
+          _team_id?: string
+        }
+        Returns: Json
+      }
       reactivate_member: { Args: { _member_id: string }; Returns: Json }
       recalculate_all_monthly_points: {
         Args: { _year_month?: string }
