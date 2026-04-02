@@ -450,7 +450,16 @@ export default function GestaoPessoas() {
               onClick={() => {
                 setSelectedPerson(person);
                 setSelectedRole('membro');
-                setSelectedTeamId('none');
+                // Facilitador: pre-select their team
+                if (isFacilitator && teams && teams.length > 0) {
+                  // Find facilitator's team from team_members
+                  const facilitatorTeam = teams.find(t => 
+                    person.team_id === t.id
+                  );
+                  setSelectedTeamId(facilitatorTeam?.id || teams[0]?.id || 'none');
+                } else {
+                  setSelectedTeamId('none');
+                }
                 setShowPromoteDialog(true);
               }}
             >
