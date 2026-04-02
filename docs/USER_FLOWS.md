@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-03-12
-> **Versão:** 3.0.0
+> **Última atualização:** 2026-04-02
+> **Versão:** 3.4.0
 
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
@@ -72,9 +72,18 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 │                                        │    server-side │                    │
 │                                        │ 2. Criar user  │                    │
 │                                        │ 3. Criar profile│                   │
-│                                        │ 4. Accept invite│                   │
-│                                        │ 5. Role=convidado│                  │
-│                                        │ 6. Email convite│                   │
+│                                        │ 4. Email confirm│                   │
+│                                        └────────────────┘                    │
+│                                                   │                          │
+│                                                   ▼                          │
+│                                        ┌────────────────┐                    │
+│                                        │ /auth/confirm  │                    │
+│                                        │ Callback de    │                    │
+│                                        │ confirmação:   │                    │
+│                                        │ 1. Troca token │                    │
+│                                        │ 2. Accept invite│                   │
+│                                        │ 3. Role=convidado│                  │
+│                                        │ 4. Snapshot teams│                  │
 │                                        └────────────────┘                    │
 │                                                   │                          │
 │                                                   ▼                          │
@@ -86,8 +95,9 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 ```
 
 **Tabelas:** `invitations`, `auth.users`, `profiles`, `user_roles`  
-**Triggers:** `handle_new_user()`, `accept_invitation()`  
-**Edge Functions:** `verify-turnstile` (anti-bot), `send-notification` (tipo: invitation)
+**Funções:** `handle_new_user()`, `accept_invitation()` (idempotente, com snapshot de `allowed_team_ids`)  
+**Edge Functions:** `verify-turnstile` (anti-bot), `send-notification` (tipo: invitation)  
+**Rota:** `/auth/confirm` — callback público para confirmação de email e aceite do convite
 
 ---
 
@@ -103,10 +113,15 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 │  /admin/pessoas → Tab: Convidados → Botão "Promover"                        │
 │        │                                                                     │
 │        ▼                                                                     │
-│  Modal: Selecionar role (Membro/Facilitador) + Grupo (opcional)             │
+│  Modal: Selecionar role + Grupo                                             │
+│    - Admin: pode escolher Membro ou Facilitador, grupo opcional             │
+│    - Facilitador: apenas Membro, grupo pré-selecionado (seu grupo)          │
 │        │                                                                     │
 │        ▼                                                                     │
-│  usePromoteGuest: Atualizar user_roles + Adicionar a team_members           │
+│  RPC: promote_guest_to_member (SECURITY DEFINER)                            │
+│    - Valida permissões do chamador                                           │
+│    - Upsert em user_roles (remove 'convidado', insere novo role)            │
+│    - Adiciona a team_members se grupo informado                              │
 │        │                                                                     │
 │        ▼                                                                     │
 │  Status: MEMBRO ou FACILITADOR                                               │

@@ -14,54 +14,20 @@ export function usePromoteGuest() {
 
   const promoteMutation = useMutation({
     mutationFn: async ({ userId, targetRole, teamId }: PromoteGuestParams) => {
-      // 1. Verificar se o usuário já tem um role
-      const { data: existingRole } = await supabase
-        .from('user_roles')
-        .select('id, role')
-        .eq('user_id', userId)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('promote_guest_to_member', {
+        _guest_id: userId,
+        _target_role: targetRole,
+        _team_id: teamId || null,
+      });
 
-      if (existingRole) {
-        // Atualizar role existente
-        const { error: updateError } = await supabase
-          .from('user_roles')
-          .update({ role: targetRole })
-          .eq('user_id', userId);
-
-        if (updateError) throw updateError;
-      } else {
-        // Criar novo role
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role: targetRole });
-
-        if (insertError) throw insertError;
+      if (error) throw error;
+      
+      const result = data as { success: boolean; error?: string };
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao promover convidado');
       }
 
-      // 2. Se um grupo foi selecionado, adicionar o membro ao grupo
-      if (teamId) {
-        // Verificar se já está no grupo
-        const { data: existingMember } = await supabase
-          .from('team_members')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('team_id', teamId)
-          .maybeSingle();
-
-        if (!existingMember) {
-          const { error: teamError } = await supabase
-            .from('team_members')
-            .insert({
-              user_id: userId,
-              team_id: teamId,
-              is_facilitator: targetRole === 'facilitador',
-            });
-
-          if (teamError) throw teamError;
-        }
-      }
-
-      return { userId, targetRole, teamId };
+      return result;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-guest-records'] });
@@ -80,7 +46,7 @@ export function usePromoteGuest() {
       console.error('Erro ao promover convidado:', error);
       toast({
         title: 'Erro na promoção',
-        description: 'Não foi possível promover o convidado. Tente novamente.',
+        description: error.message || 'Não foi possível promover o convidado. Tente novamente.',
         variant: 'destructive',
       });
     },
