@@ -79,6 +79,14 @@ export function useGuestData() {
         allowedTeamIds = teamMemberships?.map(tm => tm.team_id) || [];
       }
 
+      // Final fallback: if still empty, use ALL teams so guest sees something
+      if (allowedTeamIds.length === 0) {
+        const { data: allTeams } = await supabase
+          .from('teams')
+          .select('id');
+        allowedTeamIds = allTeams?.map(t => t.id) || [];
+      }
+
       // Fetch inviter profile
       const { data: inviter } = await supabase
         .from('profiles')

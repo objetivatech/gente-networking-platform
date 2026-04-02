@@ -770,33 +770,40 @@ export default function GestaoPessoas() {
               <Crown className="h-5 w-5 text-primary" />
               Promover Convidado
             </DialogTitle>
-            <DialogDescription>
-              Promova <strong>{selectedPerson?.full_name}</strong> para Membro ou Facilitador.
+           <DialogDescription>
+              Promova <strong>{selectedPerson?.full_name}</strong> para {isAdmin ? 'Membro ou Facilitador' : 'Membro'}.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="role">Novo perfil</Label>
-              <Select value={selectedRole} onValueChange={(v: 'membro' | 'facilitador') => setSelectedRole(v)}>
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Selecione o perfil" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="membro">Membro</SelectItem>
-                  <SelectItem value="facilitador">Facilitador</SelectItem>
-                </SelectContent>
-              </Select>
+              {isAdmin ? (
+                <Select value={selectedRole} onValueChange={(v: 'membro' | 'facilitador') => setSelectedRole(v)}>
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Selecione o perfil" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="membro">Membro</SelectItem>
+                    <SelectItem value="facilitador">Facilitador</SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center gap-2 p-2 rounded-md border bg-muted">
+                  <UserCheck className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Membro</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="team">Grupo (opcional)</Label>
+              <Label htmlFor="team">Grupo {isFacilitator ? '' : '(opcional)'}</Label>
               <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
                 <SelectTrigger id="team">
                   <SelectValue placeholder="Selecione um grupo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Nenhum grupo</SelectItem>
+                  {isAdmin && <SelectItem value="none">Nenhum grupo</SelectItem>}
                   {teams?.map(team => (
                     <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                   ))}
