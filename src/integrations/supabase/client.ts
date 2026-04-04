@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://vyfkddcbmwlwldaorxzy.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5ZmtkZGNibXdsd2xkYW9yeHp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwODUzMTYsImV4cCI6MjA4MDY2MTMxNn0.NXJ12zhicB1iw3O18zxVaDX34OWa3BOEpaI2fp8B7-s";
 
 // Proxy URL for edge-cached API requests (optional, falls back to direct Supabase)
 export const PROXY_URL = import.meta.env.VITE_PROXY_URL || '';
