@@ -9,7 +9,8 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
+import { lazyWithRetry } from '@/lib/lazy-retry';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
