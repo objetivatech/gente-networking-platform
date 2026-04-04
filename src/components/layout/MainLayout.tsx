@@ -18,6 +18,7 @@ import Header from './Header';
 import Footer from './Footer';
 import BottomNav from './BottomNav';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -49,7 +50,9 @@ export default function MainLayout() {
           <Header onMenuClick={() => setSidebarOpen(true)} />
           <main className="flex-1 min-w-0 overflow-x-hidden p-4 lg:p-6 pb-20 lg:pb-6">
             <div className="w-full min-w-0 max-w-full">
-              <Outlet />
+              <ErrorBoundary fallbackMessage="Ocorreu um erro ao carregar esta página. Tente recarregar.">
+                <Outlet />
+              </ErrorBoundary>
             </div>
           </main>
           <Footer />

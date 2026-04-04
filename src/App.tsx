@@ -9,7 +9,8 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
+import { lazyWithRetry } from '@/lib/lazy-retry';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,39 +24,39 @@ import { Loader2 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Lazy-loaded pages
-const Index = lazy(() => import("./pages/Index"));
-const Auth = lazy(() => import("./pages/Auth"));
-const RedefinirSenha = lazy(() => import("./pages/RedefinirSenha"));
-const Profile = lazy(() => import("./pages/Profile"));
-const GenteEmAcao = lazy(() => import("./pages/GenteEmAcao"));
-const Depoimentos = lazy(() => import("./pages/Depoimentos"));
-const Negocios = lazy(() => import("./pages/Negocios"));
-const Indicacoes = lazy(() => import("./pages/Indicacoes"));
-const Equipes = lazy(() => import("./pages/Equipes"));
-const Encontros = lazy(() => import("./pages/Encontros"));
-const Estatisticas = lazy(() => import("./pages/Estatisticas"));
-const Admin = lazy(() => import("./pages/Admin"));
-const Conteudos = lazy(() => import("./pages/Conteudos"));
-const Ranking = lazy(() => import("./pages/Ranking"));
-const Convites = lazy(() => import("./pages/Convites"));
-const ConvitePublico = lazy(() => import("./pages/ConvitePublico"));
-const CadastroConvidado = lazy(() => import("./pages/CadastroConvidado"));
-const Documentacao = lazy(() => import("./pages/Documentacao"));
-const Configuracoes = lazy(() => import("./pages/Configuracoes"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const Instalar = lazy(() => import("./pages/Instalar"));
-const Membros = lazy(() => import("./pages/Membros"));
-const MemberProfile = lazy(() => import("./pages/MemberProfile"));
-const Aniversarios = lazy(() => import("./pages/Aniversarios"));
-const GerenciarMembros = lazy(() => import("./pages/GerenciarMembros"));
-const GestaoConvidados = lazy(() => import("./pages/GestaoConvidados"));
-const GestaoPessoas = lazy(() => import("./pages/GestaoPessoas"));
-const Changelog = lazy(() => import("./pages/Changelog"));
-const AdminRegistros = lazy(() => import("./pages/AdminRegistros"));
-const Feed = lazy(() => import("./pages/Feed"));
-const Conselho = lazy(() => import("./pages/Conselho"));
-const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const RedefinirSenha = lazyWithRetry(() => import("./pages/RedefinirSenha"));
+const Profile = lazyWithRetry(() => import("./pages/Profile"));
+const GenteEmAcao = lazyWithRetry(() => import("./pages/GenteEmAcao"));
+const Depoimentos = lazyWithRetry(() => import("./pages/Depoimentos"));
+const Negocios = lazyWithRetry(() => import("./pages/Negocios"));
+const Indicacoes = lazyWithRetry(() => import("./pages/Indicacoes"));
+const Equipes = lazyWithRetry(() => import("./pages/Equipes"));
+const Encontros = lazyWithRetry(() => import("./pages/Encontros"));
+const Estatisticas = lazyWithRetry(() => import("./pages/Estatisticas"));
+const Admin = lazyWithRetry(() => import("./pages/Admin"));
+const Conteudos = lazyWithRetry(() => import("./pages/Conteudos"));
+const Ranking = lazyWithRetry(() => import("./pages/Ranking"));
+const Convites = lazyWithRetry(() => import("./pages/Convites"));
+const ConvitePublico = lazyWithRetry(() => import("./pages/ConvitePublico"));
+const CadastroConvidado = lazyWithRetry(() => import("./pages/CadastroConvidado"));
+const Documentacao = lazyWithRetry(() => import("./pages/Documentacao"));
+const Configuracoes = lazyWithRetry(() => import("./pages/Configuracoes"));
+const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
+const Instalar = lazyWithRetry(() => import("./pages/Instalar"));
+const Membros = lazyWithRetry(() => import("./pages/Membros"));
+const MemberProfile = lazyWithRetry(() => import("./pages/MemberProfile"));
+const Aniversarios = lazyWithRetry(() => import("./pages/Aniversarios"));
+const GerenciarMembros = lazyWithRetry(() => import("./pages/GerenciarMembros"));
+const GestaoConvidados = lazyWithRetry(() => import("./pages/GestaoConvidados"));
+const GestaoPessoas = lazyWithRetry(() => import("./pages/GestaoPessoas"));
+const Changelog = lazyWithRetry(() => import("./pages/Changelog"));
+const AdminRegistros = lazyWithRetry(() => import("./pages/AdminRegistros"));
+const Feed = lazyWithRetry(() => import("./pages/Feed"));
+const Conselho = lazyWithRetry(() => import("./pages/Conselho"));
+const AuthConfirm = lazyWithRetry(() => import("./pages/AuthConfirm"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
