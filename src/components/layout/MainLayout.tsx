@@ -18,6 +18,7 @@ import Header from './Header';
 import Footer from './Footer';
 import BottomNav from './BottomNav';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
