@@ -6,6 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 interface Props {
   children: ReactNode;
   fallbackMessage?: string;
+  resetKey?: string;
 }
 
 interface State {
@@ -22,6 +23,13 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true };
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // Reset error state when resetKey changes (e.g. route change)
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false });
+    }
+  }
+
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info);
   }
@@ -29,7 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-secondary/10 p-4">
+        <div className="min-h-[50vh] flex items-center justify-center p-4">
           <Card className="w-full max-w-md shadow-xl">
             <CardHeader className="text-center">
               <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-3" />

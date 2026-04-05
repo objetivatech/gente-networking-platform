@@ -51,7 +51,7 @@ export default function GuestWelcome() {
           className="w-24 h-auto mx-auto mb-4"
         />
         <h1 className="text-3xl font-bold text-foreground mb-2">
-          Bem-vindo ao Gente Networking, {profile?.full_name?.split(' ')[0]}!
+          Bem-vindo ao Gente Networking, {profile?.full_name?.split(' ')?.[0] ?? 'Convidado'}!
         </h1>
         <p className="text-muted-foreground text-lg max-w-xl mx-auto">
           Você está como <Badge variant="secondary" className="mx-1">Convidado</Badge> da comunidade.
@@ -73,7 +73,7 @@ export default function GuestWelcome() {
               <Avatar className="h-16 w-16">
                 <AvatarImage src={guestData.inviter.avatar_url || undefined} />
                 <AvatarFallback className="text-lg">
-                  {guestData.inviter.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                  {guestData.inviter.full_name?.split(' ')?.map(n => n?.[0] ?? '')?.join('')?.slice(0, 2) ?? '??'}
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -137,7 +137,7 @@ export default function GuestWelcome() {
               <div>
                 <p className="font-medium">Confirme presença em um encontro</p>
                 <p className="text-sm text-muted-foreground">
-                  Escolha uma data nos encontros disponíveis do grupo de {guestData?.inviter?.full_name?.split(' ')[0]}
+                  Escolha uma data nos encontros disponíveis do grupo de {guestData?.inviter?.full_name?.split(' ')?.[0] ?? 'seu anfitrião'}
                 </p>
               </div>
             </div>
@@ -176,7 +176,7 @@ export default function GuestWelcome() {
           </CardTitle>
           <CardDescription>
             {guestData?.inviter ? (
-              <>Encontros disponíveis do grupo de {guestData.inviter.full_name.split(' ')[0]}</>
+              <>Encontros disponíveis do grupo de {guestData.inviter.full_name?.split(' ')?.[0] ?? 'seu anfitrião'}</>
             ) : (
               <>Selecione uma data para sua primeira visita</>
             )}
@@ -289,7 +289,7 @@ export default function GuestWelcome() {
                 <p className="font-medium">Nenhum encontro agendado</p>
                 <p className="text-sm">
                   {guestData?.inviter 
-                    ? `O grupo de ${guestData.inviter.full_name.split(' ')[0]} ainda não tem encontros agendados.`
+                    ? `O grupo de ${guestData?.inviter?.full_name?.split(' ')?.[0] ?? 'seu anfitrião'} ainda não tem encontros agendados.`
                     : 'Em breve teremos novos encontros!'}
                 </p>
               </div>
