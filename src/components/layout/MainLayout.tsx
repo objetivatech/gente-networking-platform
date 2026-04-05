@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import Sidebar from './Sidebar';
@@ -23,6 +23,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
+  const location = useLocation();
   
   // Scroll to top on route change
   useScrollToTop();
@@ -50,7 +51,10 @@ export default function MainLayout() {
           <Header onMenuClick={() => setSidebarOpen(true)} />
           <main className="flex-1 min-w-0 overflow-x-hidden p-4 lg:p-6 pb-20 lg:pb-6">
             <div className="w-full min-w-0 max-w-full">
-              <ErrorBoundary fallbackMessage="Ocorreu um erro ao carregar esta página. Tente recarregar.">
+              <ErrorBoundary
+                resetKey={location.pathname}
+                fallbackMessage="Ocorreu um erro ao carregar esta página. Tente recarregar."
+              >
                 <Outlet />
               </ErrorBoundary>
             </div>

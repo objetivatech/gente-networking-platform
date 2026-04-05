@@ -36,6 +36,7 @@ import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
 export default function Index() {
   const { user } = useAuth();
@@ -44,19 +45,33 @@ export default function Index() {
   const { meetings, isLoading: meetingsLoading } = useMeetings();
   const { isGuest, isLoading: roleLoading } = useAdmin();
 
-  const upcomingMeetings = meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date))).slice(0, 3);
+  // Safe defaults
+  const meetingsList = meetings ?? [];
+  const upcomingMeetings = meetingsList.filter(m => {
+    try { return isFuture(parseLocalDate(m.meeting_date)); } catch { return false; }
+  }).slice(0, 3);
+  const firstName = profile?.full_name?.split(' ')?.[0] ?? 'Membro';
+
+  // Show loading while role is being determined
+  if (roleLoading || profileLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   // Convidados veem página especial
-  if (!roleLoading && isGuest) {
+  if (isGuest) {
     return <GuestWelcome />;
   }
 
   const statsCards = [
-    { icon: Handshake, label: 'Gente em Ação', value: stats?.genteEmAcao?.total || 0, color: 'text-blue-600' },
-    { icon: MessageSquare, label: 'Depoimentos', value: stats?.testimonials?.sent || 0, color: 'text-purple-600' },
-    { icon: DollarSign, label: 'Negócios', value: `R$ ${((stats?.businessDeals?.value || 0) / 1000).toFixed(1)}k`, color: 'text-green-600' },
-    { icon: Send, label: 'Indicações', value: stats?.referrals?.sent || 0, color: 'text-orange-600' },
-    { icon: Calendar, label: 'Presenças', value: stats?.attendances || 0, color: 'text-pink-600' },
+    { icon: Handshake, label: 'Gente em Ação', value: stats?.genteEmAcao?.total ?? 0, color: 'text-blue-600' },
+    { icon: MessageSquare, label: 'Depoimentos', value: stats?.testimonials?.sent ?? 0, color: 'text-purple-600' },
+    { icon: DollarSign, label: 'Negócios', value: `R$ ${(((stats?.businessDeals?.value as number) ?? 0) / 1000).toFixed(1)}k`, color: 'text-green-600' },
+    { icon: Send, label: 'Indicações', value: stats?.referrals?.sent ?? 0, color: 'text-orange-600' },
+    { icon: Calendar, label: 'Presenças', value: stats?.attendances ?? 0, color: 'text-pink-600' },
   ];
 
   return (
@@ -65,7 +80,7 @@ export default function Index() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Olá, {profile?.full_name?.split(' ')[0] || 'Membro'}! 👋
+            Olá, {firstName}! 👋
           </h1>
           <p className="text-muted-foreground">
             Bem-vindo ao Gente Networking. Acompanhe suas atividades e conexões.
@@ -121,10 +136,11 @@ export default function Index() {
                   </div>
                 ))}
               </div>
-            ) : upcomingMeetings?.length ? (
+            ) : upcomingMeetings.length > 0 ? (
               <div className="space-y-3">
                 {upcomingMeetings.map((meeting) => {
-                  const daysUntil = differenceInDays(parseLocalDate(meeting.meeting_date), new Date());
+                  let daysUntil = 999;
+                  try { daysUntil = differenceInDays(parseLocalDate(meeting.meeting_date), new Date()); } catch {}
                   const isSoon = daysUntil <= 7 && daysUntil >= 0;
                   return (
                     <div key={meeting.id} className={`p-3 rounded-lg transition-colors ${isSoon ? 'bg-primary/5 border border-primary/30 hover:bg-primary/10' : 'bg-muted/50 hover:bg-muted'}`}>
@@ -136,7 +152,7 @@ export default function Index() {
                       </div>
                       <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        {format(parseLocalDate(meeting.meeting_date), "dd 'de' MMM", { locale: ptBR })}
+                        {(() => { try { return format(parseLocalDate(meeting.meeting_date), "dd 'de' MMM", { locale: ptBR }); } catch { return meeting.meeting_date; } })()}
                         {meeting.meeting_time && (
                           <>
                             <Clock className="h-3 w-3 ml-2" />
