@@ -22,9 +22,9 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { Loader2 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import Index from './pages/Index';
 
 // Lazy-loaded pages
-const Index = lazyWithRetry(() => import("./pages/Index"));
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const RedefinirSenha = lazyWithRetry(() => import("./pages/RedefinirSenha"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
