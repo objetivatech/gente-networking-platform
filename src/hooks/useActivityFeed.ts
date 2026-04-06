@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export interface Activity {
   id: string;
@@ -19,6 +19,7 @@ export interface Activity {
 
 export function useActivityFeed(limit: number = 10) {
   const queryClient = useQueryClient();
+  const channelNameRef = useRef(`activity-feed-realtime-${Math.random().toString(36).slice(2, 11)}`);
 
   const { data: activities, isLoading } = useQuery({
     queryKey: ['activity-feed', limit],
@@ -59,7 +60,7 @@ export function useActivityFeed(limit: number = 10) {
   // Real-time subscription
   useEffect(() => {
     const channel = supabase
-      .channel('activity-feed-realtime')
+      .channel(channelNameRef.current)
       .on(
         'postgres_changes',
         {
