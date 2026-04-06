@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
@@ -16,10 +16,11 @@ export function useRealtimeActivity() {
   const [realtimeEvents, setRealtimeEvents] = useState<ActivityEvent[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const activityChannelNameRef = useRef(`activity-feed-realtime-${Math.random().toString(36).slice(2, 11)}`);
 
   useEffect(() => {
     const channel = supabase
-      .channel('activity-feed-realtime')
+      .channel(activityChannelNameRef.current)
       .on(
         'postgres_changes',
         {
