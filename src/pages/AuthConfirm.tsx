@@ -63,7 +63,17 @@ export default function AuthConfirm() {
       }
 
       // Check if there's an invitation code to accept
-      const inviteCode = searchParams.get('invite') || localStorage.getItem('invitation_code');
+      // Priority: URL param > localStorage > user_metadata (most reliable across devices)
+      const inviteCode = searchParams.get('invite') 
+        || localStorage.getItem('invitation_code')
+        || (session.user.user_metadata?.invitation_code as string | undefined);
+      
+      console.log('[AuthConfirm] Invite code source:', {
+        fromUrl: searchParams.get('invite'),
+        fromLocalStorage: localStorage.getItem('invitation_code'),
+        fromMetadata: session.user.user_metadata?.invitation_code,
+        resolved: inviteCode,
+      });
 
       if (inviteCode) {
         setState('accepting_invite');
