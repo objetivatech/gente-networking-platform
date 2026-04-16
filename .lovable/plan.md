@@ -1,55 +1,68 @@
 
-Diagnóstico revisado
 
-- O problema principal não aponta para “publish no Lovable”. Como o app público está no GitHub + Cloudflare Pages, esse fluxo é o que importa aqui.
-- A falha raiz está no frontend, especialmente na página Início (`src/pages/Index.tsx`), com expressões que quebram enquanto os dados ainda estão `undefined`, por exemplo:
-  - `meetings?.filter(...).slice(0, 3)`
-  - `profile?.full_name?.split(' ')[0]`
-- Quando a Home quebra, o `ErrorBoundary` do `MainLayout` entra em estado de erro e não é resetado ao trocar de rota. Isso faz parecer que “todas as páginas” falharam.
-- Nas outras rotas, ao recarregar, a página volta porque o erro não existe nelas. Na Início, o reload cai no mesmo bug e falha novamente.
+## Diagnóstico: Convites ficam como "Pendente" mesmo após aceito
 
-Plano de implementação
+### Causa Raiz
 
-1. Corrigir a Home de forma definitiva
-- Reescrever `src/pages/Index.tsx` para usar valores seguros antes de renderizar:
-  - listas: `meetings ?? []`
-  - nome: `profile?.full_name?.split(' ')?.[0] ?? 'Membro'`
-- Eliminar qualquer encadeamento inseguro sobre dados assíncronos.
+O fluxo de aceitação de convite depende de dois mecanismos para passar o código do convite para a página `/auth/confirm`:
 
-2. Resetar o erro por navegação
-- Ajustar `src/components/layout/MainLayout.tsx` para que o `ErrorBoundary` seja recriado ao mudar de rota.
-- Assim, um erro da Home não “contamina” Feed, Perfil, Estatísticas etc.
+1. **Query param `?invite=CODE`** na URL de redirect do email de confirmação
+2. **`localStorage`** como fallback
 
-3. Fazer uma varredura preventiva no app
-- Corrigir padrões inseguros semelhantes em arquivos já identificados:
-  - `src/pages/GuestWelcome.tsx`
-  - `src/hooks/useAdminDashboard.ts`
-  - `src/hooks/useTeams.ts`
-  - `src/pages/GestaoPessoas.tsx`
-  - `src/hooks/useAdminGuests.ts`
-- Foco em padrões como:
-  - `?.filter(...).length/slice/map/reduce`
-  - `?.map(...).filter(...)`
-  - `?.split(...)[0]`
+**Ambos falham:**
 
-4. Endurecer hooks e renderização
-- Garantir que hooks retornem arrays/objetos padrão quando dados auxiliares ainda não chegaram.
-- Evitar que uma query secundária derrube a tela inteira quando o restante da página pode continuar carregando.
+- O Supabase usa fluxo PKCE para confirmação de email. Quando o usuário clica no link de confirmação, o Supabase redireciona para `/auth/confirm?code=PKCE_CODE`, **substituindo** o `?invite=CODE` original. O parâmetro `invite` se perde.
+- O `localStorage` só funciona se o usuário abrir o link no mesmo navegador/dispositivo onde fez o cadastro. Se abrir em outro dispositivo, app de email diferente, ou aba anônima, o código não existe.
 
-5. Documentação e changelog
-- Atualizar a documentação técnica e o changelog com:
-  - causa raiz real do incidente
-  - padrão obrigatório de “safe defaults” em dados assíncronos
-  - comportamento esperado dos `ErrorBoundary` por rota
+**Prova nos dados:** Todos os 7+ cadastros de abril têm `role = NULL` (sem papel atribuído) e seus convites correspondentes continuam com `status = pending`, `accepted_by = NULL`. A função `accept_invitation` nunca foi executada para eles.
 
-Detalhes técnicos
+### Plano de Correção
 
-- Não há indício, neste diagnóstico, de problema de banco ou de Supabase como causa primária.
-- Não é uma correção de infraestrutura; é uma correção de runtime no frontend.
-- Não exige migration SQL. O foco é React/TypeScript e resiliência de renderização.
+#### 1. Salvar o código do convite nos metadados do usuário no signup
 
-Resultado esperado
+Ao criar a conta em `CadastroConvidado.tsx`, incluir o código do convite nos `user_metadata` do Supabase Auth. Esses metadados viajam com o token e estão disponíveis em qualquer dispositivo após o login.
 
-- A página Início deixa de quebrar no carregamento.
-- As demais páginas não ficam mais presas no fallback de erro após uma falha isolada.
-- O app continua exibindo erro amigável quando necessário, mas sem tela branca e sem falso “erro global”.
+```typescript
+// Em handleSignUp, adicionar invitation_code aos metadata
+options: {
+  emailRedirectTo: confirmUrl,
+  data: {
+    full_name: fullName,
+    invitation_code: code,  // <-- NOVO
+    // ... demais campos
+  },
+}
+```
+
+#### 2. Ler o código dos metadados no AuthConfirm
+
+Em `AuthConfirm.tsx`, além de `searchParams` e `localStorage`, buscar o código nos metadados do usuário autenticado:
+
+```typescript
+const inviteCode = searchParams.get('invite') 
+  || localStorage.getItem('invitation_code')
+  || session.user.user_metadata?.invitation_code;  // <-- NOVO
+```
+
+Isso garante que o código esteja disponível independentemente do dispositivo ou navegador.
+
+#### 3. Corrigir os convites pendentes retroativamente
+
+Criar um script (via Edge Function ou SQL) que cruza `profiles.email` com `invitations.email` para os convites de abril que ficaram pendentes, e executa `accept_invitation` para cada match encontrado. Também atribuir o papel `convidado` aos usuários que ficaram sem papel.
+
+#### 4. Adicionar log de diagnóstico
+
+Adicionar logs no `AuthConfirm` para rastrear de onde o código do convite veio (query param, localStorage ou metadata), facilitando debug futuro.
+
+### Arquivos Modificados
+
+- `src/pages/CadastroConvidado.tsx` — adicionar `invitation_code` aos user_metadata
+- `src/pages/AuthConfirm.tsx` — ler `invitation_code` dos user_metadata como fallback
+- Migration SQL — corrigir convites pendentes e atribuir papéis faltantes
+
+### Resultado Esperado
+
+- Novos convites serão aceitos automaticamente na confirmação do email, independentemente do dispositivo
+- Convites antigos pendentes com match de email serão corrigidos retroativamente
+- Todos os convidados sem papel receberão o papel `convidado`
+
