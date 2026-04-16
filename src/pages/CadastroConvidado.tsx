@@ -233,6 +233,7 @@ export default function CadastroConvidado() {
           phone: phone,
           company: company,
           business_segment: businessSegment,
+          invitation_code: code,
         },
       },
     });
