@@ -209,8 +209,36 @@ export default function Convites() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="teamId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo do convidado *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o grupo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableTeams.length === 0 ? (
+                            <div className="p-2 text-sm text-muted-foreground">Você não pertence a nenhum grupo</div>
+                          ) : (
+                            availableTeams.map(team => (
+                              <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <p className="text-sm text-muted-foreground">
-                  Se informar o email, o convite será enviado automaticamente.
+                  O convidado verá apenas os encontros do grupo selecionado.
+                  {' '}Se informar o email, o convite será enviado automaticamente.
                 </p>
 
                 <Button type="submit" className="w-full" disabled={createInvitation.isPending}>
