@@ -310,9 +310,15 @@ export default function Convites() {
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <code className="text-lg font-mono font-bold text-primary">{invitation.code}</code>
                         {getStatusBadge(invitation)}
+                        {invitation.team_id && teamNamesMap[invitation.team_id] && (
+                          <Badge variant="outline" className="gap-1">
+                            <Users className="h-3 w-3" />
+                            {teamNamesMap[invitation.team_id]}
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {invitation.name && <span className="mr-2">{invitation.name}</span>}
