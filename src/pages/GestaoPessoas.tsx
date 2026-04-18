@@ -83,6 +83,7 @@ export default function GestaoPessoas() {
   const { isAdmin, isFacilitator, isLoading: isLoadingRole } = useAdmin();
   const { teams } = useTeams();
   const { promoteGuest, isPromoting } = usePromoteGuest();
+  const { transferGuest, isTransferring } = useTransferGuest();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -96,6 +97,8 @@ export default function GestaoPessoas() {
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [transferTeamId, setTransferTeamId] = useState<string>('');
   const [deactivationReason, setDeactivationReason] = useState('');
   const [selectedRole, setSelectedRole] = useState<'membro' | 'facilitador'>('membro');
   const [selectedTeamId, setSelectedTeamId] = useState<string>('none');
