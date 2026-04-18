@@ -39,18 +39,40 @@ function getEffectiveStatus(invitation: Invitation): string {
 export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
   const { isAdmin } = useAdmin();
+  const { teams } = useTeams();
+  const { user } = useAuth();
   const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const form = useForm<InviteFormData>({
+  // Grupos disponíveis: admin vê todos; demais veem só os seus
+  const availableTeams = useMemo(() => {
+    if (!teams) return [];
+    if (isAdmin) return teams;
+    return teams.filter(t => t.members?.some(m => m.user_id === user?.id));
+  }, [teams, isAdmin, user?.id]);
+
+  const teamNamesMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    teams?.forEach(t => { map[t.id] = t.name; });
+    return map;
+  }, [teams]);
+
+  const form = useForm<z.infer<typeof inviteSchema>>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: { name: '', email: '' },
+    defaultValues: { name: '', email: '', teamId: '' },
   });
 
-  const onSubmit = (data: InviteFormData) => {
+  // Pre-seleciona primeiro grupo disponível ao abrir
+  useEffect(() => {
+    if (open && availableTeams.length > 0 && !form.getValues('teamId')) {
+      form.setValue('teamId', availableTeams[0].id);
+    }
+  }, [open, availableTeams, form]);
+
+  const onSubmit = (data: z.infer<typeof inviteSchema>) => {
     createInvitation.mutate(
-      { name: data.name || undefined, email: data.email || undefined },
+      { name: data.name || undefined, email: data.email || undefined, teamId: data.teamId },
       {
         onSuccess: () => {
           form.reset();
