@@ -48,7 +48,7 @@ export function useInvitations() {
   });
 
   const createInvitation = useMutation({
-    mutationFn: async (input: { name?: string; email?: string }) => {
+    mutationFn: async (input: { name?: string; email?: string; teamId?: string }) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
       const code = generateCode();
@@ -60,6 +60,7 @@ export function useInvitations() {
           invited_by: user.id,
           name: input.name,
           email: input.email,
+          team_id: input.teamId || null,
         })
         .select()
         .single();
