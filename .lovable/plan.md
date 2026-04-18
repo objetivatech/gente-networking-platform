@@ -1,68 +1,135 @@
 
 
-## Diagnóstico: Convites ficam como "Pendente" mesmo após aceito
+## Análise: Fluxo de Convites — Problemas Identificados
 
-### Causa Raiz
+### Estado atual do banco
+- **75 convites totais**: 54 aceitos, 21 pendentes
+- Dos 21 pendentes, **1 já tem perfil cadastrado** (Helder Mesquita — `info@heldermesquita.pt`) mas o convite continua "pending"
+- **20 emails de convite SEM perfil correspondente** (pessoas que receberam mas nunca se cadastraram — comportamento correto)
+- **26 usuários com role `convidado`**: nenhum está vinculado a um grupo (`team_id NULL`), o que torna impossível para o convidado ver eventos do grupo correto
 
-O fluxo de aceitação de convite depende de dois mecanismos para passar o código do convite para a página `/auth/confirm`:
+### Problemas confirmados
 
-1. **Query param `?invite=CODE`** na URL de redirect do email de confirmação
-2. **`localStorage`** como fallback
+**P1 — Convite "pendente" mesmo após cadastro (caso Helder)**
+O usuário Helder se cadastrou via `/auth` (página normal de signup) usando o email do convite, ao invés de usar o link `/convite/QBM3482Y`. Resultado: o `accept_invitation` nunca foi chamado porque não havia código no fluxo. Hoje, **não existe** match automático por email no momento do cadastro.
 
-**Ambos falham:**
+**P2 — Convidados sem grupo associado**
+Quando o convite é aceito, `accept_invitation` salva `allowed_team_ids` no metadata do convite (snapshot dos grupos do inviter), mas **NÃO insere o convidado em `team_members`**. Por isso, em `GestaoPessoas` todos os 26 convidados aparecem sem nenhum grupo. A página `GuestWelcome` mostra eventos via metadata (funciona), mas a gestão visual fica quebrada.
 
-- O Supabase usa fluxo PKCE para confirmação de email. Quando o usuário clica no link de confirmação, o Supabase redireciona para `/auth/confirm?code=PKCE_CODE`, **substituindo** o `?invite=CODE` original. O parâmetro `invite` se perde.
-- O `localStorage` só funciona se o usuário abrir o link no mesmo navegador/dispositivo onde fez o cadastro. Se abrir em outro dispositivo, app de email diferente, ou aba anônima, o código não existe.
+**P3 — Inviter sem grupo = convidado sem visibilidade**
+Hoje `accept_invitation` faz snapshot dos grupos do inviter no momento do aceite. Se o inviter pertence a múltiplos grupos (ex.: admin do Master + Conecte), o convidado herda todos. Não há **escolha explícita do grupo no momento do convite**, o que torna impossível garantir "se inviter é do Master, convidado vê só Master".
 
-**Prova nos dados:** Todos os 7+ cadastros de abril têm `role = NULL` (sem papel atribuído) e seus convites correspondentes continuam com `status = pending`, `accepted_by = NULL`. A função `accept_invitation` nunca foi executada para eles.
+**P4 — Não existe transferência de grupo**
+Facilitadores não têm UI nem RPC para mover um convidado de um grupo para outro. O snapshot em `metadata.allowed_team_ids` é imutável depois do aceite.
 
-### Plano de Correção
+**P5 — Convites sem email não conseguem disparar notificação por email**
+14 dos 21 convites pendentes têm `email = NULL` (criados só com nome). Nenhum email automático foi enviado.
 
-#### 1. Salvar o código do convite nos metadados do usuário no signup
+---
 
-Ao criar a conta em `CadastroConvidado.tsx`, incluir o código do convite nos `user_metadata` do Supabase Auth. Esses metadados viajam com o token e estão disponíveis em qualquer dispositivo após o login.
+## Plano de Correção
 
-```typescript
-// Em handleSignUp, adicionar invitation_code aos metadata
-options: {
-  emailRedirectTo: confirmUrl,
-  data: {
-    full_name: fullName,
-    invitation_code: code,  // <-- NOVO
-    // ... demais campos
-  },
-}
+### 1. Adicionar `team_id` à tabela `invitations`
+Coluna nova `team_id uuid` (nullable, FK lógica para `teams`). No momento de criar o convite, o membro/facilitador **escolhe explicitamente o grupo** ao qual o convidado será atribuído. Default: primeiro grupo do inviter.
+
+### 2. Reformar `accept_invitation` (RPC)
+Após aceitar:
+- Inserir o usuário em `team_members` com `team_id` do convite (não snapshot de todos os grupos)
+- Salvar `allowed_team_ids = [team_id]` no metadata (apenas o grupo escolhido)
+- Manter atribuição da role `convidado`
+- Disparar `add_activity_feed` no grupo correto
+
+### 3. Match retroativo por email no cadastro normal (`/auth`)
+Adicionar trigger `handle_new_user_invitation_match` em `auth.users` (após inserção): se o email do novo usuário bate com um convite `pending`, executa `accept_invitation` automaticamente. Resolve casos como o Helder.
+
+### 4. Nova RPC `transfer_guest_to_team`
+Função SECURITY DEFINER com checks de permissão:
+- Admin: pode mover qualquer convidado para qualquer grupo
+- Facilitador: pode mover convidados do **seu** grupo para outro grupo (ou receber convidados de outros grupos somente se o admin permitir — versão simples: facilitador pode mover apenas para fora do seu grupo)
+
+Operação: remove de `team_members` antigo, insere no novo, atualiza `invitations.team_id` e `metadata.allowed_team_ids`.
+
+### 5. UI — Convites (`/convites`)
+- Modal "Novo Convite": adicionar `<Select>` obrigatório de grupo (carrega `teams` que o inviter pertence; admin vê todos)
+- Listagem: mostrar badge do grupo escolhido em cada convite
+
+### 6. UI — Gestão de Pessoas (`/admin/pessoas`)
+- Aba Convidados: passar a mostrar o grupo do convidado (vindo de `team_members`, agora preenchido)
+- Botão novo "Transferir Grupo" (ícone `ArrowRightLeft`) ao lado do botão "Promover" → abre modal com `<Select>` de grupos → chama `transfer_guest_to_team`
+- Filtro por grupo já existe e funcionará corretamente após a correção
+
+### 7. UI — GuestWelcome (`/`)
+- Já lê `allowed_team_ids` do metadata; vai funcionar automaticamente após correção (1 grupo só)
+- Header passa a exibir "Convidado para o grupo X" em destaque
+
+### 8. Migração retroativa
+- Para os 26 convidados existentes sem `team_id`: ler `metadata.allowed_team_ids` do convite aceito; se houver pelo menos um, inserir em `team_members` com o primeiro
+- Para o convite do Helder e outros pendentes com perfil já criado: executar `accept_invitation` retroativamente
+
+### 9. Documentação
+Criar `docs/INVITATION_FLOW.md` com:
+- Diagrama ASCII do fluxo completo (criação → email → cadastro → aceite → atribuição de grupo → promoção)
+- Tabela de estados do convite (`pending` / `accepted` / `expired`) e gatilhos
+- Tabela de roles e transições (`convidado` → `membro` / `facilitador`)
+- Lista de RPCs envolvidas e suas permissões
+- Seção "Transferência de Grupo" e "Match Retroativo por Email"
+
+Atualizar também `docs/USER_FLOWS.md` (seção convidados) e `docs/TECHNICAL_DOCUMENTATION.md` (seção banco de dados — coluna nova).
+
+### 10. Memória do projeto
+Atualizar `mem://features/invitation-system` e `mem://features/guest-visibility-snapshots` com a nova regra: convite vincula explicitamente a 1 grupo, não snapshot dos grupos do inviter.
+
+---
+
+### Esquema do Fluxo Completo (após correção)
+
+```text
+[Membro/Facilitador]
+        │ cria convite (escolhe GRUPO)
+        ▼
+┌─────────────────────────┐
+│ invitations (pending)   │ ← email opcional disparado
+│ team_id: X              │
+└──────────┬──────────────┘
+           │ link /convite/CODE
+           ▼
+[Convidado abre link]
+           │
+           ├── Cadastro via /convite/CODE  ──┐
+           │   (invitation_code → metadata)  │
+           │                                 │
+           └── Cadastro direto via /auth ────┤
+               (match por email no trigger)  │
+                                             ▼
+                                    ┌────────────────┐
+                                    │ /auth/confirm  │
+                                    │ chama RPC      │
+                                    └────────┬───────┘
+                                             ▼
+                          ┌──────────────────────────────────┐
+                          │ accept_invitation:               │
+                          │ • status = accepted              │
+                          │ • role = convidado               │
+                          │ • team_members += (user, team_id)│
+                          │ • activity_feed                  │
+                          └──────────┬───────────────────────┘
+                                     ▼
+                       [Convidado vê eventos do grupo X]
+                                     │
+        ┌────────────────────────────┼───────────────────────────┐
+        ▼                            ▼                           ▼
+[Transferir grupo]          [Promover a membro]         [Manter convidado]
+transfer_guest_to_team   promote_guest_to_member        (sem ação)
 ```
 
-#### 2. Ler o código dos metadados no AuthConfirm
-
-Em `AuthConfirm.tsx`, além de `searchParams` e `localStorage`, buscar o código nos metadados do usuário autenticado:
-
-```typescript
-const inviteCode = searchParams.get('invite') 
-  || localStorage.getItem('invitation_code')
-  || session.user.user_metadata?.invitation_code;  // <-- NOVO
-```
-
-Isso garante que o código esteja disponível independentemente do dispositivo ou navegador.
-
-#### 3. Corrigir os convites pendentes retroativamente
-
-Criar um script (via Edge Function ou SQL) que cruza `profiles.email` com `invitations.email` para os convites de abril que ficaram pendentes, e executa `accept_invitation` para cada match encontrado. Também atribuir o papel `convidado` aos usuários que ficaram sem papel.
-
-#### 4. Adicionar log de diagnóstico
-
-Adicionar logs no `AuthConfirm` para rastrear de onde o código do convite veio (query param, localStorage ou metadata), facilitando debug futuro.
-
-### Arquivos Modificados
-
-- `src/pages/CadastroConvidado.tsx` — adicionar `invitation_code` aos user_metadata
-- `src/pages/AuthConfirm.tsx` — ler `invitation_code` dos user_metadata como fallback
-- Migration SQL — corrigir convites pendentes e atribuir papéis faltantes
-
-### Resultado Esperado
-
-- Novos convites serão aceitos automaticamente na confirmação do email, independentemente do dispositivo
-- Convites antigos pendentes com match de email serão corrigidos retroativamente
-- Todos os convidados sem papel receberão o papel `convidado`
+### Arquivos afetados
+- **Migration SQL**: nova coluna, RPC reformada, RPC nova de transferência, trigger de match por email, dados retroativos
+- `src/pages/Convites.tsx` — Select de grupo no modal
+- `src/hooks/useInvitations.ts` — aceitar `team_id` no `createInvitation`
+- `src/pages/GestaoPessoas.tsx` — botão "Transferir Grupo" + modal
+- `src/hooks/useTransferGuest.ts` — novo hook
+- `src/hooks/useGuestData.ts` — sem mudança de lógica (já lê metadata)
+- `docs/INVITATION_FLOW.md` — novo
+- `docs/USER_FLOWS.md`, `docs/TECHNICAL_DOCUMENTATION.md` — atualizações
+- `mem://features/invitation-system`, `mem://features/guest-visibility-snapshots` — atualizações
 
