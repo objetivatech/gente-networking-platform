@@ -471,6 +471,18 @@ export default function GestaoPessoas() {
               <Crown className="h-4 w-4 mr-1" />
               Promover
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedPerson(person);
+                setTransferTeamId(person.team_id || '');
+                setShowTransferDialog(true);
+              }}
+              title="Transferir de grupo"
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+            </Button>
             {isAdmin && (
               <Button
                 variant="outline"
