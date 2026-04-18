@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { usePromoteGuest } from '@/hooks/usePromoteGuest';
+import { useTransferGuest } from '@/hooks/useTransferGuest';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,7 @@ import {
   UserPlus,
   Filter,
   ArrowUpRight,
+  ArrowRightLeft,
   Clock,
   CheckCircle,
   XCircle
@@ -81,6 +83,7 @@ export default function GestaoPessoas() {
   const { isAdmin, isFacilitator, isLoading: isLoadingRole } = useAdmin();
   const { teams } = useTeams();
   const { promoteGuest, isPromoting } = usePromoteGuest();
+  const { transferGuest, isTransferring } = useTransferGuest();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -94,6 +97,8 @@ export default function GestaoPessoas() {
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [transferTeamId, setTransferTeamId] = useState<string>('');
   const [deactivationReason, setDeactivationReason] = useState('');
   const [selectedRole, setSelectedRole] = useState<'membro' | 'facilitador'>('membro');
   const [selectedTeamId, setSelectedTeamId] = useState<string>('none');
@@ -466,6 +471,18 @@ export default function GestaoPessoas() {
               <Crown className="h-4 w-4 mr-1" />
               Promover
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedPerson(person);
+                setTransferTeamId(person.team_id || '');
+                setShowTransferDialog(true);
+              }}
+              title="Transferir de grupo"
+            >
+              <ArrowRightLeft className="h-4 w-4" />
+            </Button>
             {isAdmin && (
               <Button
                 variant="outline"
@@ -827,6 +844,69 @@ export default function GestaoPessoas() {
             </Button>
             <Button onClick={handlePromote} disabled={isPromoting}>
               {isPromoting ? 'Promovendo...' : 'Promover'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Transferência de Grupo */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-primary" />
+              Transferir Convidado de Grupo
+            </DialogTitle>
+            <DialogDescription>
+              Mover <strong>{selectedPerson?.full_name}</strong>
+              {selectedPerson?.team_name && <> do grupo <strong>{selectedPerson.team_name}</strong></>}
+              {' '}para outro grupo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="transfer-team">Novo grupo</Label>
+              <Select value={transferTeamId} onValueChange={setTransferTeamId}>
+                <SelectTrigger id="transfer-team">
+                  <SelectValue placeholder="Selecione o grupo destino" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams?.filter(t => t.id !== selectedPerson?.team_id).map(team => (
+                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isFacilitator && !isAdmin && (
+                <p className="text-xs text-muted-foreground">
+                  Como facilitador, você só pode transferir convidados do seu próprio grupo.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTransferDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedPerson && transferTeamId) {
+                  transferGuest(
+                    { guestId: selectedPerson.id, newTeamId: transferTeamId },
+                    {
+                      onSuccess: () => {
+                        setShowTransferDialog(false);
+                        setSelectedPerson(null);
+                        setTransferTeamId('');
+                      },
+                    }
+                  );
+                }
+              }}
+              disabled={isTransferring || !transferTeamId}
+            >
+              {isTransferring ? 'Transferindo...' : 'Transferir'}
             </Button>
           </DialogFooter>
         </DialogContent>

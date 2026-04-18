@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,12 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useTeams } from '@/hooks/useTeams';
+import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
-import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2 } from 'lucide-react';
+import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 const inviteSchema = z.object({
   name: z.string().optional(),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
+  teamId: z.string().min(1, 'Selecione um grupo'),
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -35,18 +39,40 @@ function getEffectiveStatus(invitation: Invitation): string {
 export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
   const { isAdmin } = useAdmin();
+  const { teams } = useTeams();
+  const { user } = useAuth();
   const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
 
-  const form = useForm<InviteFormData>({
+  // Grupos disponíveis: admin vê todos; demais veem só os seus
+  const availableTeams = useMemo(() => {
+    if (!teams) return [];
+    if (isAdmin) return teams;
+    return teams.filter(t => t.members?.some(m => m.user_id === user?.id));
+  }, [teams, isAdmin, user?.id]);
+
+  const teamNamesMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    teams?.forEach(t => { map[t.id] = t.name; });
+    return map;
+  }, [teams]);
+
+  const form = useForm<z.infer<typeof inviteSchema>>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: { name: '', email: '' },
+    defaultValues: { name: '', email: '', teamId: '' },
   });
 
-  const onSubmit = (data: InviteFormData) => {
+  // Pre-seleciona primeiro grupo disponível ao abrir
+  useEffect(() => {
+    if (open && availableTeams.length > 0 && !form.getValues('teamId')) {
+      form.setValue('teamId', availableTeams[0].id);
+    }
+  }, [open, availableTeams, form]);
+
+  const onSubmit = (data: z.infer<typeof inviteSchema>) => {
     createInvitation.mutate(
-      { name: data.name || undefined, email: data.email || undefined },
+      { name: data.name || undefined, email: data.email || undefined, teamId: data.teamId },
       {
         onSuccess: () => {
           form.reset();
@@ -183,8 +209,36 @@ export default function Convites() {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="teamId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grupo do convidado *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o grupo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableTeams.length === 0 ? (
+                            <div className="p-2 text-sm text-muted-foreground">Você não pertence a nenhum grupo</div>
+                          ) : (
+                            availableTeams.map(team => (
+                              <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <p className="text-sm text-muted-foreground">
-                  Se informar o email, o convite será enviado automaticamente.
+                  O convidado verá apenas os encontros do grupo selecionado.
+                  {' '}Se informar o email, o convite será enviado automaticamente.
                 </p>
 
                 <Button type="submit" className="w-full" disabled={createInvitation.isPending}>
@@ -256,9 +310,15 @@ export default function Convites() {
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <code className="text-lg font-mono font-bold text-primary">{invitation.code}</code>
                         {getStatusBadge(invitation)}
+                        {invitation.team_id && teamNamesMap[invitation.team_id] && (
+                          <Badge variant="outline" className="gap-1">
+                            <Users className="h-3 w-3" />
+                            {teamNamesMap[invitation.team_id]}
+                          </Badge>
+                        )}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {invitation.name && <span className="mr-2">{invitation.name}</span>}
