@@ -331,6 +331,7 @@ export type Database = {
           metadata: Json | null
           name: string | null
           status: string
+          team_id: string | null
         }
         Insert: {
           accepted_at?: string | null
@@ -344,6 +345,7 @@ export type Database = {
           metadata?: Json | null
           name?: string | null
           status?: string
+          team_id?: string | null
         }
         Update: {
           accepted_at?: string | null
@@ -357,8 +359,17 @@ export type Database = {
           metadata?: Json | null
           name?: string | null
           status?: string
+          team_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "invitations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meetings: {
         Row: {
@@ -896,6 +907,10 @@ export type Database = {
         Returns: number
       }
       recalculate_all_user_points: { Args: never; Returns: number }
+      transfer_guest_to_team: {
+        Args: { _guest_id: string; _new_team_id: string }
+        Returns: Json
+      }
       update_all_monthly_points_for_user: {
         Args: { _user_id: string; _year_month?: string }
         Returns: undefined
