@@ -848,6 +848,69 @@ export default function GestaoPessoas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Transferência de Grupo */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ArrowRightLeft className="h-5 w-5 text-primary" />
+              Transferir Convidado de Grupo
+            </DialogTitle>
+            <DialogDescription>
+              Mover <strong>{selectedPerson?.full_name}</strong>
+              {selectedPerson?.team_name && <> do grupo <strong>{selectedPerson.team_name}</strong></>}
+              {' '}para outro grupo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="transfer-team">Novo grupo</Label>
+              <Select value={transferTeamId} onValueChange={setTransferTeamId}>
+                <SelectTrigger id="transfer-team">
+                  <SelectValue placeholder="Selecione o grupo destino" />
+                </SelectTrigger>
+                <SelectContent>
+                  {teams?.filter(t => t.id !== selectedPerson?.team_id).map(team => (
+                    <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {isFacilitator && !isAdmin && (
+                <p className="text-xs text-muted-foreground">
+                  Como facilitador, você só pode transferir convidados do seu próprio grupo.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTransferDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedPerson && transferTeamId) {
+                  transferGuest(
+                    { guestId: selectedPerson.id, newTeamId: transferTeamId },
+                    {
+                      onSuccess: () => {
+                        setShowTransferDialog(false);
+                        setSelectedPerson(null);
+                        setTransferTeamId('');
+                      },
+                    }
+                  );
+                }
+              }}
+              disabled={isTransferring || !transferTeamId}
+            >
+              {isTransferring ? 'Transferindo...' : 'Transferir'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
