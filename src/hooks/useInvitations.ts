@@ -15,6 +15,7 @@ export interface Invitation {
   expires_at: string;
   created_at: string;
   metadata: Record<string, unknown>;
+  team_id: string | null;
 }
 
 function generateCode(): string {
