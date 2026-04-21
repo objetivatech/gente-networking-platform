@@ -258,14 +258,19 @@ export function useUpcomingMeetingGuests() {
       const { data: inviters } = inviterIds.length
         ? await supabaseReadOnly.from('profiles').select('id, full_name').in('id', inviterIds)
         : { data: [] as any[] };
-      const inviterNameMap = new Map(inviters?.map(p => [p.id, p.full_name]) || []);
-      const inviterByGuest = new Map(invitations?.map(i => [i.accepted_by, i.invited_by]) || []);
+      const inviterNameMap = new Map<string, string>();
+      inviters?.forEach((p: any) => inviterNameMap.set(p.id, p.full_name));
+      const inviterByGuest = new Map<string, string>();
+      invitations?.forEach(i => {
+        if (i.accepted_by && i.invited_by) inviterByGuest.set(i.accepted_by, i.invited_by);
+      });
 
       const teamIds = Array.from(new Set(meetings.map(m => m.team_id).filter(Boolean) as string[]));
       const { data: teams } = teamIds.length
         ? await supabaseReadOnly.from('teams').select('id, name, color').in('id', teamIds)
         : { data: [] as any[] };
-      const teamMap = new Map(teams?.map(t => [t.id, t]) || []);
+      const teamMap = new Map<string, { name: string; color: string | null }>();
+      teams?.forEach((t: any) => teamMap.set(t.id, { name: t.name, color: t.color }));
 
       const result: UpcomingGuestEntry[] = [];
       meetings.forEach(m => {
