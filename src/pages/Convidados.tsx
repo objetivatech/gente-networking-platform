@@ -43,8 +43,6 @@ export default function Convidados() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showPromoted, setShowPromoted] = useState(false);
 
-  if (!roleLoading && isGuest) return <Navigate to="/" replace />;
-
   const filtered = useMemo(() => {
     if (!guests) return [];
     return guests.filter(g => {
@@ -78,6 +76,9 @@ export default function Convidados() {
     filtered.forEach(g => byStatus[g.status].push(g));
     return byStatus;
   }, [filtered]);
+
+  // Convidados não acessam esta página — redireciona após os hooks
+  if (!roleLoading && isGuest) return <Navigate to="/" replace />;
 
   const getInitials = (name: string) =>
     name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
