@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMeetings, useMeetingAttendees, useMeetingGuests } from '@/hooks/useMeetings';
+import { useMeetings, useMeetingAttendees, useMeetingGuests, useUpcomingMeetingGuests } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket } from 'lucide-react';
 import { format, isPast, isToday, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -173,29 +174,106 @@ export default function Encontros() {
       {isLoading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : (
-        <>
-          <div>
-            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" /> Próximos Encontros ({upcomingMeetings.length})
-            </h2>
-            {upcomingMeetings.length === 0 ? (
-              <Card><CardContent className="py-12 text-center text-muted-foreground"><Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>Nenhum encontro agendado</p></CardContent></Card>
-            ) : (
-              <div className="space-y-4">{upcomingMeetings.map((m) => <MeetingCard key={m.id} meeting={m} />)}</div>
-            )}
-          </div>
+        <Tabs defaultValue="meetings" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="meetings" className="gap-2">
+              <Calendar className="w-4 h-4" /> Encontros
+            </TabsTrigger>
+            <TabsTrigger value="guests" className="gap-2">
+              <Ticket className="w-4 h-4" /> Convidados em Encontros
+            </TabsTrigger>
+          </TabsList>
 
-          {pastMeetings.length > 0 && (
+          <TabsContent value="meetings" className="space-y-6">
             <div>
-              <h2 className="text-lg font-semibold mb-4 text-muted-foreground">Encontros Anteriores ({pastMeetings.length})</h2>
-              <div className="space-y-4">{pastMeetings.slice(0, 5).map((m) => <MeetingCard key={m.id} meeting={m} />)}</div>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-primary" /> Próximos Encontros ({upcomingMeetings.length})
+              </h2>
+              {upcomingMeetings.length === 0 ? (
+                <Card><CardContent className="py-12 text-center text-muted-foreground"><Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>Nenhum encontro agendado</p></CardContent></Card>
+              ) : (
+                <div className="space-y-4">{upcomingMeetings.map((m) => <MeetingCard key={m.id} meeting={m} />)}</div>
+              )}
             </div>
-          )}
-        </>
+
+            {pastMeetings.length > 0 && (
+              <div>
+                <h2 className="text-lg font-semibold mb-4 text-muted-foreground">Encontros Anteriores ({pastMeetings.length})</h2>
+                <div className="space-y-4">{pastMeetings.slice(0, 5).map((m) => <MeetingCard key={m.id} meeting={m} />)}</div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="guests">
+            <UpcomingGuestsTab />
+          </TabsContent>
+        </Tabs>
       )}
     </div>
   );
 }
+
+function UpcomingGuestsTab() {
+  const { data, isLoading } = useUpcomingMeetingGuests();
+  const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
+  if (!data?.length) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center text-muted-foreground">
+          <Ticket className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p className="font-medium">Nenhum convidado confirmado nos próximos encontros</p>
+          <p className="text-sm">Convidados que confirmarem presença aparecerão aqui</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {data.map((m) => (
+        <Card key={m.meeting_id}>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                {m.meeting_title}
+              </CardTitle>
+              {m.team_name && (
+                <Badge variant="outline" style={{ borderColor: m.team_color || undefined, color: m.team_color || undefined }}>
+                  {m.team_name}
+                </Badge>
+              )}
+            </div>
+            <CardDescription>
+              {format(parseLocalDate(m.meeting_date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              {m.meeting_time && ` · ${m.meeting_time.slice(0, 5)}`}
+              {' · '}{m.guests.length} {m.guests.length === 1 ? 'convidado' : 'convidados'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {m.guests.map(g => (
+                <div key={g.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900 text-sm">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={g.avatar_url || ''} />
+                    <AvatarFallback className="text-[10px] bg-orange-100 text-orange-700">{getInitials(g.full_name)}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{g.full_name}</span>
+                  {g.company && <span className="text-xs text-muted-foreground">({g.company})</span>}
+                  {g.invited_by_name && (
+                    <span className="text-xs text-muted-foreground">· por {g.invited_by_name}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
 
 function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
