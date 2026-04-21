@@ -274,6 +274,10 @@ function UpcomingGuestsTab() {
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+}
+
 
 function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
