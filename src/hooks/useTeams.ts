@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabaseReadOnly } from '@/integrations/supabase/client';
 
+export type MemberType = 'facilitator' | 'member' | 'guest';
+
 export interface TeamMember {
   id: string;
   user_id: string;
@@ -12,7 +14,14 @@ export interface TeamMember {
     avatar_url: string | null; 
     rank: 'iniciante' | 'bronze' | 'prata' | 'ouro' | 'diamante';
   };
-  role?: 'admin' | 'facilitador' | 'membro' | 'convidado';
+  role: 'admin' | 'facilitador' | 'membro' | 'convidado' | null;
+  /**
+   * Tipo derivado para classificação visual à prova de erro.
+   * - facilitator: is_facilitator = true (independente da role)
+   * - guest: role = 'convidado'
+   * - member: demais casos (membro/admin sem facilitação)
+   */
+  member_type: MemberType;
 }
 
 export interface Team {
@@ -45,13 +54,23 @@ export function useTeams() {
         rolesData?.forEach(r => { roles[r.user_id] = r.role; });
       }
 
+      const computeMemberType = (isFacilitator: boolean, role: string | null): MemberType => {
+        if (isFacilitator) return 'facilitator';
+        if (role === 'convidado') return 'guest';
+        return 'member';
+      };
+
       return teamsData.map(team => ({
         ...team,
-        members: membersData?.filter(m => m.team_id === team.id).map(m => ({ 
-          ...m, 
-          profile: profiles[m.user_id],
-          role: roles[m.user_id] || 'membro'
-        })) || []
+        members: membersData?.filter(m => m.team_id === team.id).map(m => {
+          const role = (roles[m.user_id] as TeamMember['role']) || null;
+          return { 
+            ...m, 
+            profile: profiles[m.user_id],
+            role,
+            member_type: computeMemberType(!!m.is_facilitator, role),
+          };
+        }) || []
       })) as Team[];
     },
   });

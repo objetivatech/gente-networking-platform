@@ -109,12 +109,34 @@ Sempre que um novo usuário se cadastra (via `/auth` ou `/convite/CODE`), o trig
 
 Facilitadores frequentemente precisam mover convidados quando percebem que o perfil não se encaixa no grupo. A UI em `/admin/pessoas` (aba Convidados) tem o botão `ArrowRightLeft` ao lado do "Promover", abrindo um modal com lista de grupos disponíveis.
 
+## Visualização de Convidados (v3.6.0)
+
+A separação entre Convidados e Membros é **rigorosamente visual** em todas as superfícies:
+
+| Superfície | Quem vê | O que mostra |
+|------------|---------|--------------|
+| `/equipes` (Grupos) | admin, facilitador, membro | 3 seções por grupo: Facilitadores, Membros, Convidados |
+| `/membros` | admin, facilitador, membro | Apenas membros e facilitadores (nunca convidados) |
+| `/convidados` | admin, facilitador, membro | Diretório de todos os convidados ativos da comunidade, agrupados por status (aguardando / participou / promovido) |
+| `/encontros` aba Convidados | admin, facilitador, membro | Convidados confirmados nos próximos encontros |
+| `/admin/pessoas` aba Convidados | admin, facilitador | Gestão completa: promover, transferir, desativar |
+| `/` (GuestWelcome) | convidado | Eventos do grupo do convite + perfil |
+
+### Hook `useTeams` — campo `member_type`
+Cada participante de um grupo expõe `member_type: 'facilitator' | 'member' | 'guest'`, derivado de `is_facilitator` + `role`. Isso garante que nenhuma tela classifique convidados como membros por engano.
+
 ## Arquivos Chave
 
 - `src/hooks/useInvitations.ts` — criação e listagem
 - `src/hooks/useTransferGuest.ts` — transferência
 - `src/hooks/usePromoteGuest.ts` — promoção
+- `src/hooks/useGuestsDirectory.ts` — diretório consolidado de convidados
+- `src/hooks/useMeetings.ts` — `useUpcomingMeetingGuests` para aba de Convidados em Encontros
 - `src/pages/Convites.tsx` — UI de convites (com Select de grupo obrigatório)
+- `src/pages/Convidados.tsx` — diretório público de convidados
+- `src/pages/Equipes.tsx` — Grupos com 3 seções rigorosamente separadas
+- `src/pages/Encontros.tsx` — Tabs com aba "Convidados em Encontros"
 - `src/pages/GestaoPessoas.tsx` — UI admin/facilitador
 - `src/pages/GuestWelcome.tsx` — landing do convidado
 - `src/pages/AuthConfirm.tsx` — processa confirmação de email
+
