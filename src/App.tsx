@@ -46,6 +46,7 @@ const Configuracoes = lazyWithRetry(() => import("./pages/Configuracoes"));
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
 const Instalar = lazyWithRetry(() => import("./pages/Instalar"));
 const Membros = lazyWithRetry(() => import("./pages/Membros"));
+const Convidados = lazyWithRetry(() => import("./pages/Convidados"));
 const MemberProfile = lazyWithRetry(() => import("./pages/MemberProfile"));
 const Aniversarios = lazyWithRetry(() => import("./pages/Aniversarios"));
 const GerenciarMembros = lazyWithRetry(() => import("./pages/GerenciarMembros"));
@@ -99,6 +100,7 @@ const App = () => (
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/membros" element={<Membros />} />
+                <Route path="/convidados" element={<Convidados />} />
                 <Route path="/membro/:slug" element={<MemberProfile />} />
                 <Route path="/aniversarios" element={<Aniversarios />} />
                 <Route path="/estatisticas" element={<Estatisticas />} />
