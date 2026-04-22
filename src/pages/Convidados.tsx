@@ -13,7 +13,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useGuestsDirectory, GuestJourneyStatus } from '@/hooks/useGuestsDirectory';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
@@ -23,7 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Ticket, Search, Building2, Users, CalendarCheck, Clock, ArrowUpCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Ticket, Search, Building2, Users, CalendarCheck, Clock, ArrowUpCircle, Settings, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
