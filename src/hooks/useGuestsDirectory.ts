@@ -141,6 +141,7 @@ export function useGuestsDirectory() {
         entries.push({
           id: p.id,
           full_name: p.full_name,
+          slug: (p as any).slug ?? null,
           email: p.email,
           phone: p.phone,
           company: p.company,
