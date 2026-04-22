@@ -86,14 +86,24 @@ export default function Convidados() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-primary" />
-          Convidados
-        </h1>
-        <p className="text-muted-foreground">
-          Base de leads que passaram pela comunidade Gente Networking
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Ticket className="w-6 h-6 text-primary" />
+            Convidados
+          </h1>
+          <p className="text-muted-foreground">
+            Base de leads que passaram pela comunidade Gente Networking
+          </p>
+        </div>
+        {canManage && (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/pessoas">
+              <Settings className="w-4 h-4 mr-2" />
+              Gerenciar convidados
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Estatísticas */}
