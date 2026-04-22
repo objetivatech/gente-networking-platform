@@ -476,3 +476,28 @@ Layout com `pb-20` e `safe-area-inset-bottom` para compatibilidade mobile.
 - `notify_on_testimonial` — depoimentos
 - `notify_on_referral` — indicações
 - `notify_on_meeting` — encontros
+
+---
+
+## Consulta de Convidados (v3.6.0)
+
+Membros, facilitadores e admins têm duas superfícies de consulta para o banco de leads/visitantes:
+
+### `/convidados` — Diretório de convidados ativos
+- Lista todos os usuários com `role = 'convidado'` (ativos), agrupados por status:
+  - **Aguardando primeiro encontro** (sem attendances)
+  - **Já participou** (1+ attendances)
+  - **Promovido a membro** (oculto por padrão; toggle "Mostrar promovidos")
+- Filtros: busca (nome/empresa/email), grupo, status.
+- Cada card: avatar, empresa, segmento, grupo, quem convidou, data do convite, contagem de encontros.
+- **Link "Ver perfil"** abre `/membro/:slug` (perfil completo).
+- **Botão "Gerenciar"** (visível apenas para admin/facilitador) abre `/admin/pessoas` para promover/transferir/desativar.
+- Convidados são redirecionados para `/`.
+
+### `/encontros` — Aba "Convidados em Encontros"
+- Histórico completo (passados + futuros, todos os grupos) de convidados confirmados em encontros.
+- Inclui também usuários **já promovidos a membro** que entraram originalmente via convite (rastreabilidade).
+- Filtros: busca livre, grupo, período (todos / próximos / anteriores).
+- Cada card de convidado mostra: nome, empresa, segmento, **email clicável (mailto:)**, **WhatsApp clicável (wa.me)**, quem convidou, badge "membro" se promovido, e link "Ver perfil".
+- Objetivo: banco de consulta para reativação de leads e follow-up direto pelos membros.
+

@@ -20,6 +20,7 @@ export type GuestJourneyStatus = 'awaiting_first' | 'attended' | 'promoted';
 export interface GuestDirectoryEntry {
   id: string;
   full_name: string;
+  slug: string | null;
   email: string | null;
   phone: string | null;
   company: string | null;
@@ -65,7 +66,7 @@ export function useGuestsDirectory() {
       // 3) Profiles (apenas ativos)
       const { data: profiles } = await supabaseReadOnly
         .from('profiles')
-        .select('id, full_name, email, phone, company, avatar_url, business_segment, is_active')
+        .select('id, full_name, slug, email, phone, company, avatar_url, business_segment, is_active')
         .in('id', guestUserIds)
         .eq('is_active', true);
 
@@ -140,6 +141,7 @@ export function useGuestsDirectory() {
         entries.push({
           id: p.id,
           full_name: p.full_name,
+          slug: (p as any).slug ?? null,
           email: p.email,
           phone: p.phone,
           company: p.company,

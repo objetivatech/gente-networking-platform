@@ -127,13 +127,14 @@ docs/
 | `/perfil` | `Profile.tsx` | Perfil com histórico de pontos, abas e pitch IA | Todos |
 | `/membros` | `Membros.tsx` | Diretório de membros com filtros e exportação | Membros+ |
 | `/membro/:slug` | `MemberProfile.tsx` | Perfil individual com URL amigável e abas | Membros+ |
+| `/convidados` | `Convidados.tsx` | **Diretório de convidados ativos** — leads agrupados por status (aguardando / participou / promovido). Card lista perfil, contato, encontros, quem convidou. Para admin/facilitador: botão "Gerenciar" abre `/admin/pessoas`. | Membros+ (Convidados não acessam) |
 | `/aniversarios` | `Aniversarios.tsx` | Calendário de aniversários | Membros+ |
 | `/ranking` | `Ranking.tsx` | Ranking mensal por grupo | Membros+ |
 | `/gente-em-acao` | `GenteEmAcao.tsx` | Reuniões 1-a-1 | Membros+ |
 | `/depoimentos` | `Depoimentos.tsx` | Envio de depoimentos | Membros+ |
 | `/indicacoes` | `Indicacoes.tsx` | Indicações com status (frio/morno/quente) | Membros+ |
 | `/negocios` | `Negocios.tsx` | Registro de negócios | Membros+ |
-| `/encontros` | `Encontros.tsx` | Calendário de encontros (ordenado, destaque "Em breve") | Membros+ |
+| `/encontros` | `Encontros.tsx` | Calendário de encontros + **aba "Convidados em Encontros"** (histórico completo passados+futuros, todos os grupos, com email/WhatsApp clicáveis e link para perfil; filtros por busca/grupo/período) | Membros+ |
 | `/convites` | `Convites.tsx` | Gerenciamento de convites (expiração, exclusão) | Membros+ |
 | `/conselho` | `Conselho.tsx` | Conselho 24/7 — help desk Kanban | Membros+ |
 | `/equipes` | `Equipes.tsx` | Gestão de grupos | Admin/Facilitador |

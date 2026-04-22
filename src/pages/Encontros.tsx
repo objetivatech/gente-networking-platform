@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useMeetings, useMeetingAttendees, useMeetingGuests, useUpcomingMeetingGuests } from '@/hooks/useMeetings';
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useMeetings, useMeetingAttendees, useMeetingGuests, useGuestsAttendanceHistory, type GuestAttendanceEntry } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket } from 'lucide-react';
+import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket, Mail, Phone, ExternalLink, Search, ArrowUpCircle, History } from 'lucide-react';
 import { format, isPast, isToday, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -214,66 +215,214 @@ export default function Encontros() {
 }
 
 function UpcomingGuestsTab() {
-  const { data, isLoading } = useUpcomingMeetingGuests();
+  const { data, isLoading } = useGuestsAttendanceHistory();
+  const { teams } = useTeams();
+  const [search, setSearch] = useState('');
+  const [teamFilter, setTeamFilter] = useState<string>('all');
+  const [periodFilter, setPeriodFilter] = useState<'all' | 'past' | 'upcoming'>('all');
   const getInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const filtered = useMemo(() => {
+    if (!data) return [] as GuestAttendanceEntry[];
+    return data
+      .filter(m => {
+        if (teamFilter !== 'all' && m.team_id !== teamFilter) return false;
+        if (periodFilter === 'past' && !m.is_past) return false;
+        if (periodFilter === 'upcoming' && m.is_past) return false;
+        return true;
+      })
+      .map(m => {
+        if (!search) return m;
+        const s = search.toLowerCase();
+        const guests = m.guests.filter(g =>
+          g.full_name.toLowerCase().includes(s) ||
+          g.company?.toLowerCase().includes(s) ||
+          g.email?.toLowerCase().includes(s) ||
+          g.invited_by_name?.toLowerCase().includes(s)
+        );
+        return { ...m, guests };
+      })
+      .filter(m => m.guests.length > 0);
+  }, [data, search, teamFilter, periodFilter]);
+
+  const totalGuestVisits = useMemo(
+    () => filtered.reduce((acc, m) => acc + m.guests.length, 0),
+    [filtered]
+  );
+  const uniqueGuests = useMemo(() => {
+    const set = new Set<string>();
+    filtered.forEach(m => m.guests.forEach(g => set.add(g.id)));
+    return set.size;
+  }, [filtered]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
 
-  if (!data?.length) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center text-muted-foreground">
-          <Ticket className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p className="font-medium">Nenhum convidado confirmado nos próximos encontros</p>
-          <p className="text-sm">Convidados que confirmarem presença aparecerão aqui</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      {data.map((m) => (
-        <Card key={m.meeting_id}>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-primary" />
-                {m.meeting_title}
-              </CardTitle>
-              {m.team_name && (
-                <Badge variant="outline" style={{ borderColor: m.team_color || undefined, color: m.team_color || undefined }}>
-                  {m.team_name}
-                </Badge>
-              )}
+      {/* Cabeçalho explicativo */}
+      <Card className="bg-muted/40">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-start gap-3">
+            <History className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">Histórico de visitantes da comunidade</p>
+              <p className="text-xs text-muted-foreground">
+                Banco de consulta com todos os convidados que já participaram (ou estão confirmados) em encontros.
+                Use para reativar leads, fazer follow-up e estreitar contato com visitantes da rede.
+              </p>
             </div>
-            <CardDescription>
-              {format(parseLocalDate(m.meeting_date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
-              {m.meeting_time && ` · ${m.meeting_time.slice(0, 5)}`}
-              {' · '}{m.guests.length} {m.guests.length === 1 ? 'convidado' : 'convidados'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {m.guests.map(g => (
-                <div key={g.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900 text-sm">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={g.avatar_url || ''} />
-                    <AvatarFallback className="text-[10px] bg-orange-100 text-orange-700">{getInitials(g.full_name)}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{g.full_name}</span>
-                  {g.company && <span className="text-xs text-muted-foreground">({g.company})</span>}
-                  {g.invited_by_name && (
-                    <span className="text-xs text-muted-foreground">· por {g.invited_by_name}</span>
-                  )}
-                </div>
-              ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filtros */}
+      <Card>
+        <CardContent className="pt-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <div className="relative md:col-span-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar nome, empresa, email, quem convidou..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
             </div>
+            <Select value={teamFilter} onValueChange={setTeamFilter}>
+              <SelectTrigger><SelectValue placeholder="Grupo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os grupos</SelectItem>
+                {teams?.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os períodos</SelectItem>
+                <SelectItem value="upcoming">Próximos encontros</SelectItem>
+                <SelectItem value="past">Encontros anteriores</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
+            <span><strong className="text-foreground">{filtered.length}</strong> encontros</span>
+            <span><strong className="text-foreground">{uniqueGuests}</strong> convidados únicos</span>
+            <span><strong className="text-foreground">{totalGuestVisits}</strong> presenças totais</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {filtered.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <Ticket className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p className="font-medium">Nenhum convidado encontrado</p>
+            <p className="text-sm">Ajuste os filtros ou aguarde novas confirmações de presença</p>
           </CardContent>
         </Card>
-      ))}
+      ) : (
+        filtered.map((m) => (
+          <Card key={m.meeting_id} className={m.is_past ? 'opacity-95' : 'border-primary/40'}>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-primary" />
+                  {m.meeting_title}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {!m.is_past && <Badge className="bg-primary">Próximo</Badge>}
+                  {m.is_past && <Badge variant="secondary">Anterior</Badge>}
+                  {m.team_name && (
+                    <Badge variant="outline" style={{ borderColor: m.team_color || undefined, color: m.team_color || undefined }}>
+                      {m.team_name}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <CardDescription>
+                {format(parseLocalDate(m.meeting_date), "EEEE, dd 'de' MMMM yyyy", { locale: ptBR })}
+                {m.meeting_time && ` · ${m.meeting_time.slice(0, 5)}`}
+                {' · '}{m.guests.length} {m.guests.length === 1 ? 'convidado' : 'convidados'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {m.guests.map(g => (
+                  <div
+                    key={`${m.meeting_id}-${g.id}`}
+                    className="flex flex-col gap-2 p-3 rounded-lg border bg-card hover:shadow-sm transition-shadow"
+                  >
+                    <div className="flex items-start gap-2">
+                      <Avatar className="h-10 w-10 shrink-0">
+                        <AvatarImage src={g.avatar_url || ''} />
+                        <AvatarFallback className="bg-orange-100 text-orange-700 text-xs">
+                          {getInitials(g.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="font-medium text-sm truncate">{g.full_name}</p>
+                          {g.is_promoted && (
+                            <Badge variant="default" className="bg-emerald-600 text-[10px] h-4 px-1">
+                              <ArrowUpCircle className="w-2.5 h-2.5 mr-0.5" /> membro
+                            </Badge>
+                          )}
+                        </div>
+                        {g.company && (
+                          <p className="text-xs text-muted-foreground truncate">{g.company}</p>
+                        )}
+                        {g.business_segment && (
+                          <p className="text-[11px] text-muted-foreground truncate">{g.business_segment}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {(g.email || g.phone) && (
+                      <div className="flex flex-col gap-1 text-xs">
+                        {g.email && (
+                          <a href={`mailto:${g.email}`} className="flex items-center gap-1.5 text-muted-foreground hover:text-primary truncate">
+                            <Mail className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{g.email}</span>
+                          </a>
+                        )}
+                        {g.phone && (
+                          <a
+                            href={`https://wa.me/${g.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1.5 text-muted-foreground hover:text-primary"
+                          >
+                            <Phone className="w-3 h-3 shrink-0" />
+                            {g.phone}
+                          </a>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-2 pt-1 border-t mt-auto">
+                      {g.invited_by_name ? (
+                        <span className="text-[11px] text-muted-foreground truncate">
+                          por <span className="text-foreground">{g.invited_by_name}</span>
+                        </span>
+                      ) : <span />}
+                      {g.slug && (
+                        <Link
+                          to={`/membro/${g.slug}`}
+                          className="text-[11px] text-primary hover:underline flex items-center gap-0.5 shrink-0"
+                        >
+                          Ver perfil <ExternalLink className="w-2.5 h-2.5" />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))
+      )}
     </div>
   );
 }

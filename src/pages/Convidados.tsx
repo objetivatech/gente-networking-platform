@@ -13,7 +13,7 @@
  */
 
 import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useGuestsDirectory, GuestJourneyStatus } from '@/hooks/useGuestsDirectory';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
@@ -23,7 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Ticket, Search, Building2, Users, CalendarCheck, Clock, ArrowUpCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Ticket, Search, Building2, Users, CalendarCheck, Clock, ArrowUpCircle, Settings, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
@@ -35,7 +36,7 @@ const STATUS_LABELS: Record<GuestJourneyStatus, { label: string; variant: 'secon
 };
 
 export default function Convidados() {
-  const { isGuest, isLoading: roleLoading } = useAdmin();
+  const { isGuest, canManage, isLoading: roleLoading } = useAdmin();
   const { data: guests, isLoading } = useGuestsDirectory();
   const { teams } = useTeams();
   const [search, setSearch] = useState('');
@@ -85,14 +86,24 @@ export default function Convidados() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Ticket className="w-6 h-6 text-primary" />
-          Convidados
-        </h1>
-        <p className="text-muted-foreground">
-          Base de leads que passaram pela comunidade Gente Networking
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Ticket className="w-6 h-6 text-primary" />
+            Convidados
+          </h1>
+          <p className="text-muted-foreground">
+            Base de leads que passaram pela comunidade Gente Networking
+          </p>
+        </div>
+        {canManage && (
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/pessoas">
+              <Settings className="w-4 h-4 mr-2" />
+              Gerenciar convidados
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* Estatísticas */}
@@ -238,6 +249,24 @@ export default function Convidados() {
                             <Badge variant="default" className="bg-emerald-600">
                               Agora é {g.current_role}
                             </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2 pt-2">
+                          {g.slug ? (
+                            <Link
+                              to={`/membro/${g.slug}`}
+                              className="text-xs text-primary hover:underline flex items-center gap-1"
+                            >
+                              Ver perfil <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          ) : <span />}
+                          {canManage && (
+                            <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                              <Link to="/admin/pessoas">
+                                <Settings className="w-3 h-3 mr-1" />
+                                Gerenciar
+                              </Link>
+                            </Button>
                           )}
                         </div>
                       </CardContent>

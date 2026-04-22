@@ -189,10 +189,16 @@ export function useMeetingGuests(meetingId: string) {
 }
 
 /**
- * Lista convidados (role = 'convidado') confirmados em encontros futuros.
- * Agrupa por encontro para alimentar a aba "Convidados em Encontros" em /encontros.
+ * Histórico completo de convidados em encontros (passados e futuros, todos os grupos).
+ *
+ * Alimenta a aba "Convidados em Encontros" em /encontros como banco de consulta
+ * para todos os membros: facilita reativação de leads, follow-up e contato direto.
+ *
+ * Inclui dados de contato (email, phone, company, segment), slug para link de perfil
+ * e quem convidou. Guests são identificados por role atual = 'convidado' OU por
+ * invitations.accepted_by quando ainda não foram promovidos.
  */
-export interface UpcomingGuestEntry {
+export interface GuestAttendanceEntry {
   meeting_id: string;
   meeting_title: string;
   meeting_date: string;
@@ -200,30 +206,38 @@ export interface UpcomingGuestEntry {
   team_id: string | null;
   team_name: string | null;
   team_color: string | null;
+  is_past: boolean;
   guests: Array<{
     id: string;
     full_name: string;
+    slug: string | null;
     company: string | null;
+    business_segment: string | null;
+    email: string | null;
+    phone: string | null;
     avatar_url: string | null;
+    invited_by_id: string | null;
     invited_by_name: string | null;
+    is_promoted: boolean;
   }>;
 }
 
-export function useUpcomingMeetingGuests() {
+export function useGuestsAttendanceHistory() {
   return useQuery({
-    queryKey: ['upcoming-meeting-guests'],
+    queryKey: ['guests-attendance-history'],
     staleTime: 60 * 1000,
-    queryFn: async (): Promise<UpcomingGuestEntry[]> => {
+    queryFn: async (): Promise<GuestAttendanceEntry[]> => {
       const today = new Date().toISOString().slice(0, 10);
 
+      // 1) Todos os encontros (passados + futuros)
       const { data: meetings } = await supabaseReadOnly
         .from('meetings')
         .select('id, title, meeting_date, meeting_time, team_id')
-        .gte('meeting_date', today)
-        .order('meeting_date', { ascending: true });
+        .order('meeting_date', { ascending: false });
 
       if (!meetings?.length) return [];
 
+      // 2) Todas as attendances desses encontros
       const meetingIds = meetings.map(m => m.id);
       const { data: attendances } = await supabaseReadOnly
         .from('attendances')
@@ -233,38 +247,55 @@ export function useUpcomingMeetingGuests() {
       const userIds = Array.from(new Set((attendances || []).map(a => a.user_id)));
       if (!userIds.length) return [];
 
-      const { data: roles } = await supabaseReadOnly
-        .from('user_roles')
-        .select('user_id, role')
-        .in('user_id', userIds);
-      const guestIds = new Set(roles?.filter(r => r.role === 'convidado').map(r => r.user_id) || []);
-      const memberIds = new Set(roles?.filter(r => ['admin', 'facilitador', 'membro'].includes(r.role)).map(r => r.user_id) || []);
+      // 3) Identificar quem é/foi convidado:
+      //    - role atual = 'convidado' (convidado ativo)
+      //    - OU invitations.accepted_by (já passou pela porta de entrada)
+      const [{ data: roles }, { data: invitations }] = await Promise.all([
+        supabaseReadOnly.from('user_roles').select('user_id, role').in('user_id', userIds),
+        supabaseReadOnly
+          .from('invitations')
+          .select('accepted_by, invited_by')
+          .eq('status', 'accepted')
+          .in('accepted_by', userIds),
+      ]);
 
-      const validGuestIds = Array.from(guestIds).filter(id => !memberIds.has(id));
-      if (!validGuestIds.length) return [];
+      const roleByUser = new Map<string, string>();
+      roles?.forEach(r => roleByUser.set(r.user_id, r.role));
 
+      const cameInAsGuest = new Set<string>();
+      const inviterByGuest = new Map<string, string>();
+      invitations?.forEach(i => {
+        if (i.accepted_by) {
+          cameInAsGuest.add(i.accepted_by);
+          if (i.invited_by) inviterByGuest.set(i.accepted_by, i.invited_by);
+        }
+      });
+
+      // Conjunto final: ainda é convidado OU entrou como convidado (mesmo se promovido)
+      const guestUserIds = userIds.filter(uid => {
+        const currentRole = roleByUser.get(uid);
+        return currentRole === 'convidado' || cameInAsGuest.has(uid);
+      });
+
+      if (!guestUserIds.length) return [];
+
+      // 4) Profiles com dados de contato + slug
       const { data: profiles } = await supabaseReadOnly
         .from('profiles')
-        .select('id, full_name, company, avatar_url')
-        .in('id', validGuestIds);
+        .select('id, full_name, slug, company, business_segment, email, phone, avatar_url, is_active')
+        .in('id', guestUserIds)
+        .eq('is_active', true);
       const profMap = new Map(profiles?.map(p => [p.id, p]) || []);
 
-      const { data: invitations } = await supabaseReadOnly
-        .from('invitations')
-        .select('accepted_by, invited_by')
-        .eq('status', 'accepted')
-        .in('accepted_by', validGuestIds);
-      const inviterIds = Array.from(new Set(invitations?.map(i => i.invited_by).filter(Boolean) as string[]));
+      // 5) Inviters
+      const inviterIds = Array.from(new Set(Array.from(inviterByGuest.values())));
       const { data: inviters } = inviterIds.length
         ? await supabaseReadOnly.from('profiles').select('id, full_name').in('id', inviterIds)
         : { data: [] as any[] };
       const inviterNameMap = new Map<string, string>();
       inviters?.forEach((p: any) => inviterNameMap.set(p.id, p.full_name));
-      const inviterByGuest = new Map<string, string>();
-      invitations?.forEach(i => {
-        if (i.accepted_by && i.invited_by) inviterByGuest.set(i.accepted_by, i.invited_by);
-      });
 
+      // 6) Teams
       const teamIds = Array.from(new Set(meetings.map(m => m.team_id).filter(Boolean) as string[]));
       const { data: teams } = teamIds.length
         ? await supabaseReadOnly.from('teams').select('id, name, color').in('id', teamIds)
@@ -272,21 +303,32 @@ export function useUpcomingMeetingGuests() {
       const teamMap = new Map<string, { name: string; color: string | null }>();
       teams?.forEach((t: any) => teamMap.set(t.id, { name: t.name, color: t.color }));
 
-      const result: UpcomingGuestEntry[] = [];
+      // 7) Montar resultado por encontro
+      const result: GuestAttendanceEntry[] = [];
       meetings.forEach(m => {
         const guestsHere = (attendances || [])
-          .filter(a => a.meeting_id === m.id && validGuestIds.includes(a.user_id))
+          .filter(a => a.meeting_id === m.id && guestUserIds.includes(a.user_id))
           .map(a => {
             const p = profMap.get(a.user_id);
+            if (!p) return null;
             const inviterId = inviterByGuest.get(a.user_id);
+            const currentRole = roleByUser.get(a.user_id);
             return {
               id: a.user_id,
-              full_name: p?.full_name || 'Convidado',
-              company: p?.company ?? null,
-              avatar_url: p?.avatar_url ?? null,
+              full_name: p.full_name || 'Convidado',
+              slug: p.slug ?? null,
+              company: p.company ?? null,
+              business_segment: p.business_segment ?? null,
+              email: p.email ?? null,
+              phone: p.phone ?? null,
+              avatar_url: p.avatar_url ?? null,
+              invited_by_id: inviterId ?? null,
               invited_by_name: inviterId ? inviterNameMap.get(inviterId) ?? null : null,
+              is_promoted: currentRole !== 'convidado' && currentRole !== undefined,
             };
-          });
+          })
+          .filter(Boolean) as GuestAttendanceEntry['guests'];
+
         if (!guestsHere.length) return;
         const team = m.team_id ? teamMap.get(m.team_id) : null;
         result.push({
@@ -297,6 +339,7 @@ export function useUpcomingMeetingGuests() {
           team_id: m.team_id,
           team_name: team?.name ?? null,
           team_color: team?.color ?? null,
+          is_past: m.meeting_date < today,
           guests: guestsHere,
         });
       });
@@ -304,3 +347,7 @@ export function useUpcomingMeetingGuests() {
     },
   });
 }
+
+/** @deprecated use useGuestsAttendanceHistory */
+export const useUpcomingMeetingGuests = useGuestsAttendanceHistory;
+export type UpcomingGuestEntry = GuestAttendanceEntry;
