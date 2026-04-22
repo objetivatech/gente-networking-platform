@@ -36,7 +36,7 @@ const STATUS_LABELS: Record<GuestJourneyStatus, { label: string; variant: 'secon
 };
 
 export default function Convidados() {
-  const { isGuest, isLoading: roleLoading } = useAdmin();
+  const { isGuest, canManage, isLoading: roleLoading } = useAdmin();
   const { data: guests, isLoading } = useGuestsDirectory();
   const { teams } = useTeams();
   const [search, setSearch] = useState('');
