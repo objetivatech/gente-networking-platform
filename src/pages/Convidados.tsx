@@ -251,6 +251,24 @@ export default function Convidados() {
                             </Badge>
                           )}
                         </div>
+                        <div className="flex items-center justify-between gap-2 pt-2">
+                          {g.slug ? (
+                            <Link
+                              to={`/membro/${g.slug}`}
+                              className="text-xs text-primary hover:underline flex items-center gap-1"
+                            >
+                              Ver perfil <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          ) : <span />}
+                          {canManage && (
+                            <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                              <Link to="/admin/pessoas">
+                                <Settings className="w-3 h-3 mr-1" />
+                                Gerenciar
+                              </Link>
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
