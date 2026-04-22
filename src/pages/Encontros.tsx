@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useMeetings, useMeetingAttendees, useMeetingGuests, useUpcomingMeetingGuests } from '@/hooks/useMeetings';
+import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { useMeetings, useMeetingAttendees, useMeetingGuests, useGuestsAttendanceHistory, type GuestAttendanceEntry } from '@/hooks/useMeetings';
 import { useAdminMeetings, useUserRole } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket } from 'lucide-react';
+import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket, Mail, Phone, ExternalLink, Search, ArrowUpCircle, History } from 'lucide-react';
 import { format, isPast, isToday, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
