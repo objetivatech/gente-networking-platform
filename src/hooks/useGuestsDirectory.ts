@@ -20,6 +20,7 @@ export type GuestJourneyStatus = 'awaiting_first' | 'attended' | 'promoted';
 export interface GuestDirectoryEntry {
   id: string;
   full_name: string;
+  slug: string | null;
   email: string | null;
   phone: string | null;
   company: string | null;
