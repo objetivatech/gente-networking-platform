@@ -18,12 +18,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check, RefreshCw, Ticket, ArrowRightLeft, UserCheck } from 'lucide-react';
 import AdminCacheDiagnostics from '@/components/AdminCacheDiagnostics';
 import { Navigate } from 'react-router-dom';
 import { format, isFuture, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
+import { useTeamGuests } from '@/hooks/useTeamGuests';
+import { usePromoteGuest } from '@/hooks/usePromoteGuest';
+import { useTransferGuest } from '@/hooks/useTransferGuest';
 
 const TEAM_COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
 
@@ -211,8 +214,8 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
         </div>
       </div>
       
-      {/* Seção para registrar presença de convidado */}
-      {upcomingMeetings.length > 0 && (
+      {/* Seção para registrar presença de convidado (somente se for convidado) */}
+      {isGuest && upcomingMeetings.length > 0 && (
         <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
           <Calendar className="w-4 h-4 text-muted-foreground" />
           <Select value={selectedMeeting} onValueChange={setSelectedMeeting}>
@@ -230,8 +233,8 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
               ))}
             </SelectContent>
           </Select>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="secondary"
             onClick={handleRegisterAttendance}
             disabled={!selectedMeeting || registerGuestAttendance.isPending}
@@ -245,6 +248,120 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
   );
 }
 
+// ─── Seção de convidados ATIVOS de um grupo (vindos de invitations) ──────────
+function TeamGuestsSection({
+  teamId,
+  teams,
+  getInitials,
+}: {
+  teamId: string;
+  teams: { id: string; name: string }[];
+  getInitials: (name: string) => string;
+}) {
+  const { data: guests, isLoading } = useTeamGuests(teamId);
+  const { promoteGuest, isPromoting } = usePromoteGuest();
+  const { transferGuest, isTransferring } = useTransferGuest();
+  const [transferTarget, setTransferTarget] = useState<Record<string, string>>({});
+
+  if (isLoading) {
+    return (
+      <div>
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+          <Ticket className="w-3.5 h-3.5 text-orange-500" /> Convidados
+        </h4>
+        <div className="text-sm text-muted-foreground py-2 flex items-center gap-2">
+          <Loader2 className="w-3 h-3 animate-spin" /> Carregando convidados...
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+        <Ticket className="w-3.5 h-3.5 text-orange-500" /> Convidados ({guests?.length || 0})
+      </h4>
+      {!guests?.length ? (
+        <p className="text-sm text-muted-foreground py-2">Nenhum convidado ativo neste grupo</p>
+      ) : (
+        <div className="space-y-2">
+          {guests.map(g => (
+            <div
+              key={g.user_id}
+              className="flex flex-col gap-2 p-3 rounded-lg bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-900"
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar className="h-9 w-9 border border-orange-300">
+                    <AvatarImage src={g.avatar_url || ''} />
+                    <AvatarFallback className="bg-orange-100 text-orange-700 text-xs">
+                      {getInitials(g.full_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm truncate">{g.full_name}</p>
+                      <Badge variant="outline" className="border-orange-400 text-orange-700 text-[10px]">
+                        Convidado
+                      </Badge>
+                    </div>
+                    {g.company && (
+                      <p className="text-xs text-muted-foreground truncate">{g.company}</p>
+                    )}
+                    {g.invited_by_name && (
+                      <p className="text-[11px] text-muted-foreground">
+                        convidado por <span className="text-foreground">{g.invited_by_name}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={() => promoteGuest({ userId: g.user_id, targetRole: 'membro', teamId })}
+                  disabled={isPromoting}
+                  className="h-7 text-xs"
+                >
+                  <ArrowUp className="w-3 h-3 mr-1" /> Promover a Membro
+                </Button>
+              </div>
+
+              {/* Transferir grupo */}
+              <div className="flex items-center gap-2 pt-2 border-t border-orange-200 dark:border-orange-900">
+                <ArrowRightLeft className="w-3.5 h-3.5 text-muted-foreground" />
+                <Select
+                  value={transferTarget[g.user_id] || ''}
+                  onValueChange={v => setTransferTarget(prev => ({ ...prev, [g.user_id]: v }))}
+                >
+                  <SelectTrigger className="flex-1 h-7 text-xs">
+                    <SelectValue placeholder="Transferir para outro grupo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teams.filter(t => t.id !== teamId).map(t => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  disabled={!transferTarget[g.user_id] || isTransferring}
+                  onClick={() => {
+                    const target = transferTarget[g.user_id];
+                    if (target) transferGuest({ guestId: g.user_id, newTeamId: target });
+                  }}
+                >
+                  {isTransferring ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Transferir'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 
 export default function Admin() {
@@ -422,24 +539,64 @@ export default function Admin() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    {!team.members?.length ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">Nenhum membro</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {team.members.map((member) => (
-                          <TeamMemberRow 
-                            key={member.id} 
-                            member={member} 
-                            teamId={team.id}
-                            isAdmin={isAdmin}
-                            toggleFacilitator={toggleFacilitator}
-                            removeMember={removeMember}
-                            getInitials={getInitials}
-                          />
-                        ))}
-                      </div>
-                    )}
+                  <CardContent className="space-y-5">
+                    {(() => {
+                      const facilitators = team.members?.filter(m => m.member_type === 'facilitator') || [];
+                      const regularMembers = team.members?.filter(m => m.member_type === 'member') || [];
+
+                      return (
+                        <>
+                          {/* Facilitadores */}
+                          {facilitators.length > 0 && (
+                            <div>
+                              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+                                <Crown className="w-3.5 h-3.5 text-amber-500" /> Facilitadores ({facilitators.length})
+                              </h4>
+                              <div className="space-y-2">
+                                {facilitators.map(member => (
+                                  <TeamMemberRow
+                                    key={member.id}
+                                    member={member}
+                                    teamId={team.id}
+                                    isAdmin={isAdmin}
+                                    toggleFacilitator={toggleFacilitator}
+                                    removeMember={removeMember}
+                                    getInitials={getInitials}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Membros */}
+                          <div>
+                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+                              <UserCheck className="w-3.5 h-3.5 text-blue-500" /> Membros ({regularMembers.length})
+                            </h4>
+                            {regularMembers.length === 0 ? (
+                              <p className="text-sm text-muted-foreground py-2">Nenhum membro neste grupo</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {regularMembers.map(member => (
+                                  <TeamMemberRow
+                                    key={member.id}
+                                    member={member}
+                                    teamId={team.id}
+                                    isAdmin={isAdmin}
+                                    toggleFacilitator={toggleFacilitator}
+                                    removeMember={removeMember}
+                                    getInitials={getInitials}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Convidados (separados — vêm de invitations, não de team_members) */}
+                          <TeamGuestsSection teamId={team.id} teams={teams || []} getInitials={getInitials} />
+                        </>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               ))}

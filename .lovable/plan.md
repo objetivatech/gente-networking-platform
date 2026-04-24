@@ -1,129 +1,105 @@
+## Objetivo
 
-
-## Análise: Convidados misturados com Membros + falta de banco de convidados
-
-### Diagnóstico
-
-**Estado atual no banco (correto):**
-- Existem 24 convidados (`role = 'convidado'`) corretamente vinculados a `team_members` no grupo certo. Exemplo Gente Conecte: 3 convidados (Alan Garcez, João Barbi, Lucas Voss) + 13 membros + 1 facilitador.
-- A separação por `role` funciona — o problema é exclusivamente de **apresentação visual**.
-
-**Onde está o erro de UI:**
-
-1. **`/equipes` → `Membros.tsx`** (rota usada hoje): já filtra convidados via `useMembers` e mostra só membros. **OK.**
-2. **`Equipes.tsx`** (página legada, ainda no bundle, acessível via menu/link antigo): separa apenas por `is_facilitator`. Resultado: convidados aparecem na seção "Membros" com só um badge pequeno "Convidado". **É a fonte da confusão relatada.**
-3. **`/admin/pessoas` → `GestaoPessoas.tsx`** (visão de facilitador): tem aba "Convidados" separada, mas o usuário relata ver convidados na visão de "membros do grupo". O facilitador acessa `Equipes.tsx`/legado e vê tudo junto.
-
-**Banco de convidados que já passaram pelo Gente:**
-- Não existe hoje uma página acessível a **membros comuns** para consultar convidados históricos. Só admin/facilitador veem em `/admin/pessoas` ou `/admin/convidados`.
-- O usuário quer que **todo membro** possa consultar essa base (rede de leads que passaram pela comunidade).
+Garantir separação rigorosa entre **Membros** e **Convidados** em toda a UI, e refletir no banco a regra de negócio: **convidados não pertencem a grupo algum** — apenas são vinculados a encontros específicos via `attendances`. Só após promoção a membro é que entram em `team_members`.
 
 ---
 
-## Plano de Correção
+## Diagnóstico atual
 
-### 1. Reformar `Equipes.tsx` — separação rigorosa em 3 seções
-
-A página de Grupos (visualização compartilhada) terá 3 listas distintas dentro de cada card de grupo:
-
-```text
-[Grupo Gente Conecte]
-├── 👑 Facilitadores (1)         ← borda âmbar
-├── ✅ Membros (13)              ← apenas role = 'membro'
-└── 🎟️ Convidados (3)            ← apenas role = 'convidado', fundo distinto, badge claro
-```
-
-Mudanças concretas:
-- Substituir filtro `is_facilitator` por **3 grupos**: facilitadores (`is_facilitator = true`), membros (`role = 'membro' && !is_facilitator`), convidados (`role = 'convidado'`).
-- Cada seção com título, ícone e contador próprios.
-- Convidados em card com fundo âmbar/secundário, badge "Convidado" obrigatório, sem RankBadge (convidados não pontuam).
-- Card de estatísticas no topo passa a mostrar 4 números: Grupos | Membros | Facilitadores | **Convidados**.
-
-### 2. Corrigir `useTeams` — devolver role e tipo separados
-
-O hook hoje retorna `role` mas o componente ignora ao classificar. Vamos:
-- Garantir que `role` venha sempre populado (se ausente, default `'membro'` é incorreto para órfãos — usar `null` explícito).
-- Adicionar campo derivado `member_type: 'facilitator' | 'member' | 'guest'` para deixar o consumo trivial e à prova de erro.
-
-### 3. Nova página pública de Convidados — `/convidados`
-
-Acessível a **todos os membros autenticados** (admin, facilitador, membro — convidados não veem).
-
-Conteúdo:
-- Lista todos os usuários com `role = 'convidado'` (ativos), agrupados por **status de jornada**:
-  - **Aguardando primeiro encontro** (cadastrou, sem `attendances`)
-  - **Já participou de encontro** (tem ao menos 1 `attendance`)
-  - **Promovido a membro** (toggle para mostrar histórico — usuários que eram convidados e viraram membros, identificados via `invitations.accepted_by` + role atual `membro`/`facilitador`)
-- Cada card mostra: nome, empresa, foto, grupo de origem, quem convidou, data do convite, encontros que participou.
-- Filtros: busca por nome/empresa, grupo, status.
-- Sem ações (só leitura) — para promover/transferir, segue a porta `/admin/pessoas` (admin/facilitador).
-
-Hook novo: `src/hooks/useGuestsDirectory.ts` — query consolidada (profiles + user_roles + invitations + team_members + attendances).
-
-### 4. Aba "Convidados" na página de Encontros
-
-Conforme pedido, dentro de `/encontros` adicionar uma aba auxiliar mostrando os **convidados confirmados em encontros futuros** organizados por encontro. Estrutura:
-
-```text
-/encontros
-├── Tab "Encontros" (atual, default)
-└── Tab "Convidados em Encontros"
-    └── Para cada encontro futuro com convidado confirmado:
-        - Nome do encontro + data + grupo
-        - Lista de convidados confirmados (nome, empresa, quem convidou)
-```
-
-Visível para admin/facilitador/membro (convidados continuam vendo só sua própria visão).
-
-### 5. Navegação (Sidebar + BottomNav)
-
-Adicionar item "Convidados" no Sidebar para roles `admin`, `facilitador`, `membro`, ícone `UserPlus` ou `Ticket`, rota `/convidados`. Não adicionar ao BottomNav (espaço limitado, usuário acessa via menu lateral).
-
-### 6. Ajustes em `Membros.tsx` e `MembersByTeam`
-
-Já filtra convidados — confirmar e adicionar comentário JSDoc explícito reforçando a regra. Sem alteração de lógica.
-
-### 7. Documentação
-
-- **Atualizar `docs/INVITATION_FLOW.md`**: adicionar seção "Visualização de Convidados" descrevendo as 3 superfícies (Grupos, /convidados, /encontros aba) e quem vê o quê.
-- **Atualizar `docs/USER_FLOWS.md`**: incluir fluxo "Membro consulta base de convidados".
-- **Atualizar `docs/TECHNICAL_DOCUMENTATION.md`**: registrar nova rota `/convidados` e nova aba em `/encontros`.
-- **Criar entrada no `system_changelog`** versão `v3.6.0`, categoria `improvement`:
-  - Separação rigorosa de Convidados, Membros e Facilitadores na página Grupos
-  - Nova página `/convidados` para todos os membros
-  - Nova aba "Convidados em Encontros" em `/encontros`
-  - Documentação atualizada
-
-### 8. Memória do projeto
-
-Atualizar:
-- `mem://access-control/member-directory-visibility-and-branding` — incluir regra "Em /equipes (Grupos), Convidados ficam em seção separada, não misturados com Membros".
-- Criar `mem://features/guests-directory-page` — nova página pública de convidados, regras de acesso, dados expostos.
+| Local | Problema |
+|---|---|
+| `/encontros` aba "Convidados em Encontros" | `useGuestsAttendanceHistory` inclui usuários **promovidos** que entraram como convidados (flag `is_promoted`). Mistura ex-convidados (hoje membros) com convidados ativos. |
+| `/membros` aba "Grupos" (`GruposTab`) | Filtra apenas por `is_facilitator`, não por role. Como convidados estão em `team_members`, aparecem na lista de "Membros" do grupo (com badge "Convidado", mas dentro da seção de membros). |
+| `/admin` (Gestão do Grupo do Facilitador) → aba Grupos → cards de cada grupo | `team.members.map(...)` renderiza tudo junto. Convidados aparecem misturados com membros, sem seção separada. |
+| Banco | `accept_invitation()` insere convidado em `team_members`. Isso é a raiz do problema: convidado fica como "membro do grupo" no banco. |
 
 ---
 
-### Esquema final de visibilidade (após correção)
+## Plano
 
-| Superfície | Quem vê | O que mostra |
-|------------|---------|--------------|
-| `/equipes` (Grupos) | admin, facilitador, membro | 3 seções por grupo: Facilitadores, Membros, Convidados |
-| `/membros` | admin, facilitador, membro | Apenas membros e facilitadores (nunca convidados) |
-| `/convidados` (NOVO) | admin, facilitador, membro | Diretório de todos os convidados ativos da comunidade |
-| `/encontros` aba Convidados (NOVO) | admin, facilitador, membro | Convidados confirmados nos próximos encontros |
-| `/admin/pessoas` aba Convidados | admin, facilitador | Gestão completa: promover, transferir, desativar |
-| `/` (GuestWelcome) | convidado | Eventos do grupo do convite + perfil |
+### 1. Banco — desvincular convidados de `team_members`
 
-### Arquivos afetados
+Convidados **não devem** estar em `team_members`. Para preservar a regra "convidado só vê eventos do grupo de quem o convidou", vamos usar `invitations.team_id` (já existe e já é populado em `accept_invitation`) e o snapshot `metadata.allowed_team_ids` (já existe).
 
-- `src/pages/Equipes.tsx` — refatoração visual (3 seções)
-- `src/hooks/useTeams.ts` — campo `member_type` derivado
-- `src/pages/Convidados.tsx` (novo) — diretório público
-- `src/hooks/useGuestsDirectory.ts` (novo) — query consolidada
-- `src/pages/Encontros.tsx` — adicionar Tabs com aba "Convidados em Encontros"
-- `src/hooks/useMeetings.ts` — exportar helper para listar convidados confirmados em encontros futuros
-- `src/components/layout/Sidebar.tsx` — novo item de menu
-- `src/App.tsx` — rota `/convidados`
-- Migration: `INSERT INTO system_changelog` para v3.6.0
-- `docs/INVITATION_FLOW.md`, `docs/USER_FLOWS.md`, `docs/TECHNICAL_DOCUMENTATION.md`
-- `mem://access-control/member-directory-visibility-and-branding`, `mem://features/guests-directory-page`
+**Migração:**
+1. Remover de `team_members` todos os `user_id` que possuem role `convidado` (sem promoção). Backup garantido pelos campos `invitations.team_id` e `metadata.allowed_team_ids`.
+2. Atualizar a função `accept_invitation()` para **não** mais inserir em `team_members` quando role = `convidado`. Continua atualizando `invitations.team_id` e `metadata.allowed_team_ids`.
+3. Atualizar `transfer_guest_to_team()` para transferir via `invitations.team_id` em vez de `team_members` (já atualiza ambos hoje; passa a operar **só** em invitations para guests).
+4. Atualizar `promote_guest_to_member()`: ao promover, **inserir** em `team_members` (já faz, mas hoje pode estar duplicado). Garantir comportamento.
+5. Atualizar funções que dependem disso:
+   - `calculate_monthly_points_for_team`: a checagem "EXISTS team_members tm" para o convidador continua válida (membro/inviter sempre está em team_members). Não muda.
+   - `handle_guest_attendance_insert`: já filtra por role; sem mudança.
+   - RLS de `team_members` "Facilitadores podem adicionar convidados à sua equipe": **revogar** essa policy de INSERT (não faz mais sentido).
 
+### 2. Hook `useGuestData` / leitura do grupo do convidado
+
+Atualmente o convidado lê seu(s) grupo(s) via `team_members` ou `metadata.allowed_team_ids`. Após a mudança, passa a ler **exclusivamente** via `invitations.team_id` ou `metadata.allowed_team_ids`. Verificar `useGuestData.ts` e ajustar.
+
+### 3. Hook `useTeams` — não retornar convidados
+
+Mudar o hook para **excluir** usuários com role `convidado` do array `team.members`. Como após a migração não haverá mais convidados em `team_members`, o filtro vira defensivo (segurança). O campo derivado `member_type` continua existindo, mas só assumirá valores `facilitator` ou `member`.
+
+### 4. UI — aba "Grupos" em `/membros` (`GruposTab`)
+
+Já passa a receber apenas membros/facilitadores via `useTeams`. Remover lógica de badge "Convidado" (não é mais possível). Renomear contadores para refletir só membros.
+
+### 5. UI — `/admin` "Gestão do Grupo" (Facilitador) — aba Grupos
+
+Refatorar o card de cada grupo para 3 seções separadas (mesmo padrão de `/equipes`):
+- **Facilitadores** (borda âmbar)
+- **Membros** (estilo padrão)
+- **Convidados ativos do grupo** — buscados via novo hook (não de `team_members`):
+  - Convidados cuja `invitations.team_id = team.id`, `status = 'accepted'`, role atual = `convidado`.
+  - Card mostra nome, empresa, avatar, e ações: **Promover a Membro**, **Transferir** (já existem como hooks `usePromoteGuest` / `useTransferGuest`).
+
+Criar hook `useTeamGuests(teamId)` que retorna esses convidados.
+
+### 6. UI — aba "Convidados em Encontros" em `/encontros`
+
+Filtrar `useGuestsAttendanceHistory` para retornar **apenas** convidados ativos (role atual = `convidado`). Remover a inclusão de `cameInAsGuest` para promovidos. Remover badge "promovido".
+
+Manter contato clicável, link "Ver perfil", filtros por grupo/período, busca.
+
+### 7. Documentação e changelog
+
+- Atualizar `docs/INVITATION_FLOW.md`: nova regra "convidado não está em team_members".
+- Atualizar `docs/TECHNICAL_DOCUMENTATION.md` e `docs/USER_FLOWS.md`.
+- Atualizar `mem://features/guest-visibility-snapshots`, `mem://features/guests-directory-page`, `mem://features/invitation-system`.
+- Inserir versão `v3.7.0` em `system_changelog`.
+
+---
+
+## Arquivos afetados
+
+**Backend (migration):**
+- `supabase/migrations/<timestamp>_separate_guests_from_teams.sql`
+  - DELETE de convidados em team_members
+  - UPDATE `accept_invitation()`
+  - UPDATE `transfer_guest_to_team()`
+  - DROP policy "Facilitadores podem adicionar convidados à sua equipe" em team_members
+  - INSERT changelog v3.7.0
+
+**Frontend:**
+- `src/hooks/useTeams.ts` — filtrar role `convidado`
+- `src/hooks/useGuestData.ts` — ler grupo via invitations
+- `src/hooks/useMeetings.ts` — `useGuestsAttendanceHistory` apenas role atual = convidado
+- `src/hooks/useTeamGuests.ts` (novo) — lista convidados de um grupo via invitations
+- `src/pages/Membros.tsx` — `GruposTab` sem lógica de convidado
+- `src/pages/Equipes.tsx` — manter 3 seções, mas agora seção convidados vem de `useTeamGuests`
+- `src/pages/Admin.tsx` — refatorar card de grupo em 3 seções
+- `src/pages/Encontros.tsx` — UI da aba sem badge "promovido"
+
+**Docs/memória:**
+- `docs/INVITATION_FLOW.md`, `docs/TECHNICAL_DOCUMENTATION.md`, `docs/USER_FLOWS.md`
+- `.lovable/memory/features/guests-directory-page.md`
+- `.lovable/memory/features/guest-visibility-snapshots.md`
+- `.lovable/memory/features/invitation-system.md`
+
+---
+
+## Resultado esperado
+
+1. ✅ Aba "Convidados em Encontros" mostra **apenas** convidados ativos (role = convidado).
+2. ✅ Aba "Grupos" em `/membros` lista **apenas** membros e facilitadores.
+3. ✅ "Gestão do Grupo" do facilitador exibe 3 seções claras: Facilitadores, Membros, Convidados (estes vindo de invitations, não de team_members).
+4. ✅ Convidados não estão em `team_members` — só são associados a um grupo via invitation. Ao serem promovidos, são inseridos em `team_members`.

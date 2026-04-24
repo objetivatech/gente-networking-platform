@@ -70,7 +70,10 @@ export function useTeams() {
             role,
             member_type: computeMemberType(!!m.is_facilitator, role),
           };
-        }) || []
+        })
+        // SEGURANÇA: convidados não devem aparecer em team.members.
+        // Após a v3.7.0 isso já é garantido no banco, mas o filtro fica como defesa em profundidade.
+        .filter(m => m.role !== 'convidado') || []
       })) as Team[];
     },
   });

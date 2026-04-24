@@ -140,3 +140,20 @@ Cada participante de um grupo expõe `member_type: 'facilitator' | 'member' | 'g
 - `src/pages/GuestWelcome.tsx` — landing do convidado
 - `src/pages/AuthConfirm.tsx` — processa confirmação de email
 
+
+---
+
+## v3.7.0 — Separação rigorosa Convidado vs Membro
+
+**Regra de negócio:** convidados NÃO pertencem a grupos. O vínculo com o grupo do inviter existe apenas via `invitations.team_id` (e snapshot `metadata.allowed_team_ids`). Só ao serem promovidos a membro entram em `team_members`.
+
+**Mudanças:**
+- `accept_invitation()` não insere mais convidados em `team_members`.
+- `transfer_guest_to_team()` opera apenas em `invitations.team_id`.
+- DELETE retroativo: convidados pré-existentes foram removidos de `team_members`.
+- Policy "Facilitadores podem adicionar convidados à sua equipe" em `team_members` foi revogada.
+
+**UI:**
+- `/encontros` aba "Convidados em Encontros": apenas convidados ativos (role atual = `convidado`).
+- `/membros` aba "Grupos": apenas Membros e Facilitadores.
+- `/admin` Gestão do Grupo: cards com 3 seções separadas (Facilitadores / Membros / Convidados via `useTeamGuests`), com ações Promover a Membro e Transferir Grupo.
