@@ -18,12 +18,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check, RefreshCw } from 'lucide-react';
+import { Loader2, Plus, Settings, Users, Crown, UserPlus, UserMinus, Trash2, UserCog, ArrowUp, Calendar, Check, RefreshCw, Ticket, ArrowRightLeft, UserCheck } from 'lucide-react';
 import AdminCacheDiagnostics from '@/components/AdminCacheDiagnostics';
 import { Navigate } from 'react-router-dom';
 import { format, isFuture, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
+import { useTeamGuests } from '@/hooks/useTeamGuests';
+import { usePromoteGuest } from '@/hooks/usePromoteGuest';
+import { useTransferGuest } from '@/hooks/useTransferGuest';
 
 const TEAM_COLORS = ['#1e3a5f', '#f7941d', '#22c55e', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#3b82f6'];
 
