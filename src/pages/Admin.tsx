@@ -214,8 +214,8 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
         </div>
       </div>
       
-      {/* Seção para registrar presença de convidado */}
-      {upcomingMeetings.length > 0 && (
+      {/* Seção para registrar presença de convidado (somente se for convidado) */}
+      {isGuest && upcomingMeetings.length > 0 && (
         <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
           <Calendar className="w-4 h-4 text-muted-foreground" />
           <Select value={selectedMeeting} onValueChange={setSelectedMeeting}>
@@ -233,8 +233,8 @@ function TeamMemberRow({ member, teamId, isAdmin, toggleFacilitator, removeMembe
               ))}
             </SelectContent>
           </Select>
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             variant="secondary"
             onClick={handleRegisterAttendance}
             disabled={!selectedMeeting || registerGuestAttendance.isPending}
