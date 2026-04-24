@@ -425,24 +425,64 @@ export default function Admin() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    {!team.members?.length ? (
-                      <p className="text-sm text-muted-foreground text-center py-4">Nenhum membro</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {team.members.map((member) => (
-                          <TeamMemberRow 
-                            key={member.id} 
-                            member={member} 
-                            teamId={team.id}
-                            isAdmin={isAdmin}
-                            toggleFacilitator={toggleFacilitator}
-                            removeMember={removeMember}
-                            getInitials={getInitials}
-                          />
-                        ))}
-                      </div>
-                    )}
+                  <CardContent className="space-y-5">
+                    {(() => {
+                      const facilitators = team.members?.filter(m => m.member_type === 'facilitator') || [];
+                      const regularMembers = team.members?.filter(m => m.member_type === 'member') || [];
+
+                      return (
+                        <>
+                          {/* Facilitadores */}
+                          {facilitators.length > 0 && (
+                            <div>
+                              <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+                                <Crown className="w-3.5 h-3.5 text-amber-500" /> Facilitadores ({facilitators.length})
+                              </h4>
+                              <div className="space-y-2">
+                                {facilitators.map(member => (
+                                  <TeamMemberRow
+                                    key={member.id}
+                                    member={member}
+                                    teamId={team.id}
+                                    isAdmin={isAdmin}
+                                    toggleFacilitator={toggleFacilitator}
+                                    removeMember={removeMember}
+                                    getInitials={getInitials}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Membros */}
+                          <div>
+                            <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+                              <UserCheck className="w-3.5 h-3.5 text-blue-500" /> Membros ({regularMembers.length})
+                            </h4>
+                            {regularMembers.length === 0 ? (
+                              <p className="text-sm text-muted-foreground py-2">Nenhum membro neste grupo</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {regularMembers.map(member => (
+                                  <TeamMemberRow
+                                    key={member.id}
+                                    member={member}
+                                    teamId={team.id}
+                                    isAdmin={isAdmin}
+                                    toggleFacilitator={toggleFacilitator}
+                                    removeMember={removeMember}
+                                    getInitials={getInitials}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Convidados (separados — vêm de invitations, não de team_members) */}
+                          <TeamGuestsSection teamId={team.id} teams={teams || []} getInitials={getInitials} />
+                        </>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               ))}
