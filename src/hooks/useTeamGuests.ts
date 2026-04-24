@@ -71,8 +71,9 @@ export function useTeamGuests(teamId: string | null | undefined) {
       const inviterIds = Array.from(new Set(invitations.map(i => i.invited_by).filter(Boolean) as string[]));
       const { data: inviters } = inviterIds.length
         ? await supabaseReadOnly.from('profiles').select('id, full_name').in('id', inviterIds)
-        : { data: [] as any[] };
-      const inviterMap = new Map(inviters?.map((p: any) => [p.id, p.full_name]) || []);
+        : { data: [] as { id: string; full_name: string }[] };
+      const inviterMap = new Map<string, string>();
+      (inviters || []).forEach((p: any) => inviterMap.set(p.id, p.full_name));
 
       return invitations
         .filter(i => i.accepted_by && profMap.has(i.accepted_by))
