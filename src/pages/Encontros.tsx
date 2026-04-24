@@ -364,11 +364,9 @@ function UpcomingGuestsTab() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <p className="font-medium text-sm truncate">{g.full_name}</p>
-                          {g.is_promoted && (
-                            <Badge variant="default" className="bg-emerald-600 text-[10px] h-4 px-1">
-                              <ArrowUpCircle className="w-2.5 h-2.5 mr-0.5" /> membro
-                            </Badge>
-                          )}
+                          <Badge variant="outline" className="border-orange-400 text-orange-700 text-[10px] h-4 px-1">
+                            <Ticket className="w-2.5 h-2.5 mr-0.5" /> convidado
+                          </Badge>
                         </div>
                         {g.company && (
                           <p className="text-xs text-muted-foreground truncate">{g.company}</p>
