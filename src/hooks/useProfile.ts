@@ -82,10 +82,10 @@ export function useProfile() {
         description: 'Perfil atualizado com sucesso',
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: 'Erro',
-        description: 'Erro ao atualizar perfil',
+        description: error?.message || 'Erro ao atualizar perfil',
         variant: 'destructive',
       });
       console.error('Erro ao atualizar perfil:', error);
