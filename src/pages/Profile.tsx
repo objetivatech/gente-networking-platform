@@ -82,7 +82,17 @@ export default function Profile() {
   };
 
   const handleSave = () => {
-    updateProfile(formData as any);
+    // Normaliza strings vazias para null em campos opcionais (evita erro em colunas date/url)
+    const payload: any = { ...formData };
+    const optionalFields = [
+      'company', 'position', 'business_segment', 'phone', 'bio',
+      'linkedin_url', 'instagram_url', 'website_url', 'birthday',
+      'what_i_do', 'ideal_client', 'how_to_refer_me',
+    ];
+    optionalFields.forEach((k) => {
+      if (typeof payload[k] === 'string' && payload[k].trim() === '') payload[k] = null;
+    });
+    updateProfile(payload);
     setIsEditing(false);
   };
 
