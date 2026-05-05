@@ -50,9 +50,24 @@ export function useProfile() {
     mutationFn: async (updates: Partial<Profile>) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      // Safety net: converter strings vazias em null para campos opcionais (evita erro em colunas date/url no Postgres)
+      const cleaned: any = { ...updates };
+      const optionalFields = [
+        'company', 'position', 'business_segment', 'phone', 'bio',
+        'linkedin_url', 'instagram_url', 'website_url', 'birthday',
+        'avatar_url', 'banner_url',
+      ];
+      optionalFields.forEach((k) => {
+        if (typeof cleaned[k] === 'string' && cleaned[k].trim() === '') cleaned[k] = null;
+      });
+      // Campos custom (what_i_do, ideal_client, how_to_refer_me) também
+      ['what_i_do', 'ideal_client', 'how_to_refer_me'].forEach((k) => {
+        if (typeof cleaned[k] === 'string' && cleaned[k].trim() === '') cleaned[k] = null;
+      });
+
       const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(cleaned)
         .eq('id', user.id)
         .select()
         .single();
