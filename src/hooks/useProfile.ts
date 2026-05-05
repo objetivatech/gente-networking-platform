@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizePayload } from '@/lib/form-utils';
 
 export interface Profile {
   id: string;
@@ -50,20 +51,8 @@ export function useProfile() {
     mutationFn: async (updates: Partial<Profile>) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      // Safety net: converter strings vazias em null para campos opcionais (evita erro em colunas date/url no Postgres)
-      const cleaned: any = { ...updates };
-      const optionalFields = [
-        'company', 'position', 'business_segment', 'phone', 'bio',
-        'linkedin_url', 'instagram_url', 'website_url', 'birthday',
-        'avatar_url', 'banner_url',
-      ];
-      optionalFields.forEach((k) => {
-        if (typeof cleaned[k] === 'string' && cleaned[k].trim() === '') cleaned[k] = null;
-      });
-      // Campos custom (what_i_do, ideal_client, how_to_refer_me) também
-      ['what_i_do', 'ideal_client', 'how_to_refer_me'].forEach((k) => {
-        if (typeof cleaned[k] === 'string' && cleaned[k].trim() === '') cleaned[k] = null;
-      });
+      // Sanitização centralizada: trim + strings vazias viram null
+      const cleaned = sanitizePayload(updates);
 
       const { data, error } = await supabase
         .from('profiles')
