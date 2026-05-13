@@ -22,14 +22,30 @@ export default function AuthConfirm() {
     try {
       // Supabase redirects with hash params: #access_token=...&type=signup
       // Or with query params for PKCE: ?code=...
+      // Or with token_hash flow: ?token_hash=...&type=signup (resistente a prefetch de email)
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const type = hashParams.get('type') || searchParams.get('type');
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       const code = searchParams.get('code');
+      const tokenHash = searchParams.get('token_hash');
 
+      // token_hash flow (recomendado): valida o OTP só quando o app chama,
+      // imune a prefetch de antivírus/Outlook/Gmail Safe Links.
+      if (tokenHash && type) {
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: type as 'signup' | 'invite' | 'magiclink' | 'recovery' | 'email_change' | 'email',
+        });
+        if (error) {
+          console.error('verifyOtp failed:', error);
+          setState('expired');
+          setErrorMessage('O link de confirmação expirou ou já foi utilizado. Solicite um novo.');
+          return;
+        }
+      }
       // PKCE flow: exchange code for session
-      if (code) {
+      else if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (error) {
           console.error('Code exchange failed:', error);
