@@ -14,7 +14,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,26 +31,64 @@ export default function RedefinirSenha() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
-  
+  const [verifying, setVerifying] = useState(true);
+  const [linkInvalid, setLinkInvalid] = useState(false);
+
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if we have a valid session from the recovery link
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // No session means invalid or expired link
+    const init = async () => {
+      try {
+        // Suporta token_hash (imune a prefetch), code (PKCE) e tokens no hash (legado)
+        const tokenHash = searchParams.get('token_hash');
+        const type = searchParams.get('type') || 'recovery';
+        const code = searchParams.get('code');
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (tokenHash) {
+          const { error: vErr } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: type as 'recovery',
+          });
+          if (vErr) throw vErr;
+        } else if (code) {
+          const { error: cErr } = await supabase.auth.exchangeCodeForSession(code);
+          if (cErr) throw cErr;
+        } else if (accessToken && refreshToken) {
+          const { error: sErr } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (sErr) throw sErr;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setLinkInvalid(true);
+          toast({
+            title: 'Link inválido',
+            description: 'O link de recuperação expirou ou é inválido. Solicite um novo.',
+            variant: 'destructive',
+          });
+        }
+      } catch (err) {
+        console.error('Recovery link error:', err);
+        setLinkInvalid(true);
         toast({
           title: 'Link inválido',
-          description: 'O link de recuperação expirou ou é inválido. Solicite um novo.',
+          description: 'O link de recuperação expirou ou já foi utilizado. Solicite um novo.',
           variant: 'destructive',
         });
+      } finally {
+        setVerifying(false);
       }
     };
-    
-    checkSession();
-  }, [toast]);
+    init();
+  }, [searchParams, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
