@@ -409,14 +409,25 @@ function UpcomingGuestsTab() {
                           por <span className="text-foreground">{g.invited_by_name}</span>
                         </span>
                       ) : <span />}
-                      {g.slug && (
-                        <Link
-                          to={`/membro/${g.slug}`}
-                          className="text-[11px] text-primary hover:underline flex items-center gap-0.5 shrink-0"
-                        >
-                          Ver perfil <ExternalLink className="w-2.5 h-2.5" />
-                        </Link>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {canMove && (
+                          <MoveGuestButton
+                            guestId={g.id}
+                            guestName={g.full_name}
+                            fromMeetingId={m.meeting_id}
+                            teamId={m.team_id}
+                            allMeetings={meetings || []}
+                          />
+                        )}
+                        {g.slug && (
+                          <Link
+                            to={`/membro/${g.slug}`}
+                            className="text-[11px] text-primary hover:underline flex items-center gap-0.5"
+                          >
+                            Ver perfil <ExternalLink className="w-2.5 h-2.5" />
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
