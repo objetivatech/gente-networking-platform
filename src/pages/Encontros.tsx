@@ -519,3 +519,87 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
     </div>
   );
 }
+
+interface MoveGuestButtonProps {
+  guestId: string;
+  guestName: string;
+  fromMeetingId: string;
+  teamId: string | null;
+  allMeetings: Array<{ id: string; team_id: string | null; title: string; meeting_date: string; meeting_time: string | null }>;
+}
+
+function MoveGuestButton({ guestId, guestName, fromMeetingId, teamId, allMeetings }: MoveGuestButtonProps) {
+  const [open, setOpen] = useState(false);
+  const [targetId, setTargetId] = useState<string>('');
+  const { moveGuestAsync, isMoving } = useMoveGuestAttendance();
+
+  const candidates = useMemo(() => {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    return allMeetings
+      .filter(m =>
+        m.id !== fromMeetingId &&
+        m.team_id === teamId &&
+        parseLocalDate(m.meeting_date).getTime() >= today.getTime()
+      )
+      .sort((a, b) => parseLocalDate(a.meeting_date).getTime() - parseLocalDate(b.meeting_date).getTime());
+  }, [allMeetings, fromMeetingId, teamId]);
+
+  const handleConfirm = async () => {
+    if (!targetId) return;
+    try {
+      await moveGuestAsync({ guestId, fromMeetingId, toMeetingId: targetId });
+      setOpen(false);
+      setTargetId('');
+    } catch { /* toast já tratado */ }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          className="text-[11px] text-orange-700 hover:text-orange-800 flex items-center gap-0.5"
+          title="Mover para outro encontro"
+        >
+          <ArrowRightLeft className="w-3 h-3" /> Mover
+        </button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Mover convidado para outro encontro</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Transferir a presença de <strong className="text-foreground">{guestName}</strong> para outro encontro futuro do mesmo grupo.
+          </p>
+          {candidates.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4 text-center">
+              Não há encontros futuros disponíveis neste grupo. Crie um novo encontro antes de mover o convidado.
+            </p>
+          ) : (
+            <>
+              <Label>Encontro destino</Label>
+              <Select value={targetId} onValueChange={setTargetId}>
+                <SelectTrigger><SelectValue placeholder="Selecione o encontro" /></SelectTrigger>
+                <SelectContent>
+                  {candidates.map(m => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {format(parseLocalDate(m.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
+                      {m.meeting_time ? ` · ${m.meeting_time.slice(0, 5)}` : ''} — {m.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={isMoving}>Cancelar</Button>
+                <Button onClick={handleConfirm} disabled={!targetId || isMoving}>
+                  {isMoving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Mover convidado
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
