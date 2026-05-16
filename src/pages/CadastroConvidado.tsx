@@ -92,22 +92,18 @@ export default function CadastroConvidado() {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('invitations')
-          .select('*')
-          .eq('code', code.toUpperCase())
-          .eq('status', 'pending')
-          .gt('expires_at', new Date().toISOString())
-          .maybeSingle();
+        const { data: rows, error } = await supabase
+          .rpc('get_invitation_by_code', { _code: code });
 
-        console.log('Invitation query result:', { data, error });
+        const data = Array.isArray(rows) && rows.length > 0 ? (rows[0] as any) : null;
+        const isPending = data?.status === 'pending';
+        const notExpired = data?.expires_at ? new Date(data.expires_at) > new Date() : false;
 
         if (error) {
           console.error('Error checking invitation:', error);
           setValid(false);
           setInvitation(null);
-        } else if (data) {
-          console.log('Valid invitation found:', data);
+        } else if (data && isPending && notExpired) {
           setInvitation(data as Invitation);
           setValid(true);
           if (data.name) setFullName(data.name);
