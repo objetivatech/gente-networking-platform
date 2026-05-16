@@ -893,6 +893,14 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
+      move_guest_attendance: {
+        Args: {
+          _from_meeting_id: string
+          _guest_id: string
+          _to_meeting_id: string
+        }
+        Returns: Json
+      }
       promote_guest_to_member: {
         Args: {
           _guest_id: string
