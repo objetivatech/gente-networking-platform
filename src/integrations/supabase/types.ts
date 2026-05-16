@@ -845,6 +845,21 @@ export type Database = {
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
       get_current_year_month: { Args: never; Returns: string }
+      get_invitation_by_code: {
+        Args: { _code: string }
+        Returns: {
+          accepted_at: string
+          accepted_by: string
+          code: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          name: string
+          status: string
+          team_id: string
+        }[]
+      }
       get_monthly_ranking: {
         Args: { _team_id?: string; _year_month?: string }
         Returns: {
