@@ -218,6 +218,9 @@ export default function Encontros() {
 function UpcomingGuestsTab() {
   const { data, isLoading } = useGuestsAttendanceHistory();
   const { teams } = useTeams();
+  const { meetings } = useMeetings();
+  const { data: userRole } = useUserRole();
+  const canMove = userRole === 'admin' || userRole === 'facilitador';
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [periodFilter, setPeriodFilter] = useState<'all' | 'past' | 'upcoming'>('all');
