@@ -157,3 +157,28 @@ Cada participante de um grupo expõe `member_type: 'facilitator' | 'member' | 'g
 - `/encontros` aba "Convidados em Encontros": apenas convidados ativos (role atual = `convidado`).
 - `/membros` aba "Grupos": apenas Membros e Facilitadores.
 - `/admin` Gestão do Grupo: cards com 3 seções separadas (Facilitadores / Membros / Convidados via `useTeamGuests`), com ações Promover a Membro e Transferir Grupo.
+
+---
+
+## v3.8.0 — Mover convidado entre encontros
+
+**Cenário:** convidado já confirmou presença em um encontro, mas não pôde comparecer e ficou alinhado de vir no próximo encontro do mesmo grupo.
+
+**Quem pode:** Admin (qualquer grupo) | Facilitador (apenas convidados de encontros do próprio grupo).
+
+**Restrições de segurança:**
+- O encontro destino precisa ser **hoje ou futuro**.
+- Origem e destino precisam ser do **mesmo grupo** (preserva a fronteira de visibilidade do convidado).
+- O convidado precisa ter role `convidado` (membros não passam por aqui).
+- A presença é **transferida atomicamente**: a antiga é removida e a nova inserida (com `ON CONFLICT DO NOTHING` para evitar duplicação).
+- Triggers existentes (`handle_attendance_insert/delete` e `handle_guest_attendance_insert`) recalculam pontos automaticamente em ambos os meses afetados.
+
+**RPC:** `move_guest_attendance(_guest_id, _from_meeting_id, _to_meeting_id)`.
+
+**UI:** botão `Mover` em cada card de convidado da aba **Convidados em Encontros** (`/encontros`), visível apenas para admin/facilitador. Abre um diálogo com a lista de encontros futuros elegíveis do mesmo grupo.
+
+**Fluxo do convidado:** inalterado — segue confirmando presença apenas em encontros do seu grupo. Nenhuma permissão nova foi concedida ao convidado.
+
+**Arquivos:**
+- `src/hooks/useMoveGuestAttendance.ts` (novo)
+- `src/pages/Encontros.tsx` — componente `MoveGuestButton`
