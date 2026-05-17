@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 /**
  * @page Membros
  * @route /membros
@@ -581,6 +582,7 @@ export default function Membros() {
 
   return (
     <div className="space-y-6">
+      <SEO title="Membros" description="Diretório de membros da comunidade Gente Networking. Conecte-se com profissionais ativos da rede." />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">

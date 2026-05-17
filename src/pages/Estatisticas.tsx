@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useStats, useCommunityStats, useAdminGlobalStats } from '@/hooks/useStats';
 import { useAdmin } from '@/hooks/useAdmin';
@@ -375,6 +376,7 @@ export default function Estatisticas() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <SEO title="Estatísticas" description="KPIs, indicadores e métricas de desempenho da comunidade Gente Networking." />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

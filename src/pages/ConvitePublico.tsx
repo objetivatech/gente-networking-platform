@@ -6,6 +6,7 @@ import { validateInvitation, Invitation } from '@/hooks/useInvitations';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import Footer from '@/components/layout/Footer';
 import logoGente from '@/assets/logo-gente.png';
+import SEO from '@/components/SEO';
 
 export default function ConvitePublico() {
   const { code } = useParams<{ code: string }>();
@@ -46,8 +47,12 @@ export default function ConvitePublico() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
+      <SEO
+        title="Convite para a comunidade"
+        description="Você foi convidado(a) para fazer parte do Gente Networking. Aceite seu convite e comece a fazer conexões valiosas."
+      />
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <main className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
@@ -110,7 +115,7 @@ export default function ConvitePublico() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       {/* Footer */}
       <Footer />

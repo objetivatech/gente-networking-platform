@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMeetings, useMeetingAttendees, useMeetingGuests, useGuestsAttendanceHistory, type GuestAttendanceEntry } from '@/hooks/useMeetings';
@@ -117,6 +118,7 @@ export default function Encontros() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <SEO title="Encontros" description="Agenda de encontros quinzenais da comunidade Gente Networking, com confirmação de presença e convidados." />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

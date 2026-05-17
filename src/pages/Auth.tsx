@@ -38,6 +38,7 @@ import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import logoGente from '@/assets/logo-gente.png';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
+import SEO from '@/components/SEO';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
@@ -273,7 +274,11 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-primary/5 via-background to-secondary/10">
-      <div className="flex-1 flex items-center justify-center p-4">
+      <SEO
+        title="Login e Cadastro"
+        description="Acesse a comunidade Gente Networking. Faça login ou crie sua conta para conectar-se a pessoas e gerar negócios."
+      />
+      <main className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto">
@@ -480,7 +485,7 @@ export default function Auth() {
           </Tabs>
         </CardContent>
         </Card>
-      </div>
+      </main>
 
       {/* Footer de Copyright */}
       <footer className="border-t border-border bg-card py-4 px-4">

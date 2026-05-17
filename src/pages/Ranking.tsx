@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -62,6 +63,7 @@ export default function Ranking() {
 
   return (
     <div className="space-y-6">
+      <SEO title="Ranking" description="Acompanhe o ranking mensal de pontuação por grupo na comunidade Gente Networking." />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
