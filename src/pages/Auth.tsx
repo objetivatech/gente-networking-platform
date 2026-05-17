@@ -485,7 +485,7 @@ export default function Auth() {
           </Tabs>
         </CardContent>
         </Card>
-      </div>
+      </main>
 
       {/* Footer de Copyright */}
       <footer className="border-t border-border bg-card py-4 px-4">
