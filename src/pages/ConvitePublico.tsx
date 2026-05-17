@@ -115,7 +115,7 @@ export default function ConvitePublico() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
 
       {/* Footer */}
       <Footer />
