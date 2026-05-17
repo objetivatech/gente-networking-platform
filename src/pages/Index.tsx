@@ -77,6 +77,10 @@ export default function Index() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <SEO
+        title="Gente Networking - Comunidade de Negócios"
+        description="Acompanhe atividades, encontros, indicações e conexões da comunidade Gente Networking em um só lugar."
+      />
       {/* Boas-vindas */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
