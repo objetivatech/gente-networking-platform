@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 /**
  * @page Membros
  * @route /membros

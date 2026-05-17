@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMeetings, useMeetingAttendees, useMeetingGuests, useGuestsAttendanceHistory, type GuestAttendanceEntry } from '@/hooks/useMeetings';

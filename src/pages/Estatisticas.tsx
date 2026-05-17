@@ -1,3 +1,4 @@
+import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useStats, useCommunityStats, useAdminGlobalStats } from '@/hooks/useStats';
 import { useAdmin } from '@/hooks/useAdmin';
