@@ -375,6 +375,7 @@ export default function Estatisticas() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <SEO title="Estatísticas" description="KPIs, indicadores e métricas de desempenho da comunidade Gente Networking." />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">

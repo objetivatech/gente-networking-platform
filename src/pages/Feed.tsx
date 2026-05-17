@@ -145,6 +145,7 @@ export default function Feed() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <SEO title="Feed de Atividades" description="Acompanhe em tempo real as atividades, indicações e negócios da comunidade Gente Networking." />
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Activity className="h-6 w-6 text-primary" />
