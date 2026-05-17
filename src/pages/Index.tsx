@@ -21,6 +21,7 @@ import RankBadge from '@/components/RankBadge';
 import ActivityFeed from '@/components/ActivityFeed';
 import ScoringRulesCard from '@/components/ScoringRulesCard';
 import GuestWelcome from '@/pages/GuestWelcome';
+import SEO from '@/components/SEO';
 import {
   Handshake,
   MessageSquare,
