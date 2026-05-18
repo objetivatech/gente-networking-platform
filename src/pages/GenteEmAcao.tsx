@@ -173,22 +173,28 @@ export default function GenteEmAcao() {
     try {
       setUploading(true);
       const compressedBlob = await compressImage(imageFile);
-      const fileName = `${user.id}/${Date.now()}.jpg`;
+      // Path precisa começar com o user.id para satisfazer a RLS do bucket
+      // (storage.foldername(name))[1] = auth.uid()::text
+      const objectPath = `${user.id}/${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
-        .from('avatars') // Usando bucket existente
-        .upload(`gente-em-acao/${fileName}`, compressedBlob, {
+        .from('gente-em-acao')
+        .upload(objectPath, compressedBlob, {
           contentType: 'image/jpeg',
           upsert: true,
         });
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(`gente-em-acao/${fileName}`);
+      const { data } = supabase.storage.from('gente-em-acao').getPublicUrl(objectPath);
       return data.publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao fazer upload:', error);
-      toast({ title: 'Erro', description: 'Falha ao fazer upload da imagem', variant: 'destructive' });
+      toast({
+        title: 'Erro',
+        description: error?.message || 'Falha ao fazer upload da imagem',
+        variant: 'destructive',
+      });
       return null;
     } finally {
       setUploading(false);

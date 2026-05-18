@@ -12,7 +12,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useLocation } from 'react-router-dom';
 
-const BASE_URL = 'https://comunidadegente.lovable.app';
+const BASE_URL = 'https://comunidade.gentenetworking.com.br';
 
 interface SEOProps {
   title: string;

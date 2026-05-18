@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://comunidadegente.lovable.app/sitemap.xml
+Sitemap: https://comunidade.gentenetworking.com.br/sitemap.xml
