@@ -179,6 +179,22 @@ Cada participante de um grupo expõe `member_type: 'facilitator' | 'member' | 'g
 
 **Fluxo do convidado:** inalterado — segue confirmando presença apenas em encontros do seu grupo. Nenhuma permissão nova foi concedida ao convidado.
 
+---
+
+## v3.9.0 — Diretório de convidados via RPC segura + matriz de permissões
+
+**Bug corrigido:** após a v3.7.0, membros comuns deixaram de ver o diretório de convidados em `/convidados`. Causa: o hook montava a listagem lendo `invitations` direto, mas a RLS dessa tabela só permite leitura para admins ou o próprio criador do convite.
+
+**Solução:**
+- Nova RPC `public.get_guests_directory()` (`SECURITY DEFINER`) valida explicitamente a role do chamador. Permite `admin`, `facilitador`, `membro`. Bloqueia `convidado` e usuários sem role válida. Retorna apenas dados necessários — sem expor `code`, `metadata`, `expires_at` ou outros campos sensíveis de `invitations`.
+- `useGuestsDirectory` passa a chamar essa RPC em vez de consultar a tabela diretamente.
+
+**Proteção contra regressões:**
+- Matriz central de permissões em `src/lib/access-control.ts`: `canViewGuestsDirectory`, `canManageGuests`, `canViewMembersDirectory`, `canAccessAdminArea`, `isAdminOnly`.
+- Testes Vitest em `src/lib/__tests__/access-control.test.ts` e `src/hooks/__tests__/useGuestsDirectory.test.ts` garantem que mudanças futuras não reintroduzam o bug. Rodar: `bun run test`.
+
+**Visibilidade resultante de `/convidados`:** admin, facilitador e membro veem. Convidado é redirecionado para `/`.
+
 **Arquivos:**
 - `src/hooks/useMoveGuestAttendance.ts` (novo)
 - `src/pages/Encontros.tsx` — componente `MoveGuestButton`
