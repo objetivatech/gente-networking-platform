@@ -28,6 +28,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
+import { canViewGuestsDirectory } from '@/lib/access-control';
 import { Button } from '@/components/ui/button';
 import logoGente from '@/assets/logo-gente.png';
 
