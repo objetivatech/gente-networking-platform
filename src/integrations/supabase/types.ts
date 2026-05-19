@@ -845,6 +845,28 @@ export type Database = {
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
       get_current_year_month: { Args: never; Returns: string }
+      get_guests_directory: {
+        Args: never
+        Returns: {
+          attendance_count: number
+          avatar_url: string
+          business_segment: string
+          company: string
+          email: string
+          full_name: string
+          id: string
+          invited_at: string
+          invited_by_id: string
+          invited_by_name: string
+          phone: string
+          role_current: Database["public"]["Enums"]["app_role"]
+          slug: string
+          status: string
+          team_color: string
+          team_id: string
+          team_name: string
+        }[]
+      }
       get_invitation_by_code: {
         Args: { _code: string }
         Returns: {

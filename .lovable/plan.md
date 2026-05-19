@@ -1,105 +1,99 @@
-## Objetivo
+## Diagnóstico
 
-Garantir separação rigorosa entre **Membros** e **Convidados** em toda a UI, e refletir no banco a regra de negócio: **convidados não pertencem a grupo algum** — apenas são vinculados a encontros específicos via `attendances`. Só após promoção a membro é que entram em `team_members`.
+O problema não está na rota `/convidados` nem no menu: ambos já permitem `admin`, `facilitador` e `membro`.
 
----
+O bloqueio provável está no hook `src/hooks/useGuestsDirectory.ts`:
 
-## Diagnóstico atual
+- A página busca convidados começando por `invitations`.
+- Após a mudança v3.7.0, convidados deixaram de estar em `team_members` e o vínculo com grupo passou a existir em `invitations.team_id`.
+- Porém as policies atuais de `invitations` permitem leitura apenas para:
+  - admin;
+  - usuário que criou o convite (`invited_by`).
+- Portanto um membro comum autenticado não consegue ler os convites aceitos da comunidade e o diretório fica vazio/incompleto para ele.
 
-| Local | Problema |
-|---|---|
-| `/encontros` aba "Convidados em Encontros" | `useGuestsAttendanceHistory` inclui usuários **promovidos** que entraram como convidados (flag `is_promoted`). Mistura ex-convidados (hoje membros) com convidados ativos. |
-| `/membros` aba "Grupos" (`GruposTab`) | Filtra apenas por `is_facilitator`, não por role. Como convidados estão em `team_members`, aparecem na lista de "Membros" do grupo (com badge "Convidado", mas dentro da seção de membros). |
-| `/admin` (Gestão do Grupo do Facilitador) → aba Grupos → cards de cada grupo | `team.members.map(...)` renderiza tudo junto. Convidados aparecem misturados com membros, sem seção separada. |
-| Banco | `accept_invitation()` insere convidado em `team_members`. Isso é a raiz do problema: convidado fica como "membro do grupo" no banco. |
+A regra correta é: `admin`, `facilitador` e `membro` podem ver o diretório de convidados; `convidado` não pode.
 
----
+## Plano de correção
 
-## Plano
+### 1. Corrigir a origem de dados do diretório de convidados
 
-### 1. Banco — desvincular convidados de `team_members`
+Criar uma RPC segura no Supabase, por exemplo `public.get_guests_directory()`, com `SECURITY DEFINER` e checagem explícita de role:
 
-Convidados **não devem** estar em `team_members`. Para preservar a regra "convidado só vê eventos do grupo de quem o convidou", vamos usar `invitations.team_id` (já existe e já é populado em `accept_invitation`) e o snapshot `metadata.allowed_team_ids` (já existe).
+- Permitir execução apenas para usuários autenticados com role `admin`, `facilitador` ou `membro`.
+- Bloquear role `convidado` e usuários sem role válida.
+- Retornar somente os campos que a tela precisa:
+  - dados públicos/operacionais do convidado;
+  - status da jornada;
+  - grupo vindo de `invitations.team_id`;
+  - quem convidou;
+  - contagem de presenças.
+- Não expor `code`, `metadata`, `expires_at` e outros campos internos/sensíveis de `invitations`.
 
-**Migração:**
-1. Remover de `team_members` todos os `user_id` que possuem role `convidado` (sem promoção). Backup garantido pelos campos `invitations.team_id` e `metadata.allowed_team_ids`.
-2. Atualizar a função `accept_invitation()` para **não** mais inserir em `team_members` quando role = `convidado`. Continua atualizando `invitations.team_id` e `metadata.allowed_team_ids`.
-3. Atualizar `transfer_guest_to_team()` para transferir via `invitations.team_id` em vez de `team_members` (já atualiza ambos hoje; passa a operar **só** em invitations para guests).
-4. Atualizar `promote_guest_to_member()`: ao promover, **inserir** em `team_members` (já faz, mas hoje pode estar duplicado). Garantir comportamento.
-5. Atualizar funções que dependem disso:
-   - `calculate_monthly_points_for_team`: a checagem "EXISTS team_members tm" para o convidador continua válida (membro/inviter sempre está em team_members). Não muda.
-   - `handle_guest_attendance_insert`: já filtra por role; sem mudança.
-   - RLS de `team_members` "Facilitadores podem adicionar convidados à sua equipe": **revogar** essa policy de INSERT (não faz mais sentido).
+Isso corrige o bug sem abrir a tabela `invitations` inteira para todos os membros.
 
-### 2. Hook `useGuestData` / leitura do grupo do convidado
+### 2. Atualizar `useGuestsDirectory`
 
-Atualmente o convidado lê seu(s) grupo(s) via `team_members` ou `metadata.allowed_team_ids`. Após a mudança, passa a ler **exclusivamente** via `invitations.team_id` ou `metadata.allowed_team_ids`. Verificar `useGuestData.ts` e ajustar.
+Trocar a montagem manual atual por chamada à RPC:
 
-### 3. Hook `useTeams` — não retornar convidados
+- `supabase.rpc('get_guests_directory')`.
+- Manter o mesmo contrato TypeScript (`GuestDirectoryEntry`) para não quebrar `src/pages/Convidados.tsx`.
+- Preservar a regra de status:
+  - `awaiting_first` quando ainda não participou;
+  - `attended` quando já participou;
+  - `promoted` quando deixou de ser `convidado`.
+- Garantir que o filtro por grupo use `invitations.team_id`, não `team_members`.
 
-Mudar o hook para **excluir** usuários com role `convidado` do array `team.members`. Como após a migração não haverá mais convidados em `team_members`, o filtro vira defensivo (segurança). O campo derivado `member_type` continua existindo, mas só assumirá valores `facilitator` ou `member`.
+### 3. Garantir bloqueio explícito para convidados
 
-### 4. UI — aba "Grupos" em `/membros` (`GruposTab`)
+Manter o redirecionamento em `src/pages/Convidados.tsx`, mas fortalecer a lógica para aguardar carregamento de role antes de concluir vazio/sem acesso.
 
-Já passa a receber apenas membros/facilitadores via `useTeams`. Remover lógica de badge "Convidado" (não é mais possível). Renomear contadores para refletir só membros.
+A proteção real ficará no banco pela RPC; a UI continua apenas como camada de experiência.
 
-### 5. UI — `/admin` "Gestão do Grupo" (Facilitador) — aba Grupos
+### 4. Criar proteção contra regressões
 
-Refatorar o card de cada grupo para 3 seções separadas (mesmo padrão de `/equipes`):
-- **Facilitadores** (borda âmbar)
-- **Membros** (estilo padrão)
-- **Convidados ativos do grupo** — buscados via novo hook (não de `team_members`):
-  - Convidados cuja `invitations.team_id = team.id`, `status = 'accepted'`, role atual = `convidado`.
-  - Card mostra nome, empresa, avatar, e ações: **Promover a Membro**, **Transferir** (já existem como hooks `usePromoteGuest` / `useTransferGuest`).
+Adicionar uma camada simples e permanente de manutenção para evitar que alterações futuras quebrem permissões críticas:
 
-Criar hook `useTeamGuests(teamId)` que retorna esses convidados.
+- Criar um arquivo central de matriz de permissões, por exemplo `src/lib/access-control.ts`, com regras nomeadas:
+  - `canViewGuestsDirectory(role)`;
+  - `canManageGuests(role)`;
+  - outras regras já usadas em menus/rotas podem migrar gradualmente para esse padrão.
+- Usar essa regra no menu e na página de convidados, evitando permissões duplicadas espalhadas.
+- Adicionar testes automatizados focados nas regras críticas de acesso, com Vitest:
+  - `admin` vê diretório de convidados;
+  - `facilitador` vê diretório de convidados;
+  - `membro` vê diretório de convidados;
+  - `convidado` não vê diretório de convidados;
+  - role nula/indefinida não vê diretório protegido.
 
-### 6. UI — aba "Convidados em Encontros" em `/encontros`
+### 5. Adicionar uma verificação de regressão para o hook
 
-Filtrar `useGuestsAttendanceHistory` para retornar **apenas** convidados ativos (role atual = `convidado`). Remover a inclusão de `cameInAsGuest` para promovidos. Remover badge "promovido".
+Adicionar teste unitário do hook/serviço de diretório, mockando o Supabase:
 
-Manter contato clicável, link "Ver perfil", filtros por grupo/período, busca.
+- Deve chamar a RPC `get_guests_directory`.
+- Não deve voltar a consultar `invitations` diretamente no frontend para montar o diretório.
 
-### 7. Documentação e changelog
+Isso protege exatamente contra o tipo de bug ocorrido: uma mudança estrutural no banco quebrar uma tela por dependência indevida de RLS.
 
-- Atualizar `docs/INVITATION_FLOW.md`: nova regra "convidado não está em team_members".
-- Atualizar `docs/TECHNICAL_DOCUMENTATION.md` e `docs/USER_FLOWS.md`.
-- Atualizar `mem://features/guest-visibility-snapshots`, `mem://features/guests-directory-page`, `mem://features/invitation-system`.
-- Inserir versão `v3.7.0` em `system_changelog`.
+### 6. Atualizar documentação
 
----
+Atualizar os documentos pertinentes:
 
-## Arquivos afetados
+- `docs/INVITATION_FLOW.md`: registrar que `/convidados` usa RPC segura e é visível para `admin`, `facilitador`, `membro`.
+- `docs/TECHNICAL_DOCUMENTATION.md`: documentar a matriz de acesso e o teste de regressão.
+- Memória do projeto relacionada a convidados, para preservar a regra em futuras alterações.
 
-**Backend (migration):**
-- `supabase/migrations/<timestamp>_separate_guests_from_teams.sql`
-  - DELETE de convidados em team_members
-  - UPDATE `accept_invitation()`
-  - UPDATE `transfer_guest_to_team()`
-  - DROP policy "Facilitadores podem adicionar convidados à sua equipe" em team_members
-  - INSERT changelog v3.7.0
+### 7. Validação final
 
-**Frontend:**
-- `src/hooks/useTeams.ts` — filtrar role `convidado`
-- `src/hooks/useGuestData.ts` — ler grupo via invitations
-- `src/hooks/useMeetings.ts` — `useGuestsAttendanceHistory` apenas role atual = convidado
-- `src/hooks/useTeamGuests.ts` (novo) — lista convidados de um grupo via invitations
-- `src/pages/Membros.tsx` — `GruposTab` sem lógica de convidado
-- `src/pages/Equipes.tsx` — manter 3 seções, mas agora seção convidados vem de `useTeamGuests`
-- `src/pages/Admin.tsx` — refatorar card de grupo em 3 seções
-- `src/pages/Encontros.tsx` — UI da aba sem badge "promovido"
+Depois da implementação:
 
-**Docs/memória:**
-- `docs/INVITATION_FLOW.md`, `docs/TECHNICAL_DOCUMENTATION.md`, `docs/USER_FLOWS.md`
-- `.lovable/memory/features/guests-directory-page.md`
-- `.lovable/memory/features/guest-visibility-snapshots.md`
-- `.lovable/memory/features/invitation-system.md`
-
----
+- Executar teste focado de permissões/regressão.
+- Rodar linter/checagem aplicável ao Supabase se disponível.
+- Validar que `/convidados` continua bloqueado para `convidado` e disponível para `membro`, `facilitador`, `admin`.
 
 ## Resultado esperado
 
-1. ✅ Aba "Convidados em Encontros" mostra **apenas** convidados ativos (role = convidado).
-2. ✅ Aba "Grupos" em `/membros` lista **apenas** membros e facilitadores.
-3. ✅ "Gestão do Grupo" do facilitador exibe 3 seções claras: Facilitadores, Membros, Convidados (estes vindo de invitations, não de team_members).
-4. ✅ Convidados não estão em `team_members` — só são associados a um grupo via invitation. Ao serem promovidos, são inseridos em `team_members`.
+- Membros voltam a ver a listagem de convidados.
+- Facilitadores e admins continuam vendo normalmente.
+- Convidados seguem bloqueados.
+- O diretório passa a depender de uma interface segura e estável no banco, não de leitura direta de uma tabela sensível.
+- Haverá testes e matriz de permissões para reduzir regressões em futuras alterações.
