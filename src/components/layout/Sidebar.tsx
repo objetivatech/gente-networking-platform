@@ -28,7 +28,6 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
-import { canViewGuestsDirectory } from '@/lib/access-control';
 import { Button } from '@/components/ui/button';
 import logoGente from '@/assets/logo-gente.png';
 
@@ -44,7 +43,7 @@ const menuItems = [
   { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro'] },
   { icon: User, label: 'Meu Perfil', path: '/perfil', roles: undefined },
   { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
-  { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] as const, _guard: canViewGuestsDirectory },
+  { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'] },
   { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Trophy, label: 'Ranking', path: '/ranking', roles: ['admin', 'facilitador', 'membro'] },
