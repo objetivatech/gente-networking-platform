@@ -14,6 +14,7 @@ import {
   canViewMembersDirectory,
   canAccessAdminArea,
   isAdminOnly,
+  canDowngradeMember,
 } from '../access-control';
 
 describe('access-control: diretório de convidados (/convidados)', () => {
