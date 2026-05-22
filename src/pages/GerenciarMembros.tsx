@@ -326,20 +326,36 @@ export default function GerenciarMembros() {
           )}
         </div>
       </div>
-      <div>
+      <div className="flex flex-col sm:flex-row gap-2">
         {showDeactivateBtn ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => {
-              setSelectedMember(member);
-              setShowDeactivateDialog(true);
-            }}
-          >
-            <UserX className="h-4 w-4 mr-1" />
-            Desativar
-          </Button>
+          <>
+            {(member.role === 'membro' || member.role === 'facilitador') && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-amber-600 hover:text-amber-700 border-amber-300"
+                onClick={() => {
+                  setSelectedMember(member);
+                  setShowDowngradeDialog(true);
+                }}
+              >
+                <UserMinus className="h-4 w-4 mr-1" />
+                Tornar Convidado
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => {
+                setSelectedMember(member);
+                setShowDeactivateDialog(true);
+              }}
+            >
+              <UserX className="h-4 w-4 mr-1" />
+              Desativar
+            </Button>
+          </>
         ) : (
           <Button
             variant="outline"
