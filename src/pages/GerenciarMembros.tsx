@@ -67,7 +67,9 @@ export default function GerenciarMembros() {
   const [selectedMember, setSelectedMember] = useState<MemberData | null>(null);
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
   const [deactivationReason, setDeactivationReason] = useState('');
+  const [downgradeReason, setDowngradeReason] = useState('');
 
   // Buscar todos os membros (ativos e inativos)
   const { data: members, isLoading } = useQuery({
