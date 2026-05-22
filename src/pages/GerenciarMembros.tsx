@@ -270,6 +270,14 @@ export default function GerenciarMembros() {
     activateMutation.mutate(selectedMember.id);
   };
 
+  const handleDowngrade = () => {
+    if (!selectedMember) return;
+    downgradeMutation.mutate({
+      memberId: selectedMember.id,
+      reason: downgradeReason,
+    });
+  };
+
   const MemberRow = ({ member, showDeactivateBtn }: { member: MemberData; showDeactivateBtn: boolean }) => (
     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
       <div className="flex items-center gap-4">
