@@ -188,7 +188,44 @@ export default function GerenciarMembros() {
     },
   });
 
-  // Apenas admins podem acessar
+  // Mutation para downgrade: membro -> convidado (preserva histórico)
+  const downgradeMutation = useMutation({
+    mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) => {
+      const { data, error } = await (supabase.rpc as any)('downgrade_member_to_guest', {
+        _member_id: memberId,
+        _reason: reason || null,
+      });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string; previous_role?: string; previous_team_id?: string | null; teams_removed?: number } | null;
+      if (result && !result.success) {
+        throw new Error(result.error || 'Erro ao rebaixar membro');
+      }
+      return result;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+      queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['guests-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-ranking'] });
+      toast({
+        title: 'Membro rebaixado para convidado',
+        description: `Acesso reduzido. Histórico preservado. Removido de ${data?.teams_removed || 0} grupo(s).`,
+      });
+      setShowDowngradeDialog(false);
+      setSelectedMember(null);
+      setDowngradeReason('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível rebaixar o membro.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+
   if (!isLoadingRole && !isAdmin) {
     return <Navigate to="/" replace />;
   }
