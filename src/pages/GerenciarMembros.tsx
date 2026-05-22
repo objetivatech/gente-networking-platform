@@ -33,6 +33,7 @@ import {
   Users, 
   UserX, 
   UserCheck, 
+  UserMinus,
   Search, 
   Mail,
   Phone,
