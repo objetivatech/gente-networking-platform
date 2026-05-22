@@ -556,6 +556,50 @@ export default function GerenciarMembros() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Downgrade para Convidado */}
+      <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserMinus className="h-5 w-5 text-amber-600" />
+              Tornar Convidado
+            </DialogTitle>
+            <DialogDescription>
+              <strong>{selectedMember?.full_name}</strong> será removido(a) do grupo e perderá
+              o acesso de membro, voltando a ser convidado(a). Todo o histórico
+              (pontos, presenças, indicações, depoimentos, negócios, cases) será preservado
+              e ele(a) poderá ser promovido(a) novamente no futuro pela tela de Convidados.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="downgrade-reason">Motivo (opcional)</Label>
+              <Textarea
+                id="downgrade-reason"
+                placeholder="Ex: Pediu para sair, pausa temporária..."
+                value={downgradeReason}
+                onChange={(e) => setDowngradeReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDowngradeDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDowngrade}
+              disabled={downgradeMutation.isPending}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {downgradeMutation.isPending ? 'Aplicando...' : 'Confirmar downgrade'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
