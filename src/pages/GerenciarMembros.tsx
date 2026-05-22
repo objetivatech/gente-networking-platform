@@ -33,6 +33,7 @@ import {
   Users, 
   UserX, 
   UserCheck, 
+  UserMinus,
   Search, 
   Mail,
   Phone,
@@ -66,7 +67,9 @@ export default function GerenciarMembros() {
   const [selectedMember, setSelectedMember] = useState<MemberData | null>(null);
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
+  const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
   const [deactivationReason, setDeactivationReason] = useState('');
+  const [downgradeReason, setDowngradeReason] = useState('');
 
   // Buscar todos os membros (ativos e inativos)
   const { data: members, isLoading } = useQuery({
@@ -185,7 +188,44 @@ export default function GerenciarMembros() {
     },
   });
 
-  // Apenas admins podem acessar
+  // Mutation para downgrade: membro -> convidado (preserva histórico)
+  const downgradeMutation = useMutation({
+    mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) => {
+      const { data, error } = await (supabase.rpc as any)('downgrade_member_to_guest', {
+        _member_id: memberId,
+        _reason: reason || null,
+      });
+      if (error) throw error;
+      const result = data as { success: boolean; error?: string; previous_role?: string; previous_team_id?: string | null; teams_removed?: number } | null;
+      if (result && !result.success) {
+        throw new Error(result.error || 'Erro ao rebaixar membro');
+      }
+      return result;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-members'] });
+      queryClient.invalidateQueries({ queryKey: ['members-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['guests-directory'] });
+      queryClient.invalidateQueries({ queryKey: ['teams'] });
+      queryClient.invalidateQueries({ queryKey: ['monthly-ranking'] });
+      toast({
+        title: 'Membro rebaixado para convidado',
+        description: `Acesso reduzido. Histórico preservado. Removido de ${data?.teams_removed || 0} grupo(s).`,
+      });
+      setShowDowngradeDialog(false);
+      setSelectedMember(null);
+      setDowngradeReason('');
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Não foi possível rebaixar o membro.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+
   if (!isLoadingRole && !isAdmin) {
     return <Navigate to="/" replace />;
   }
@@ -228,6 +268,14 @@ export default function GerenciarMembros() {
   const handleActivate = () => {
     if (!selectedMember) return;
     activateMutation.mutate(selectedMember.id);
+  };
+
+  const handleDowngrade = () => {
+    if (!selectedMember) return;
+    downgradeMutation.mutate({
+      memberId: selectedMember.id,
+      reason: downgradeReason,
+    });
   };
 
   const MemberRow = ({ member, showDeactivateBtn }: { member: MemberData; showDeactivateBtn: boolean }) => (
@@ -278,20 +326,36 @@ export default function GerenciarMembros() {
           )}
         </div>
       </div>
-      <div>
+      <div className="flex flex-col sm:flex-row gap-2">
         {showDeactivateBtn ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => {
-              setSelectedMember(member);
-              setShowDeactivateDialog(true);
-            }}
-          >
-            <UserX className="h-4 w-4 mr-1" />
-            Desativar
-          </Button>
+          <>
+            {(member.role === 'membro' || member.role === 'facilitador') && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-amber-600 hover:text-amber-700 border-amber-300"
+                onClick={() => {
+                  setSelectedMember(member);
+                  setShowDowngradeDialog(true);
+                }}
+              >
+                <UserMinus className="h-4 w-4 mr-1" />
+                Tornar Convidado
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => {
+                setSelectedMember(member);
+                setShowDeactivateDialog(true);
+              }}
+            >
+              <UserX className="h-4 w-4 mr-1" />
+              Desativar
+            </Button>
+          </>
         ) : (
           <Button
             variant="outline"
@@ -488,6 +552,50 @@ export default function GerenciarMembros() {
               className="bg-green-600 hover:bg-green-700"
             >
               {activateMutation.isPending ? 'Reativando...' : 'Reativar Membro'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Downgrade para Convidado */}
+      <Dialog open={showDowngradeDialog} onOpenChange={setShowDowngradeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserMinus className="h-5 w-5 text-amber-600" />
+              Tornar Convidado
+            </DialogTitle>
+            <DialogDescription>
+              <strong>{selectedMember?.full_name}</strong> será removido(a) do grupo e perderá
+              o acesso de membro, voltando a ser convidado(a). Todo o histórico
+              (pontos, presenças, indicações, depoimentos, negócios, cases) será preservado
+              e ele(a) poderá ser promovido(a) novamente no futuro pela tela de Convidados.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="downgrade-reason">Motivo (opcional)</Label>
+              <Textarea
+                id="downgrade-reason"
+                placeholder="Ex: Pediu para sair, pausa temporária..."
+                value={downgradeReason}
+                onChange={(e) => setDowngradeReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDowngradeDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDowngrade}
+              disabled={downgradeMutation.isPending}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {downgradeMutation.isPending ? 'Aplicando...' : 'Confirmar downgrade'}
             </Button>
           </DialogFooter>
         </DialogContent>

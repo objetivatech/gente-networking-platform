@@ -35,3 +35,9 @@ export const canAccessAdminArea = (role: AppRole): boolean =>
 
 /** Quem pode acessar áreas exclusivas do admin. */
 export const isAdminOnly = (role: AppRole): boolean => role === 'admin';
+
+/**
+ * Quem pode rebaixar um membro para convidado (saída do Gente preservando histórico).
+ * Apenas admin. Facilitadores e membros NÃO podem.
+ */
+export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';

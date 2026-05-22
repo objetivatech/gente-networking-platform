@@ -840,6 +840,10 @@ export type Database = {
         Args: { _member_id: string; _reason?: string }
         Returns: Json
       }
+      downgrade_member_to_guest: {
+        Args: { _member_id: string; _reason?: string }
+        Returns: Json
+      }
       generate_slug: { Args: { name: string }; Returns: string }
       generate_unique_slug:
         | { Args: { name: string; user_id: string }; Returns: string }

@@ -198,3 +198,24 @@ Cada participante de um grupo expõe `member_type: 'facilitator' | 'member' | 'g
 **Arquivos:**
 - `src/hooks/useMoveGuestAttendance.ts` (novo)
 - `src/pages/Encontros.tsx` — componente `MoveGuestButton`
+
+---
+
+## Downgrade de membro para convidado (v3.10.0)
+
+Quando um membro pede saída do Gente, o admin pode rebaixá-lo a convidado em vez de desativar, preservando todo o histórico.
+
+**RPC:** `downgrade_member_to_guest(_member_id uuid, _reason text)` — admin-only, `SECURITY DEFINER`.
+
+**Efeitos:**
+- Remove o usuário de todos os grupos (`team_members`).
+- Substitui a role atual (`membro` ou `facilitador`) por `convidado`.
+- Garante registro em `invitations` (atualiza o existente ou cria sintético) com snapshot em `metadata`: `downgraded_at`, `downgrade_reason`, `previous_role`, `allowed_team_ids`.
+- Recalcula `monthly_points` do mês corrente (vira 0 — sem grupo ativo).
+- Histórico preservado: pontos passados, presenças, indicações, depoimentos, negócios, cases e Gente em Ação ficam intactos.
+
+**Retorno:** quando o ex-membro voltar, usar `promote_guest_to_member(_guest_id, 'membro', _team_id)` na tela `/convidados`.
+
+**UI:** botão "Tornar Convidado" (cor âmbar) em `/admin/membros`, aba Ativos, visível apenas para linhas com role `membro` ou `facilitador`.
+
+**Acesso:** `canDowngradeMember(role)` em `src/lib/access-control.ts` — apenas `admin`. Coberto por testes de regressão.

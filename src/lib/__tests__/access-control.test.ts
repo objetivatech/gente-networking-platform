@@ -14,6 +14,7 @@ import {
   canViewMembersDirectory,
   canAccessAdminArea,
   isAdminOnly,
+  canDowngradeMember,
 } from '../access-control';
 
 describe('access-control: diretório de convidados (/convidados)', () => {
@@ -53,5 +54,16 @@ describe('access-control: áreas administrativas', () => {
     expect(isAdminOnly('membro')).toBe(false);
     expect(isAdminOnly('convidado')).toBe(false);
     expect(isAdminOnly(null)).toBe(false);
+});
+
+describe('access-control: downgrade de membro para convidado', () => {
+  it('apenas admin pode rebaixar', () => {
+    expect(canDowngradeMember('admin')).toBe(true);
+    expect(canDowngradeMember('facilitador')).toBe(false);
+    expect(canDowngradeMember('membro')).toBe(false);
+    expect(canDowngradeMember('convidado')).toBe(false);
+    expect(canDowngradeMember(null)).toBe(false);
+    expect(canDowngradeMember(undefined)).toBe(false);
   });
+});
 });

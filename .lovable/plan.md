@@ -1,99 +1,93 @@
-## Diagnóstico
+## Objetivo
 
-O problema não está na rota `/convidados` nem no menu: ambos já permitem `admin`, `facilitador` e `membro`.
+Permitir que um admin faça o **downgrade seguro de um membro para convidado** quando ele pede saída do Gente, preservando todo o histórico (pontos, presenças, indicações, depoimentos, negócios, cases, Gente em Ação) e removendo-o do grupo, sem quebrar nenhuma feature existente.
 
-O bloqueio provável está no hook `src/hooks/useGuestsDirectory.ts`:
+## Diagnóstico do estado atual
 
-- A página busca convidados começando por `invitations`.
-- Após a mudança v3.7.0, convidados deixaram de estar em `team_members` e o vínculo com grupo passou a existir em `invitations.team_id`.
-- Porém as policies atuais de `invitations` permitem leitura apenas para:
-  - admin;
-  - usuário que criou o convite (`invited_by`).
-- Portanto um membro comum autenticado não consegue ler os convites aceitos da comunidade e o diretório fica vazio/incompleto para ele.
+- `deactivate_member` (admin-only) já existe: remove de `team_members` e marca `is_active=false`. Isso **esconde** o membro, mas mantém role original — não é downgrade.
+- `promote_guest_to_member` já existe e troca roles com segurança, mas só faz upgrade (convidado → membro/facilitador).
+- Convidados são vinculados ao grupo via `invitations.team_id` (não em `team_members`), conforme regra v3.7.0.
+- Pontuação atual do mês é recalculada por `update_all_monthly_points_for_user`, que itera por `team_members`. Se removermos o membro de `team_members`, o recálculo do mês corrente passa a render 0 — correto para o futuro, mas precisamos preservar o histórico já gravado em `monthly_points` e `points_history` (são imutáveis por RLS, então estão seguros).
+- Convidados não pontuam pelo `calculate_user_points` (retorna 0 para role `convidado`? não — só bloqueia admin/facilitador). Pontos passados em `monthly_points` permanecem visíveis no ranking histórico.
 
-A regra correta é: `admin`, `facilitador` e `membro` podem ver o diretório de convidados; `convidado` não pode.
+## Plano
 
-## Plano de correção
+### 1. Nova RPC `downgrade_member_to_guest(_member_id, _reason)`
 
-### 1. Corrigir a origem de dados do diretório de convidados
+`SECURITY DEFINER`, admin-only. Em uma única transação:
 
-Criar uma RPC segura no Supabase, por exemplo `public.get_guests_directory()`, com `SECURITY DEFINER` e checagem explícita de role:
+1. Validar que o caller é `admin` (via `has_role`).
+2. Validar que `_member_id` tem role `membro` ou `facilitador` (não permitir downgrade de admin nem de quem já é convidado).
+3. Capturar `team_id` atual (primeiro grupo em `team_members`) para snapshot.
+4. `DELETE FROM team_members WHERE user_id = _member_id` (remove de todos os grupos).
+5. `DELETE FROM user_roles WHERE user_id = _member_id` + `INSERT (_member_id, 'convidado')`.
+6. Garantir que existe um registro em `invitations` para preservar vínculo histórico:
+   - Se já existe convite aceito, atualizar `team_id` para o último grupo conhecido e adicionar `metadata.downgraded_at`, `metadata.downgrade_reason`, `metadata.previous_role`.
+   - Se não existe (caso raro de membro original sem convite), inserir um convite sintético `status='accepted'`, `accepted_by=_member_id`, `invited_by=auth.uid()` (admin), `code=gen_random_uuid()`, com `metadata.synthetic=true`.
+7. Marcar perfil: manter `is_active=true` (ele continua existindo como convidado), mas gravar `metadata`/campos de auditoria via `add_activity_feed('member_downgrade', ...)`.
+8. Recalcular `monthly_points` do mês corrente para zerar pontuação ativa do membro nos grupos que ele deixou (chamada a `update_all_monthly_points_for_user` após o DELETE — vai inserir/atualizar com 0).
+9. Retornar `jsonb` com `success`, `previous_role`, `previous_team_id`, `teams_removed`.
 
-- Permitir execução apenas para usuários autenticados com role `admin`, `facilitador` ou `membro`.
-- Bloquear role `convidado` e usuários sem role válida.
-- Retornar somente os campos que a tela precisa:
-  - dados públicos/operacionais do convidado;
-  - status da jornada;
-  - grupo vindo de `invitations.team_id`;
-  - quem convidou;
-  - contagem de presenças.
-- Não expor `code`, `metadata`, `expires_at` e outros campos internos/sensíveis de `invitations`.
+### 2. Preservação de histórico — verificações explícitas
 
-Isso corrige o bug sem abrir a tabela `invitations` inteira para todos os membros.
+Antes de implementar, validar (apenas leitura) que nenhuma das tabelas abaixo tem FK ou trigger que apague dados ao remover de `team_members` ou trocar role:
 
-### 2. Atualizar `useGuestsDirectory`
+- `gente_em_acao`, `testimonials`, `referrals`, `business_deals`, `business_cases`, `council_posts`, `council_replies`, `attendances`, `points_history`, `monthly_points`, `activity_feed`.
 
-Trocar a montagem manual atual por chamada à RPC:
+Nenhuma delas tem FK para `team_members` ou `user_roles` (confirmado pelo schema). Histórico fica intacto.
 
-- `supabase.rpc('get_guests_directory')`.
-- Manter o mesmo contrato TypeScript (`GuestDirectoryEntry`) para não quebrar `src/pages/Convidados.tsx`.
-- Preservar a regra de status:
-  - `awaiting_first` quando ainda não participou;
-  - `attended` quando já participou;
-  - `promoted` quando deixou de ser `convidado`.
-- Garantir que o filtro por grupo use `invitations.team_id`, não `team_members`.
+### 3. Reversão (retorno do ex-membro)
 
-### 3. Garantir bloqueio explícito para convidados
+Reaproveitar `promote_guest_to_member(_guest_id, 'membro', _team_id)` já existente — funciona sem mudanças, pois detecta role atual `convidado` e promove de volta. Documentar esse fluxo como o caminho oficial de retorno.
 
-Manter o redirecionamento em `src/pages/Convidados.tsx`, mas fortalecer a lógica para aguardar carregamento de role antes de concluir vazio/sem acesso.
+### 4. UI em `GerenciarMembros.tsx`
 
-A proteção real ficará no banco pela RPC; a UI continua apenas como camada de experiência.
+Adicionar um terceiro botão na linha de membros ativos: **"Tornar Convidado"** (ícone `UserMinus`, cor âmbar — distinto de "Desativar" destrutivo).
 
-### 4. Criar proteção contra regressões
+- Dialog de confirmação explica: "O membro será removido do grupo, perderá acesso de membro e voltará a ser convidado. O histórico será preservado e ele pode ser promovido novamente no futuro."
+- Campo opcional de motivo.
+- Chama `supabase.rpc('downgrade_member_to_guest', ...)`.
+- Invalida queries: `admin-members`, `members-directory`, `guests-directory`, `teams`, `monthly-ranking`.
+- Toast de sucesso indicando o grupo de origem.
 
-Adicionar uma camada simples e permanente de manutenção para evitar que alterações futuras quebrem permissões críticas:
+Botão aparece apenas para membros com role `membro` ou `facilitador` (não para `admin`, não para quem já é `convidado`).
 
-- Criar um arquivo central de matriz de permissões, por exemplo `src/lib/access-control.ts`, com regras nomeadas:
-  - `canViewGuestsDirectory(role)`;
-  - `canManageGuests(role)`;
-  - outras regras já usadas em menus/rotas podem migrar gradualmente para esse padrão.
-- Usar essa regra no menu e na página de convidados, evitando permissões duplicadas espalhadas.
-- Adicionar testes automatizados focados nas regras críticas de acesso, com Vitest:
-  - `admin` vê diretório de convidados;
-  - `facilitador` vê diretório de convidados;
-  - `membro` vê diretório de convidados;
-  - `convidado` não vê diretório de convidados;
-  - role nula/indefinida não vê diretório protegido.
+### 5. Matriz de permissões e proteção contra regressão
 
-### 5. Adicionar uma verificação de regressão para o hook
+Em `src/lib/access-control.ts`:
 
-Adicionar teste unitário do hook/serviço de diretório, mockando o Supabase:
+```ts
+export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';
+```
 
-- Deve chamar a RPC `get_guests_directory`.
-- Não deve voltar a consultar `invitations` diretamente no frontend para montar o diretório.
+Em `src/lib/__tests__/access-control.test.ts`: adicionar testes para `canDowngradeMember` (admin sim; facilitador, membro, convidado, null não).
 
-Isso protege exatamente contra o tipo de bug ocorrido: uma mudança estrutural no banco quebrar uma tela por dependência indevida de RLS.
+Novo teste em `src/hooks/__tests__/` mockando Supabase para garantir que o botão chama `rpc('downgrade_member_to_guest')` e não faz `UPDATE` direto em `user_roles` ou `DELETE` em `team_members` pelo cliente.
 
-### 6. Atualizar documentação
+### 6. Linter Supabase
 
-Atualizar os documentos pertinentes:
+Rodar `supabase--linter` após a migração e corrigir qualquer warning introduzido pela nova função.
 
-- `docs/INVITATION_FLOW.md`: registrar que `/convidados` usa RPC segura e é visível para `admin`, `facilitador`, `membro`.
-- `docs/TECHNICAL_DOCUMENTATION.md`: documentar a matriz de acesso e o teste de regressão.
-- Memória do projeto relacionada a convidados, para preservar a regra em futuras alterações.
+### 7. Documentação e changelog
 
-### 7. Validação final
+- `docs/INVITATION_FLOW.md`: nova seção "Downgrade de membro para convidado" explicando fluxo, preservação de histórico e caminho de retorno via `promote_guest_to_member`.
+- `docs/TECHNICAL_DOCUMENTATION.md`: documentar a RPC, regras de acesso e impacto em pontuação.
+- `.lovable/memory/access-control/permission-matrix.md`: adicionar regra `canDowngradeMember = admin-only`.
+- Nova memória `.lovable/memory/features/member-downgrade-to-guest.md` com o contrato da RPC, snapshot em `invitations.metadata` e regra de preservação de histórico.
+- `system_changelog`: inserir versão **v3.10.0** categoria `feature` descrevendo o downgrade seguro com preservação de histórico.
 
-Depois da implementação:
+### 8. Validação final
 
-- Executar teste focado de permissões/regressão.
-- Rodar linter/checagem aplicável ao Supabase se disponível.
-- Validar que `/convidados` continua bloqueado para `convidado` e disponível para `membro`, `facilitador`, `admin`.
+- `bun run test` — todos os testes de access-control + hooks devem passar.
+- Teste manual no preview:
+  1. Admin faz downgrade de um membro → some das listagens de membros, aparece em `/convidados`, histórico de pontos do mês anterior continua no ranking histórico.
+  2. Admin promove o mesmo usuário de volta via `/convidados` → volta como membro do grupo escolhido.
+  3. Convidado e membro comuns **não** veem o botão de downgrade.
 
 ## Resultado esperado
 
-- Membros voltam a ver a listagem de convidados.
-- Facilitadores e admins continuam vendo normalmente.
-- Convidados seguem bloqueados.
-- O diretório passa a depender de uma interface segura e estável no banco, não de leitura direta de uma tabela sensível.
-- Haverá testes e matriz de permissões para reduzir regressões em futuras alterações.
+- Admin tem um caminho oficial e seguro para registrar a saída de um membro sem perder dado nenhum.
+- Membro vira convidado: perde acesso de membro, sai do grupo, mas continua no sistema com todo o histórico.
+- Retorno é um clique (promover convidado de volta para membro).
+- Nenhuma feature existente é tocada: o fluxo usa a RPC dedicada e segue o padrão já estabelecido por `promote_guest_to_member` e `deactivate_member`.
+- Matriz de permissões + testes automatizados protegem contra regressões futuras.
