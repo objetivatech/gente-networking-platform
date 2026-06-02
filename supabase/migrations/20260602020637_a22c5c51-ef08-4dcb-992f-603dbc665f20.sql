@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public._debug_test_attendance(uuid,uuid) TO anon, authenticated, service_role;
