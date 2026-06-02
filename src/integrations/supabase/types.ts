@@ -799,6 +799,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _debug_test_attendance: {
+        Args: { _mid: string; _uid: string }
+        Returns: string
+      }
       accept_invitation: {
         Args: { _code: string; _user_id: string }
         Returns: Json
