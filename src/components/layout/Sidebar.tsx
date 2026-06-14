@@ -24,6 +24,7 @@ import {
   Rss,
   MessageCircle,
   Ticket,
+  HeartHandshake,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
