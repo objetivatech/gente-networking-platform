@@ -44,6 +44,7 @@ const menuItems = [
   { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro'] },
   { icon: User, label: 'Meu Perfil', path: '/perfil', roles: undefined },
   { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'] },
   { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas', roles: ['admin', 'facilitador', 'membro'] },
