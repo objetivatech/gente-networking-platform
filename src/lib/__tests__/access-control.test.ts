@@ -65,6 +65,18 @@ describe('access-control: downgrade de membro para convidado', () => {
     expect(canDowngradeMember('convidado')).toBe(false);
     expect(canDowngradeMember(null)).toBe(false);
     expect(canDowngradeMember(undefined)).toBe(false);
+});
+
+describe('access-control: MatchMaking', () => {
+  it('admin/facilitador/membro podem usar', () => {
+    expect(canUseMatchmaking('admin')).toBe(true);
+    expect(canUseMatchmaking('facilitador')).toBe(true);
+    expect(canUseMatchmaking('membro')).toBe(true);
+  });
+  it('convidado NÃO pode usar', () => expect(canUseMatchmaking('convidado')).toBe(false));
+  it('role nula/indefinida NÃO pode usar', () => {
+    expect(canUseMatchmaking(null)).toBe(false);
+    expect(canUseMatchmaking(undefined)).toBe(false);
   });
 });
 });
