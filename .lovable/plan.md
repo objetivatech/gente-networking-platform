@@ -1,93 +1,103 @@
-## Objetivo
+# MatchMaking — Conexões inteligentes entre perfis
 
-Permitir que um admin faça o **downgrade seguro de um membro para convidado** quando ele pede saída do Gente, preservando todo o histórico (pontos, presenças, indicações, depoimentos, negócios, cases, Gente em Ação) e removendo-o do grupo, sem quebrar nenhuma feature existente.
+## Diagnóstico (estado atual)
 
-## Diagnóstico do estado atual
+- O recurso **não existe** hoje: não há tela, rota, hook nem tabela de matchmaking.
+- Os perfis (`profiles`) já têm campos ricos para cálculo de afinidade: `business_segment`, `tags[]`, `what_i_do`, `ideal_client`, `how_to_refer_me`, `bio`, `company`, `position`.
+- `gente_em_acao` registra reuniões 1x1 e já vale **25 pts** (via `calculate_monthly_points_for_team`).
+- Pontuação mensal é calculada por grupo em `calculate_monthly_points_for_team` e recalculada por gatilhos. Qualquer nova pontuação deve ser somada **lá dentro** para não quebrar o ranking.
+- Admin e facilitador **não pontuam** (regra mantida).
 
-- `deactivate_member` (admin-only) já existe: remove de `team_members` e marca `is_active=false`. Isso **esconde** o membro, mas mantém role original — não é downgrade.
-- `promote_guest_to_member` já existe e troca roles com segurança, mas só faz upgrade (convidado → membro/facilitador).
-- Convidados são vinculados ao grupo via `invitations.team_id` (não em `team_members`), conforme regra v3.7.0.
-- Pontuação atual do mês é recalculada por `update_all_monthly_points_for_user`, que itera por `team_members`. Se removermos o membro de `team_members`, o recálculo do mês corrente passa a render 0 — correto para o futuro, mas precisamos preservar o histórico já gravado em `monthly_points` e `points_history` (são imutáveis por RLS, então estão seguros).
-- Convidados não pontuam pelo `calculate_user_points` (retorna 0 para role `convidado`? não — só bloqueia admin/facilitador). Pontos passados em `monthly_points` permanecem visíveis no ranking histórico.
+## Decisões confirmadas com você
 
-## Plano
+- **Critério do match:** combinação — cruza `ideal_client` × (`what_i_do` + `business_segment` + `tags`) E afinidade por tags/segmento, gerando um score único.
+- **Pontos:** o check cria o registro de Gente em Ação (25 pts) **e** soma **+10 pts** de bônus de MatchMaking. Total efetivo: 35 pts.
+- **Alcance:** sugestões de toda a plataforma (membros e convidados), sem restrição de grupo.
+- **Exclusivo para MEMBROS** (e admin/facilitador para visualização), nunca para convidados.
 
-### 1. Nova RPC `downgrade_member_to_guest(_member_id, _reason)`
+## Como o match é calculado
 
-`SECURITY DEFINER`, admin-only. Em uma única transação:
+Para o membro logado, percorre todos os perfis ativos (membros + convidados, exceto ele mesmo e admins) e atribui um **score de afinidade**:
 
-1. Validar que o caller é `admin` (via `has_role`).
-2. Validar que `_member_id` tem role `membro` ou `facilitador` (não permitir downgrade de admin nem de quem já é convidado).
-3. Capturar `team_id` atual (primeiro grupo em `team_members`) para snapshot.
-4. `DELETE FROM team_members WHERE user_id = _member_id` (remove de todos os grupos).
-5. `DELETE FROM user_roles WHERE user_id = _member_id` + `INSERT (_member_id, 'convidado')`.
-6. Garantir que existe um registro em `invitations` para preservar vínculo histórico:
-   - Se já existe convite aceito, atualizar `team_id` para o último grupo conhecido e adicionar `metadata.downgraded_at`, `metadata.downgrade_reason`, `metadata.previous_role`.
-   - Se não existe (caso raro de membro original sem convite), inserir um convite sintético `status='accepted'`, `accepted_by=_member_id`, `invited_by=auth.uid()` (admin), `code=gen_random_uuid()`, com `metadata.synthetic=true`.
-7. Marcar perfil: manter `is_active=true` (ele continua existindo como convidado), mas gravar `metadata`/campos de auditoria via `add_activity_feed('member_downgrade', ...)`.
-8. Recalcular `monthly_points` do mês corrente para zerar pontuação ativa do membro nos grupos que ele deixou (chamada a `update_all_monthly_points_for_user` após o DELETE — vai inserir/atualizar com 0).
-9. Retornar `jsonb` com `success`, `previous_role`, `previous_team_id`, `teams_removed`.
-
-### 2. Preservação de histórico — verificações explícitas
-
-Antes de implementar, validar (apenas leitura) que nenhuma das tabelas abaixo tem FK ou trigger que apague dados ao remover de `team_members` ou trocar role:
-
-- `gente_em_acao`, `testimonials`, `referrals`, `business_deals`, `business_cases`, `council_posts`, `council_replies`, `attendances`, `points_history`, `monthly_points`, `activity_feed`.
-
-Nenhuma delas tem FK para `team_members` ou `user_roles` (confirmado pelo schema). Histórico fica intacto.
-
-### 3. Reversão (retorno do ex-membro)
-
-Reaproveitar `promote_guest_to_member(_guest_id, 'membro', _team_id)` já existente — funciona sem mudanças, pois detecta role atual `convidado` e promove de volta. Documentar esse fluxo como o caminho oficial de retorno.
-
-### 4. UI em `GerenciarMembros.tsx`
-
-Adicionar um terceiro botão na linha de membros ativos: **"Tornar Convidado"** (ícone `UserMinus`, cor âmbar — distinto de "Desativar" destrutivo).
-
-- Dialog de confirmação explica: "O membro será removido do grupo, perderá acesso de membro e voltará a ser convidado. O histórico será preservado e ele pode ser promovido novamente no futuro."
-- Campo opcional de motivo.
-- Chama `supabase.rpc('downgrade_member_to_guest', ...)`.
-- Invalida queries: `admin-members`, `members-directory`, `guests-directory`, `teams`, `monthly-ranking`.
-- Toast de sucesso indicando o grupo de origem.
-
-Botão aparece apenas para membros com role `membro` ou `facilitador` (não para `admin`, não para quem já é `convidado`).
-
-### 5. Matriz de permissões e proteção contra regressão
-
-Em `src/lib/access-control.ts`:
-
-```ts
-export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';
+```text
++40  termos do "meu cliente ideal" aparecem no "o que faço"/segmento/tags do outro (e vice-versa)
++25  tags em comum (peso por nº de tags coincidentes)
++15  mesmo segmento de negócio (oportunidade de parceria/complementaridade)
++10  campos de perfil bem preenchidos do outro lado (qualidade do match)
 ```
 
-Em `src/lib/__tests__/access-control.test.ts`: adicionar testes para `canDowngradeMember` (admin sim; facilitador, membro, convidado, null não).
+Ordena por score decrescente e mostra os melhores. Matching feito por normalização de texto (minúsculas, sem acento) e interseção de palavras‑chave — sem IA externa, 100% determinístico e barato.
 
-Novo teste em `src/hooks/__tests__/` mockando Supabase para garantir que o botão chama `rpc('downgrade_member_to_guest')` e não faz `UPDATE` direto em `user_roles` ou `DELETE` em `team_members` pelo cliente.
+## Banco de dados (migration)
 
-### 6. Linter Supabase
+### 1. Tabela `matchmaking_connections`
+Registra cada "check" que o membro dá em um contato abordado.
 
-Rodar `supabase--linter` após a migração e corrigir qualquer warning introduzido pela nova função.
+- `member_id` (quem deu o check)
+- `target_id` (pessoa conectada)
+- `description` (texto curto do que houve)
+- `gente_em_acao_id` (FK para o registro 1x1 gerado)
+- `year_month` (para pontuação mensal)
+- `id`, `created_at`
 
-### 7. Documentação e changelog
+Estrutura na ordem obrigatória: CREATE TABLE → GRANT (authenticated/service_role) → ENABLE RLS → POLICIES.
 
-- `docs/INVITATION_FLOW.md`: nova seção "Downgrade de membro para convidado" explicando fluxo, preservação de histórico e caminho de retorno via `promote_guest_to_member`.
-- `docs/TECHNICAL_DOCUMENTATION.md`: documentar a RPC, regras de acesso e impacto em pontuação.
-- `.lovable/memory/access-control/permission-matrix.md`: adicionar regra `canDowngradeMember = admin-only`.
-- Nova memória `.lovable/memory/features/member-downgrade-to-guest.md` com o contrato da RPC, snapshot em `invitations.metadata` e regra de preservação de histórico.
-- `system_changelog`: inserir versão **v3.10.0** categoria `feature` descrevendo o downgrade seguro com preservação de histórico.
+RLS:
+- Membro vê/insere apenas os próprios checks (`member_id = auth.uid()`).
+- Admin/facilitador podem ler (para estatísticas), via `has_role`.
+- Unicidade `(member_id, target_id)` para evitar check duplicado no mesmo contato.
 
-### 8. Validação final
+### 2. RPC `create_matchmaking_check(_target_id, _description, _meeting_date)`
+`SECURITY DEFINER`, em transação única:
+1. Valida que o caller é `membro` (ou admin/facilitador — mas só membro pontua).
+2. Cria o registro em `gente_em_acao` (meeting_type conforme role do alvo: `membro` se o alvo é membro, senão `convidado` usando o nome do alvo) — reutiliza a mecânica existente que já dá os 25 pts.
+3. Insere em `matchmaking_connections` ligando ao `gente_em_acao_id`.
+4. Recalcula pontos do mês via `update_all_monthly_points_for_user`.
+5. Registra no `activity_feed` (`activity_type = 'matchmaking'`).
 
-- `bun run test` — todos os testes de access-control + hooks devem passar.
-- Teste manual no preview:
-  1. Admin faz downgrade de um membro → some das listagens de membros, aparece em `/convidados`, histórico de pontos do mês anterior continua no ranking histórico.
-  2. Admin promove o mesmo usuário de volta via `/convidados` → volta como membro do grupo escolhido.
-  3. Convidado e membro comuns **não** veem o botão de downgrade.
+### 3. Integrar o bônus de +10 pts
+Em `calculate_monthly_points_for_team`, adicionar um termo:
+
+```text
++ (nº de matchmaking_connections do usuário no mês, naquele grupo) * 10
+```
+
+Mantém o padrão dos demais termos (verifica vínculo do usuário ao grupo). Isso preserva 100% das mecânicas atuais — é uma soma adicional, nada é alterado nos cálculos existentes.
+
+### 4. Linter Supabase
+Rodar `supabase--linter` após a migração e corrigir avisos introduzidos.
+
+## Frontend
+
+### Hook `useMatchmaking.ts`
+- Busca perfis (reaproveita lógica de `useMembers`/`get_guests_directory`), calcula scores no cliente, retorna sugestões ordenadas.
+- Marca quais já receberam check (join com `matchmaking_connections`).
+- Mutation `createCheck` chamando `rpc('create_matchmaking_check')`; invalida `gente-em-acao`, `monthly-ranking`, `matchmaking`, `activity-feed`.
+
+### Página `Matchmaking.tsx` (rota `/matchmaking`)
+- Cards de sugestão com nome, empresa, segmento, tags em comum e selo de afinidade.
+- Botão **"Já conectei"** → dialog com campo de descrição (obrigatório) e data → cria o check (Gente em Ação + 10 pts).
+- Aba/seção "Já conectados" listando os checks com a descrição.
+- **Aviso de perfil incompleto:** banner no topo orientando completar o perfil (`what_i_do`, `ideal_client`, `tags`, `business_segment`) para participar do MatchMaking, com link para `/perfil`. Membros com perfil incompleto não entram como candidatos de match para os outros.
+
+### Navegação e acesso
+- Item no `Sidebar.tsx`: ícone `Sparkles`/`HeartHandshake`, label **"MatchMaking"**, roles `['admin','facilitador','membro']`.
+- Rota lazy em `App.tsx`.
+- Nova função em `src/lib/access-control.ts`: `canUseMatchmaking(role) = admin|facilitador|membro` + teste de regressão em `access-control.test.ts`.
+
+## Documentação e changelog
+
+- `ScoringRulesCard.tsx`, `Index.tsx` e `Documentacao.tsx`: adicionar a regra "MatchMaking — +10 pts por conexão realizada".
+- `docs/TECHNICAL_DOCUMENTATION.md`: documentar tabela, RPC e integração de pontos.
+- `.lovable/memory/features/matchmaking.md`: contrato da RPC, fórmula de score e regra dos +10 pts.
+- `system_changelog`: nova entrada **v3.11.0** categoria `feature`.
+
+## Validação final
+
+- `bun run test` (access-control + hooks).
+- Teste manual: membro com perfil completo vê sugestões; dá um check → cria Gente em Ação, ganha 25+10 pts no ranking, contato aparece em "já conectados"; convidado **não** acessa a tela; membro com perfil incompleto vê o aviso.
 
 ## Resultado esperado
 
-- Admin tem um caminho oficial e seguro para registrar a saída de um membro sem perder dado nenhum.
-- Membro vira convidado: perde acesso de membro, sai do grupo, mas continua no sistema com todo o histórico.
-- Retorno é um clique (promover convidado de volta para membro).
-- Nenhuma feature existente é tocada: o fluxo usa a RPC dedicada e segue o padrão já estabelecido por `promote_guest_to_member` e `deactivate_member`.
-- Matriz de permissões + testes automatizados protegem contra regressões futuras.
+- Membros ganham uma ferramenta de descoberta de conexões baseada nos perfis, exclusiva para eles.
+- Cada conexão concretizada vira Gente em Ação + bônus de 10 pts, totalmente integrada à gamificação existente, sem quebrar nenhum cálculo atual.
