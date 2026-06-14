@@ -15,6 +15,7 @@ import {
   canAccessAdminArea,
   isAdminOnly,
   canDowngradeMember,
+  canUseMatchmaking,
 } from '../access-control';
 
 describe('access-control: diretório de convidados (/convidados)', () => {
