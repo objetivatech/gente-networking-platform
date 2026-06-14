@@ -57,6 +57,7 @@ const AdminRegistros = lazyWithRetry(() => import("./pages/AdminRegistros"));
 const Feed = lazyWithRetry(() => import("./pages/Feed"));
 const Conselho = lazyWithRetry(() => import("./pages/Conselho"));
 const AuthConfirm = lazyWithRetry(() => import("./pages/AuthConfirm"));
+const Matchmaking = lazyWithRetry(() => import("./pages/Matchmaking"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -100,6 +101,7 @@ const App = () => (
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/membros" element={<Membros />} />
+                <Route path="/matchmaking" element={<Matchmaking />} />
                 <Route path="/convidados" element={<Convidados />} />
                 <Route path="/membro/:slug" element={<MemberProfile />} />
                 <Route path="/aniversarios" element={<Aniversarios />} />

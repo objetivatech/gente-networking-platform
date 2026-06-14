@@ -41,3 +41,10 @@ export const isAdminOnly = (role: AppRole): boolean => role === 'admin';
  * Apenas admin. Facilitadores e membros NÃO podem.
  */
 export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';
+
+/**
+ * Quem pode acessar o MatchMaking (sugestões de conexão entre perfis).
+ * Membros, facilitadores e admins. Convidados NÃO acessam.
+ */
+export const canUseMatchmaking = (role: AppRole): boolean =>
+  isOneOf(role, ['admin', 'facilitador', 'membro']);

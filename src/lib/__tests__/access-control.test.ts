@@ -15,6 +15,7 @@ import {
   canAccessAdminArea,
   isAdminOnly,
   canDowngradeMember,
+  canUseMatchmaking,
 } from '../access-control';
 
 describe('access-control: diretório de convidados (/convidados)', () => {
@@ -54,6 +55,7 @@ describe('access-control: áreas administrativas', () => {
     expect(isAdminOnly('membro')).toBe(false);
     expect(isAdminOnly('convidado')).toBe(false);
     expect(isAdminOnly(null)).toBe(false);
+  });
 });
 
 describe('access-control: downgrade de membro para convidado', () => {
@@ -66,4 +68,16 @@ describe('access-control: downgrade de membro para convidado', () => {
     expect(canDowngradeMember(undefined)).toBe(false);
   });
 });
+
+describe('access-control: MatchMaking', () => {
+  it('admin/facilitador/membro podem usar', () => {
+    expect(canUseMatchmaking('admin')).toBe(true);
+    expect(canUseMatchmaking('facilitador')).toBe(true);
+    expect(canUseMatchmaking('membro')).toBe(true);
+  });
+  it('convidado NÃO pode usar', () => expect(canUseMatchmaking('convidado')).toBe(false));
+  it('role nula/indefinida NÃO pode usar', () => {
+    expect(canUseMatchmaking(null)).toBe(false);
+    expect(canUseMatchmaking(undefined)).toBe(false);
+  });
 });
