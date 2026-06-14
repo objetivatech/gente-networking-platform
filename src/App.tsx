@@ -57,6 +57,7 @@ const AdminRegistros = lazyWithRetry(() => import("./pages/AdminRegistros"));
 const Feed = lazyWithRetry(() => import("./pages/Feed"));
 const Conselho = lazyWithRetry(() => import("./pages/Conselho"));
 const AuthConfirm = lazyWithRetry(() => import("./pages/AuthConfirm"));
+const Matchmaking = lazyWithRetry(() => import("./pages/Matchmaking"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
