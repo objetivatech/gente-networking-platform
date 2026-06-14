@@ -55,6 +55,7 @@ describe('access-control: áreas administrativas', () => {
     expect(isAdminOnly('membro')).toBe(false);
     expect(isAdminOnly('convidado')).toBe(false);
     expect(isAdminOnly(null)).toBe(false);
+  });
 });
 
 describe('access-control: downgrade de membro para convidado', () => {
@@ -65,6 +66,7 @@ describe('access-control: downgrade de membro para convidado', () => {
     expect(canDowngradeMember('convidado')).toBe(false);
     expect(canDowngradeMember(null)).toBe(false);
     expect(canDowngradeMember(undefined)).toBe(false);
+  });
 });
 
 describe('access-control: MatchMaking', () => {
@@ -78,5 +80,4 @@ describe('access-control: MatchMaking', () => {
     expect(canUseMatchmaking(null)).toBe(false);
     expect(canUseMatchmaking(undefined)).toBe(false);
   });
-});
 });
