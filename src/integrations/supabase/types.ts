@@ -371,6 +371,58 @@ export type Database = {
           },
         ]
       }
+      matchmaking_connections: {
+        Row: {
+          created_at: string
+          description: string | null
+          gente_em_acao_id: string | null
+          id: string
+          member_id: string
+          target_id: string
+          year_month: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          gente_em_acao_id?: string | null
+          id?: string
+          member_id: string
+          target_id: string
+          year_month?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          gente_em_acao_id?: string | null
+          id?: string
+          member_id?: string
+          target_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matchmaking_connections_gente_em_acao_id_fkey"
+            columns: ["gente_em_acao_id"]
+            isOneToOne: false
+            referencedRelation: "gente_em_acao"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matchmaking_connections_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matchmaking_connections_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           created_at: string | null
@@ -836,6 +888,14 @@ export type Database = {
         Returns: number
       }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
+      create_matchmaking_check: {
+        Args: {
+          _description?: string
+          _meeting_date?: string
+          _target_id: string
+        }
+        Returns: Json
+      }
       deactivate_member: {
         Args: { _member_id: string; _reason?: string }
         Returns: Json
