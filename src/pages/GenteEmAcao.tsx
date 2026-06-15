@@ -22,6 +22,7 @@ import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
 
 const formSchema = z.object({
   meeting_type: z.enum(['membro', 'convidado']),
@@ -32,44 +33,7 @@ const formSchema = z.object({
   meeting_date: z.string().min(1, 'Data é obrigatória'),
 });
 
-// Função para comprimir imagem
-async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
 
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Falha ao comprimir imagem'));
-          },
-          'image/jpeg',
-          quality
-        );
-      };
-      img.onerror = reject;
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function GenteEmAcao() {
   const { user } = useAuth();
@@ -172,22 +136,7 @@ export default function GenteEmAcao() {
 
     try {
       setUploading(true);
-      const compressedBlob = await compressImage(imageFile);
-      // Path precisa começar com o user.id para satisfazer a RLS do bucket
-      // (storage.foldername(name))[1] = auth.uid()::text
-      const objectPath = `${user.id}/${Date.now()}.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('gente-em-acao')
-        .upload(objectPath, compressedBlob, {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from('gente-em-acao').getPublicUrl(objectPath);
-      return data.publicUrl;
+      return await uploadGenteEmAcaoImage(imageFile, user.id);
     } catch (error: any) {
       console.error('Erro ao fazer upload:', error);
       toast({
@@ -200,6 +149,7 @@ export default function GenteEmAcao() {
       setUploading(false);
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

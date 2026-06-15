@@ -1,43 +1,38 @@
-# Correção do Changelog + Implementação do Pitch por IA
+## Objetivo
 
-## 1. Corrigir a página de Changelog (bug crítico)
+Quando o membro clica em **"Já conectei"** no MatchMaking, o formulário deve ter os mesmos campos de registro do **Gente em Ação**, já que a conexão é gravada como um Gente em Ação. A única diferença é o bônus de **+10 pontos** por ser via MatchMaking. O registro independente de Gente em Ação (fora do MatchMaking) continua existindo sem alterações.
 
-**Causa raiz:** a entrada `v3.6.0` na tabela `system_changelog` guarda o campo `changes` como uma lista de objetos `{ text, type }` em vez de uma lista de strings (todas as outras versões usam strings). O componente `ChangelogCard` renderiza `<span>{change}</span>` diretamente — ao receber um objeto, o React lança "Objects are not valid as a React child", que é capturado pelo `ErrorBoundary` e exibe a tela "Algo deu errado".
+## Diferenças atuais
 
-**Correção (frontend, sem mexer no banco):** em `src/pages/Changelog.tsx`, normalizar cada item de `changes` para texto antes de renderizar. Cada entrada pode ser:
-- string → usar direto
-- objeto `{ text }` → usar `change.text`
+Formulário do Gente em Ação tem: contato, **data da reunião**, **notas (opcional)** e **foto do encontro (opcional, comprimida e enviada ao bucket `gente-em-acao`)**.
 
-Isso conserta a v3.6.0 e blinda contra qualquer entrada futura mal formatada. A lógica de parsing no `useQuery` (que já trata array/string/JSON) será ajustada para também mapear objetos para seu `text`.
+Diálogo "Já conectei" do MatchMaking hoje tem apenas: data + descrição (obrigatória). Não permite foto e a descrição é exigida.
 
-## 2. Implementar o Pitch por IA (recurso citado na doc, mas inexistente)
+## Mudanças
 
-Hoje "Gerador de Pitch via IA" só existe na documentação (`Documentacao.tsx`). Não há edge function nem botão no Perfil. Vou implementá-lo de ponta a ponta usando o Lovable AI Gateway (a chave `LOVABLE_API_KEY` já está disponível no projeto).
+### 1. Banco — RPC `create_matchmaking_check`
+Adicionar o parâmetro `_image_url text DEFAULT NULL` e gravá-lo na coluna `image_url` do `gente_em_acao` (tanto no ramo de membro quanto no de pessoa externa). Manter toda a lógica existente (criação do `matchmaking_connections`, activity feed, recálculo de pontos com o +10). A descrição passa a ser opcional (já usa `COALESCE(_description, 'Conexão via MatchMaking')`), alinhando ao comportamento de notas opcionais do Gente em Ação.
 
-### Backend — nova Edge Function `generate-pitch`
-- `supabase/functions/generate-pitch/index.ts`
-- Recebe os dados do perfil (nome, empresa, cargo, segmento, bio, "o que faço", "cliente ideal", "como me indicar", tags).
-- Chama o Lovable AI Gateway (`google/gemini-3-flash-preview`) com um prompt em PT-BR para gerar um texto curto de apresentação profissional, ideal para encontros 1x1.
-- Retorna `{ pitch: string }`. Trata erros 429 (limite) e 402 (créditos) com mensagens claras.
-- Cabeçalho JSDoc de copyright Ranktop (padrão do projeto).
-- Registrar a função em `supabase/config.toml`.
+### 2. Frontend — `src/pages/Matchmaking.tsx` (diálogo "Já conectei")
+Substituir o formulário atual por um que reproduz os campos do Gente em Ação para um contato já conhecido:
+- Cabeçalho/leitura do contato selecionado (já temos `selected.full_name`, empresa, avatar) — não precisa de seleção de membro/convidado, pois o alvo já está definido pela sugestão.
+- **Data da reunião** (já existe).
+- **Notas (opcional)** — renomear o campo "O que houve nessa conexão? *" para "Notas (opcional)", deixando de ser obrigatório, igual ao Gente em Ação.
+- **Foto do encontro (opcional)** — mesmo seletor de imagem com preview, compressão e upload no bucket `gente-em-acao`.
+- Banner informando o bônus de **+10 pts** do MatchMaking (manter).
 
-### Frontend — botão no Perfil
-- Em `src/pages/Profile.tsx`, na aba "Sobre", adicionar um card/seção "Gerador de Pitch via IA" com botão "Gerar Pitch".
-- Ao clicar, invoca a edge function com os dados do perfil atual, mostra loading e exibe o texto gerado em um `Textarea` com botão "Copiar".
-- Aviso amigável caso o perfil esteja incompleto (sem "o que faço"/"cliente ideal"/bio), já que o resultado depende desses campos.
+Para evitar duplicação do código de compressão/upload de imagem (hoje embutido em `GenteEmAcao.tsx`), extrair `compressImage` e a função de upload para um util compartilhado (ex.: `src/lib/image-upload.ts`) e usar nos dois lugares.
 
-## 3. Documentação e Changelog
-- Criar memória de feature `mem://features/ai-pitch-generator` (referenciada no índice mas inexistente) descrevendo o recurso.
-- Adicionar nova entrada de Changelog **v3.12.0** (categoria feature) cobrindo o Pitch por IA + a correção da página de Changelog, via `system_changelog` (changes como array de strings, formato correto).
+### 3. Frontend — `src/hooks/useMatchmaking.ts`
+Atualizar `createCheck` para aceitar e repassar `imageUrl` ao RPC (`_image_url`). O upload da imagem é feito no cliente antes de chamar o RPC (mesma mecânica do Gente em Ação), e o botão de confirmar deixa de exigir descrição.
 
 ## Detalhes técnicos
-```text
-Fluxo Pitch:
-Profile.tsx (botão) -> supabase.functions.invoke('generate-pitch', { profile })
-   -> Edge Function -> Lovable AI Gateway (gemini-3-flash) -> { pitch }
-   -> exibe em Textarea com "Copiar"
-```
-- Sem alterações de schema no banco; o Changelog é corrigido apenas no render.
-- Edge function mantém `LOVABLE_API_KEY` no servidor (nunca exposta ao client).
-- Sem impacto em CRM, gamificação, MatchMaking ou demais mecânicas existentes.
+
+- Bucket de storage `gente-em-acao` exige caminho iniciando com `user.id` (RLS) — o upload no MatchMaking usa o id do membro logado, então funciona normalmente.
+- Nenhuma mudança no fluxo de Gente em Ação independente: a página `GenteEmAcao.tsx` continua permitindo registrar reuniões sem passar pelo MatchMaking.
+- O `useMatchmaking` já invalida as queries de `gente-em-acao`, ranking e pontos após o check.
+
+## Validação
+
+- Registrar uma conexão via "Já conectei" com foto e sem notas → confirmar criação do `gente_em_acao` com `image_url` preenchido, do `matchmaking_connections`, e do bônus de +10 pts no recálculo.
+- Registrar via Gente em Ação normal → continua somando os 25 pts sem o bônus de MatchMaking.

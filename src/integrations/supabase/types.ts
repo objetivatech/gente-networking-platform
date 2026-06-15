@@ -888,14 +888,24 @@ export type Database = {
         Returns: number
       }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
-      create_matchmaking_check: {
-        Args: {
-          _description?: string
-          _meeting_date?: string
-          _target_id: string
-        }
-        Returns: Json
-      }
+      create_matchmaking_check:
+        | {
+            Args: {
+              _description?: string
+              _meeting_date?: string
+              _target_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _description?: string
+              _image_url?: string
+              _meeting_date?: string
+              _target_id: string
+            }
+            Returns: Json
+          }
       deactivate_member: {
         Args: { _member_id: string; _reason?: string }
         Returns: Json

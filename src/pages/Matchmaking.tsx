@@ -12,10 +12,13 @@ import SEO from '@/components/SEO';
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useMatchmaking, MatchSuggestion } from '@/hooks/useMatchmaking';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
 import { canUseMatchmaking } from '@/lib/access-control';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,36 +34,82 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Loader2,
+  HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Loader2, ImagePlus, X,
 } from 'lucide-react';
 
 const initials = (name: string) =>
   name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
 
 export default function Matchmaking() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { role, isLoading: roleLoading } = useAdmin();
   const { myProfile, suggestions, isLoading, connections, createCheck } = useMatchmaking();
   const [selected, setSelected] = useState<MatchSuggestion | null>(null);
   const [description, setDescription] = useState('');
   const [meetingDate, setMeetingDate] = useState(new Date().toISOString().slice(0, 10));
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!roleLoading && !canUseMatchmaking(role)) {
     return <Navigate to="/" replace />;
   }
 
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Erro', description: 'Por favor, selecione uma imagem', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'Erro', description: 'A imagem deve ter no máximo 10MB', variant: 'destructive' });
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const openCheck = (s: MatchSuggestion) => {
     setSelected(s);
     setDescription('');
     setMeetingDate(new Date().toISOString().slice(0, 10));
+    removeImage();
   };
 
-  const submitCheck = () => {
-    if (!selected || !description.trim()) return;
+  const submitCheck = async () => {
+    if (!selected) return;
+
+    let imageUrl: string | undefined;
+    if (imageFile && user?.id) {
+      try {
+        setUploading(true);
+        imageUrl = (await uploadGenteEmAcaoImage(imageFile, user.id)) || undefined;
+      } catch (err: any) {
+        toast({ title: 'Erro', description: err?.message || 'Falha ao enviar a imagem', variant: 'destructive' });
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+
     createCheck.mutate(
-      { targetId: selected.id, description: description.trim(), meetingDate },
-      { onSuccess: () => setSelected(null) }
+      { targetId: selected.id, description: description.trim() || undefined, meetingDate, imageUrl },
+      { onSuccess: () => { setSelected(null); removeImage(); } }
     );
   };
+
 
   const pending = suggestions.filter((s) => !s.alreadyConnected);
 
@@ -189,38 +238,88 @@ export default function Matchmaking() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); removeImage(); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Registrar conexão com {selected?.full_name}</DialogTitle>
             <DialogDescription>
               Isso cria um registro de Gente em Ação (reunião 1x1) e soma +10 pontos de MatchMaking.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-2" data-rd-no-capture="true">
+            {selected && (
+              <div className="flex items-center gap-3 rounded-md border p-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={selected.avatar_url || undefined} />
+                  <AvatarFallback>{initials(selected.full_name)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{selected.full_name}</p>
+                  {selected.company && <p className="text-sm text-muted-foreground truncate">{selected.company}</p>}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="mm-date">Data da reunião</Label>
-              <Input id="mm-date" type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} />
+              <Label htmlFor="mm-date">Data da Reunião</Label>
+              <Input id="mm-date" type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} required />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="mm-desc">O que houve nessa conexão? *</Label>
+              <Label htmlFor="mm-desc">Notas (opcional)</Label>
               <Textarea
                 id="mm-desc"
                 placeholder="Descreva brevemente a conversa, oportunidade ou próximo passo..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                maxLength={500}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Foto do Encontro (opcional)</Label>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageSelect}
+                accept="image/*"
+                className="hidden"
+              />
+              {imagePreview ? (
+                <div className="relative">
+                  <img src={imagePreview} alt="Pré-visualização" className="w-full max-h-48 object-cover rounded-md" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    onClick={removeImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImagePlus className="h-4 w-4 mr-2" /> Adicionar foto
+                </Button>
+              )}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelected(null)}>Cancelar</Button>
-            <Button onClick={submitCheck} disabled={!description.trim() || createCheck.isPending}>
-              {createCheck.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <Button variant="outline" onClick={() => { setSelected(null); removeImage(); }}>Cancelar</Button>
+            <Button onClick={submitCheck} disabled={createCheck.isPending || uploading}>
+              {(createCheck.isPending || uploading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirmar conexão
             </Button>
           </DialogFooter>
         </DialogContent>
+
       </Dialog>
     </div>
   );
