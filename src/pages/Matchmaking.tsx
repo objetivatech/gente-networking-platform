@@ -12,10 +12,13 @@ import SEO from '@/components/SEO';
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { useMatchmaking, MatchSuggestion } from '@/hooks/useMatchmaking';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
 import { canUseMatchmaking } from '@/lib/access-control';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -31,36 +34,82 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Loader2,
+  HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Loader2, ImagePlus, X,
 } from 'lucide-react';
 
 const initials = (name: string) =>
   name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
 
 export default function Matchmaking() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { role, isLoading: roleLoading } = useAdmin();
   const { myProfile, suggestions, isLoading, connections, createCheck } = useMatchmaking();
   const [selected, setSelected] = useState<MatchSuggestion | null>(null);
   const [description, setDescription] = useState('');
   const [meetingDate, setMeetingDate] = useState(new Date().toISOString().slice(0, 10));
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!roleLoading && !canUseMatchmaking(role)) {
     return <Navigate to="/" replace />;
   }
 
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Erro', description: 'Por favor, selecione uma imagem', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'Erro', description: 'A imagem deve ter no máximo 10MB', variant: 'destructive' });
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const openCheck = (s: MatchSuggestion) => {
     setSelected(s);
     setDescription('');
     setMeetingDate(new Date().toISOString().slice(0, 10));
+    removeImage();
   };
 
-  const submitCheck = () => {
-    if (!selected || !description.trim()) return;
+  const submitCheck = async () => {
+    if (!selected) return;
+
+    let imageUrl: string | undefined;
+    if (imageFile && user?.id) {
+      try {
+        setUploading(true);
+        imageUrl = (await uploadGenteEmAcaoImage(imageFile, user.id)) || undefined;
+      } catch (err: any) {
+        toast({ title: 'Erro', description: err?.message || 'Falha ao enviar a imagem', variant: 'destructive' });
+        setUploading(false);
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+
     createCheck.mutate(
-      { targetId: selected.id, description: description.trim(), meetingDate },
-      { onSuccess: () => setSelected(null) }
+      { targetId: selected.id, description: description.trim() || undefined, meetingDate, imageUrl },
+      { onSuccess: () => { setSelected(null); removeImage(); } }
     );
   };
+
 
   const pending = suggestions.filter((s) => !s.alreadyConnected);
 
