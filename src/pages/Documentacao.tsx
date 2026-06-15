@@ -27,6 +27,7 @@ import {
   Briefcase,
   User,
   ShieldCheck,
+  HeartHandshake,
 } from 'lucide-react';
 
 export default function Documentacao() {
