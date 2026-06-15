@@ -27,6 +27,7 @@ import {
   Briefcase,
   User,
   ShieldCheck,
+  HeartHandshake,
 } from 'lucide-react';
 
 export default function Documentacao() {
@@ -136,6 +137,10 @@ export default function Documentacao() {
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><UserPlus className="h-4 w-4" /> Convites Aceitos (com presença)</span>
                         <Badge>15 pts</Badge>
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
+                        <span className="flex items-center gap-2"><HeartHandshake className="h-4 w-4" /> MatchMaking (conexão realizada)</span>
+                        <Badge>10 pts</Badge>
                       </div>
                       <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <span className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> Case de Negócio (autor)</span>
