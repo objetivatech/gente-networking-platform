@@ -333,6 +333,9 @@ export default function Profile() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Gerador de Pitch via IA */}
+            <PitchGenerator profile={profile} />
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">
