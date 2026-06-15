@@ -24,6 +24,16 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
 
+const formSchema = z.object({
+  meeting_type: z.enum(['membro', 'convidado']),
+  partner_id: z.string().optional(),
+  guest_name: z.string().max(100).optional(),
+  guest_company: z.string().max(100).optional(),
+  notes: z.string().max(500).optional(),
+  meeting_date: z.string().min(1, 'Data é obrigatória'),
+});
+
+
 
 export default function GenteEmAcao() {
   const { user } = useAuth();
