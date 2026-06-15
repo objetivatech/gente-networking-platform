@@ -1,103 +1,43 @@
-# MatchMaking — Conexões inteligentes entre perfis
+# Correção do Changelog + Implementação do Pitch por IA
 
-## Diagnóstico (estado atual)
+## 1. Corrigir a página de Changelog (bug crítico)
 
-- O recurso **não existe** hoje: não há tela, rota, hook nem tabela de matchmaking.
-- Os perfis (`profiles`) já têm campos ricos para cálculo de afinidade: `business_segment`, `tags[]`, `what_i_do`, `ideal_client`, `how_to_refer_me`, `bio`, `company`, `position`.
-- `gente_em_acao` registra reuniões 1x1 e já vale **25 pts** (via `calculate_monthly_points_for_team`).
-- Pontuação mensal é calculada por grupo em `calculate_monthly_points_for_team` e recalculada por gatilhos. Qualquer nova pontuação deve ser somada **lá dentro** para não quebrar o ranking.
-- Admin e facilitador **não pontuam** (regra mantida).
+**Causa raiz:** a entrada `v3.6.0` na tabela `system_changelog` guarda o campo `changes` como uma lista de objetos `{ text, type }` em vez de uma lista de strings (todas as outras versões usam strings). O componente `ChangelogCard` renderiza `<span>{change}</span>` diretamente — ao receber um objeto, o React lança "Objects are not valid as a React child", que é capturado pelo `ErrorBoundary` e exibe a tela "Algo deu errado".
 
-## Decisões confirmadas com você
+**Correção (frontend, sem mexer no banco):** em `src/pages/Changelog.tsx`, normalizar cada item de `changes` para texto antes de renderizar. Cada entrada pode ser:
+- string → usar direto
+- objeto `{ text }` → usar `change.text`
 
-- **Critério do match:** combinação — cruza `ideal_client` × (`what_i_do` + `business_segment` + `tags`) E afinidade por tags/segmento, gerando um score único.
-- **Pontos:** o check cria o registro de Gente em Ação (25 pts) **e** soma **+10 pts** de bônus de MatchMaking. Total efetivo: 35 pts.
-- **Alcance:** sugestões de toda a plataforma (membros e convidados), sem restrição de grupo.
-- **Exclusivo para MEMBROS** (e admin/facilitador para visualização), nunca para convidados.
+Isso conserta a v3.6.0 e blinda contra qualquer entrada futura mal formatada. A lógica de parsing no `useQuery` (que já trata array/string/JSON) será ajustada para também mapear objetos para seu `text`.
 
-## Como o match é calculado
+## 2. Implementar o Pitch por IA (recurso citado na doc, mas inexistente)
 
-Para o membro logado, percorre todos os perfis ativos (membros + convidados, exceto ele mesmo e admins) e atribui um **score de afinidade**:
+Hoje "Gerador de Pitch via IA" só existe na documentação (`Documentacao.tsx`). Não há edge function nem botão no Perfil. Vou implementá-lo de ponta a ponta usando o Lovable AI Gateway (a chave `LOVABLE_API_KEY` já está disponível no projeto).
 
+### Backend — nova Edge Function `generate-pitch`
+- `supabase/functions/generate-pitch/index.ts`
+- Recebe os dados do perfil (nome, empresa, cargo, segmento, bio, "o que faço", "cliente ideal", "como me indicar", tags).
+- Chama o Lovable AI Gateway (`google/gemini-3-flash-preview`) com um prompt em PT-BR para gerar um texto curto de apresentação profissional, ideal para encontros 1x1.
+- Retorna `{ pitch: string }`. Trata erros 429 (limite) e 402 (créditos) com mensagens claras.
+- Cabeçalho JSDoc de copyright Ranktop (padrão do projeto).
+- Registrar a função em `supabase/config.toml`.
+
+### Frontend — botão no Perfil
+- Em `src/pages/Profile.tsx`, na aba "Sobre", adicionar um card/seção "Gerador de Pitch via IA" com botão "Gerar Pitch".
+- Ao clicar, invoca a edge function com os dados do perfil atual, mostra loading e exibe o texto gerado em um `Textarea` com botão "Copiar".
+- Aviso amigável caso o perfil esteja incompleto (sem "o que faço"/"cliente ideal"/bio), já que o resultado depende desses campos.
+
+## 3. Documentação e Changelog
+- Criar memória de feature `mem://features/ai-pitch-generator` (referenciada no índice mas inexistente) descrevendo o recurso.
+- Adicionar nova entrada de Changelog **v3.12.0** (categoria feature) cobrindo o Pitch por IA + a correção da página de Changelog, via `system_changelog` (changes como array de strings, formato correto).
+
+## Detalhes técnicos
 ```text
-+40  termos do "meu cliente ideal" aparecem no "o que faço"/segmento/tags do outro (e vice-versa)
-+25  tags em comum (peso por nº de tags coincidentes)
-+15  mesmo segmento de negócio (oportunidade de parceria/complementaridade)
-+10  campos de perfil bem preenchidos do outro lado (qualidade do match)
+Fluxo Pitch:
+Profile.tsx (botão) -> supabase.functions.invoke('generate-pitch', { profile })
+   -> Edge Function -> Lovable AI Gateway (gemini-3-flash) -> { pitch }
+   -> exibe em Textarea com "Copiar"
 ```
-
-Ordena por score decrescente e mostra os melhores. Matching feito por normalização de texto (minúsculas, sem acento) e interseção de palavras‑chave — sem IA externa, 100% determinístico e barato.
-
-## Banco de dados (migration)
-
-### 1. Tabela `matchmaking_connections`
-Registra cada "check" que o membro dá em um contato abordado.
-
-- `member_id` (quem deu o check)
-- `target_id` (pessoa conectada)
-- `description` (texto curto do que houve)
-- `gente_em_acao_id` (FK para o registro 1x1 gerado)
-- `year_month` (para pontuação mensal)
-- `id`, `created_at`
-
-Estrutura na ordem obrigatória: CREATE TABLE → GRANT (authenticated/service_role) → ENABLE RLS → POLICIES.
-
-RLS:
-- Membro vê/insere apenas os próprios checks (`member_id = auth.uid()`).
-- Admin/facilitador podem ler (para estatísticas), via `has_role`.
-- Unicidade `(member_id, target_id)` para evitar check duplicado no mesmo contato.
-
-### 2. RPC `create_matchmaking_check(_target_id, _description, _meeting_date)`
-`SECURITY DEFINER`, em transação única:
-1. Valida que o caller é `membro` (ou admin/facilitador — mas só membro pontua).
-2. Cria o registro em `gente_em_acao` (meeting_type conforme role do alvo: `membro` se o alvo é membro, senão `convidado` usando o nome do alvo) — reutiliza a mecânica existente que já dá os 25 pts.
-3. Insere em `matchmaking_connections` ligando ao `gente_em_acao_id`.
-4. Recalcula pontos do mês via `update_all_monthly_points_for_user`.
-5. Registra no `activity_feed` (`activity_type = 'matchmaking'`).
-
-### 3. Integrar o bônus de +10 pts
-Em `calculate_monthly_points_for_team`, adicionar um termo:
-
-```text
-+ (nº de matchmaking_connections do usuário no mês, naquele grupo) * 10
-```
-
-Mantém o padrão dos demais termos (verifica vínculo do usuário ao grupo). Isso preserva 100% das mecânicas atuais — é uma soma adicional, nada é alterado nos cálculos existentes.
-
-### 4. Linter Supabase
-Rodar `supabase--linter` após a migração e corrigir avisos introduzidos.
-
-## Frontend
-
-### Hook `useMatchmaking.ts`
-- Busca perfis (reaproveita lógica de `useMembers`/`get_guests_directory`), calcula scores no cliente, retorna sugestões ordenadas.
-- Marca quais já receberam check (join com `matchmaking_connections`).
-- Mutation `createCheck` chamando `rpc('create_matchmaking_check')`; invalida `gente-em-acao`, `monthly-ranking`, `matchmaking`, `activity-feed`.
-
-### Página `Matchmaking.tsx` (rota `/matchmaking`)
-- Cards de sugestão com nome, empresa, segmento, tags em comum e selo de afinidade.
-- Botão **"Já conectei"** → dialog com campo de descrição (obrigatório) e data → cria o check (Gente em Ação + 10 pts).
-- Aba/seção "Já conectados" listando os checks com a descrição.
-- **Aviso de perfil incompleto:** banner no topo orientando completar o perfil (`what_i_do`, `ideal_client`, `tags`, `business_segment`) para participar do MatchMaking, com link para `/perfil`. Membros com perfil incompleto não entram como candidatos de match para os outros.
-
-### Navegação e acesso
-- Item no `Sidebar.tsx`: ícone `Sparkles`/`HeartHandshake`, label **"MatchMaking"**, roles `['admin','facilitador','membro']`.
-- Rota lazy em `App.tsx`.
-- Nova função em `src/lib/access-control.ts`: `canUseMatchmaking(role) = admin|facilitador|membro` + teste de regressão em `access-control.test.ts`.
-
-## Documentação e changelog
-
-- `ScoringRulesCard.tsx`, `Index.tsx` e `Documentacao.tsx`: adicionar a regra "MatchMaking — +10 pts por conexão realizada".
-- `docs/TECHNICAL_DOCUMENTATION.md`: documentar tabela, RPC e integração de pontos.
-- `.lovable/memory/features/matchmaking.md`: contrato da RPC, fórmula de score e regra dos +10 pts.
-- `system_changelog`: nova entrada **v3.11.0** categoria `feature`.
-
-## Validação final
-
-- `bun run test` (access-control + hooks).
-- Teste manual: membro com perfil completo vê sugestões; dá um check → cria Gente em Ação, ganha 25+10 pts no ranking, contato aparece em "já conectados"; convidado **não** acessa a tela; membro com perfil incompleto vê o aviso.
-
-## Resultado esperado
-
-- Membros ganham uma ferramenta de descoberta de conexões baseada nos perfis, exclusiva para eles.
-- Cada conexão concretizada vira Gente em Ação + bônus de 10 pts, totalmente integrada à gamificação existente, sem quebrar nenhum cálculo atual.
+- Sem alterações de schema no banco; o Changelog é corrigido apenas no render.
+- Edge function mantém `LOVABLE_API_KEY` no servidor (nunca exposta ao client).
+- Sem impacto em CRM, gamificação, MatchMaking ou demais mecânicas existentes.
