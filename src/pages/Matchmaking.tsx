@@ -238,38 +238,88 @@ export default function Matchmaking() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
-        <DialogContent>
+      <Dialog open={!!selected} onOpenChange={(o) => { if (!o) { setSelected(null); removeImage(); } }}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Registrar conexão com {selected?.full_name}</DialogTitle>
             <DialogDescription>
               Isso cria um registro de Gente em Ação (reunião 1x1) e soma +10 pontos de MatchMaking.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-2" data-rd-no-capture="true">
+            {selected && (
+              <div className="flex items-center gap-3 rounded-md border p-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={selected.avatar_url || undefined} />
+                  <AvatarFallback>{initials(selected.full_name)}</AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{selected.full_name}</p>
+                  {selected.company && <p className="text-sm text-muted-foreground truncate">{selected.company}</p>}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="mm-date">Data da reunião</Label>
-              <Input id="mm-date" type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} />
+              <Label htmlFor="mm-date">Data da Reunião</Label>
+              <Input id="mm-date" type="date" value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} required />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="mm-desc">O que houve nessa conexão? *</Label>
+              <Label htmlFor="mm-desc">Notas (opcional)</Label>
               <Textarea
                 id="mm-desc"
                 placeholder="Descreva brevemente a conversa, oportunidade ou próximo passo..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                maxLength={500}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Foto do Encontro (opcional)</Label>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageSelect}
+                accept="image/*"
+                className="hidden"
+              />
+              {imagePreview ? (
+                <div className="relative">
+                  <img src={imagePreview} alt="Pré-visualização" className="w-full max-h-48 object-cover rounded-md" />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7"
+                    onClick={removeImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImagePlus className="h-4 w-4 mr-2" /> Adicionar foto
+                </Button>
+              )}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSelected(null)}>Cancelar</Button>
-            <Button onClick={submitCheck} disabled={!description.trim() || createCheck.isPending}>
-              {createCheck.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            <Button variant="outline" onClick={() => { setSelected(null); removeImage(); }}>Cancelar</Button>
+            <Button onClick={submitCheck} disabled={createCheck.isPending || uploading}>
+              {(createCheck.isPending || uploading) && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirmar conexão
             </Button>
           </DialogFooter>
         </DialogContent>
+
       </Dialog>
     </div>
   );
