@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import RankBadge from '@/components/RankBadge';
 import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
 import { MonthlyPointsEvolutionChart } from '@/components/MonthlyPointsEvolutionChart';
+import { PitchGenerator } from '@/components/PitchGenerator';
 import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -333,6 +334,9 @@ export default function Profile() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Gerador de Pitch via IA */}
+            <PitchGenerator profile={profile} />
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">
