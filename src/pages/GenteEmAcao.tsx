@@ -22,54 +22,8 @@ import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
 
-const formSchema = z.object({
-  meeting_type: z.enum(['membro', 'convidado']),
-  partner_id: z.string().optional(),
-  guest_name: z.string().max(100).optional(),
-  guest_company: z.string().max(100).optional(),
-  notes: z.string().max(500).optional(),
-  meeting_date: z.string().min(1, 'Data é obrigatória'),
-});
-
-// Função para comprimir imagem
-async function compressImage(file: File, maxWidth = 1200, quality = 0.7): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Falha ao comprimir imagem'));
-          },
-          'image/jpeg',
-          quality
-        );
-      };
-      img.onerror = reject;
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function GenteEmAcao() {
   const { user } = useAuth();
