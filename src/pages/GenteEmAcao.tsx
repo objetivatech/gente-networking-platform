@@ -136,22 +136,7 @@ export default function GenteEmAcao() {
 
     try {
       setUploading(true);
-      const compressedBlob = await compressImage(imageFile);
-      // Path precisa começar com o user.id para satisfazer a RLS do bucket
-      // (storage.foldername(name))[1] = auth.uid()::text
-      const objectPath = `${user.id}/${Date.now()}.jpg`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('gente-em-acao')
-        .upload(objectPath, compressedBlob, {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
-
-      if (uploadError) throw uploadError;
-
-      const { data } = supabase.storage.from('gente-em-acao').getPublicUrl(objectPath);
-      return data.publicUrl;
+      return await uploadGenteEmAcaoImage(imageFile, user.id);
     } catch (error: any) {
       console.error('Erro ao fazer upload:', error);
       toast({
@@ -164,6 +149,7 @@ export default function GenteEmAcao() {
       setUploading(false);
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
