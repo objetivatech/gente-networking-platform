@@ -60,7 +60,16 @@ const categoryConfig: Record<string, { icon: React.ReactNode; color: string; lab
 
 function ChangelogCard({ entry }: { entry: ChangelogEntry }) {
   const config = categoryConfig[entry.category] || categoryConfig.feature;
-  const changes = Array.isArray(entry.changes) ? entry.changes : [];
+  // Normaliza cada alteração para texto: aceita string ou objeto { text } (formato legado)
+  const changes = (Array.isArray(entry.changes) ? entry.changes : [])
+    .map((change: unknown) => {
+      if (typeof change === 'string') return change;
+      if (change && typeof change === 'object' && 'text' in change) {
+        return String((change as { text: unknown }).text ?? '');
+      }
+      return String(change ?? '');
+    })
+    .filter((c) => c.trim().length > 0);
 
   return (
     <Card className="relative overflow-hidden">
