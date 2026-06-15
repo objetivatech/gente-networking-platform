@@ -251,11 +251,12 @@ export function useMatchmaking() {
   });
 
   const createCheck = useMutation({
-    mutationFn: async (input: { targetId: string; description: string; meetingDate?: string }) => {
+    mutationFn: async (input: { targetId: string; description?: string; meetingDate?: string; imageUrl?: string }) => {
       const { data, error } = await supabase.rpc('create_matchmaking_check' as any, {
         _target_id: input.targetId,
-        _description: input.description,
+        _description: input.description || null,
         _meeting_date: input.meetingDate || new Date().toISOString().slice(0, 10),
+        _image_url: input.imageUrl || null,
       });
       if (error) throw error;
       const result = data as any;
