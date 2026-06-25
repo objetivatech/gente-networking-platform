@@ -1,13 +1,23 @@
 # Fluxo de Convites — Gente Networking
 
-> Última atualização: 2026-04-18
+> Última atualização: 2026-06-25
 
 ## Visão Geral
 
 O sistema de convites é a porta de entrada de leads para a comunidade. Cada convite é vinculado **explicitamente a um grupo** escolhido pelo convidador. Ao ser aceito, o convidado:
 - Recebe a role `convidado`
-- É inserido em `team_members` no grupo do convite
-- Passa a ver apenas os encontros desse grupo
+- **NÃO** é inserido em `team_members`. A vinculação ao grupo é feita exclusivamente via `invitations.team_id` e `invitations.metadata.allowed_team_ids` (snapshot estável). Só ao ser promovido a membro o usuário entra em `team_members`.
+- Passa a ver apenas os encontros do(s) grupo(s) listados em `allowed_team_ids`
+
+## RLS de `invitations` (visibilidade)
+
+Quem pode ler uma linha de `invitations` (SELECT):
+- **Admin** — todos os convites
+- **Convidador** (`auth.uid() = invited_by`) — seus próprios convites
+- **Convidado** (`auth.uid() = accepted_by`) — o convite que ele aceitou (policy "Convidados podem ver convite aceito")
+
+> ⚠️ Sem a policy do convidado, `useGuestData` não consegue ler o próprio convite, `allowed_team_ids` fica vazio e **nenhum encontro é exibido** para o convidado confirmar presença. Esta foi a causa do bug corrigido em v3.13.0.
+
 
 ## Diagrama do Fluxo
 
