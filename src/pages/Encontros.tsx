@@ -269,6 +269,50 @@ function UpcomingGuestsTab() {
     return set.size;
   }, [filtered]);
 
+  // Organização por GRUPO -> DATA do evento (data já vem ordenada desc)
+  const groupedByTeam = useMemo(() => {
+    const groups = new Map<string, { teamName: string; teamColor: string | null; entries: GuestAttendanceEntry[] }>();
+    filtered.forEach(m => {
+      const key = m.team_id || 'sem-grupo';
+      if (!groups.has(key)) {
+        groups.set(key, { teamName: m.team_name || 'Sem grupo', teamColor: m.team_color, entries: [] });
+      }
+      groups.get(key)!.entries.push(m);
+    });
+    return Array.from(groups.values()).sort((a, b) => a.teamName.localeCompare(b.teamName));
+  }, [filtered]);
+
+  // Exportação (uma linha por presença de convidado)
+  const exportRows = useMemo(
+    () =>
+      filtered.flatMap(m =>
+        m.guests.map(g => ({
+          grupo: m.team_name || 'Sem grupo',
+          encontro: m.meeting_title,
+          data: format(parseLocalDate(m.meeting_date), 'dd/MM/yyyy'),
+          nome: g.full_name,
+          empresa: g.company || '',
+          segmento: g.business_segment || '',
+          email: g.email || '',
+          telefone: g.phone || '',
+          convidado_por: g.invited_by_name || '',
+        }))
+      ),
+    [filtered]
+  );
+
+  const exportColumns = [
+    { header: 'Grupo', value: (r: typeof exportRows[number]) => r.grupo },
+    { header: 'Encontro', value: (r: typeof exportRows[number]) => r.encontro },
+    { header: 'Data', value: (r: typeof exportRows[number]) => r.data },
+    { header: 'Nome', value: (r: typeof exportRows[number]) => r.nome },
+    { header: 'Empresa', value: (r: typeof exportRows[number]) => r.empresa },
+    { header: 'Segmento', value: (r: typeof exportRows[number]) => r.segmento },
+    { header: 'Email', value: (r: typeof exportRows[number]) => r.email },
+    { header: 'Telefone', value: (r: typeof exportRows[number]) => r.telefone },
+    { header: 'Convidado por', value: (r: typeof exportRows[number]) => r.convidado_por },
+  ];
+
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
