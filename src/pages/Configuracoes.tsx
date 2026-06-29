@@ -27,6 +27,7 @@ export default function Configuracoes() {
     notify_on_testimonial: true,
     notify_on_referral: true,
     notify_on_meeting: true,
+    email_reports_enabled: true,
   });
 
   useEffect(() => {
