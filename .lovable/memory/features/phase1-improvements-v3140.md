@@ -26,5 +26,3 @@ Primeira fase do plano de correções/melhorias.
 - Fase 2: Health Score por membro (Item 4) + Relatório mensal por email (Item 5).
 - Fase 3: Mural de Oportunidades (Item 7), Pedidos de Indicação broadcast (Item 3), notificações de Matchmaking (Item 1).
 - Fase 4: Cartão digital com QR Code (Item 6), Agenda de slots 1x1 (Item 2).
-</content>
-</invoke>
