@@ -445,6 +445,9 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
+      {/* Health Score por Membro (Item 4) */}
+      <MemberHealthScoreCard enabled={role === 'admin'} />
+
       {/* Bottom Row */}
       <div className="grid gap-4 md:grid-cols-2">
         {/* Top Members */}
