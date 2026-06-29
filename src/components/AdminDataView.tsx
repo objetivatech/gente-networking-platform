@@ -108,6 +108,64 @@ export default function AdminDataView({ title, description, icon, table, onDelet
     return filtered;
   }, [records, selectedTeam, searchQuery, teamMembersMap, profilesMap, table]);
 
+  // Configuração de colunas de exportação por tipo de tabela
+  const exportColumns = useMemo<ExportColumn<any>[]>(() => {
+    const profiles = profilesMap || {};
+    const dateOf = (r: any) =>
+      r.meeting_date ? format(parseLocalDate(r.meeting_date), 'dd/MM/yyyy')
+      : r.deal_date ? format(parseLocalDate(r.deal_date), 'dd/MM/yyyy')
+      : r.created_at ? format(new Date(r.created_at), 'dd/MM/yyyy') : '';
+
+    switch (table) {
+      case 'referrals':
+        return [
+          { header: 'De', value: (r) => profiles[r.from_user_id]?.full_name || '' },
+          { header: 'Para', value: (r) => profiles[r.to_user_id]?.full_name || '' },
+          { header: 'Contato', value: (r) => r.contact_name || '' },
+          { header: 'Telefone', value: (r) => r.contact_phone || '' },
+          { header: 'Email', value: (r) => r.contact_email || '' },
+          { header: 'Status', value: (r) => r.status || '' },
+          { header: 'Notas', value: (r) => r.notes || '' },
+          { header: 'Data', value: dateOf },
+        ];
+      case 'business_deals':
+        return [
+          { header: 'Fechado por', value: (r) => profiles[r.closed_by_user_id]?.full_name || '' },
+          { header: 'Indicado por', value: (r) => profiles[r.referred_by_user_id]?.full_name || '' },
+          { header: 'Cliente', value: (r) => r.client_name || '' },
+          { header: 'Valor (R$)', value: (r) => Number(r.value || 0).toFixed(2) },
+          { header: 'Descrição', value: (r) => r.description || '' },
+          { header: 'Data', value: dateOf },
+        ];
+      case 'gente_em_acao':
+        return [
+          { header: 'Membro', value: (r) => profiles[r.user_id]?.full_name || '' },
+          { header: 'Parceiro', value: (r) => profiles[r.partner_id]?.full_name || r.guest_name || '' },
+          { header: 'Notas', value: (r) => r.notes || '' },
+          { header: 'Data', value: dateOf },
+        ];
+      case 'testimonials':
+        return [
+          { header: 'De', value: (r) => profiles[r.from_user_id]?.full_name || '' },
+          { header: 'Para', value: (r) => profiles[r.to_user_id]?.full_name || '' },
+          { header: 'Conteúdo', value: (r) => r.content || '' },
+          { header: 'Data', value: dateOf },
+        ];
+      case 'invitations':
+        return [
+          { header: 'Convidado por', value: (r) => profiles[r.invited_by]?.full_name || '' },
+          { header: 'Nome', value: (r) => r.name || '' },
+          { header: 'Email', value: (r) => r.email || '' },
+          { header: 'Status', value: (r) => r.status || '' },
+          { header: 'Data', value: dateOf },
+        ];
+      default:
+        return [{ header: 'Data', value: dateOf }];
+    }
+  }, [table, profilesMap]);
+
+  const fileBase = `${table}-${selectedTeam !== 'all' ? 'grupo' : 'todos'}`;
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
