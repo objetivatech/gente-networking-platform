@@ -179,6 +179,23 @@ export default function AdminDataView({ title, description, icon, table, onDelet
         <Badge variant="secondary" className="text-sm">
           {filteredRecords.length} registro{filteredRecords.length !== 1 ? 's' : ''}
         </Badge>
+        {filteredRecords.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="w-4 h-4" /> Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportRowsToExcel(filteredRecords, exportColumns, { fileName: fileBase, sheetName: title })}>
+                <FileSpreadsheet className="w-4 h-4 mr-2" /> Exportar Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportRowsToPDF(filteredRecords, exportColumns, { fileName: fileBase, title })}>
+                <FileText className="w-4 h-4 mr-2" /> Exportar PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Filtros */}
