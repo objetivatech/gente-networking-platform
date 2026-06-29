@@ -14,6 +14,7 @@ interface NotificationSettings {
   notify_on_testimonial: boolean;
   notify_on_referral: boolean;
   notify_on_meeting: boolean;
+  email_reports_enabled: boolean;
 }
 
 export default function Configuracoes() {
