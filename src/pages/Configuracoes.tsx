@@ -14,6 +14,7 @@ interface NotificationSettings {
   notify_on_testimonial: boolean;
   notify_on_referral: boolean;
   notify_on_meeting: boolean;
+  email_reports_enabled: boolean;
 }
 
 export default function Configuracoes() {
@@ -26,6 +27,7 @@ export default function Configuracoes() {
     notify_on_testimonial: true,
     notify_on_referral: true,
     notify_on_meeting: true,
+    email_reports_enabled: true,
   });
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function Configuracoes() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('email_notifications_enabled, notify_on_testimonial, notify_on_referral, notify_on_meeting')
+          .select('email_notifications_enabled, notify_on_testimonial, notify_on_referral, notify_on_meeting, email_reports_enabled')
           .eq('id', user.id)
           .single();
 
@@ -47,6 +49,7 @@ export default function Configuracoes() {
             notify_on_testimonial: data.notify_on_testimonial ?? true,
             notify_on_referral: data.notify_on_referral ?? true,
             notify_on_meeting: data.notify_on_meeting ?? true,
+            email_reports_enabled: data.email_reports_enabled ?? true,
           });
         }
       } catch (error) {
@@ -192,7 +195,26 @@ export default function Configuracoes() {
                 onCheckedChange={(checked) => updateSetting('notify_on_meeting', checked)}
                 disabled={!settings.email_notifications_enabled}
               />
+          </div>
+
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="email-reports" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Relatório mensal por email
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Receber, no início de cada mês, um resumo da sua atividade (reuniões, indicações, presenças e ranking)
+                </p>
+              </div>
+              <Switch
+                id="email-reports"
+                checked={settings.email_reports_enabled}
+                onCheckedChange={(checked) => updateSetting('email_reports_enabled', checked)}
+              />
             </div>
+          </div>
           </div>
 
           <div className="pt-4 border-t">
