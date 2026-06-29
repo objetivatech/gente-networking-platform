@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth, subMonths, format, startOfYear, endOfYear } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths, format, startOfYear, endOfYear, subDays } from 'date-fns';
 
 export function useAdminDashboard(teamId?: string) {
   // Stats gerais
