@@ -593,6 +593,15 @@ Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibi
 
 ## Changelog
 
+### v3.15.0 (2026-06-29)
+
+**Fase 2 — Health Score e Relatório Mensal por Email:**
+- Card "Health Score por Membro" no Dashboard Administrativo (0-100), classificando membros em Saudável / Atenção / Risco, com janela ajustável de 30/60/90 dias (`MemberHealthScoreCard` + hook `useMemberHealthScores`)
+- Função de banco `get_members_health_scores(_days)` (apenas admin) combinando reuniões, indicações, presenças, depoimentos, conselho e cases — **não** altera a pontuação/ranking
+- Edge function `monthly-member-report` + agendamento mensal (`pg_cron`, dia 1 às 08:00 UTC): envia resumo individual a cada membro e resumo da comunidade ao admin via Resend
+- Autenticação da função por `x-cron-secret` (CRON_SECRET) ou JWT de admin
+- Nova preferência "Relatório mensal por email" em Configurações (coluna `profiles.email_reports_enabled`, opt-out por usuário)
+
 ### v3.14.0 (2026-06-29)
 
 **Fase 1 — Diretório de Convidados, Exportações e ROI:**
