@@ -381,7 +381,14 @@ function UpcomingGuestsTab() {
           </CardContent>
         </Card>
       ) : (
-        filtered.map((m) => (
+        groupedByTeam.map((grp) => (
+          <div key={grp.teamName} className="space-y-3">
+            <div className="flex items-center gap-2 pt-2">
+              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: grp.teamColor || 'hsl(var(--primary))' }} />
+              <h3 className="text-sm font-semibold">{grp.teamName}</h3>
+              <Badge variant="secondary" className="text-[10px]">{grp.entries.length} {grp.entries.length === 1 ? 'encontro' : 'encontros'}</Badge>
+            </div>
+            {grp.entries.map((m) => (
           <Card key={m.meeting_id} className={m.is_past ? 'opacity-95' : 'border-primary/40'}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
