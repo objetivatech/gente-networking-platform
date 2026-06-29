@@ -593,6 +593,15 @@ Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibi
 
 ## Changelog
 
+### v3.14.0 (2026-06-29)
+
+**Fase 1 — Diretório de Convidados, Exportações e ROI:**
+- Aba "Convidados em Encontros" (página de Eventos) restrita a membros e facilitadores via `canViewGuestsDirectory` (oculta para convidados)
+- Listagem agrupada por grupo e data de evento, com dados de contato e exportação Excel/PDF
+- Utilitário compartilhado `src/lib/export-utils.ts` (`exportRowsToExcel` / `exportRowsToPDF`)
+- Exportação Excel/PDF centralizada em telas administrativas (Indicações, Negócios, etc.) via `AdminDataView`
+- Card "ROI da Comunidade — últimos 30 dias" no painel admin: valor de negócios, indicações convertidas e negócios registrados (`useAdminDashboard`)
+
 ### v3.0.0 (2026-03-12)
 
 **Bloco 1 — Privacidade e Convites:**
