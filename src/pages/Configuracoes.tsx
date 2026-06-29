@@ -37,7 +37,7 @@ export default function Configuracoes() {
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('email_notifications_enabled, notify_on_testimonial, notify_on_referral, notify_on_meeting')
+          .select('email_notifications_enabled, notify_on_testimonial, notify_on_referral, notify_on_meeting, email_reports_enabled')
           .eq('id', user.id)
           .single();
 
@@ -49,6 +49,7 @@ export default function Configuracoes() {
             notify_on_testimonial: data.notify_on_testimonial ?? true,
             notify_on_referral: data.notify_on_referral ?? true,
             notify_on_meeting: data.notify_on_meeting ?? true,
+            email_reports_enabled: data.email_reports_enabled ?? true,
           });
         }
       } catch (error) {
