@@ -187,9 +187,11 @@ export default function Encontros() {
             <TabsTrigger value="meetings" className="gap-2">
               <Calendar className="w-4 h-4" /> Encontros
             </TabsTrigger>
-            <TabsTrigger value="guests" className="gap-2">
-              <Ticket className="w-4 h-4" /> Convidados em Encontros
-            </TabsTrigger>
+            {canViewGuestsDirectory(userRole) && (
+              <TabsTrigger value="guests" className="gap-2">
+                <Ticket className="w-4 h-4" /> Convidados em Encontros
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="meetings" className="space-y-6">
@@ -212,9 +214,11 @@ export default function Encontros() {
             )}
           </TabsContent>
 
-          <TabsContent value="guests">
-            <UpcomingGuestsTab />
-          </TabsContent>
+          {canViewGuestsDirectory(userRole) && (
+            <TabsContent value="guests">
+              <UpcomingGuestsTab />
+            </TabsContent>
+          )}
         </Tabs>
       )}
     </div>
