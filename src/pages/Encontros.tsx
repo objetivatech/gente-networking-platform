@@ -495,6 +495,8 @@ function UpcomingGuestsTab() {
               </div>
             </CardContent>
           </Card>
+            ))}
+          </div>
         ))
       )}
     </div>
