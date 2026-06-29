@@ -584,6 +584,7 @@ export type Database = {
           deactivation_reason: string | null
           email: string | null
           email_notifications_enabled: boolean | null
+          email_reports_enabled: boolean
           full_name: string
           how_to_refer_me: string | null
           id: string
@@ -617,6 +618,7 @@ export type Database = {
           deactivation_reason?: string | null
           email?: string | null
           email_notifications_enabled?: boolean | null
+          email_reports_enabled?: boolean
           full_name: string
           how_to_refer_me?: string | null
           id: string
@@ -650,6 +652,7 @@ export type Database = {
           deactivation_reason?: string | null
           email?: string | null
           email_notifications_enabled?: boolean | null
+          email_reports_enabled?: boolean
           full_name?: string
           how_to_refer_me?: string | null
           id?: string
