@@ -584,6 +584,7 @@ export type Database = {
           deactivation_reason: string | null
           email: string | null
           email_notifications_enabled: boolean | null
+          email_reports_enabled: boolean
           full_name: string
           how_to_refer_me: string | null
           id: string
@@ -617,6 +618,7 @@ export type Database = {
           deactivation_reason?: string | null
           email?: string | null
           email_notifications_enabled?: boolean | null
+          email_reports_enabled?: boolean
           full_name: string
           how_to_refer_me?: string | null
           id: string
@@ -650,6 +652,7 @@ export type Database = {
           deactivation_reason?: string | null
           email?: string | null
           email_notifications_enabled?: boolean | null
+          email_reports_enabled?: boolean
           full_name?: string
           how_to_refer_me?: string | null
           id?: string
@@ -954,6 +957,26 @@ export type Database = {
           name: string
           status: string
           team_id: string
+        }[]
+      }
+      get_members_health_scores: {
+        Args: { _days?: number }
+        Returns: {
+          attendances_count: number
+          avatar_url: string
+          business_cases_count: number
+          company: string
+          council_count: number
+          full_name: string
+          health_level: string
+          health_score: number
+          last_activity_at: string
+          meetings_count: number
+          referrals_count: number
+          team_id: string
+          team_name: string
+          testimonials_count: number
+          user_id: string
         }[]
       }
       get_monthly_ranking: {
