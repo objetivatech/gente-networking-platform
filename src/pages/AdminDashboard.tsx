@@ -201,6 +201,38 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
+      {/* ROI da Comunidade (últimos 30 dias) - Item 8 */}
+      <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            ROI da Comunidade — últimos 30 dias
+          </CardTitle>
+          <CardDescription>
+            Valor de negócios gerado e indicações convertidas no período
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <div className="text-2xl font-bold text-primary">
+                {formatCurrency(stats?.last30BusinessValue || 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">em negócios fechados</p>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{stats?.convertedReferrals || 0}</div>
+              <p className="text-xs text-muted-foreground">indicações convertidas em negócio</p>
+            </div>
+            <div>
+              <div className="text-2xl font-bold">{stats?.last30DealsCount || 0}</div>
+              <p className="text-xs text-muted-foreground">negócios registrados no período</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+
       {/* Charts Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Monthly Activity Chart */}

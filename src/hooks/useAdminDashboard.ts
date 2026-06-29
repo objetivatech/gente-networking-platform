@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth, subMonths, format, startOfYear, endOfYear } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths, format, startOfYear, endOfYear, subDays } from 'date-fns';
 
 export function useAdminDashboard(teamId?: string) {
   // Stats gerais
@@ -82,6 +82,18 @@ export function useAdminDashboard(teamId?: string) {
       const { data: yearDeals } = await yearDealsQuery;
       const annualBusinessValue = yearDeals?.reduce((acc, d) => acc + Number(d.value), 0) || 0;
 
+      // ROI dos últimos 30 dias (Item 8): valor gerado + indicações convertidas em negócios
+      const thirtyDaysAgo = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+      let last30Query = supabase
+        .from('business_deals')
+        .select('value, referred_by_user_id')
+        .gte('deal_date', thirtyDaysAgo);
+      if (memberIds) last30Query = last30Query.in('closed_by_user_id', memberIds);
+      const { data: last30Deals } = await last30Query;
+      const last30BusinessValue = last30Deals?.reduce((acc, d) => acc + Number(d.value), 0) || 0;
+      const last30DealsCount = last30Deals?.length || 0;
+      const convertedReferrals = last30Deals?.filter(d => !!d.referred_by_user_id).length || 0;
+
       return {
         totalMembers: totalMembersCount,
         totalGuests: activeGuests,
@@ -90,6 +102,9 @@ export function useAdminDashboard(teamId?: string) {
         totalTeams: totalTeams || 0,
         totalBusinessValue,
         annualBusinessValue,
+        last30BusinessValue,
+        last30DealsCount,
+        convertedReferrals,
         totalTestimonials: totalTestimonials || 0,
         totalReferrals: totalReferrals || 0,
         totalGenteEmAcao: totalGenteEmAcao || 0,

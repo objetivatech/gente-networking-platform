@@ -20,6 +20,10 @@ import { format, isPast, isToday, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { useMoveGuestAttendance } from '@/hooks/useMoveGuestAttendance';
+import { canViewGuestsDirectory } from '@/lib/access-control';
+import { exportRowsToExcel, exportRowsToPDF } from '@/lib/export-utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 
 export default function Encontros() {
   const { meetings, isLoading, toggleAttendance, removeAttendance } = useMeetings();
@@ -183,9 +187,11 @@ export default function Encontros() {
             <TabsTrigger value="meetings" className="gap-2">
               <Calendar className="w-4 h-4" /> Encontros
             </TabsTrigger>
-            <TabsTrigger value="guests" className="gap-2">
-              <Ticket className="w-4 h-4" /> Convidados em Encontros
-            </TabsTrigger>
+            {canViewGuestsDirectory(userRole) && (
+              <TabsTrigger value="guests" className="gap-2">
+                <Ticket className="w-4 h-4" /> Convidados em Encontros
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="meetings" className="space-y-6">
@@ -208,9 +214,11 @@ export default function Encontros() {
             )}
           </TabsContent>
 
-          <TabsContent value="guests">
-            <UpcomingGuestsTab />
-          </TabsContent>
+          {canViewGuestsDirectory(userRole) && (
+            <TabsContent value="guests">
+              <UpcomingGuestsTab />
+            </TabsContent>
+          )}
         </Tabs>
       )}
     </div>
@@ -260,6 +268,50 @@ function UpcomingGuestsTab() {
     filtered.forEach(m => m.guests.forEach(g => set.add(g.id)));
     return set.size;
   }, [filtered]);
+
+  // Organização por GRUPO -> DATA do evento (data já vem ordenada desc)
+  const groupedByTeam = useMemo(() => {
+    const groups = new Map<string, { teamName: string; teamColor: string | null; entries: GuestAttendanceEntry[] }>();
+    filtered.forEach(m => {
+      const key = m.team_id || 'sem-grupo';
+      if (!groups.has(key)) {
+        groups.set(key, { teamName: m.team_name || 'Sem grupo', teamColor: m.team_color, entries: [] });
+      }
+      groups.get(key)!.entries.push(m);
+    });
+    return Array.from(groups.values()).sort((a, b) => a.teamName.localeCompare(b.teamName));
+  }, [filtered]);
+
+  // Exportação (uma linha por presença de convidado)
+  const exportRows = useMemo(
+    () =>
+      filtered.flatMap(m =>
+        m.guests.map(g => ({
+          grupo: m.team_name || 'Sem grupo',
+          encontro: m.meeting_title,
+          data: format(parseLocalDate(m.meeting_date), 'dd/MM/yyyy'),
+          nome: g.full_name,
+          empresa: g.company || '',
+          segmento: g.business_segment || '',
+          email: g.email || '',
+          telefone: g.phone || '',
+          convidado_por: g.invited_by_name || '',
+        }))
+      ),
+    [filtered]
+  );
+
+  const exportColumns = [
+    { header: 'Grupo', value: (r: typeof exportRows[number]) => r.grupo },
+    { header: 'Encontro', value: (r: typeof exportRows[number]) => r.encontro },
+    { header: 'Data', value: (r: typeof exportRows[number]) => r.data },
+    { header: 'Nome', value: (r: typeof exportRows[number]) => r.nome },
+    { header: 'Empresa', value: (r: typeof exportRows[number]) => r.empresa },
+    { header: 'Segmento', value: (r: typeof exportRows[number]) => r.segmento },
+    { header: 'Email', value: (r: typeof exportRows[number]) => r.email },
+    { header: 'Telefone', value: (r: typeof exportRows[number]) => r.telefone },
+    { header: 'Convidado por', value: (r: typeof exportRows[number]) => r.convidado_por },
+  ];
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -312,10 +364,29 @@ function UpcomingGuestsTab() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-            <span><strong className="text-foreground">{filtered.length}</strong> encontros</span>
-            <span><strong className="text-foreground">{uniqueGuests}</strong> convidados únicos</span>
-            <span><strong className="text-foreground">{totalGuestVisits}</strong> presenças totais</span>
+          <div className="flex items-center justify-between flex-wrap gap-3 mt-3">
+            <div className="flex gap-4 text-xs text-muted-foreground">
+              <span><strong className="text-foreground">{filtered.length}</strong> encontros</span>
+              <span><strong className="text-foreground">{uniqueGuests}</strong> convidados únicos</span>
+              <span><strong className="text-foreground">{totalGuestVisits}</strong> presenças totais</span>
+            </div>
+            {exportRows.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" /> Exportar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportRowsToExcel(exportRows, exportColumns, { fileName: 'convidados-encontros', sheetName: 'Convidados' })}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" /> Exportar Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportRowsToPDF(exportRows, exportColumns, { fileName: 'convidados-encontros', title: 'Convidados em Encontros' })}>
+                    <FileText className="w-4 h-4 mr-2" /> Exportar PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -329,7 +400,14 @@ function UpcomingGuestsTab() {
           </CardContent>
         </Card>
       ) : (
-        filtered.map((m) => (
+        groupedByTeam.map((grp) => (
+          <div key={grp.teamName} className="space-y-3">
+            <div className="flex items-center gap-2 pt-2">
+              <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: grp.teamColor || 'hsl(var(--primary))' }} />
+              <h3 className="text-sm font-semibold">{grp.teamName}</h3>
+              <Badge variant="secondary" className="text-[10px]">{grp.entries.length} {grp.entries.length === 1 ? 'encontro' : 'encontros'}</Badge>
+            </div>
+            {grp.entries.map((m) => (
           <Card key={m.meeting_id} className={m.is_past ? 'opacity-95' : 'border-primary/40'}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
@@ -436,6 +514,8 @@ function UpcomingGuestsTab() {
               </div>
             </CardContent>
           </Card>
+            ))}
+          </div>
         ))
       )}
     </div>
