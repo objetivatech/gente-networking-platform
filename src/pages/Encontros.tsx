@@ -20,6 +20,10 @@ import { format, isPast, isToday, isFuture, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { useMoveGuestAttendance } from '@/hooks/useMoveGuestAttendance';
+import { canViewGuestsDirectory } from '@/lib/access-control';
+import { exportRowsToExcel, exportRowsToPDF } from '@/lib/export-utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 
 export default function Encontros() {
   const { meetings, isLoading, toggleAttendance, removeAttendance } = useMeetings();
