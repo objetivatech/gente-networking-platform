@@ -364,10 +364,29 @@ function UpcomingGuestsTab() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex gap-4 mt-3 text-xs text-muted-foreground">
-            <span><strong className="text-foreground">{filtered.length}</strong> encontros</span>
-            <span><strong className="text-foreground">{uniqueGuests}</strong> convidados únicos</span>
-            <span><strong className="text-foreground">{totalGuestVisits}</strong> presenças totais</span>
+          <div className="flex items-center justify-between flex-wrap gap-3 mt-3">
+            <div className="flex gap-4 text-xs text-muted-foreground">
+              <span><strong className="text-foreground">{filtered.length}</strong> encontros</span>
+              <span><strong className="text-foreground">{uniqueGuests}</strong> convidados únicos</span>
+              <span><strong className="text-foreground">{totalGuestVisits}</strong> presenças totais</span>
+            </div>
+            {exportRows.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Download className="w-4 h-4" /> Exportar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => exportRowsToExcel(exportRows, exportColumns, { fileName: 'convidados-encontros', sheetName: 'Convidados' })}>
+                    <FileSpreadsheet className="w-4 h-4 mr-2" /> Exportar Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportRowsToPDF(exportRows, exportColumns, { fileName: 'convidados-encontros', title: 'Convidados em Encontros' })}>
+                    <FileText className="w-4 h-4 mr-2" /> Exportar PDF
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </CardContent>
       </Card>
