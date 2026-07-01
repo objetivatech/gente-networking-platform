@@ -10,6 +10,7 @@ import {
   newMeetingEmailTemplate,
   councilPostEmailTemplate,
   rankChangeEmailTemplate,
+  referralRequestEmailTemplate,
 } from "../_shared/email-templates.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -22,7 +23,7 @@ const corsHeaders = {
 };
 
 interface NotificationPayload {
-  type: "testimonial" | "referral" | "welcome" | "invitation_accepted" | "guest_attended" | "invitation" | "new_meeting" | "council_post" | "rank_change";
+  type: "testimonial" | "referral" | "welcome" | "invitation_accepted" | "guest_attended" | "invitation" | "new_meeting" | "council_post" | "rank_change" | "referral_request";
   from_user_id?: string;
   to_user_id?: string;
   to_user_ids?: string[];
@@ -43,6 +44,8 @@ interface NotificationPayload {
   post_title?: string;
   old_rank?: string;
   new_rank?: string;
+  request_title?: string;
+  target_segment?: string;
 }
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; data?: any; error?: any }> {
@@ -110,8 +113,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Batch notification types (new_meeting, council_post) send to multiple users
-    if ((payload.type === "new_meeting" || payload.type === "council_post") && payload.to_user_ids && payload.to_user_ids.length > 0) {
+    // Batch notification types (new_meeting, council_post, referral_request) send to multiple users
+    if ((payload.type === "new_meeting" || payload.type === "council_post" || payload.type === "referral_request") && payload.to_user_ids && payload.to_user_ids.length > 0) {
       const { data: recipients } = await supabase
         .from("profiles")
         .select("id, full_name, email, email_notifications_enabled, notify_on_meeting")
@@ -141,6 +144,9 @@ const handler = async (req: Request): Promise<Response> => {
         if (payload.type === "new_meeting") {
           subject = `📅 Novo encontro agendado: ${payload.meeting_title}`;
           html = newMeetingEmailTemplate(recipient.full_name, payload.meeting_title || "Encontro", payload.meeting_date || "", payload.meeting_time, payload.location, payload.team_name);
+        } else if (payload.type === "referral_request") {
+          subject = `🔎 Novo Pedido de Indicação: ${payload.request_title}`;
+          html = referralRequestEmailTemplate(recipient.full_name, fromUser.full_name, payload.request_title || "Pedido de Indicação", payload.target_segment, payload.team_name);
         } else {
           subject = `💡 Novo desafio no Conselho 24/7: ${payload.post_title}`;
           html = councilPostEmailTemplate(recipient.full_name, fromUser.full_name, payload.post_title || "Desafio", payload.team_name);

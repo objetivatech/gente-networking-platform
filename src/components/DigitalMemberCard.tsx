@@ -17,11 +17,12 @@ import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, QrCode, Loader2 } from 'lucide-react';
+import { Download, QrCode, Loader2, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const NAVY = '#1E3A5F';
 const ORANGE = '#F7941D';
+const LOGO_SRC = '/logo-gente-card.png';
 
 interface DigitalMemberCardProps {
   member: {
@@ -34,20 +35,26 @@ interface DigitalMemberCardProps {
     business_segment?: string | null;
     slug?: string | null;
   };
+  /** Quando false, o cartão não é gerado (perfil incompleto/não publicável). */
+  canGenerate?: boolean;
+  /** Mensagem exibida quando canGenerate é false. */
+  lockedMessage?: string;
 }
 
-export function DigitalMemberCard({ member }: DigitalMemberCardProps) {
+export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }: DigitalMemberCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(true);
   const { toast } = useToast();
 
-  const profilePath = `/membro/${member.slug || member.id}`;
+  const profilePath = `/p/${member.slug || member.id}`;
   const profileUrl = `${window.location.origin}${profilePath}`;
+
 
   useEffect(() => {
     let cancelled = false;
 
     const draw = async () => {
+      if (!canGenerate) return;
       setIsDrawing(true);
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -66,18 +73,33 @@ export function DigitalMemberCard({ member }: DigitalMemberCardProps) {
       ctx.fillStyle = ORANGE;
       ctx.fillRect(0, 0, 16, H);
 
-      // Marca
-      ctx.fillStyle = ORANGE;
-      ctx.font = 'bold 34px Arial, sans-serif';
-      ctx.fillText('GENTE', 60, 80);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '20px Arial, sans-serif';
-      ctx.fillText('NETWORKING', 60, 112);
+      // Logo do Gente (com fallback para marca em texto)
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve, reject) => {
+          logoImg.onload = () => resolve();
+          logoImg.onerror = reject;
+          logoImg.src = LOGO_SRC;
+        });
+        if (cancelled) return;
+        const logoH = 90;
+        const logoW = (logoImg.width / logoImg.height) * logoH;
+        ctx.drawImage(logoImg, 60, 50, logoW, logoH);
+      } catch {
+        ctx.fillStyle = ORANGE;
+        ctx.font = 'bold 34px Arial, sans-serif';
+        ctx.fillText('GENTE', 60, 80);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '20px Arial, sans-serif';
+        ctx.fillText('NETWORKING', 60, 112);
+      }
 
       // Nome
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 46px Arial, sans-serif';
       ctx.fillText(member.full_name || 'Membro', 60, 240);
+
 
       // Cargo / empresa
       ctx.fillStyle = '#CBD5E1';
@@ -131,7 +153,8 @@ export function DigitalMemberCard({ member }: DigitalMemberCardProps) {
 
     draw();
     return () => { cancelled = true; };
-  }, [member.full_name, member.position, member.company, member.email, member.phone, member.business_segment, profileUrl]);
+  }, [member.full_name, member.position, member.company, member.email, member.phone, member.business_segment, profileUrl, canGenerate]);
+
 
   const handleDownload = () => {
     const canvas = canvasRef.current;
@@ -154,18 +177,30 @@ export function DigitalMemberCard({ member }: DigitalMemberCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="relative rounded-lg overflow-hidden border">
-          <canvas ref={canvasRef} className="w-full h-auto block" />
-          {isDrawing && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        {!canGenerate ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
+            <Lock className="h-6 w-6" />
+            <p className="text-sm">
+              {lockedMessage || 'Complete e publique seu perfil para gerar o cartão digital.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="relative rounded-lg overflow-hidden border">
+              <canvas ref={canvasRef} className="w-full h-auto block" />
+              {isDrawing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <Button onClick={handleDownload} disabled={isDrawing} className="w-full sm:w-auto">
-          <Download className="mr-2 h-4 w-4" /> Baixar cartão (PNG)
-        </Button>
+            <Button onClick={handleDownload} disabled={isDrawing} className="w-full sm:w-auto">
+              <Download className="mr-2 h-4 w-4" /> Baixar cartão (PNG)
+            </Button>
+          </>
+        )}
       </CardContent>
+
     </Card>
   );
 }

@@ -25,6 +25,8 @@ import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
 import { MonthlyPointsEvolutionChart } from '@/components/MonthlyPointsEvolutionChart';
 import { PitchGenerator } from '@/components/PitchGenerator';
 import { DigitalMemberCard } from '@/components/DigitalMemberCard';
+import { PublicProfilePublishControl } from '@/components/PublicProfilePublishControl';
+import { getProfileCompleteness } from '@/lib/profile-completeness';
 import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase, CalendarClock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -103,6 +105,9 @@ export default function Profile() {
   const handleCancel = () => setIsEditing(false);
   const handleAvatarClick = () => fileInputRef.current?.click();
   const handleBannerClick = () => bannerInputRef.current?.click();
+
+  const profileCompleteness = getProfileCompleteness(profile as any);
+
 
   const addTag = () => {
     const tag = tagInput.trim();
@@ -342,8 +347,22 @@ export default function Profile() {
             {/* Gerador de Pitch via IA */}
             <PitchGenerator profile={profile} />
 
-            {/* Cartão Digital com QR Code */}
-            {profile && <DigitalMemberCard member={profile as any} />}
+            {/* Controle de publicação da página pública */}
+            <PublicProfilePublishControl
+              profile={profile as any}
+              isUpdating={isUpdating}
+              onTogglePublish={(enabled) => updateProfile({ public_profile_enabled: enabled } as any)}
+            />
+
+            {/* Cartão Digital com QR Code (só é gerado com o perfil completo) */}
+            {profile && (
+              <DigitalMemberCard
+                member={profile as any}
+                canGenerate={profileCompleteness.isComplete}
+                lockedMessage="Complete todos os campos obrigatórios do perfil para gerar o cartão digital."
+              />
+            )}
+
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">

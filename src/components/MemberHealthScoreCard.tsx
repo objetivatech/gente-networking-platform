@@ -12,7 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { HeartPulse, Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { HeartPulse, Loader2, Info, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useMemberHealthScores, type HealthLevel } from '@/hooks/useMemberHealthScores';
@@ -23,13 +25,24 @@ const LEVEL_META: Record<HealthLevel, { label: string; className: string; bar: s
   risco: { label: 'Risco', className: 'bg-red-500/15 text-red-600 border-red-500/30', bar: '[&>div]:bg-red-500' },
 };
 
+// Pesos usados no cálculo do Health Score (mesma lógica da RPC get_members_health_scores).
+const SCORE_WEIGHTS = [
+  { label: 'Reunião 1x1 (Gente em Ação)', points: 15 },
+  { label: 'Indicação enviada', points: 15 },
+  { label: 'Presença em encontro', points: 20 },
+  { label: 'Depoimento', points: 10 },
+  { label: 'Case de negócio', points: 10 },
+  { label: 'Interação no Conselho 24/7', points: 5 },
+];
+
 function getInitials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
 export function MemberHealthScoreCard({ enabled = true }: { enabled?: boolean }) {
   const [days, setDays] = useState('60');
-  const { data, isLoading } = useMemberHealthScores(Number(days), enabled);
+  const { data, isLoading, error } = useMemberHealthScores(Number(days), enabled);
+
 
   const counts = (data || []).reduce(
     (acc, m) => {
@@ -52,30 +65,71 @@ export function MemberHealthScoreCard({ enabled = true }: { enabled?: boolean })
               Índice de engajamento recente (não afeta a pontuação). Ordenado dos mais em risco aos mais ativos.
             </CardDescription>
           </div>
-          <Select value={days} onValueChange={setDays}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="60">Últimos 60 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9" title="Como o Health Score é calculado">
+                  <Info className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80">
+                <p className="font-medium mb-2">Como o Health Score é calculado</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Para cada membro somamos os pontos das atividades registradas no período selecionado.
+                  O total é limitado a 100. É uma métrica de retenção e <strong>não</strong> afeta a
+                  pontuação/ranking de gamificação.
+                </p>
+                <ul className="space-y-1.5 text-sm">
+                  {SCORE_WEIGHTS.map((w) => (
+                    <li key={w.label} className="flex items-center justify-between">
+                      <span className="text-muted-foreground">{w.label}</span>
+                      <span className="font-medium">+{w.points}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 pt-3 border-t text-xs text-muted-foreground space-y-1">
+                  <p><strong className="text-green-600">Saudável</strong>: 60 ou mais</p>
+                  <p><strong className="text-amber-600">Atenção</strong>: 30 a 59</p>
+                  <p><strong className="text-red-600">Risco</strong>: abaixo de 30</p>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Select value={days} onValueChange={setDays}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="60">Últimos 60 dias</SelectItem>
+                <SelectItem value="90">Últimos 90 dias</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 pt-2">
           <Badge variant="outline" className={LEVEL_META.saudavel.className}>{counts.saudavel} saudáveis</Badge>
           <Badge variant="outline" className={LEVEL_META.atencao.className}>{counts.atencao} em atenção</Badge>
           <Badge variant="outline" className={LEVEL_META.risco.className}>{counts.risco} em risco</Badge>
         </div>
+
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {!enabled ? (
+          <p className="text-center text-muted-foreground py-8">
+            O Health Score é exclusivo para administradores.
+          </p>
+        ) : isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
+        ) : error ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <AlertTriangle className="h-6 w-6 text-red-500" />
+            <p className="text-sm text-red-600">Não foi possível carregar o Health Score.</p>
+            <p className="text-xs text-muted-foreground">{(error as Error).message}</p>
+          </div>
         ) : (data || []).length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Nenhum membro encontrado</p>
+          <p className="text-center text-muted-foreground py-8">Nenhum membro encontrado no período selecionado</p>
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="space-y-3">

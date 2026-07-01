@@ -419,3 +419,27 @@ ${ctaButton('Ver Meu Ranking', `${APP_URL}/ranking`)}`;
 
   return emailWrapper(emailContent);
 }
+
+// Referral request (broadcast) notification for members of the same group
+export function referralRequestEmailTemplate(name: string, authorName: string, requestTitle: string, targetSegment?: string, teamName?: string): string {
+  const teamInfo = teamName ? ` do grupo ${teamName}` : '';
+  const segmentInfo = targetSegment
+    ? `<p style="color: #475569; font-size: 15px; line-height: 1.6; margin: 8px 0 0;">Segmento buscado: <strong style="color: #1e3a5f;">${targetSegment}</strong></p>`
+    : '';
+
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Novo Pedido de Indicação! 🔎</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${name}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  <strong style="color: #1e3a5f;">${authorName}</strong>${teamInfo} publicou um novo Pedido de Indicação para a comunidade:
+</p>
+${infoBox(`<p style="color: #1e40af; font-size: 16px; font-weight: 600; line-height: 1.6; margin: 0;">"${requestTitle}"</p>${segmentInfo}`, 'blue')}
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Você conhece alguém que pode ajudar? Responda com uma indicação!
+</p>
+${ctaButton('Ver Pedido de Indicação', `${APP_URL}/pedidos-indicacao`)}`;
+
+  return emailWrapper(emailContent);
+}

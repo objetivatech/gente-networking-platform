@@ -105,6 +105,27 @@ export function useReferralRequests() {
         target_segment: input.target_segment || null,
       });
       if (error) throw error;
+
+      // Notifica por email todos os membros do mesmo grupo (o Feed é alimentado por trigger no banco).
+      try {
+        const { data: recipients } = await supabase.rpc('get_group_members_for_notification', {
+          _user_id: user.id,
+        });
+        const toUserIds = (recipients || []).map((r: { user_id: string }) => r.user_id);
+        if (toUserIds.length > 0) {
+          await supabase.functions.invoke('send-notification', {
+            body: {
+              type: 'referral_request',
+              from_user_id: user.id,
+              to_user_ids: toUserIds,
+              request_title: input.title,
+              target_segment: input.target_segment || undefined,
+            },
+          });
+        }
+      } catch (e) {
+        console.error('Falha ao notificar o grupo sobre o pedido de indicação:', e);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['referral-requests'] });

@@ -13,6 +13,7 @@ import {
   Activity as ActivityIcon,
   Lightbulb,
   UserCog,
+  Search,
 } from 'lucide-react';
 
 const activityTypeConfig: Record<string, { icon: React.ElementType; color: string }> = {
@@ -20,6 +21,7 @@ const activityTypeConfig: Record<string, { icon: React.ElementType; color: strin
   testimonial: { icon: MessageSquare, color: 'text-purple-500' },
   business_deal: { icon: DollarSign, color: 'text-green-500' },
   referral: { icon: UserPlus, color: 'text-orange-500' },
+  referral_request: { icon: Search, color: 'text-amber-500' },
   attendance: { icon: Calendar, color: 'text-primary' },
   guest_attendance: { icon: Users, color: 'text-emerald-500' },
   invitation: { icon: UserPlus, color: 'text-pink-500' },
