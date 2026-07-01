@@ -106,6 +106,9 @@ export default function Profile() {
   const handleAvatarClick = () => fileInputRef.current?.click();
   const handleBannerClick = () => bannerInputRef.current?.click();
 
+  const profileCompleteness = getProfileCompleteness(profile as any);
+
+
   const addTag = () => {
     const tag = tagInput.trim();
     if (tag && !formData.tags.includes(tag)) {
