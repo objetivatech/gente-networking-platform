@@ -215,6 +215,56 @@ export default function Indicacoes() {
     );
   };
 
+  interface ReferralExportRow {
+    tipo: string;
+    membro: string;
+    empresa: string;
+    contato: string;
+    telefone: string;
+    email: string;
+    status: string;
+    observacoes: string;
+    data: string;
+  }
+
+  const exportRows: ReferralExportRow[] = [
+    ...(sentReferrals || []).map((r: any) => ({
+      tipo: 'Enviada',
+      membro: r.to_user?.full_name || '',
+      empresa: r.to_user?.company || '',
+      contato: r.contact_name || '',
+      telefone: r.contact_phone || '',
+      email: r.contact_email || '',
+      status: STATUS_CONFIG[(r.status as ReferralStatus)]?.label || '',
+      observacoes: r.notes || '',
+      data: format(new Date(r.created_at), 'dd/MM/yyyy', { locale: ptBR }),
+    })),
+    ...(receivedReferrals || []).map((r: any) => ({
+      tipo: 'Recebida',
+      membro: r.from_user?.full_name || '',
+      empresa: r.from_user?.company || '',
+      contato: r.contact_name || '',
+      telefone: r.contact_phone || '',
+      email: r.contact_email || '',
+      status: STATUS_CONFIG[(r.status as ReferralStatus)]?.label || '',
+      observacoes: r.notes || '',
+      data: format(new Date(r.created_at), 'dd/MM/yyyy', { locale: ptBR }),
+    })),
+  ];
+
+  const exportColumns: ExportColumn<ReferralExportRow>[] = [
+    { header: 'Tipo', value: (r) => r.tipo },
+    { header: 'Membro', value: (r) => r.membro },
+    { header: 'Empresa', value: (r) => r.empresa },
+    { header: 'Contato', value: (r) => r.contato },
+    { header: 'Telefone', value: (r) => r.telefone },
+    { header: 'Email', value: (r) => r.email },
+    { header: 'Status', value: (r) => r.status },
+    { header: 'Observações', value: (r) => r.observacoes },
+    { header: 'Data', value: (r) => r.data },
+  ];
+
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
