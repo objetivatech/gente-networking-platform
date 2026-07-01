@@ -193,6 +193,43 @@ export default function Negocios() {
     );
   };
 
+  interface DealExportRow {
+    tipo: string;
+    cliente: string;
+    contraparte: string;
+    descricao: string;
+    valor: string;
+    data: string;
+  }
+
+  const exportRows: DealExportRow[] = [
+    ...(myDeals || []).map((d: any) => ({
+      tipo: 'Fechado por mim',
+      cliente: d.client_name || '',
+      contraparte: d.referred_by?.full_name || '',
+      descricao: d.description || '',
+      valor: formatCurrency(Number(d.value)),
+      data: format(parseLocalDate(d.deal_date), 'dd/MM/yyyy', { locale: ptBR }),
+    })),
+    ...(referredDeals || []).map((d: any) => ({
+      tipo: 'Minha indicação',
+      cliente: d.client_name || '',
+      contraparte: d.closed_by?.full_name || '',
+      descricao: d.description || '',
+      valor: formatCurrency(Number(d.value)),
+      data: format(parseLocalDate(d.deal_date), 'dd/MM/yyyy', { locale: ptBR }),
+    })),
+  ];
+
+  const exportColumns: ExportColumn<DealExportRow>[] = [
+    { header: 'Tipo', value: (d) => d.tipo },
+    { header: 'Cliente', value: (d) => d.cliente },
+    { header: 'Contraparte', value: (d) => d.contraparte },
+    { header: 'Descrição', value: (d) => d.descricao },
+    { header: 'Valor', value: (d) => d.valor },
+    { header: 'Data', value: (d) => d.data },
+  ];
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -204,7 +241,16 @@ export default function Negocios() {
           <p className="text-muted-foreground">Registre os negócios fechados pela rede</p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex items-center gap-2">
+          <ExportButton
+            rows={exportRows}
+            columns={exportColumns}
+            fileName="negocios"
+            title="Negócios Realizados"
+            sheetName="Negócios"
+            disabled={isLoading || exportRows.length === 0}
+          />
+          <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
