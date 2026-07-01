@@ -9,7 +9,7 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  *
  * Renderiza um cartão de visita digital com os dados do membro e um QR Code
- * que aponta para o perfil público (/membro/:slug). Permite baixar o cartão
+ * que aponta para o perfil público (/p/:slug). Permite baixar o cartão
  * como imagem PNG. Usa a identidade visual da marca (Navy #1E3A5F, Orange #F7941D).
  */
 
