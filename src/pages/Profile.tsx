@@ -25,6 +25,8 @@ import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
 import { MonthlyPointsEvolutionChart } from '@/components/MonthlyPointsEvolutionChart';
 import { PitchGenerator } from '@/components/PitchGenerator';
 import { DigitalMemberCard } from '@/components/DigitalMemberCard';
+import { PublicProfilePublishControl } from '@/components/PublicProfilePublishControl';
+import { getProfileCompleteness } from '@/lib/profile-completeness';
 import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase, CalendarClock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
