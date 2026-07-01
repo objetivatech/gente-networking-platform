@@ -591,7 +591,20 @@ Layout principal usa `pb-20` no mobile e `safe-area-inset-bottom` para compatibi
 
 ---
 
+## Mural de Oportunidades e Pedidos de Indicação (Fase 3)
+
+Duas áreas exclusivas para membros/facilitadores/admins (convidados não acessam), sem impacto na gamificação.
+
+- **Mural de Oportunidades** (`/oportunidades`): tabela `opportunities` (`type`, `title`, `description`, `status`). Publicação de oportunidades de negócio, parcerias e demandas. Autor/admin editam e encerram. Hook `useOpportunities`.
+- **Pedidos de Indicação** (`/pedidos-indicacao`): tabelas `referral_requests` e `referral_request_responses` (respostas com `referral_id` opcional). Broadcast de pedidos + respostas da comunidade, com atalho para registrar a indicação em `/indicacoes`. Hook `useReferralRequests`.
+- **Acesso:** RLS members-only via `is_community_member(uuid)` (SECURITY DEFINER) + funções `canUseOpportunityBoard` / `canUseReferralRequests` em `src/lib/access-control.ts` (com testes de regressão).
+
+---
+
 ## Changelog
+
+### v3.16.0 (2026-07-01)
+- Mural de Oportunidades e Pedidos de Indicação (broadcast), members-only, sem pontuação
 
 ### v3.15.0 (2026-06-29)
 
