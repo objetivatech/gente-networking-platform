@@ -1,52 +1,65 @@
-# Plano — Itens restantes do plano original (v3.18.0)
 
-Fiz a varredura do código. As Fases 1 a 4 estão implantadas (v3.14.0 → v3.17.0). O item 10 (OAuth) foi removido a seu pedido. Restam **apenas 2 itens** ainda não concluídos do plano original:
+# Ajustes e novos recursos — v3.19.0
 
-| # | Item | Status real | Ação |
-| --- | --- | --- | --- |
-| 9 | Exportação PDF/CSV **estendida** | Parcial — utilitário `src/lib/export-utils.ts` pronto e usado em Membros/Admin, mas **Indicações e Negócios não exportam** | Adicionar botões de export |
-| 1 | Matchmaking: **sugestão semanal + notificação** | Faltando — nenhuma referência a sugestão semanal encontrada | Implementar destaque semanal + notificação |
+Quatro frentes: logo no cartão, Health Score, notificações do Feed/email e página pública de perfil.
 
-Nada de gamificação, permissões ou KPIs muda. Entrego tudo como uma versão única **v3.18.0**.
+## 1. Logo do Gente no cartão do membro
 
----
+- Em `src/components/DigitalMemberCard.tsx`, trocar o texto "GENTE / NETWORKING" desenhado no `<canvas>` pelo logotipo real.
+- Usar `logo-gente-branco.png` (versão branca já existente em `public/`), carregando a imagem e desenhando-a no canto superior esquerdo, mantendo proporção sobre o fundo navy.
+- Fallback: se a imagem falhar ao carregar, manter o texto atual (o cartão continua válido).
 
-## Item 9 — Exportação em Indicações e Negócios
+## 2. Health Score — como funciona e por que está vazio
 
-Reaproveita o utilitário existente (`exportRowsToExcel` / `exportRowsToPDF`), sem novas dependências.
+**Como é gerado (documentação para você entender e depois documentar):**
+O `MemberHealthScoreCard` chama a RPC `get_members_health_scores(_days)` (SECURITY DEFINER, só admin). Ela soma, nos últimos N dias, sinais de engajamento por membro com pesos: reunião (Gente em Ação) ×15, indicação ×15, presença ×20, depoimento ×10, resposta no Conselho ×5, business case ×10 — limitado a 100. Classifica em `saudável` (≥70), `atenção` (≥30), `risco` (<30). É métrica de retenção e **não** afeta o ranking.
 
-- **`src/pages/Indicacoes.tsx`**: adicionar um menu/botão "Exportar" (Excel e PDF) sobre a lista de indicações, com colunas: pessoa (de/para), empresa, descrição, status (frio/morno/quente), data. Exporta o que já está carregado/filtrado na tela.
-- **`src/pages/Negocios.tsx`**: mesmo padrão, colunas: cliente, indicado por, descrição, valor (R$), data do negócio.
-- Botões só aparecem para papéis já autorizados a ver a página (sem alterar RLS nem regras de acesso).
-- Reutiliza o componente/padrão de botão de export já usado em `Membros.tsx` para consistência visual (Navy/Orange).
+**Diagnóstico do bloco vazio:** existem 24 membros ativos que deveriam aparecer, então o problema é de execução, não de dados. Na fase de build vou:
+- Reproduzir a chamada da RPC autenticado como admin (Playwright/logado) e capturar o erro real (provável exceção não tratada engolida pelo react-query, deixando o estado "Nenhum membro encontrado").
+- Corrigir a causa (ex.: tratamento de erro/`enabled`, ou ajuste na RPC) e exibir mensagem de erro explícita no card em vez de estado vazio silencioso.
+- Adicionar tooltip/legenda no card explicando os pesos e o período.
 
-## Item 1 — Sugestão semanal de MatchMaking + notificação
+## 3. Revisão de notificações (Feed + email)
 
-Objetivo: destacar semanalmente "Quem você deveria conhecer esta semana" para membros, reforçando o uso do MatchMaking. Sem pontuar (pontos continuam apenas no registro do "Já conectei").
+**Auditoria:** hoje o Feed é alimentado via `add_activity_feed`/triggers e os emails via edge function `send-notification` (depoimento, indicação, convite, boas-vindas, conselho, reunião, mudança de rank). **Pedido de Indicação** (`referral_requests`) não gera nada no Feed nem email.
 
-- **`src/hooks/useMatchmaking.ts`**: derivar uma `weeklySuggestion` — o melhor match pendente (maior `score`), estável por semana (seed pela semana ISO atual) para não trocar a cada refresh.
-- **`src/pages/Matchmaking.tsx`**: card de destaque no topo ("Sua conexão da semana") com o perfil sugerido e atalho para o fluxo "Já conectei". Só exibe se o perfil do membro estiver completo (reaproveita o aviso já existente).
-- **Notificação (respeitando opt-out):**
-  - Edge function agendada `weekly-matchmaking-suggestion` (padrão das funções existentes como `monthly-member-report`), disparada por `pg_cron` uma vez por semana (ex.: segunda de manhã).
-  - Para cada membro com perfil completo, calcula a sugestão da semana e envia e-mail via Resend usando os templates unificados (`supabase/functions/_shared/email-templates.ts`), respeitando `email_reports_enabled`/`NotificationSettings`.
-  - Denominador exclui admin/facilitador/convidado (regra existente).
+**Implementação (Item principal):**
+- Migração: trigger `AFTER INSERT` em `referral_requests` que:
+  1. Chama `add_activity_feed` (tipo `referral_request`) para registrar o pedido no Feed, com `team_id` do grupo do autor.
+  2. Marca o registro para notificar o grupo.
+- Envio de email a **todos os membros do mesmo grupo** do autor: nova branch `referral_request` na edge function `send-notification` (novo template em `_shared/email-templates.ts`), respeitando `email_notifications_enabled`. O disparo será feito no `createRequest` do hook `useReferralRequests.ts` (buscando os membros do grupo via RPC) — mesmo padrão já usado em `useReferrals`/`useCouncil`.
+- Adicionar renderização do novo `activity_type` no `ActivityFeed.tsx` (ícone/label).
+- Entregável extra: documentar em `docs/` a matriz "evento → Feed? → email? → destinatários" para referência.
 
-## Documentação, memória e changelog (obrigatório)
+## 4. Página pública de perfil com controle de publicação
 
-- `docs/TECHNICAL_DOCUMENTATION.md`: seção v3.18.0.
-- `system_changelog`: nova entrada v3.18.0 (via migração de insert).
-- `.lovable/memory/features/phase5-improvements-v3180.md` + atualização do `mem://index.md`.
-- `src/pages/Documentacao.tsx`: menção às novas exportações e ao destaque semanal.
-- `ScoringRulesCard.tsx`: **não** muda (nenhum item novo pontua).
+**Nova rota pública** `/p/:slug` (fora do `MainLayout`, sem autenticação), com cabeçalho e rodapé de identidade Gente (logo, navy/laranja):
+- Exibe dados do perfil (avatar, nome, cargo/empresa, segmento, bio, "o que faço", cliente ideal, como me indicar, links sociais).
+- CTA de inscrição direcionando para o formulário existente: `/auth?tab=signup` (vou adicionar suporte ao query param `tab` no `Auth.tsx` para abrir direto na aba Cadastrar).
+- SEO por rota (title/description/og) via Helmet.
 
-## Detalhes técnicos
+**Controle de publicação (membros e convidados):**
+- Migração: coluna `public_profile_enabled boolean default false` em `profiles`.
+- Regra de completude: só pode publicar quando os campos obrigatórios estiverem preenchidos — avatar, nome, cargo, empresa, segmento, bio, "o que faço", cliente ideal, como me indicar (lista final confirmada no build).
+- Acesso anônimo seguro: a página pública lê os dados via RPC `SECURITY DEFINER` `get_public_profile(_slug)` que retorna **apenas** campos públicos e somente se `public_profile_enabled = true` (não expõe email/telefone a menos que o membro opte por exibir contato — decidir no build; por padrão ocultar dados sensíveis). Sem afrouxar RLS da tabela base.
 
-- Sem novas libs: `jspdf`, `jspdf-autotable` e `xlsx` já instalados.
-- Cron: registrar job semanal em migração Supabase (mesmo padrão do relatório mensal). Requer que `pg_cron`/`pg_net` já habilitados (usados na Fase 2) — confirmarei na migração.
-- Reforço de acesso via `src/lib/access-control.ts`: nenhum recurso novo members-only sem função + teste em `access-control.test.ts` (o destaque semanal segue `canUseMatchmaking`).
-- Validação: `bun run test` (regressão de acesso) + `tsgo` typecheck antes de fechar.
+**UX no `Profile.tsx`:**
+- Toggle "Publicar página pública" desabilitado enquanto houver campos faltando.
+- Tooltips de aviso indicando exatamente quais campos ainda faltam preencher.
+- Botão "Copiar link público" quando publicado.
 
-## Fora de escopo (confirmado)
+**Cartão + QR (integração com Item 1):**
+- O QR do `DigitalMemberCard` passa a apontar para `/p/:slug` (página pública) em vez de `/membro/:slug` (interna).
+- O cartão **só é gerado** após o perfil estar completo e publicado; caso contrário, exibir aviso com a lista de pendências (mesmos tooltips).
 
-- Item 10 (OAuth Google/LinkedIn) — removido a seu pedido.
-- Todos os demais itens (2,3,4,5,6,7,8,11) já estão implantados; não serão refeitos.
+## Documentação e changelog
+- Nova entrada de changelog **v3.19.0** em `system_changelog`.
+- Atualizar `docs/TECHNICAL_DOCUMENTATION.md` e `docs/USER_FLOWS.md`.
+- Novas memórias: `mem://features/public-profile-page`, atualização de `matchmaking`/notificações, e `mem://index.md`.
+- Testes de regressão para novas regras de acesso/completo em `access-control` quando aplicável.
+
+## Detalhes técnicos (resumo)
+- Migrações: coluna `public_profile_enabled`; trigger de Feed em `referral_requests`; RPC `get_public_profile`; possível ajuste em `get_members_health_scores`.
+- Edge function `send-notification`: novo tipo `referral_request` + template.
+- Frontend: `DigitalMemberCard.tsx`, `ActivityFeed.tsx`, `Profile.tsx`, `Auth.tsx`, nova página `PublicProfile.tsx` + rota em `App.tsx`, hook `useReferralRequests.ts`.
+- Sem quebrar recursos existentes; validação com `tsgo` e `bun run test`.
