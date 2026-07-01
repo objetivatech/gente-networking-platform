@@ -12,7 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { HeartPulse, Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { HeartPulse, Loader2, Info, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useMemberHealthScores, type HealthLevel } from '@/hooks/useMemberHealthScores';
@@ -23,13 +25,24 @@ const LEVEL_META: Record<HealthLevel, { label: string; className: string; bar: s
   risco: { label: 'Risco', className: 'bg-red-500/15 text-red-600 border-red-500/30', bar: '[&>div]:bg-red-500' },
 };
 
+// Pesos usados no cálculo do Health Score (mesma lógica da RPC get_members_health_scores).
+const SCORE_WEIGHTS = [
+  { label: 'Reunião 1x1 (Gente em Ação)', points: 15 },
+  { label: 'Indicação enviada', points: 15 },
+  { label: 'Presença em encontro', points: 20 },
+  { label: 'Depoimento', points: 10 },
+  { label: 'Case de negócio', points: 10 },
+  { label: 'Interação no Conselho 24/7', points: 5 },
+];
+
 function getInitials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
 export function MemberHealthScoreCard({ enabled = true }: { enabled?: boolean }) {
   const [days, setDays] = useState('60');
-  const { data, isLoading } = useMemberHealthScores(Number(days), enabled);
+  const { data, isLoading, error } = useMemberHealthScores(Number(days), enabled);
+
 
   const counts = (data || []).reduce(
     (acc, m) => {
