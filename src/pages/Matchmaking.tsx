@@ -141,6 +141,37 @@ export default function Matchmaking() {
         </Alert>
       )}
 
+      {weeklySuggestion && (
+        <Card className="border-primary/40 bg-gradient-to-r from-primary/10 to-transparent">
+          <CardContent className="flex flex-col sm:flex-row sm:items-center gap-4 py-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="p-2 rounded-full bg-primary/15 shrink-0">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-primary">Sugestão da semana</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={weeklySuggestion.avatar_url || undefined} />
+                    <AvatarFallback>{initials(weeklySuggestion.full_name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="font-semibold truncate">{weeklySuggestion.full_name}</p>
+                    {weeklySuggestion.company && (
+                      <p className="text-sm text-muted-foreground truncate">{weeklySuggestion.company}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button className="shrink-0" onClick={() => openCheck(weeklySuggestion)}>
+              <HeartHandshake className="h-4 w-4 mr-2" /> Conectar agora
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+
       <Tabs defaultValue="suggestions" className="w-full">
         <TabsList>
           <TabsTrigger value="suggestions" className="gap-2">
