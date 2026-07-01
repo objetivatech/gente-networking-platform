@@ -17,11 +17,12 @@ import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, QrCode, Loader2 } from 'lucide-react';
+import { Download, QrCode, Loader2, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const NAVY = '#1E3A5F';
 const ORANGE = '#F7941D';
+const LOGO_SRC = '/logo-gente-card.png';
 
 interface DigitalMemberCardProps {
   member: {
@@ -34,15 +35,20 @@ interface DigitalMemberCardProps {
     business_segment?: string | null;
     slug?: string | null;
   };
+  /** Quando false, o cartão não é gerado (perfil incompleto/não publicável). */
+  canGenerate?: boolean;
+  /** Mensagem exibida quando canGenerate é false. */
+  lockedMessage?: string;
 }
 
-export function DigitalMemberCard({ member }: DigitalMemberCardProps) {
+export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }: DigitalMemberCardProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(true);
   const { toast } = useToast();
 
-  const profilePath = `/membro/${member.slug || member.id}`;
+  const profilePath = `/p/${member.slug || member.id}`;
   const profileUrl = `${window.location.origin}${profilePath}`;
+
 
   useEffect(() => {
     let cancelled = false;
