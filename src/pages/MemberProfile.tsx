@@ -308,6 +308,10 @@ export default function MemberProfilePage() {
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="card" className="space-y-4">
+          <DigitalMemberCard member={member} />
+        </TabsContent>
       </Tabs>
     </div>
   );
