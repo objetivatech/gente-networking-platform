@@ -632,6 +632,7 @@ export type Database = {
           phone: string | null
           points: number | null
           position: string | null
+          public_profile_enabled: boolean
           rank: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at: string | null
           slug: string | null
@@ -667,6 +668,7 @@ export type Database = {
           phone?: string | null
           points?: number | null
           position?: string | null
+          public_profile_enabled?: boolean
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
           slug?: string | null
@@ -702,6 +704,7 @@ export type Database = {
           phone?: string | null
           points?: number | null
           position?: string | null
+          public_profile_enabled?: boolean
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
           slug?: string | null
@@ -1033,6 +1036,14 @@ export type Database = {
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
       get_current_year_month: { Args: never; Returns: string }
+      get_group_members_for_notification: {
+        Args: { _user_id: string }
+        Returns: {
+          email: string
+          full_name: string
+          user_id: string
+        }[]
+      }
       get_guests_directory: {
         Args: never
         Returns: {
@@ -1103,6 +1114,27 @@ export type Database = {
           team_id: string
           team_name: string
           user_id: string
+        }[]
+      }
+      get_public_profile: {
+        Args: { _slug: string }
+        Returns: {
+          avatar_url: string
+          banner_url: string
+          bio: string
+          business_segment: string
+          company: string
+          full_name: string
+          how_to_refer_me: string
+          id: string
+          ideal_client: string
+          instagram_url: string
+          linkedin_url: string
+          position: string
+          rank: string
+          slug: string
+          website_url: string
+          what_i_do: string
         }[]
       }
       get_rank_from_points: {
