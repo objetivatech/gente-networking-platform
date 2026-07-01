@@ -15,6 +15,8 @@ import { ptBR } from 'date-fns/locale';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { PointsHistoryCard } from '@/components/PointsHistoryCard';
+import { DigitalMemberCard } from '@/components/DigitalMemberCard';
+import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
 
 interface MemberProfile {
   id: string;
