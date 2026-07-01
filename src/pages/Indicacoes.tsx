@@ -226,9 +226,18 @@ export default function Indicacoes() {
           <p className="text-muted-foreground">Leads compartilhados entre membros</p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Indicação</Button></DialogTrigger>
-          <DialogContent>
+        <div className="flex items-center gap-2">
+          <ExportButton
+            rows={exportRows}
+            columns={exportColumns}
+            fileName="indicacoes"
+            title="Minhas Indicações"
+            sheetName="Indicações"
+            disabled={isLoading || exportRows.length === 0}
+          />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Nova Indicação</Button></DialogTrigger>
+            <DialogContent>
             <DialogHeader><DialogTitle>Enviar Indicação</DialogTitle></DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4" data-rd-no-capture="true">
               <div className="space-y-2">
