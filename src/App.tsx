@@ -58,6 +58,8 @@ const Feed = lazyWithRetry(() => import("./pages/Feed"));
 const Conselho = lazyWithRetry(() => import("./pages/Conselho"));
 const AuthConfirm = lazyWithRetry(() => import("./pages/AuthConfirm"));
 const Matchmaking = lazyWithRetry(() => import("./pages/Matchmaking"));
+const Oportunidades = lazyWithRetry(() => import("./pages/Oportunidades"));
+const PedidosIndicacao = lazyWithRetry(() => import("./pages/PedidosIndicacao"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
