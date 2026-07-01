@@ -24,7 +24,8 @@ import RankBadge from '@/components/RankBadge';
 import { MonthlyPointsSummary } from '@/components/MonthlyPointsSummary';
 import { MonthlyPointsEvolutionChart } from '@/components/MonthlyPointsEvolutionChart';
 import { PitchGenerator } from '@/components/PitchGenerator';
-import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase } from 'lucide-react';
+import { DigitalMemberCard } from '@/components/DigitalMemberCard';
+import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase, CalendarClock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -57,6 +58,7 @@ export default function Profile() {
     what_i_do: '',
     ideal_client: '',
     how_to_refer_me: '',
+    availability_note: '',
     tags: [] as string[],
   });
 
@@ -76,6 +78,7 @@ export default function Profile() {
         what_i_do: (profile as any).what_i_do || '',
         ideal_client: (profile as any).ideal_client || '',
         how_to_refer_me: (profile as any).how_to_refer_me || '',
+        availability_note: (profile as any).availability_note || '',
         tags: (profile as any).tags || [],
       });
     }
@@ -88,7 +91,7 @@ export default function Profile() {
     const optionalFields = [
       'company', 'position', 'business_segment', 'phone', 'bio',
       'linkedin_url', 'instagram_url', 'website_url', 'birthday',
-      'what_i_do', 'ideal_client', 'how_to_refer_me',
+      'what_i_do', 'ideal_client', 'how_to_refer_me', 'availability_note',
     ];
     optionalFields.forEach((k) => {
       if (typeof payload[k] === 'string' && payload[k].trim() === '') payload[k] = null;
@@ -237,6 +240,7 @@ export default function Profile() {
                     <div className="space-y-2"><Label className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> O que eu faço</Label><Textarea value={formData.what_i_do} onChange={e => setFormData({ ...formData, what_i_do: e.target.value })} placeholder="Descreva seus serviços e especialidades..." rows={2} /></div>
                     <div className="space-y-2"><Label className="flex items-center gap-2"><Target className="h-4 w-4" /> Meu Cliente Ideal</Label><Textarea value={formData.ideal_client} onChange={e => setFormData({ ...formData, ideal_client: e.target.value })} placeholder="Qual perfil de cliente você busca?" rows={2} /></div>
                     <div className="space-y-2"><Label className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Como me indicar</Label><Textarea value={formData.how_to_refer_me} onChange={e => setFormData({ ...formData, how_to_refer_me: e.target.value })} placeholder="Diga como os membros podem indicar você..." rows={2} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Disponibilidade para 1x1</Label><Input value={formData.availability_note} onChange={e => setFormData({ ...formData, availability_note: e.target.value })} placeholder="Ex: Terças e quintas à tarde" /></div>
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2"><Tag className="h-4 w-4" /> Tags / Habilidades</Label>
                       <div className="flex gap-2">
@@ -337,6 +341,9 @@ export default function Profile() {
 
             {/* Gerador de Pitch via IA */}
             <PitchGenerator profile={profile} />
+
+            {/* Cartão Digital com QR Code */}
+            {profile && <DigitalMemberCard member={profile as any} />}
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">

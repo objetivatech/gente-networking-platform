@@ -606,6 +606,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability_note: string | null
           avatar_url: string | null
           banner_url: string | null
           bio: string | null
@@ -640,6 +641,7 @@ export type Database = {
           what_i_do: string | null
         }
         Insert: {
+          availability_note?: string | null
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null
@@ -674,6 +676,7 @@ export type Database = {
           what_i_do?: string | null
         }
         Update: {
+          availability_note?: string | null
           avatar_url?: string | null
           banner_url?: string | null
           bio?: string | null

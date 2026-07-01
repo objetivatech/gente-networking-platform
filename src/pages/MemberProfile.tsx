@@ -15,6 +15,8 @@ import { ptBR } from 'date-fns/locale';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAuth } from '@/contexts/AuthContext';
 import { PointsHistoryCard } from '@/components/PointsHistoryCard';
+import { DigitalMemberCard } from '@/components/DigitalMemberCard';
+import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
 
 interface MemberProfile {
   id: string;
@@ -39,6 +41,7 @@ interface MemberProfile {
   what_i_do: string | null;
   ideal_client: string | null;
   how_to_refer_me: string | null;
+  availability_note: string | null;
 }
 
 export default function MemberProfilePage() {
@@ -160,7 +163,12 @@ export default function MemberProfilePage() {
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate('/membros')}><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>
-        <Button variant="outline" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Compartilhar</Button>
+        <div className="flex items-center gap-2">
+          {user?.id !== member.id && (
+            <ScheduleMeetingDialog memberName={member.full_name || 'membro'} availabilityNote={member.availability_note} />
+          )}
+          <Button variant="outline" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Compartilhar</Button>
+        </div>
       </div>
 
       {/* Profile Card */}
@@ -236,6 +244,7 @@ export default function MemberProfilePage() {
           <TabsTrigger value="about">Sobre</TabsTrigger>
           <TabsTrigger value="stats">Estatísticas</TabsTrigger>
           <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
+          <TabsTrigger value="card">Cartão</TabsTrigger>
         </TabsList>
 
         <TabsContent value="about" className="space-y-4">
@@ -298,6 +307,10 @@ export default function MemberProfilePage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="card" className="space-y-4">
+          <DigitalMemberCard member={member} />
         </TabsContent>
       </Tabs>
     </div>
