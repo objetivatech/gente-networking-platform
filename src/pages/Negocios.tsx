@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, DollarSign, TrendingUp, Award, Trash2, Calendar, ArrowRight } from 'lucide-react';
 import AdminDataView from '@/components/AdminDataView';
+import ExportButton from '@/components/ExportButton';
+import type { ExportColumn } from '@/lib/export-utils';
 import { useAdminDelete } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
