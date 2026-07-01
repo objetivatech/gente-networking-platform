@@ -328,6 +328,7 @@ export default function Negocios() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Estatísticas */}
