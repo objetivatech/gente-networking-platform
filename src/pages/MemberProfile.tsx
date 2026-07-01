@@ -244,6 +244,7 @@ export default function MemberProfilePage() {
           <TabsTrigger value="about">Sobre</TabsTrigger>
           <TabsTrigger value="stats">Estatísticas</TabsTrigger>
           <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
+          <TabsTrigger value="card">Cartão</TabsTrigger>
         </TabsList>
 
         <TabsContent value="about" className="space-y-4">
