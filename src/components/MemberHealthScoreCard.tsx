@@ -114,12 +114,22 @@ export function MemberHealthScoreCard({ enabled = true }: { enabled?: boolean })
 
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {!enabled ? (
+          <p className="text-center text-muted-foreground py-8">
+            O Health Score é exclusivo para administradores.
+          </p>
+        ) : isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
+        ) : error ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <AlertTriangle className="h-6 w-6 text-red-500" />
+            <p className="text-sm text-red-600">Não foi possível carregar o Health Score.</p>
+            <p className="text-xs text-muted-foreground">{(error as Error).message}</p>
+          </div>
         ) : (data || []).length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">Nenhum membro encontrado</p>
+          <p className="text-center text-muted-foreground py-8">Nenhum membro encontrado no período selecionado</p>
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="space-y-3">
