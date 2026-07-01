@@ -90,7 +90,7 @@ export default function Profile() {
     const optionalFields = [
       'company', 'position', 'business_segment', 'phone', 'bio',
       'linkedin_url', 'instagram_url', 'website_url', 'birthday',
-      'what_i_do', 'ideal_client', 'how_to_refer_me',
+      'what_i_do', 'ideal_client', 'how_to_refer_me', 'availability_note',
     ];
     optionalFields.forEach((k) => {
       if (typeof payload[k] === 'string' && payload[k].trim() === '') payload[k] = null;
