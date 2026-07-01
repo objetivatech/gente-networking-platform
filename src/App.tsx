@@ -48,6 +48,7 @@ const Instalar = lazyWithRetry(() => import("./pages/Instalar"));
 const Membros = lazyWithRetry(() => import("./pages/Membros"));
 const Convidados = lazyWithRetry(() => import("./pages/Convidados"));
 const MemberProfile = lazyWithRetry(() => import("./pages/MemberProfile"));
+const PublicProfile = lazyWithRetry(() => import("./pages/PublicProfile"));
 const Aniversarios = lazyWithRetry(() => import("./pages/Aniversarios"));
 const GerenciarMembros = lazyWithRetry(() => import("./pages/GerenciarMembros"));
 const GestaoConvidados = lazyWithRetry(() => import("./pages/GestaoConvidados"));
