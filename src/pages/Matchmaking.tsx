@@ -44,7 +44,7 @@ export default function Matchmaking() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { role, isLoading: roleLoading } = useAdmin();
-  const { myProfile, suggestions, isLoading, connections, createCheck } = useMatchmaking();
+  const { myProfile, suggestions, weeklySuggestion, isLoading, connections, createCheck } = useMatchmaking();
   const [selected, setSelected] = useState<MatchSuggestion | null>(null);
   const [description, setDescription] = useState('');
   const [meetingDate, setMeetingDate] = useState(new Date().toISOString().slice(0, 10));
