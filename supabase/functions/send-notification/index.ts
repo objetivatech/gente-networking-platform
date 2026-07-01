@@ -144,6 +144,9 @@ const handler = async (req: Request): Promise<Response> => {
         if (payload.type === "new_meeting") {
           subject = `📅 Novo encontro agendado: ${payload.meeting_title}`;
           html = newMeetingEmailTemplate(recipient.full_name, payload.meeting_title || "Encontro", payload.meeting_date || "", payload.meeting_time, payload.location, payload.team_name);
+        } else if (payload.type === "referral_request") {
+          subject = `🔎 Novo Pedido de Indicação: ${payload.request_title}`;
+          html = referralRequestEmailTemplate(recipient.full_name, fromUser.full_name, payload.request_title || "Pedido de Indicação", payload.target_segment, payload.team_name);
         } else {
           subject = `💡 Novo desafio no Conselho 24/7: ${payload.post_title}`;
           html = councilPostEmailTemplate(recipient.full_name, fromUser.full_name, payload.post_title || "Desafio", payload.team_name);
