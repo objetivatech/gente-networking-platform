@@ -340,6 +340,9 @@ export default function Profile() {
 
             {/* Gerador de Pitch via IA */}
             <PitchGenerator profile={profile} />
+
+            {/* Cartão Digital com QR Code */}
+            {profile && <DigitalMemberCard member={profile as any} />}
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">
