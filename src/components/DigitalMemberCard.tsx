@@ -153,7 +153,8 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
 
     draw();
     return () => { cancelled = true; };
-  }, [member.full_name, member.position, member.company, member.email, member.phone, member.business_segment, profileUrl]);
+  }, [member.full_name, member.position, member.company, member.email, member.phone, member.business_segment, profileUrl, canGenerate]);
+
 
   const handleDownload = () => {
     const canvas = canvasRef.current;
