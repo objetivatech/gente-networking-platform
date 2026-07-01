@@ -25,6 +25,8 @@ import {
   MessageCircle,
   Ticket,
   HeartHandshake,
+  Megaphone,
+  Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
