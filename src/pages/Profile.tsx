@@ -57,6 +57,7 @@ export default function Profile() {
     what_i_do: '',
     ideal_client: '',
     how_to_refer_me: '',
+    availability_note: '',
     tags: [] as string[],
   });
 
