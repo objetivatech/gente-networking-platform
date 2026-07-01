@@ -342,8 +342,22 @@ export default function Profile() {
             {/* Gerador de Pitch via IA */}
             <PitchGenerator profile={profile} />
 
-            {/* Cartão Digital com QR Code */}
-            {profile && <DigitalMemberCard member={profile as any} />}
+            {/* Controle de publicação da página pública */}
+            <PublicProfilePublishControl
+              profile={profile as any}
+              isUpdating={isUpdating}
+              onTogglePublish={(enabled) => updateProfile({ public_profile_enabled: enabled } as any)}
+            />
+
+            {/* Cartão Digital com QR Code (só é gerado com o perfil completo) */}
+            {profile && (
+              <DigitalMemberCard
+                member={profile as any}
+                canGenerate={profileCompleteness.isComplete}
+                lockedMessage="Complete todos os campos obrigatórios do perfil para gerar o cartão digital."
+              />
+            )}
+
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-4">
