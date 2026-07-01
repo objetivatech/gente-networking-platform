@@ -65,22 +65,53 @@ export function MemberHealthScoreCard({ enabled = true }: { enabled?: boolean })
               Índice de engajamento recente (não afeta a pontuação). Ordenado dos mais em risco aos mais ativos.
             </CardDescription>
           </div>
-          <Select value={days} onValueChange={setDays}>
-            <SelectTrigger className="w-[130px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">Últimos 30 dias</SelectItem>
-              <SelectItem value="60">Últimos 60 dias</SelectItem>
-              <SelectItem value="90">Últimos 90 dias</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9" title="Como o Health Score é calculado">
+                  <Info className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80">
+                <p className="font-medium mb-2">Como o Health Score é calculado</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Para cada membro somamos os pontos das atividades registradas no período selecionado.
+                  O total é limitado a 100. É uma métrica de retenção e <strong>não</strong> afeta a
+                  pontuação/ranking de gamificação.
+                </p>
+                <ul className="space-y-1.5 text-sm">
+                  {SCORE_WEIGHTS.map((w) => (
+                    <li key={w.label} className="flex items-center justify-between">
+                      <span className="text-muted-foreground">{w.label}</span>
+                      <span className="font-medium">+{w.points}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-3 pt-3 border-t text-xs text-muted-foreground space-y-1">
+                  <p><strong className="text-green-600">Saudável</strong>: 60 ou mais</p>
+                  <p><strong className="text-amber-600">Atenção</strong>: 30 a 59</p>
+                  <p><strong className="text-red-600">Risco</strong>: abaixo de 30</p>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Select value={days} onValueChange={setDays}>
+              <SelectTrigger className="w-[130px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="30">Últimos 30 dias</SelectItem>
+                <SelectItem value="60">Últimos 60 dias</SelectItem>
+                <SelectItem value="90">Últimos 90 dias</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2 pt-2">
           <Badge variant="outline" className={LEVEL_META.saudavel.className}>{counts.saudavel} saudáveis</Badge>
           <Badge variant="outline" className={LEVEL_META.atencao.className}>{counts.atencao} em atenção</Badge>
           <Badge variant="outline" className={LEVEL_META.risco.className}>{counts.risco} em risco</Badge>
         </div>
+
       </CardHeader>
       <CardContent>
         {isLoading ? (
