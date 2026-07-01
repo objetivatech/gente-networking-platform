@@ -177,18 +177,30 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="relative rounded-lg overflow-hidden border">
-          <canvas ref={canvasRef} className="w-full h-auto block" />
-          {isDrawing && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        {!canGenerate ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
+            <Lock className="h-6 w-6" />
+            <p className="text-sm">
+              {lockedMessage || 'Complete e publique seu perfil para gerar o cartão digital.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="relative rounded-lg overflow-hidden border">
+              <canvas ref={canvasRef} className="w-full h-auto block" />
+              {isDrawing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <Button onClick={handleDownload} disabled={isDrawing} className="w-full sm:w-auto">
-          <Download className="mr-2 h-4 w-4" /> Baixar cartão (PNG)
-        </Button>
+            <Button onClick={handleDownload} disabled={isDrawing} className="w-full sm:w-auto">
+              <Download className="mr-2 h-4 w-4" /> Baixar cartão (PNG)
+            </Button>
+          </>
+        )}
       </CardContent>
+
     </Card>
   );
 }
