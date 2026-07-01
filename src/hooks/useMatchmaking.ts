@@ -82,6 +82,32 @@ const overlapCount = (a: string[], b: string[]): number => {
   return a.filter((x) => setB.has(x)).length;
 };
 
+// Retorna um seed determinístico baseado no ano + número da semana ISO atual.
+// Garante que a "sugestão da semana" seja estável ao longo dos 7 dias e mude
+// automaticamente a cada nova semana, sem depender de backend.
+const getIsoWeekSeed = (d = new Date()): number => {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((date.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  return date.getUTCFullYear() * 100 + weekNo;
+};
+
+// Escolhe deterministicamente uma sugestão da semana entre as melhores opções
+// ainda não conectadas, priorizando maior score e usando o seed semanal para
+// rotacionar entre os candidatos de topo.
+const pickWeeklySuggestion = (
+  suggestions: MatchSuggestion[]
+): MatchSuggestion | null => {
+  const pool = suggestions.filter((s) => !s.alreadyConnected && s.score > 0);
+  if (pool.length === 0) return null;
+  const topPool = pool.slice(0, Math.min(5, pool.length));
+  const idx = getIsoWeekSeed() % topPool.length;
+  return topPool[idx];
+};
+
+
 const REQUIRED_FIELDS: { key: keyof MyProfileForMatch; label: string }[] = [
   { key: 'what_i_do', label: 'O que eu faço' },
   { key: 'ideal_client', label: 'Cliente ideal' },
@@ -279,9 +305,12 @@ export function useMatchmaking() {
     },
   });
 
+  const suggestions = query.data?.suggestions ?? [];
+
   return {
     myProfile: query.data?.myProfile ?? null,
-    suggestions: query.data?.suggestions ?? [],
+    suggestions,
+    weeklySuggestion: pickWeeklySuggestion(suggestions),
     isLoading: query.isLoading,
     connections: connectionsQuery.data ?? [],
     createCheck,
