@@ -48,3 +48,17 @@ export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';
  */
 export const canUseMatchmaking = (role: AppRole): boolean =>
   isOneOf(role, ['admin', 'facilitador', 'membro']);
+
+/**
+ * Quem pode acessar o Mural de Oportunidades (publicar/ver oportunidades).
+ * Membros, facilitadores e admins. Convidados NÃO acessam.
+ */
+export const canUseOpportunityBoard = (role: AppRole): boolean =>
+  isOneOf(role, ['admin', 'facilitador', 'membro']);
+
+/**
+ * Quem pode acessar os Pedidos de Indicação (broadcast) e responder a eles.
+ * Membros, facilitadores e admins. Convidados NÃO acessam.
+ */
+export const canUseReferralRequests = (role: AppRole): boolean =>
+  isOneOf(role, ['admin', 'facilitador', 'membro']);

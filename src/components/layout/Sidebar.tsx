@@ -25,6 +25,8 @@ import {
   MessageCircle,
   Ticket,
   HeartHandshake,
+  Megaphone,
+  Radio,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,6 +55,8 @@ const menuItems = [
   { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro'] },
   { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro'] },
   { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Megaphone, label: 'Oportunidades', path: '/oportunidades', roles: ['admin', 'facilitador', 'membro'] },
+  { icon: Radio, label: 'Pedidos de Indicação', path: '/pedidos-indicacao', roles: ['admin', 'facilitador', 'membro'] },
   
   { icon: Calendar, label: 'Encontros', path: '/encontros', roles: ['admin', 'facilitador', 'membro'] },
   { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos', roles: ['admin', 'facilitador', 'membro'] },

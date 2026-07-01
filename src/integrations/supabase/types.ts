@@ -515,6 +515,39 @@ export type Database = {
           },
         ]
       }
+      opportunities: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       points_history: {
         Row: {
           activity_type: string | null
@@ -673,6 +706,81 @@ export type Database = {
           updated_at?: string | null
           website_url?: string | null
           what_i_do?: string | null
+        }
+        Relationships: []
+      }
+      referral_request_responses: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          referral_id: string | null
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          referral_id?: string | null
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          referral_id?: string | null
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_request_responses_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_request_responses_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "referral_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_requests: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          status: string
+          target_segment: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          target_segment?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: string
+          target_segment?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1022,6 +1130,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_community_member: { Args: { _user_id: string }; Returns: boolean }
       is_guest: { Args: { _user_id: string }; Returns: boolean }
       is_team_facilitator: {
         Args: { p_team_id: string; p_user_id: string }

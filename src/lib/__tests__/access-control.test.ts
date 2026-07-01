@@ -16,7 +16,26 @@ import {
   isAdminOnly,
   canDowngradeMember,
   canUseMatchmaking,
+  canUseOpportunityBoard,
+  canUseReferralRequests,
 } from '../access-control';
+
+describe('access-control: Fase 3 (Oportunidades e Pedidos de Indicação)', () => {
+  it('membros/facilitadores/admins acessam', () => {
+    for (const r of ['admin', 'facilitador', 'membro'] as const) {
+      expect(canUseOpportunityBoard(r)).toBe(true);
+      expect(canUseReferralRequests(r)).toBe(true);
+    }
+  });
+  it('convidado NÃO acessa', () => {
+    expect(canUseOpportunityBoard('convidado')).toBe(false);
+    expect(canUseReferralRequests('convidado')).toBe(false);
+  });
+  it('role nula NÃO acessa', () => {
+    expect(canUseOpportunityBoard(null)).toBe(false);
+    expect(canUseReferralRequests(undefined)).toBe(false);
+  });
+});
 
 describe('access-control: diretório de convidados (/convidados)', () => {
   it('admin pode ver', () => expect(canViewGuestsDirectory('admin')).toBe(true));
