@@ -113,8 +113,8 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Batch notification types (new_meeting, council_post) send to multiple users
-    if ((payload.type === "new_meeting" || payload.type === "council_post") && payload.to_user_ids && payload.to_user_ids.length > 0) {
+    // Batch notification types (new_meeting, council_post, referral_request) send to multiple users
+    if ((payload.type === "new_meeting" || payload.type === "council_post" || payload.type === "referral_request") && payload.to_user_ids && payload.to_user_ids.length > 0) {
       const { data: recipients } = await supabase
         .from("profiles")
         .select("id, full_name, email, email_notifications_enabled, notify_on_meeting")
