@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, Send, Inbox, Trash2, Phone, Mail, User, Thermometer } from 'lucide-react';
 import AdminDataView from '@/components/AdminDataView';
+import ExportButton from '@/components/ExportButton';
+import type { ExportColumn } from '@/lib/export-utils';
 import { useAdminDelete } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
