@@ -163,7 +163,12 @@ export default function MemberProfilePage() {
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate('/membros')}><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>
-        <Button variant="outline" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Compartilhar</Button>
+        <div className="flex items-center gap-2">
+          {user?.id !== member.id && (
+            <ScheduleMeetingDialog memberName={member.full_name || 'membro'} availabilityNote={member.availability_note} />
+          )}
+          <Button variant="outline" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Compartilhar</Button>
+        </div>
       </div>
 
       {/* Profile Card */}
