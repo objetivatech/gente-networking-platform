@@ -10,6 +10,7 @@ import {
   newMeetingEmailTemplate,
   councilPostEmailTemplate,
   rankChangeEmailTemplate,
+  referralRequestEmailTemplate,
 } from "../_shared/email-templates.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
