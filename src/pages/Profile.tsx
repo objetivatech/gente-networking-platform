@@ -77,6 +77,7 @@ export default function Profile() {
         what_i_do: (profile as any).what_i_do || '',
         ideal_client: (profile as any).ideal_client || '',
         how_to_refer_me: (profile as any).how_to_refer_me || '',
+        availability_note: (profile as any).availability_note || '',
         tags: (profile as any).tags || [],
       });
     }
