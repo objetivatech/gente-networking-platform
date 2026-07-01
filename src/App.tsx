@@ -104,6 +104,8 @@ const App = () => (
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/membros" element={<Membros />} />
                 <Route path="/matchmaking" element={<Matchmaking />} />
+                <Route path="/oportunidades" element={<Oportunidades />} />
+                <Route path="/pedidos-indicacao" element={<PedidosIndicacao />} />
                 <Route path="/convidados" element={<Convidados />} />
                 <Route path="/membro/:slug" element={<MemberProfile />} />
                 <Route path="/aniversarios" element={<Aniversarios />} />
