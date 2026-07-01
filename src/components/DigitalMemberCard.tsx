@@ -54,6 +54,7 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
     let cancelled = false;
 
     const draw = async () => {
+      if (!canGenerate) return;
       setIsDrawing(true);
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -72,18 +73,33 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
       ctx.fillStyle = ORANGE;
       ctx.fillRect(0, 0, 16, H);
 
-      // Marca
-      ctx.fillStyle = ORANGE;
-      ctx.font = 'bold 34px Arial, sans-serif';
-      ctx.fillText('GENTE', 60, 80);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = '20px Arial, sans-serif';
-      ctx.fillText('NETWORKING', 60, 112);
+      // Logo do Gente (com fallback para marca em texto)
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve, reject) => {
+          logoImg.onload = () => resolve();
+          logoImg.onerror = reject;
+          logoImg.src = LOGO_SRC;
+        });
+        if (cancelled) return;
+        const logoH = 90;
+        const logoW = (logoImg.width / logoImg.height) * logoH;
+        ctx.drawImage(logoImg, 60, 50, logoW, logoH);
+      } catch {
+        ctx.fillStyle = ORANGE;
+        ctx.font = 'bold 34px Arial, sans-serif';
+        ctx.fillText('GENTE', 60, 80);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = '20px Arial, sans-serif';
+        ctx.fillText('NETWORKING', 60, 112);
+      }
 
       // Nome
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 46px Arial, sans-serif';
       ctx.fillText(member.full_name || 'Membro', 60, 240);
+
 
       // Cargo / empresa
       ctx.fillStyle = '#CBD5E1';
