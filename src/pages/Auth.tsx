@@ -66,6 +66,8 @@ const formatPhoneBR = (value: string): string => {
 };
 
 export default function Auth() {
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'signup' ? 'signup' : 'login';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
