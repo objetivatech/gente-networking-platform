@@ -39,6 +39,7 @@ interface MemberProfile {
   what_i_do: string | null;
   ideal_client: string | null;
   how_to_refer_me: string | null;
+  availability_note: string | null;
 }
 
 export default function MemberProfilePage() {
