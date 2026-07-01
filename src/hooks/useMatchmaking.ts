@@ -305,9 +305,12 @@ export function useMatchmaking() {
     },
   });
 
+  const suggestions = query.data?.suggestions ?? [];
+
   return {
     myProfile: query.data?.myProfile ?? null,
-    suggestions: query.data?.suggestions ?? [],
+    suggestions,
+    weeklySuggestion: pickWeeklySuggestion(suggestions),
     isLoading: query.isLoading,
     connections: connectionsQuery.data ?? [],
     createCheck,
