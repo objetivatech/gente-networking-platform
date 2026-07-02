@@ -13,7 +13,7 @@ import {
   Bell,
   Zap
 } from 'lucide-react';
-import logoGente from '@/assets/logo-gente.png';
+import logoGente from '@/assets/logo-gente-networking.png.asset.json';
 
 export default function Instalar() {
   const { isInstallable, isInstalled, isIOS, isAndroid, isStandalone, promptInstall } = usePWAInstall();

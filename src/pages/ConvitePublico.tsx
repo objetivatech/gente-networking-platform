@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { validateInvitation, Invitation } from '@/hooks/useInvitations';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import Footer from '@/components/layout/Footer';
-import logoGente from '@/assets/logo-gente.png';
+import logoGente from '@/assets/logo-gente-networking.png.asset.json';
 import SEO from '@/components/SEO';
 
 export default function ConvitePublico() {
