@@ -36,7 +36,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
-import logoGente from '@/assets/logo-gente.png';
+import logoGente from '@/assets/logo-gente-networking.png.asset.json';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import SEO from '@/components/SEO';
 
@@ -283,11 +283,11 @@ export default function Auth() {
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto">
+          <div className="mx-auto inline-flex rounded-2xl bg-primary px-6 py-4">
             <img 
-              src={logoGente} 
+              src={logoGente.url} 
               alt="Gente Networking" 
-              className="w-36 h-auto mx-auto"
+              className="w-40 h-auto mx-auto"
             />
           </div>
           <div>

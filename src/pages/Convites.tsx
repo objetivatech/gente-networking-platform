@@ -161,7 +161,7 @@ export default function Convites() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
             <UserPlus className="h-8 w-8 text-primary" />
             Convites
           </h1>
@@ -254,25 +254,25 @@ export default function Convites() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold">{effectiveStats.total}</p>
+            <p className="text-2xl sm:text-3xl font-bold">{effectiveStats.total}</p>
             <p className="text-sm text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{effectiveStats.pending}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-yellow-600">{effectiveStats.pending}</p>
             <p className="text-sm text-muted-foreground">Pendentes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-green-600">{effectiveStats.accepted}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-green-600">{effectiveStats.accepted}</p>
             <p className="text-sm text-muted-foreground">Aceitos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-muted-foreground">{effectiveStats.expired}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-muted-foreground">{effectiveStats.expired}</p>
             <p className="text-sm text-muted-foreground">Expirados</p>
           </CardContent>
         </Card>

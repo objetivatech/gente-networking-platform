@@ -178,7 +178,7 @@ export default function MemberProfilePage() {
           <div className="absolute -top-16 left-6">
             <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
               <AvatarImage src={member.avatar_url || ''} alt={member.full_name || ''} />
-              <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">{getInitials(member.full_name)}</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary text-2xl sm:text-3xl font-bold">{getInitials(member.full_name)}</AvatarFallback>
             </Avatar>
           </div>
 
@@ -193,7 +193,7 @@ export default function MemberProfilePage() {
 
             <div className="flex-1 space-y-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold">{member.full_name}</h1>
+                <h1 className="text-2xl md:text-2xl sm:text-3xl font-bold">{member.full_name}</h1>
                 {member.position && member.company && <p className="text-muted-foreground">{member.position} na {member.company}</p>}
                 {member.business_segment && <span className="inline-block mt-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">{member.business_segment}</span>}
               </div>

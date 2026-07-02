@@ -329,8 +329,8 @@ export default function Indicacoes() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card><CardContent className="pt-4"><div className="text-center"><p className="text-3xl font-bold text-blue-600">{sentReferrals?.length || 0}</p><p className="text-sm text-muted-foreground">Enviadas</p></div></CardContent></Card>
-        <Card><CardContent className="pt-4"><div className="text-center"><p className="text-3xl font-bold text-green-600">{receivedReferrals?.length || 0}</p><p className="text-sm text-muted-foreground">Recebidas</p></div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-center"><p className="text-2xl sm:text-3xl font-bold text-blue-600">{sentReferrals?.length || 0}</p><p className="text-sm text-muted-foreground">Enviadas</p></div></CardContent></Card>
+        <Card><CardContent className="pt-4"><div className="text-center"><p className="text-2xl sm:text-3xl font-bold text-green-600">{receivedReferrals?.length || 0}</p><p className="text-sm text-muted-foreground">Recebidas</p></div></CardContent></Card>
       </div>
 
       <Tabs defaultValue="received" className="w-full">

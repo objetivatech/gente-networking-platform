@@ -8,11 +8,19 @@
  * 
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
+import logoComunidade from '@/assets/logo-gente-comunidade.png.asset.json';
 
 export default function Footer() {
   return (
     <footer className="border-t border-border bg-card py-4 px-4 lg:px-6">
       <div className="flex flex-col items-center gap-3 text-center">
+        <span className="inline-flex rounded-xl bg-primary px-4 py-2">
+          <img
+            src={logoComunidade.url}
+            alt="Gente Comunidade"
+            className="h-8 w-auto"
+          />
+        </span>
         <span className="text-sm text-muted-foreground">
           © 2026. Criado e operado com{' '}
           <strong className="text-destructive">♥</strong> por{' '}

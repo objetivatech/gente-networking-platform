@@ -1,65 +1,69 @@
+## Contexto
 
-# Ajustes e novos recursos — v3.19.0
+Dois logos novos foram enviados:
 
-Quatro frentes: logo no cartão, Health Score, notificações do Feed/email e página pública de perfil.
+- **Gente Networking** (`gente-networking.png`) — logo institucional da empresa.
+- **Gente Comunidade** (`gente-comunidade.png`) — logo da ferramenta/plataforma.
 
-## 1. Logo do Gente no cartão do membro
+Ambos têm o "GENTE" em cinza-claro e o subtítulo em laranja, otimizados para fundos escuros (navy). Hoje o app usa `logo-gente.png`, `logo-gente-branco.png` e `logo-gente-card.png` espalhados por várias páginas e nos e-mails.
 
-- Em `src/components/DigitalMemberCard.tsx`, trocar o texto "GENTE / NETWORKING" desenhado no `<canvas>` pelo logotipo real.
-- Usar `logo-gente-branco.png` (versão branca já existente em `public/`), carregando a imagem e desenhando-a no canto superior esquerdo, mantendo proporção sobre o fundo navy.
-- Fallback: se a imagem falhar ao carregar, manter o texto atual (o cartão continua válido).
+## 1. Estratégia de logos (minha recomendação)
 
-## 2. Health Score — como funciona e por que está vazio
+Concordo com sua leitura. Proposta de aplicação:
 
-**Como é gerado (documentação para você entender e depois documentar):**
-O `MemberHealthScoreCard` chama a RPC `get_members_health_scores(_days)` (SECURITY DEFINER, só admin). Ela soma, nos últimos N dias, sinais de engajamento por membro com pesos: reunião (Gente em Ação) ×15, indicação ×15, presença ×20, depoimento ×10, resposta no Conselho ×5, business case ×10 — limitado a 100. Classifica em `saudável` (≥70), `atenção` (≥30), `risco` (<30). É métrica de retenção e **não** afeta o ranking.
+**Logo Gente Networking (empresa/institucional):**
 
-**Diagnóstico do bloco vazio:** existem 24 membros ativos que deveriam aparecer, então o problema é de execução, não de dados. Na fase de build vou:
-- Reproduzir a chamada da RPC autenticado como admin (Playwright/logado) e capturar o erro real (provável exceção não tratada engolida pelo react-query, deixando o estado "Nenhum membro encontrado").
-- Corrigir a causa (ex.: tratamento de erro/`enabled`, ou ajuste na RPC) e exibir mensagem de erro explícita no card em vez de estado vazio silencioso.
-- Adicionar tooltip/legenda no card explicando os pesos e o período.
+- Todos os e-mails (cabeçalho e rodapé) — já usam versão branca sobre navy.
+- Telas públicas/externas de entrada institucional: Login (`Auth`), Redefinir senha, Confirmação de conta (`AuthConfirm`), Convite público (`ConvitePublico`), Instalar PWA, Boas-vindas do convidado (`GuestWelcome`).
+- Cabeçalho da página pública do perfil (`/p/:slug`) e rodapé dela — é uma vitrine externa da marca.
 
-## 3. Revisão de notificações (Feed + email)
+**Logo Gente Comunidade (ferramenta):**
 
-**Auditoria:** hoje o Feed é alimentado via `add_activity_feed`/triggers e os emails via edge function `send-notification` (depoimento, indicação, convite, boas-vindas, conselho, reunião, mudança de rank). **Pedido de Indicação** (`referral_requests`) não gera nada no Feed nem email.
+- Dentro da plataforma logada: Sidebar (topo) e, como reforço, no rodapé interno (`Footer`).
+- É onde o usuário "está usando a ferramenta", então faz sentido a identidade da Comunidade.
 
-**Implementação (Item principal):**
-- Migração: trigger `AFTER INSERT` em `referral_requests` que:
-  1. Chama `add_activity_feed` (tipo `referral_request`) para registrar o pedido no Feed, com `team_id` do grupo do autor.
-  2. Marca o registro para notificar o grupo.
-- Envio de email a **todos os membros do mesmo grupo** do autor: nova branch `referral_request` na edge function `send-notification` (novo template em `_shared/email-templates.ts`), respeitando `email_notifications_enabled`. O disparo será feito no `createRequest` do hook `useReferralRequests.ts` (buscando os membros do grupo via RPC) — mesmo padrão já usado em `useReferrals`/`useCouncil`.
-- Adicionar renderização do novo `activity_type` no `ActivityFeed.tsx` (ícone/label).
-- Entregável extra: documentar em `docs/` a matriz "evento → Feed? → email? → destinatários" para referência.
+**Cartão Digital do Membro (os dois logos):**
 
-## 4. Página pública de perfil com controle de publicação
+- Logo **Gente Comunidade** em destaque (topo, maior).
+- Logo **Gente Networking** discreto, menor, em segundo plano (ex.: rodapé do cartão ou marca d'água suave), como você sugeriu.
 
-**Nova rota pública** `/p/:slug` (fora do `MainLayout`, sem autenticação), com cabeçalho e rodapé de identidade Gente (logo, navy/laranja):
-- Exibe dados do perfil (avatar, nome, cargo/empresa, segmento, bio, "o que faço", cliente ideal, como me indicar, links sociais).
-- CTA de inscrição direcionando para o formulário existente: `/auth?tab=signup` (vou adicionar suporte ao query param `tab` no `Auth.tsx` para abrir direto na aba Cadastrar).
-- SEO por rota (title/description/og) via Helmet.
+Opção alternativa caso prefira: manter apenas 1 logo por contexto e usar Comunidade também nas telas de login. Minha recomendação é a divisão acima (institucional fora / ferramenta dentro), que comunica melhor os dois níveis da marca.
 
-**Controle de publicação (membros e convidados):**
-- Migração: coluna `public_profile_enabled boolean default false` em `profiles`.
-- Regra de completude: só pode publicar quando os campos obrigatórios estiverem preenchidos — avatar, nome, cargo, empresa, segmento, bio, "o que faço", cliente ideal, como me indicar (lista final confirmada no build).
-- Acesso anônimo seguro: a página pública lê os dados via RPC `SECURITY DEFINER` `get_public_profile(_slug)` que retorna **apenas** campos públicos e somente se `public_profile_enabled = true` (não expõe email/telefone a menos que o membro opte por exibir contato — decidir no build; por padrão ocultar dados sensíveis). Sem afrouxar RLS da tabela base.
+**/// Gostei do que indicou acima. Podemos seguir assim. ///**
 
-**UX no `Profile.tsx`:**
-- Toggle "Publicar página pública" desabilitado enquanto houver campos faltando.
-- Tooltips de aviso indicando exatamente quais campos ainda faltam preencher.
-- Botão "Copiar link público" quando publicado.
+### Implementação técnica dos logos
 
-**Cartão + QR (integração com Item 1):**
-- O QR do `DigitalMemberCard` passa a apontar para `/p/:slug` (página pública) em vez de `/membro/:slug` (interna).
-- O cartão **só é gerado** após o perfil estar completo e publicado; caso contrário, exibir aviso com a lista de pendências (mesmos tooltips).
+- Subir os dois arquivos como assets do projeto (`src/assets/logo-gente-networking.png` e `src/assets/logo-gente-comunidade.png`) via Lovable Assets.
+- Para os e-mails, hospedar a versão pública (a arte é clara sobre fundo escuro, então serve para o header navy). Atualizar `LOGO_URL` em `supabase/functions/_shared/email-templates.ts`.
+- Substituir os imports/`src` nos arquivos: `Sidebar.tsx`, `Footer.tsx`, `Auth.tsx`, `AuthConfirm.tsx`, `RedefinirSenha.tsx`, `ConvitePublico.tsx`, `Instalar.tsx`, `GuestWelcome.tsx`, `PublicProfile.tsx`, `DigitalMemberCard.tsx`.
 
-## Documentação e changelog
-- Nova entrada de changelog **v3.19.0** em `system_changelog`.
-- Atualizar `docs/TECHNICAL_DOCUMENTATION.md` e `docs/USER_FLOWS.md`.
-- Novas memórias: `mem://features/public-profile-page`, atualização de `matchmaking`/notificações, e `mem://index.md`.
-- Testes de regressão para novas regras de acesso/completo em `access-control` quando aplicável.
+## 2. Página pública do perfil (`/p/:slug`)
 
-## Detalhes técnicos (resumo)
-- Migrações: coluna `public_profile_enabled`; trigger de Feed em `referral_requests`; RPC `get_public_profile`; possível ajuste em `get_members_health_scores`.
-- Edge function `send-notification`: novo tipo `referral_request` + template.
-- Frontend: `DigitalMemberCard.tsx`, `ActivityFeed.tsx`, `Profile.tsx`, `Auth.tsx`, nova página `PublicProfile.tsx` + rota em `App.tsx`, hook `useReferralRequests.ts`.
-- Sem quebrar recursos existentes; validação com `tsgo` e `bun run test`.
+- **Título e subtítulo:** adicionar um bloco com "Membro do Gente Networking" (título) e, como subtítulo, o **grupo** ao qual o membro pertence (ex.: "Grupo Impulso").
+  - Requer estender a RPC `get_public_profile` para retornar o nome do grupo (join `team_members` → `teams`) e o papel (membro/convidado), sem quebrar os campos atuais.
+- **Diagramação (banner sobreposto):** corrigir a sobreposição do texto sobre o banner. O avatar/nome subirão com margem negativa correta e o bloco de identificação ficará **abaixo** do banner (não em cima dele), com espaçamento responsivo, replicando o padrão já usado no perfil interno.
+
+## 3. Perfil interno do membro (`Profile.tsx`)
+
+- Corrigir o "amontoado à esquerda" em telas largas: hoje o conteúdo fica preso em `max-w-4xl` com `md:pl-40`, deixando os dados comprimidos numa coluna estreita.
+- Reorganizar para um layout de 2 colunas que preenche melhor a largura (dados principais + coluna lateral de pontos/cartão), com o avatar posicionado corretamente e sem espaço morto à direita. Ajustar breakpoints para empilhar limpo no mobile.
+
+## 4. Revisão geral de responsividade
+
+Varredura das páginas principais para corrigir os problemas mostrados nos prints mobile (conteúdo cortado, cards estourando a largura, textos sobrepostos):
+
+- Padronizar containers com `w-full max-w-*` + `overflow-x-hidden` já existente no layout.
+- Cards de estatísticas (Início, Gente em Ação, Ranking): garantir grid responsivo (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-...`) em vez de largura fixa que corta no mobile.
+- Cabeçalhos de página, tabelas e listas: rolagem horizontal controlada e quebra de texto.
+- Revisar `Ranking`, `Encontros`, `Estatisticas`, `GenteEmAcao`, `Feed`, `Membros`, `Negocios`, `Indicacoes` e páginas de gestão.
+
+## 5. Documentação e Changelog
+
+- Nova entrada de changelog (**v3.20.0**) descrevendo: atualização de identidade visual (2 logos), ajustes da página pública, reorganização do perfil interno e revisão de responsividade.
+- Atualizar docs relevantes e memória (`mem://design/visual-identity`) com a regra dos dois logos por contexto.
+
+## Notas técnicas
+
+- Nenhuma mudança em regras de negócio, pontuação ou permissões — apenas apresentação (frontend), a RPC `get_public_profile` (adição de campos, retrocompatível) e o template de e-mail.
+- Assets via Lovable Assets (sem inflar o repositório).
+- Todos os novos arquivos seguem o cabeçalho JSDoc Ranktop.

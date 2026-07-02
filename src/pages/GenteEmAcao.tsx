@@ -461,7 +461,7 @@ export default function GenteEmAcao() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{meetings?.length || 0}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary">{meetings?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Total de Reuniões</p>
             </div>
           </CardContent>
@@ -469,7 +469,7 @@ export default function GenteEmAcao() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">
                 {meetings?.filter((m) => m.meeting_type === 'membro').length || 0}
               </p>
               <p className="text-sm text-muted-foreground">Com Membros</p>
@@ -479,7 +479,7 @@ export default function GenteEmAcao() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-orange-600">
+              <p className="text-2xl sm:text-3xl font-bold text-orange-600">
                 {meetings?.filter((m) => m.meeting_type === 'convidado').length || 0}
               </p>
               <p className="text-sm text-muted-foreground">Com Externos</p>

@@ -1133,6 +1133,7 @@ export type Database = {
           position: string
           rank: string
           slug: string
+          team_name: string
           website_url: string
           what_i_do: string
         }[]

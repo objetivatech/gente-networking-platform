@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { validateInvitation, Invitation } from '@/hooks/useInvitations';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import Footer from '@/components/layout/Footer';
-import logoGente from '@/assets/logo-gente.png';
+import logoGente from '@/assets/logo-gente-networking.png.asset.json';
 import SEO from '@/components/SEO';
 
 export default function ConvitePublico() {
@@ -56,11 +56,13 @@ export default function ConvitePublico() {
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <img 
-                src={logoGente}
-                alt="Gente Networking"
-                className="h-20 w-auto"
-              />
+              <span className="inline-flex rounded-2xl bg-primary px-5 py-3">
+                <img 
+                  src={logoGente.url}
+                  alt="Gente Networking"
+                  className="h-16 w-auto"
+                />
+              </span>
             </div>
             <CardTitle className="text-2xl text-primary">Gente Networking</CardTitle>
             <CardDescription>Conectando pessoas, gerando negócios</CardDescription>

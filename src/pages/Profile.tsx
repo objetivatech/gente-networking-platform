@@ -176,7 +176,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
+    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Meu Perfil</h1>
@@ -211,7 +211,7 @@ export default function Profile() {
             <div className="relative group">
               <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
                 <AvatarImage src={profile?.avatar_url || ''} alt={profile?.full_name || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">{getInitials(profile?.full_name)}</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl sm:text-3xl font-bold">{getInitials(profile?.full_name)}</AvatarFallback>
               </Avatar>
               <button onClick={handleAvatarClick} disabled={isUploading} className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                 {isUploading ? <Loader2 className="h-8 w-8 text-white animate-spin" /> : <Camera className="h-8 w-8 text-white" />}

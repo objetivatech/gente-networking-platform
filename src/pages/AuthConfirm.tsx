@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import logoGente from '@/assets/logo-gente.png';
+import logoGente from '@/assets/logo-gente-networking.png.asset.json';
 
 type ConfirmState = 'processing' | 'accepting_invite' | 'success' | 'error' | 'expired';
 
@@ -131,7 +131,9 @@ export default function AuthConfirm() {
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <img src={logoGente} alt="Gente Networking" className="h-20 w-auto" />
+              <span className="inline-flex rounded-2xl bg-primary px-5 py-3">
+                <img src={logoGente.url} alt="Gente Networking" className="h-16 w-auto" />
+              </span>
             </div>
             <CardTitle className="text-2xl text-primary">Gente Networking</CardTitle>
             <CardDescription>Conectando pessoas, gerando negócios</CardDescription>

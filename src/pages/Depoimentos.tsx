@@ -193,7 +193,7 @@ export default function Depoimentos() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{receivedTestimonials?.length || 0}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-green-600">{receivedTestimonials?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Recebidos</p>
             </div>
           </CardContent>
@@ -201,7 +201,7 @@ export default function Depoimentos() {
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">{sentTestimonials?.length || 0}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">{sentTestimonials?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Enviados</p>
             </div>
           </CardContent>

@@ -66,7 +66,7 @@ export default function Ranking() {
       <SEO title="Ranking" description="Acompanhe o ranking mensal de pontuação por grupo na comunidade Gente Networking." />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
             <Trophy className="h-8 w-8 text-yellow-500" />
             Ranking
           </h1>
@@ -216,13 +216,13 @@ export default function Ranking() {
               {ranking?.map((member) => (
                 <div
                   key={`${member.user_id}-${member.team_id}`}
-                  className={`flex items-center gap-4 p-3 rounded-lg border transition-colors hover:bg-muted/50 ${getPositionStyle(member.position_rank)}`}
+                  className={`flex items-center gap-2 sm:gap-4 p-3 rounded-lg border transition-colors hover:bg-muted/50 ${getPositionStyle(member.position_rank)}`}
                 >
-                  <div className="w-8 flex justify-center">
+                  <div className="w-6 sm:w-8 flex justify-center shrink-0">
                     {getPositionIcon(member.position_rank)}
                   </div>
                   
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={member.avatar_url || undefined} />
                     <AvatarFallback>
                       {member.full_name?.substring(0, 2).toUpperCase()}
@@ -231,16 +231,18 @@ export default function Ranking() {
 
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{member.full_name}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                       <span className="truncate">{member.company || member.member_position || 'Membro'}</span>
-                      <span>•</span>
-                      <span className="truncate">{member.team_name}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="truncate hidden sm:inline">{member.team_name}</span>
                     </div>
                   </div>
 
-                  <RankBadge rank={member.rank} size="sm" showLabel={false} />
+                  <div className="hidden sm:block shrink-0">
+                    <RankBadge rank={member.rank} size="sm" showLabel={false} />
+                  </div>
 
-                  <Badge variant="outline" className="font-bold">
+                  <Badge variant="outline" className="font-bold shrink-0 whitespace-nowrap">
                     {member.points} pts
                   </Badge>
                 </div>
