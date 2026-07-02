@@ -3,7 +3,7 @@
 
 const APP_URL = "https://comunidade.gentenetworking.com.br";
 // White horizontal logo for dark email headers - better visibility
-const LOGO_URL = "https://network-bloom-forge.lovable.app/logo-gente-branco.png?v=2";
+const LOGO_URL = "https://network-bloom-forge.lovable.app/logo-gente-networking.png";
 
 // Base email wrapper with consistent styling
 function emailWrapper(content: string): string {
