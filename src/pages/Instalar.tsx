@@ -69,7 +69,7 @@ export default function Instalar() {
             <img 
               src={logoGente.url} 
               alt="Gente Networking" 
-              className="w-24 h-24 object-contain mx-auto mb-6 bg-white rounded-2xl p-2"
+              className="w-40 h-auto object-contain mx-auto mb-6"
             />
             <h1 className="text-3xl font-bold mb-4">
               Instale o Gente Networking
