@@ -131,7 +131,7 @@ export default function AuthConfirm() {
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <img src={logoGente} alt="Gente Networking" className="h-20 w-auto" />
+              <img src={logoGente.url} alt="Gente Networking" className="h-20 w-auto" />
             </div>
             <CardTitle className="text-2xl text-primary">Gente Networking</CardTitle>
             <CardDescription>Conectando pessoas, gerando negócios</CardDescription>

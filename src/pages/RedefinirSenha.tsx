@@ -181,7 +181,7 @@ export default function RedefinirSenha() {
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto">
               <img 
-                src={logoGente} 
+                src={logoGente.url} 
                 alt="Gente Networking" 
                 className="w-36 h-auto mx-auto"
               />

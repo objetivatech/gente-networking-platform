@@ -46,7 +46,7 @@ export default function GuestWelcome() {
       {/* Header de Boas-vindas */}
       <div className="text-center py-8">
         <img 
-          src={logoGente} 
+          src={logoGente.url} 
           alt="Gente Networking" 
           className="w-24 h-auto mx-auto mb-4"
         />

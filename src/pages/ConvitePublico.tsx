@@ -57,7 +57,7 @@ export default function ConvitePublico() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <img 
-                src={logoGente}
+                src={logoGente.url}
                 alt="Gente Networking"
                 className="h-20 w-auto"
               />

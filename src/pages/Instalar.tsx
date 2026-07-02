@@ -26,7 +26,7 @@ export default function Instalar() {
           <Card className="max-w-md w-full text-center">
             <CardHeader>
               <div className="mx-auto mb-4">
-                <img src={logoGente} alt="Gente Networking" className="w-20 h-20 object-contain" />
+                <img src={logoGente.url} alt="Gente Networking" className="w-20 h-20 object-contain" />
               </div>
               <CardTitle className="text-2xl text-primary">App Instalado!</CardTitle>
               <CardDescription>
@@ -67,7 +67,7 @@ export default function Instalar() {
         <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground py-12 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <img 
-              src={logoGente} 
+              src={logoGente.url} 
               alt="Gente Networking" 
               className="w-24 h-24 object-contain mx-auto mb-6 bg-white rounded-2xl p-2"
             />
