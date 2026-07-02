@@ -25,8 +25,8 @@ export default function Instalar() {
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full text-center">
             <CardHeader>
-              <div className="mx-auto mb-4">
-                <img src={logoGente.url} alt="Gente Networking" className="w-20 h-20 object-contain" />
+              <div className="mx-auto mb-4 inline-flex rounded-2xl bg-primary px-5 py-3">
+                <img src={logoGente.url} alt="Gente Networking" className="w-32 h-auto object-contain" />
               </div>
               <CardTitle className="text-2xl text-primary">App Instalado!</CardTitle>
               <CardDescription>
