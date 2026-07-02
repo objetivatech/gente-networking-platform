@@ -588,7 +588,7 @@ export default function Membros() {
         <div className="flex items-center gap-3">
           <Users className="h-7 w-7 text-primary" />
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Comunidade</h1>
+            <h1 className="text-2xl sm:text-2xl sm:text-3xl font-bold text-foreground">Comunidade</h1>
             <p className="text-muted-foreground text-sm">Membros e grupos da comunidade</p>
           </div>
         </div>
@@ -776,7 +776,7 @@ function GruposTab({ teams, isLoading: loading }: { teams: Team[] | undefined; i
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{teams?.length || 0}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-primary">{teams?.length || 0}</p>
               <p className="text-sm text-muted-foreground">Grupos</p>
             </div>
           </CardContent>
@@ -784,7 +784,7 @@ function GruposTab({ teams, isLoading: loading }: { teams: Team[] | undefined; i
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">
                 {teams?.reduce((sum, t) => sum + (t.members?.length || 0), 0) || 0}
               </p>
               <p className="text-sm text-muted-foreground">Total de Membros</p>
@@ -794,7 +794,7 @@ function GruposTab({ teams, isLoading: loading }: { teams: Team[] | undefined; i
         <Card>
           <CardContent className="pt-4">
             <div className="text-center">
-              <p className="text-3xl font-bold text-amber-600">
+              <p className="text-2xl sm:text-3xl font-bold text-amber-600">
                 {teams?.reduce((sum, t) => sum + (t.members?.filter(m => m.is_facilitator).length || 0), 0) || 0}
               </p>
               <p className="text-sm text-muted-foreground">Facilitadores</p>

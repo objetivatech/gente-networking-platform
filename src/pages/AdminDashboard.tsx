@@ -99,7 +99,7 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-3">
         <BarChart3 className="h-8 w-8 text-primary" />
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Dashboard Administrativo</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard Administrativo</h1>
           <p className="text-muted-foreground">Visão geral da comunidade</p>
         </div>
         <div className="flex items-center gap-3 ml-auto">

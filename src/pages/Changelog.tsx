@@ -290,7 +290,7 @@ export default function Changelog() {
         <div className="flex items-center gap-3">
           <History className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Changelog</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Changelog</h1>
             <p className="text-muted-foreground">Histórico de alterações do sistema</p>
           </div>
         </div>

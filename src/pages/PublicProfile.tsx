@@ -97,7 +97,7 @@ export default function PublicProfile() {
           <div className="space-y-6">
             {/* Título da página */}
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F]">
+              <h1 className="text-2xl sm:text-2xl sm:text-3xl font-bold text-[#1E3A5F]">
                 Membro do Gente Networking
               </h1>
               {profile.team_name && (

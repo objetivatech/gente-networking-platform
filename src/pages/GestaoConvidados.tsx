@@ -157,7 +157,7 @@ export default function GestaoConvidados() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
             <UserPlus className="h-8 w-8 text-primary" />
             Gestão de Convidados
           </h1>
@@ -169,25 +169,25 @@ export default function GestaoConvidados() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold">{stats.total}</p>
+            <p className="text-2xl sm:text-3xl font-bold">{stats.total}</p>
             <p className="text-sm text-muted-foreground">Total de Convites</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-yellow-600">{stats.pending}</p>
             <p className="text-sm text-muted-foreground">Pendentes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-green-600">{stats.accepted}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-green-600">{stats.accepted}</p>
             <p className="text-sm text-muted-foreground">Aceitos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <p className="text-3xl font-bold text-primary">{stats.becameMember}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary">{stats.becameMember}</p>
             <p className="text-sm text-muted-foreground">Tornaram-se Membros</p>
           </CardContent>
         </Card>

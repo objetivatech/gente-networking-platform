@@ -71,7 +71,7 @@ export default function Instalar() {
               alt="Gente Networking" 
               className="w-40 h-auto object-contain mx-auto mb-6"
             />
-            <h1 className="text-3xl font-bold mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-4">
               Instale o Gente Networking
             </h1>
             <p className="text-primary-foreground/90 text-lg">

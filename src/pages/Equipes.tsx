@@ -63,25 +63,25 @@ export default function Equipes() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{teams?.length || 0}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary">{teams?.length || 0}</p>
             <p className="text-sm text-muted-foreground">Grupos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-blue-600">{totalMembers}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-blue-600">{totalMembers}</p>
             <p className="text-sm text-muted-foreground">Membros</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-amber-600">{totalFacilitators}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-amber-600">{totalFacilitators}</p>
             <p className="text-sm text-muted-foreground">Facilitadores</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-orange-600">{totalGuests}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-orange-600">{totalGuests}</p>
             <p className="text-sm text-muted-foreground">Convidados</p>
           </CardContent>
         </Card>

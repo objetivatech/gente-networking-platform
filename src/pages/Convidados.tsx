@@ -110,25 +110,25 @@ export default function Convidados() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-primary">{guests?.length || 0}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary">{guests?.length || 0}</p>
             <p className="text-sm text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-muted-foreground">{counts.awaiting_first}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-muted-foreground">{counts.awaiting_first}</p>
             <p className="text-sm text-muted-foreground">Aguardando</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-amber-600">{counts.attended}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-amber-600">{counts.attended}</p>
             <p className="text-sm text-muted-foreground">Já participaram</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-3xl font-bold text-emerald-600">{counts.promoted}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{counts.promoted}</p>
             <p className="text-sm text-muted-foreground">Promovidos</p>
           </CardContent>
         </Card>

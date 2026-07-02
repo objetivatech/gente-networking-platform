@@ -52,7 +52,7 @@ export default function GuestWelcome() {
             className="w-40 h-auto mx-auto"
           />
         </span>
-        <h1 className="text-3xl font-bold text-foreground mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
           Bem-vindo ao Gente Networking, {profile?.full_name?.split(' ')?.[0] ?? 'Convidado'}!
         </h1>
         <p className="text-muted-foreground text-lg max-w-xl mx-auto">
