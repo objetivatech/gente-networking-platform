@@ -95,24 +95,36 @@ export default function PublicProfile() {
           </Card>
         ) : (
           <div className="space-y-6">
+            {/* Título da página */}
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#1E3A5F]">
+                Membro do Gente Networking
+              </h1>
+              {profile.team_name && (
+                <p className="text-muted-foreground mt-1">
+                  Grupo <span className="font-semibold text-[#F7941D]">{profile.team_name}</span>
+                </p>
+              )}
+            </div>
+
             {/* Banner + cabeçalho do perfil */}
             <Card className="overflow-hidden">
               <div
-                className="h-32 bg-gradient-to-r from-[#1E3A5F] to-[#2d4a6f]"
+                className="h-32 sm:h-40 bg-gradient-to-r from-[#1E3A5F] to-[#2d4a6f]"
                 style={profile.banner_url ? { backgroundImage: `url(${profile.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
               />
               <CardContent className="pt-0">
-                <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
-                  <Avatar className="h-24 w-24 border-4 border-background">
+                <div className="flex flex-col items-center text-center sm:flex-row sm:items-end sm:text-left gap-4">
+                  <Avatar className="h-24 w-24 border-4 border-background -mt-12 shrink-0">
                     <AvatarImage src={profile.avatar_url || ''} />
                     <AvatarFallback className="text-2xl">{getInitials(profile.full_name)}</AvatarFallback>
                   </Avatar>
-                  <div className="pb-1">
-                    <h1 className="text-2xl font-bold text-[#1E3A5F]">{profile.full_name}</h1>
+                  <div className="pt-2 sm:pb-1">
+                    <h2 className="text-2xl font-bold text-[#1E3A5F]">{profile.full_name}</h2>
                     <p className="text-muted-foreground">
                       {[profile.position, profile.company].filter(Boolean).join(' • ')}
                     </p>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-2 mt-2">
                       {profile.business_segment && <Badge variant="secondary">{profile.business_segment}</Badge>}
                       {profile.rank && <Badge className="bg-[#F7941D] text-white hover:bg-[#F7941D]">{profile.rank}</Badge>}
                     </div>
