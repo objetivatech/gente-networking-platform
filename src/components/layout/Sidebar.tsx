@@ -119,7 +119,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 className="w-28 h-auto"
               />
             </div>
-            </div>
             <Button
               variant="ghost"
               size="icon"
