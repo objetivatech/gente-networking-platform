@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import logoGente from '@/assets/logo-gente.png';
+import logoGente from '@/assets/logo-gente-comunidade.png.asset.json';
 
 interface SidebarProps {
   open: boolean;
