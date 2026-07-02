@@ -45,11 +45,13 @@ export default function GuestWelcome() {
     <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
       {/* Header de Boas-vindas */}
       <div className="text-center py-8">
-        <img 
-          src={logoGente.url} 
-          alt="Gente Networking" 
-          className="w-24 h-auto mx-auto mb-4"
-        />
+        <span className="inline-flex rounded-2xl bg-primary px-6 py-4 mb-4">
+          <img 
+            src={logoGente.url} 
+            alt="Gente Networking" 
+            className="w-40 h-auto mx-auto"
+          />
+        </span>
         <h1 className="text-3xl font-bold text-foreground mb-2">
           Bem-vindo ao Gente Networking, {profile?.full_name?.split(' ')?.[0] ?? 'Convidado'}!
         </h1>
