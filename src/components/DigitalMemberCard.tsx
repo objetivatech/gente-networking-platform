@@ -83,27 +83,36 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
       ctx.fillStyle = ORANGE;
       ctx.fillRect(0, 0, 16, H);
 
-      // Logo do Gente (com fallback para marca em texto)
+      // Logo da Comunidade (destaque) + Networking (secundário, watermark)
       try {
-        const logoImg = new Image();
-        logoImg.crossOrigin = 'anonymous';
-        await new Promise<void>((resolve, reject) => {
-          logoImg.onload = () => resolve();
-          logoImg.onerror = reject;
-          logoImg.src = LOGO_SRC;
-        });
+        const comunidadeImg = await loadImage(LOGO_COMUNIDADE_SRC);
         if (cancelled) return;
-        const logoH = 90;
-        const logoW = (logoImg.width / logoImg.height) * logoH;
-        ctx.drawImage(logoImg, 60, 50, logoW, logoH);
+        const logoH = 100;
+        const logoW = (comunidadeImg.width / comunidadeImg.height) * logoH;
+        ctx.drawImage(comunidadeImg, 60, 45, logoW, logoH);
       } catch {
         ctx.fillStyle = ORANGE;
         ctx.font = 'bold 34px Arial, sans-serif';
         ctx.fillText('GENTE', 60, 80);
         ctx.fillStyle = '#FFFFFF';
         ctx.font = '20px Arial, sans-serif';
-        ctx.fillText('NETWORKING', 60, 112);
+        ctx.fillText('COMUNIDADE', 60, 112);
       }
+
+      // Logo Networking (segundo plano, canto superior direito, menor e suave)
+      try {
+        const networkingImg = await loadImage(LOGO_NETWORKING_SRC);
+        if (cancelled) return;
+        const nH = 46;
+        const nW = (networkingImg.width / networkingImg.height) * nH;
+        ctx.save();
+        ctx.globalAlpha = 0.55;
+        ctx.drawImage(networkingImg, W - nW - 60, 50, nW, nH);
+        ctx.restore();
+      } catch {
+        // fallback silencioso
+      }
+
 
       // Nome
       ctx.fillStyle = '#FFFFFF';
