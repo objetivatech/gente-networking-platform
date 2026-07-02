@@ -588,7 +588,7 @@ export default function Membros() {
         <div className="flex items-center gap-3">
           <Users className="h-7 w-7 text-primary" />
           <div>
-            <h1 className="text-2xl sm:text-2xl sm:text-3xl font-bold text-foreground">Comunidade</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Comunidade</h1>
             <p className="text-muted-foreground text-sm">Membros e grupos da comunidade</p>
           </div>
         </div>
