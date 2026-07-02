@@ -36,9 +36,10 @@ interface PublicProfileData {
   website_url: string | null;
   slug: string | null;
   rank: string | null;
+  team_name: string | null;
 }
 
-const LOGO = '/logo-gente-card.png';
+const LOGO = '/logo-gente-networking.png';
 
 function getInitials(name: string | null) {
   if (!name) return '?';
