@@ -22,7 +22,17 @@ import { useToast } from '@/hooks/use-toast';
 
 const NAVY = '#1E3A5F';
 const ORANGE = '#F7941D';
-const LOGO_SRC = '/logo-gente-card.png';
+const LOGO_COMUNIDADE_SRC = '/logo-gente-comunidade.png';
+const LOGO_NETWORKING_SRC = '/logo-gente-networking.png';
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
 
 interface DigitalMemberCardProps {
   member: {
