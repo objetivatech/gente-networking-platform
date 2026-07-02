@@ -717,3 +717,24 @@ Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equi
 - **Agenda 1x1** (`src/components/ScheduleMeetingDialog.tsx` + `src/lib/scheduling-utils.ts`): gera convite Google Calendar / `.ics` para reunião 1x1, sem OAuth. Botão "Agendar 1x1" no perfil de terceiros.
 - **Campo `availability_note`** em `profiles`: disponibilidade declarada para 1x1, editável em Configurações do perfil.
 - Item 10 (OAuth Google/LinkedIn) removido do escopo a pedido do cliente.
+
+## v3.20.0 — Rebranding de Logos, Perfil Público e Responsividade
+
+### Estratégia de Logos
+- **Gente Networking** (`public/logo-gente-networking.png`, `src/assets/logo-gente-networking.png.asset.json`): usado em telas institucionais/públicas e em todas as comunicações por email, por representar a marca-mãe/empresa.
+  - Telas: `Auth.tsx`, `AuthConfirm.tsx`, `ConvitePublico.tsx`, `RedefinirSenha.tsx`, `GuestWelcome.tsx`, `Instalar.tsx`, `PublicProfile.tsx`.
+  - Emails: `email-templates.ts` (`LOGO_URL`).
+- **Gente Comunidade** (`public/logo-gente-comunidade.png`, `src/assets/logo-gente-comunidade.png.asset.json`): usado dentro da plataforma logada, por representar a ferramenta/produto.
+  - `src/components/layout/Sidebar.tsx` e `src/components/layout/Footer.tsx`.
+- **Cartão Digital** (`DigitalMemberCard.tsx`): exibe os dois logos, com o **Comunidade em destaque** e o **Networking como marca secundária** (segundo plano), reforçando a hierarquia produto/empresa.
+
+### Página Pública do Perfil (`/p/:slug`)
+- Título "Membro do Gente Networking" e subtítulo com o grupo (`team_name` via RPC `get_public_profile`).
+- Corrigida sobreposição de textos sobre o banner do topo (diagramação de avatar/banner).
+
+### Perfil Interno (`Profile.tsx`)
+- Container ampliado para `max-w-6xl` para melhor uso do espaço em telas largas, evitando o "amontoamento" à esquerda.
+
+### Revisão de Responsividade
+- Títulos de páginas passam a usar `text-2xl sm:text-3xl` (escala no mobile).
+- Linha do Ranking (`Ranking.tsx`): gaps responsivos (`gap-2 sm:gap-4`), elementos com `shrink-0` e ocultação de metadados/RankBadge em telas estreitas para evitar corte de fotos/nomes.
