@@ -221,10 +221,10 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
         {member.email && (
           <a 
             href={`mailto:${member.email}`}
-            className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm hover:text-primary transition-colors min-w-0"
           >
-            <Mail className="h-4 w-4" />
-            {member.email}
+            <Mail className="h-4 w-4 shrink-0" />
+            <span className="break-all">{member.email}</span>
           </a>
         )}
         
@@ -233,11 +233,11 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
             href={`https://wa.me/55${member.phone.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm hover:text-primary transition-colors min-w-0"
           >
-            <Phone className="h-4 w-4" />
-            {member.phone}
-            <ExternalLink className="h-3 w-3" />
+            <Phone className="h-4 w-4 shrink-0" />
+            <span className="break-all">{member.phone}</span>
+            <ExternalLink className="h-3 w-3 shrink-0" />
           </a>
         )}
       </div>

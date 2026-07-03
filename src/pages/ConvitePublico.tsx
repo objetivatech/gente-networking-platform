@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { validateInvitation, Invitation } from '@/hooks/useInvitations';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import Footer from '@/components/layout/Footer';
-import logoGente from '@/assets/logo-gente-networking.png.asset.json';
+const logoGente = '/logo-gente-networking.png';
 import SEO from '@/components/SEO';
 
 export default function ConvitePublico() {
@@ -58,7 +58,7 @@ export default function ConvitePublico() {
             <div className="flex justify-center mb-4">
               <span className="inline-flex rounded-2xl bg-primary px-5 py-3">
                 <img 
-                  src={logoGente.url}
+                  src={logoGente}
                   alt="Gente Networking"
                   className="h-16 w-auto"
                 />

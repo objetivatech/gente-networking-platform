@@ -8,7 +8,7 @@
  * 
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
-import logoComunidade from '@/assets/logo-gente-comunidade.png.asset.json';
+const logoComunidade = '/logo-gente-comunidade.png';
 
 export default function Footer() {
   return (
@@ -16,7 +16,7 @@ export default function Footer() {
       <div className="flex flex-col items-center gap-3 text-center">
         <span className="inline-flex rounded-xl bg-primary px-4 py-2">
           <img
-            src={logoComunidade.url}
+            src={logoComunidade}
             alt="Gente Comunidade"
             className="h-8 w-auto"
           />

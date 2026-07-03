@@ -214,10 +214,10 @@ export default function MemberProfilePage() {
               {member.bio && <p className="text-foreground/80">{member.bio}</p>}
 
               <div className="flex flex-wrap gap-4 pt-2">
-                {member.email && <a href={`mailto:${member.email}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"><Mail className="w-4 h-4" />{member.email}</a>}
-                {member.phone && <a href={`https://wa.me/${member.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"><Phone className="w-4 h-4" />{member.phone}</a>}
-                {member.company && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Building className="w-4 h-4" />{member.company}</div>}
-                {member.birthday && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Cake className="w-4 h-4" />{formatBirthday(member.birthday)}</div>}
+                {member.email && <a href={`mailto:${member.email}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors min-w-0"><Mail className="w-4 h-4 shrink-0" /><span className="break-all">{member.email}</span></a>}
+                {member.phone && <a href={`https://wa.me/${member.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors min-w-0"><Phone className="w-4 h-4 shrink-0" /><span className="break-all">{member.phone}</span></a>}
+                {member.company && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Building className="w-4 h-4 shrink-0" /><span className="break-words">{member.company}</span></div>}
+                {member.birthday && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Cake className="w-4 h-4 shrink-0" />{formatBirthday(member.birthday)}</div>}
               </div>
 
               <div className="flex gap-3 pt-2">

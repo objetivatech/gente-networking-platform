@@ -23,7 +23,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
-import logoGente from '@/assets/logo-gente-networking.png.asset.json';
+const logoGente = '/logo-gente-networking.png';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function GuestWelcome() {
@@ -47,7 +47,7 @@ export default function GuestWelcome() {
       <div className="text-center py-8">
         <span className="inline-flex rounded-2xl bg-primary px-6 py-4 mb-4">
           <img 
-            src={logoGente.url} 
+            src={logoGente} 
             alt="Gente Networking" 
             className="w-40 h-auto mx-auto"
           />

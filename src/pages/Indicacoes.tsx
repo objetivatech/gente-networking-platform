@@ -145,10 +145,10 @@ export default function Indicacoes() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="min-w-0">
                   <span className="text-xs text-muted-foreground">{label}: </span>
-                  <span className="font-medium">{user?.full_name}</span>
+                  <span className="font-medium break-words">{user?.full_name}</span>
                 </div>
                 <StatusBadge status={referralStatus} />
               </div>
@@ -164,19 +164,19 @@ export default function Indicacoes() {
               </div>
             </div>
             <div className="mt-2 p-3 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4 text-primary" />
-                <span className="font-medium">{referral.contact_name}</span>
+              <div className="flex items-center gap-2 mb-2 min-w-0">
+                <User className="w-4 h-4 text-primary shrink-0" />
+                <span className="font-medium break-words min-w-0">{referral.contact_name}</span>
               </div>
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 {referral.contact_phone && (
-                  <a href={`tel:${referral.contact_phone}`} className="flex items-center gap-1 hover:text-primary">
-                    <Phone className="w-3.5 h-3.5" /> {referral.contact_phone}
+                  <a href={`tel:${referral.contact_phone}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
+                    <Phone className="w-3.5 h-3.5 shrink-0" /> <span className="break-all">{referral.contact_phone}</span>
                   </a>
                 )}
                 {referral.contact_email && (
-                  <a href={`mailto:${referral.contact_email}`} className="flex items-center gap-1 hover:text-primary">
-                    <Mail className="w-3.5 h-3.5" /> {referral.contact_email}
+                  <a href={`mailto:${referral.contact_email}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
+                    <Mail className="w-3.5 h-3.5 shrink-0" /> <span className="break-all">{referral.contact_email}</span>
                   </a>
                 )}
               </div>
