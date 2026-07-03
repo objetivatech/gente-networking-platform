@@ -285,9 +285,9 @@ export default function Profile() {
                   )}
                   {profile?.bio && <p className="text-foreground/80">{profile.bio}</p>}
                   <div className="flex flex-wrap gap-4 pt-2">
-                    {profile?.email && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Mail className="w-4 h-4" /><span>{profile.email}</span></div>}
-                    {profile?.phone && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Phone className="w-4 h-4" /><span>{profile.phone}</span></div>}
-                    {profile?.company && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Building className="w-4 h-4" /><span>{profile.company}</span></div>}
+                    {profile?.email && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Mail className="w-4 h-4 shrink-0" /><span className="break-all">{profile.email}</span></div>}
+                    {profile?.phone && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Phone className="w-4 h-4 shrink-0" /><span className="break-all">{profile.phone}</span></div>}
+                    {profile?.company && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Building className="w-4 h-4 shrink-0" /><span className="break-words">{profile.company}</span></div>}
                   </div>
                   <div className="flex gap-3 pt-2">
                     {profile?.linkedin_url && <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Linkedin className="w-5 h-5" /></a>}
