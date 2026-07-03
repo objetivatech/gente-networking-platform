@@ -145,10 +145,10 @@ export default function Indicacoes() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <div>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="min-w-0">
                   <span className="text-xs text-muted-foreground">{label}: </span>
-                  <span className="font-medium">{user?.full_name}</span>
+                  <span className="font-medium break-words">{user?.full_name}</span>
                 </div>
                 <StatusBadge status={referralStatus} />
               </div>
