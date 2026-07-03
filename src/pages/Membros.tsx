@@ -221,10 +221,10 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
         {member.email && (
           <a 
             href={`mailto:${member.email}`}
-            className="flex items-center gap-2 text-sm hover:text-primary transition-colors"
+            className="flex items-center gap-2 text-sm hover:text-primary transition-colors min-w-0"
           >
-            <Mail className="h-4 w-4" />
-            {member.email}
+            <Mail className="h-4 w-4 shrink-0" />
+            <span className="break-all">{member.email}</span>
           </a>
         )}
         
