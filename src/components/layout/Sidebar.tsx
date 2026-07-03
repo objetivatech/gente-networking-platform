@@ -32,7 +32,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-import logoGente from '@/assets/logo-gente-comunidade.png.asset.json';
+const logoGente = '/logo-gente-comunidade.png';
 
 interface SidebarProps {
   open: boolean;
@@ -114,7 +114,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
             <div className="flex items-center gap-3">
               <img 
-                src={logoGente.url} 
+                src={logoGente} 
                 alt="Gente Comunidade" 
                 className="w-28 h-auto"
               />

@@ -23,7 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, KeyRound, CheckCircle2 } from 'lucide-react';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
-import logoGente from '@/assets/logo-gente-networking.png.asset.json';
+const logoGente = '/logo-gente-networking.png';
 
 export default function RedefinirSenha() {
   const [password, setPassword] = useState('');
@@ -181,7 +181,7 @@ export default function RedefinirSenha() {
           <CardHeader className="text-center space-y-4">
             <div className="mx-auto inline-flex rounded-2xl bg-primary px-6 py-4">
               <img 
-                src={logoGente.url} 
+                src={logoGente} 
                 alt="Gente Networking" 
                 className="w-40 h-auto mx-auto"
               />

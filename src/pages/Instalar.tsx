@@ -13,7 +13,7 @@ import {
   Bell,
   Zap
 } from 'lucide-react';
-import logoGente from '@/assets/logo-gente-networking.png.asset.json';
+const logoGente = '/logo-gente-networking.png';
 
 export default function Instalar() {
   const { isInstallable, isInstalled, isIOS, isAndroid, isStandalone, promptInstall } = usePWAInstall();
@@ -26,7 +26,7 @@ export default function Instalar() {
           <Card className="max-w-md w-full text-center">
             <CardHeader>
               <div className="mx-auto mb-4 inline-flex rounded-2xl bg-primary px-5 py-3">
-                <img src={logoGente.url} alt="Gente Networking" className="w-32 h-auto object-contain" />
+                <img src={logoGente} alt="Gente Networking" className="w-32 h-auto object-contain" />
               </div>
               <CardTitle className="text-2xl text-primary">App Instalado!</CardTitle>
               <CardDescription>
@@ -67,7 +67,7 @@ export default function Instalar() {
         <div className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground py-12 px-4">
           <div className="max-w-2xl mx-auto text-center">
             <img 
-              src={logoGente.url} 
+              src={logoGente} 
               alt="Gente Networking" 
               className="w-40 h-auto object-contain mx-auto mb-6"
             />
