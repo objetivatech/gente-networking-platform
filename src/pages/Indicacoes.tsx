@@ -168,15 +168,15 @@ export default function Indicacoes() {
                 <User className="w-4 h-4 text-primary" />
                 <span className="font-medium">{referral.contact_name}</span>
               </div>
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 {referral.contact_phone && (
-                  <a href={`tel:${referral.contact_phone}`} className="flex items-center gap-1 hover:text-primary">
-                    <Phone className="w-3.5 h-3.5" /> {referral.contact_phone}
+                  <a href={`tel:${referral.contact_phone}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
+                    <Phone className="w-3.5 h-3.5 shrink-0" /> <span className="break-all">{referral.contact_phone}</span>
                   </a>
                 )}
                 {referral.contact_email && (
-                  <a href={`mailto:${referral.contact_email}`} className="flex items-center gap-1 hover:text-primary">
-                    <Mail className="w-3.5 h-3.5" /> {referral.contact_email}
+                  <a href={`mailto:${referral.contact_email}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
+                    <Mail className="w-3.5 h-3.5 shrink-0" /> <span className="break-all">{referral.contact_email}</span>
                   </a>
                 )}
               </div>
