@@ -1,69 +1,52 @@
-## Contexto
+# Correção de Logos e Responsividade Mobile
 
-Dois logos novos foram enviados:
+Investiguei os prints e o código. Encontrei **duas causas raiz concretas**, ambas corrigíveis apenas no frontend/templates (sem mexer em regras de negócio).
 
-- **Gente Networking** (`gente-networking.png`) — logo institucional da empresa.
-- **Gente Comunidade** (`gente-comunidade.png`) — logo da ferramenta/plataforma.
+## Problema 1 — Logos não aparecem (quebrados)
 
-Ambos têm o "GENTE" em cinza-claro e o subtítulo em laranja, otimizados para fundos escuros (navy). Hoje o app usa `logo-gente.png`, `logo-gente-branco.png` e `logo-gente-card.png` espalhados por várias páginas e nos e-mails.
+Os componentes importam os logos a partir de arquivos `.asset.json`, cujo `url` aponta para o CDN da Lovable (`/__l5e/assets-v1/...`). Este projeto **é publicado via Cloudflare Pages** (não usa Lovable Cloud), então esse endereço **não existe em produção** — por isso o rodapé mostra a imagem quebrada ("Gente Comunidade").
 
-## 1. Estratégia de logos (minha recomendação)
+Os PNGs corretos **já existem** em `public/` (`logo-gente-comunidade.png`, `logo-gente-networking.png`), e alguns componentes (DigitalMemberCard, PublicProfile) já usam o caminho público correto.
 
-Concordo com sua leitura. Proposta de aplicação:
+### Correção
+Trocar em todos os arquivos abaixo o import `@/assets/logo-*.png.asset.json` + `logo.url` pelo caminho público estático:
+- `logo-gente-comunidade.png` → `"/logo-gente-comunidade.png"`
+- `logo-gente-networking.png` → `"/logo-gente-networking.png"`
 
-**Logo Gente Networking (empresa/institucional):**
+Arquivos afetados:
+```text
+src/components/layout/Footer.tsx      (comunidade)
+src/components/layout/Sidebar.tsx     (comunidade)
+src/pages/Auth.tsx                    (networking)
+src/pages/AuthConfirm.tsx             (networking)
+src/pages/RedefinirSenha.tsx          (networking)
+src/pages/ConvitePublico.tsx          (networking)
+src/pages/GuestWelcome.tsx            (networking)
+src/pages/Instalar.tsx                (networking)
+```
 
-- Todos os e-mails (cabeçalho e rodapé) — já usam versão branca sobre navy.
-- Telas públicas/externas de entrada institucional: Login (`Auth`), Redefinir senha, Confirmação de conta (`AuthConfirm`), Convite público (`ConvitePublico`), Instalar PWA, Boas-vindas do convidado (`GuestWelcome`).
-- Cabeçalho da página pública do perfil (`/p/:slug`) e rodapé dela — é uma vitrine externa da marca.
+### E-mails
+Em `supabase/functions/_shared/email-templates.ts`, o `LOGO_URL` aponta para um domínio morto (`https://network-bloom-forge.lovable.app/...`). Trocar para o domínio real de produção onde o PNG é servido:
+`https://comunidade.gentenetworking.com.br/logo-gente-networking.png` (mesmo host do `APP_URL`). Assim o cabeçalho dos e-mails volta a exibir o logo.
 
-**Logo Gente Comunidade (ferramenta):**
+## Problema 2 — Overflow horizontal no mobile (página "amontoada"/cortada)
 
-- Dentro da plataforma logada: Sidebar (topo) e, como reforço, no rodapé interno (`Footer`).
-- É onde o usuário "está usando a ferramenta", então faz sentido a identidade da Comunidade.
+Nos prints a página inteira aparece cortada à direita. A causa não é grade errada (as grades já colapsam) e sim **strings longas sem quebra** (e-mails, URLs, links) dentro dos cards. Como não podem quebrar, forçam a largura mínima do conteúdo a ficar maior que a tela, e o navegador mobile renderiza a página "afastada"/cortada. O `overflow-x-hidden` global apenas corta visualmente, sem resolver a origem.
 
-**Cartão Digital do Membro (os dois logos):**
+Exemplo confirmado (print de Indicações): em `src/pages/Indicacoes.tsx` o e-mail do contato está em um `<a class="flex items-center gap-1">` sem `min-w-0`/`break-all`, estourando o card.
 
-- Logo **Gente Comunidade** em destaque (topo, maior).
-- Logo **Gente Networking** discreto, menor, em segundo plano (ex.: rodapé do cartão ou marca d'água suave), como você sugeriu.
+### Correção (categoria, não caso isolado)
+Auditar e aplicar quebra de texto/`min-w-0` onde há e-mail, telefone, URL ou link exibido, nas páginas que compartilham esse padrão:
+- `Indicacoes.tsx` — links de e-mail/telefone: adicionar `min-w-0 break-all` no `<a>` e garantir `min-w-0` nos flex pais.
+- `PedidosIndicacao.tsx`, `Negocios.tsx`, `Membros.tsx`, `MemberProfile.tsx`, `Profile.tsx`, `PublicProfile.tsx`, `Encontros.tsx` e o card "Próximos Encontros" do dashboard (`Index.tsx`, link do Google Meet) — aplicar `break-words`/`break-all` + `truncate` conforme o caso em e-mails, URLs de reunião e slugs públicos.
+- Reforçar `min-w-0` em containers flex que contêm esses textos, para permitir o encolhimento.
 
-Opção alternativa caso prefira: manter apenas 1 logo por contexto e usar Comunidade também nas telas de login. Minha recomendação é a divisão acima (institucional fora / ferramenta dentro), que comunica melhor os dois níveis da marca.
+Isso elimina a largura intrínseca excessiva e faz a página caber corretamente na tela do celular.
 
-**/// Gostei do que indicou acima. Podemos seguir assim. ///**
+## Verificação
+- Rodar checagem de overflow via Playwright em largura 390px na página pública `/auth` (única acessível no sandbox, pois o Supabase é externo) — deve permanecer sem offenders.
+- Inspecionar visualmente Footer/Sidebar/Auth para confirmar que os logos carregam a partir de `/logo-gente-*.png`.
+- `tsgo --noEmit` para garantir que a remoção dos imports `.asset.json` não quebrou tipos.
 
-### Implementação técnica dos logos
-
-- Subir os dois arquivos como assets do projeto (`src/assets/logo-gente-networking.png` e `src/assets/logo-gente-comunidade.png`) via Lovable Assets.
-- Para os e-mails, hospedar a versão pública (a arte é clara sobre fundo escuro, então serve para o header navy). Atualizar `LOGO_URL` em `supabase/functions/_shared/email-templates.ts`.
-- Substituir os imports/`src` nos arquivos: `Sidebar.tsx`, `Footer.tsx`, `Auth.tsx`, `AuthConfirm.tsx`, `RedefinirSenha.tsx`, `ConvitePublico.tsx`, `Instalar.tsx`, `GuestWelcome.tsx`, `PublicProfile.tsx`, `DigitalMemberCard.tsx`.
-
-## 2. Página pública do perfil (`/p/:slug`)
-
-- **Título e subtítulo:** adicionar um bloco com "Membro do Gente Networking" (título) e, como subtítulo, o **grupo** ao qual o membro pertence (ex.: "Grupo Impulso").
-  - Requer estender a RPC `get_public_profile` para retornar o nome do grupo (join `team_members` → `teams`) e o papel (membro/convidado), sem quebrar os campos atuais.
-- **Diagramação (banner sobreposto):** corrigir a sobreposição do texto sobre o banner. O avatar/nome subirão com margem negativa correta e o bloco de identificação ficará **abaixo** do banner (não em cima dele), com espaçamento responsivo, replicando o padrão já usado no perfil interno.
-
-## 3. Perfil interno do membro (`Profile.tsx`)
-
-- Corrigir o "amontoado à esquerda" em telas largas: hoje o conteúdo fica preso em `max-w-4xl` com `md:pl-40`, deixando os dados comprimidos numa coluna estreita.
-- Reorganizar para um layout de 2 colunas que preenche melhor a largura (dados principais + coluna lateral de pontos/cartão), com o avatar posicionado corretamente e sem espaço morto à direita. Ajustar breakpoints para empilhar limpo no mobile.
-
-## 4. Revisão geral de responsividade
-
-Varredura das páginas principais para corrigir os problemas mostrados nos prints mobile (conteúdo cortado, cards estourando a largura, textos sobrepostos):
-
-- Padronizar containers com `w-full max-w-*` + `overflow-x-hidden` já existente no layout.
-- Cards de estatísticas (Início, Gente em Ação, Ranking): garantir grid responsivo (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-...`) em vez de largura fixa que corta no mobile.
-- Cabeçalhos de página, tabelas e listas: rolagem horizontal controlada e quebra de texto.
-- Revisar `Ranking`, `Encontros`, `Estatisticas`, `GenteEmAcao`, `Feed`, `Membros`, `Negocios`, `Indicacoes` e páginas de gestão.
-
-## 5. Documentação e Changelog
-
-- Nova entrada de changelog (**v3.20.0**) descrevendo: atualização de identidade visual (2 logos), ajustes da página pública, reorganização do perfil interno e revisão de responsividade.
-- Atualizar docs relevantes e memória (`mem://design/visual-identity`) com a regra dos dois logos por contexto.
-
-## Notas técnicas
-
-- Nenhuma mudança em regras de negócio, pontuação ou permissões — apenas apresentação (frontend), a RPC `get_public_profile` (adição de campos, retrocompatível) e o template de e-mail.
-- Assets via Lovable Assets (sem inflar o repositório).
-- Todos os novos arquivos seguem o cabeçalho JSDoc Ranktop.
+## Fora de escopo
+Nenhuma mudança em lógica de negócio, RPCs, pontuação ou dados. Apenas caminhos de imagem, template de e-mail e classes utilitárias de layout.
