@@ -166,9 +166,9 @@ export default function Index() {
                         )}
                       </div>
                       {meeting.location && (
-                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                          <MapPin className="h-3 w-3" />
-                          {meeting.location}
+                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground min-w-0">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          <span className="break-all">{meeting.location}</span>
                         </div>
                       )}
                     </div>
