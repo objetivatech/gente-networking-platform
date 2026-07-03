@@ -164,9 +164,9 @@ export default function Indicacoes() {
               </div>
             </div>
             <div className="mt-2 p-3 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4 text-primary" />
-                <span className="font-medium">{referral.contact_name}</span>
+              <div className="flex items-center gap-2 mb-2 min-w-0">
+                <User className="w-4 h-4 text-primary shrink-0" />
+                <span className="font-medium break-words min-w-0">{referral.contact_name}</span>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 {referral.contact_phone && (
