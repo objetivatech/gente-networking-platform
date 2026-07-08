@@ -43,10 +43,91 @@ interface PublicProfileData {
 }
 
 const LOGO = '/logo-gente-networking.png';
+const SITE_URL = 'https://comunidade.gentenetworking.com.br';
+const OG_FALLBACK = `${SITE_URL}${LOGO}`;
 
 function getInitials(name: string | null) {
   if (!name) return '?';
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function truncate(text: string, max = 155) {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  return clean.length > max ? `${clean.slice(0, max - 1).trimEnd()}…` : clean;
+}
+
+/** SEO + dados estruturados (schema.org) da página pública do perfil. */
+function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug: string }) {
+  const canonical = `${SITE_URL}/m/${slug}`;
+
+  if (!profile) {
+    return (
+      <Helmet>
+        <title>Perfil não disponível | Gente Networking</title>
+        <meta name="robots" content="noindex, follow" />
+        <link rel="canonical" href={canonical} />
+      </Helmet>
+    );
+  }
+
+  const name = profile.full_name || 'Membro';
+  const roleLine = [profile.position, profile.company].filter(Boolean).join(' na ');
+  const title = `${name}${roleLine ? ` — ${roleLine}` : ''} | Gente Networking`;
+  const description = truncate(
+    profile.bio || profile.what_i_do ||
+    `${name} é membro do Gente Networking${profile.company ? `, atuando na ${profile.company}` : ''}. Conheça o perfil e conecte-se.`,
+  );
+  const image = profile.avatar_url || OG_FALLBACK;
+  const sameAs = [profile.linkedin_url, profile.instagram_url, profile.website_url].filter(Boolean);
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    mainEntity: {
+      '@type': 'Person',
+      name,
+      ...(profile.position ? { jobTitle: profile.position } : {}),
+      ...(profile.company ? { worksFor: { '@type': 'Organization', name: profile.company } } : {}),
+      ...(profile.avatar_url ? { image: profile.avatar_url } : {}),
+      ...(profile.bio ? { description: profile.bio } : {}),
+      url: canonical,
+      ...(sameAs.length ? { sameAs } : {}),
+    },
+  };
+
+  const breadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Membros', item: `${SITE_URL}/membros` },
+      { '@type': 'ListItem', position: 3, name, item: canonical },
+    ],
+  };
+
+  return (
+    <Helmet>
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <link rel="canonical" href={canonical} />
+      <meta name="robots" content="index, follow" />
+
+      <meta property="og:type" content="profile" />
+      <meta property="og:site_name" content="Gente Networking" />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonical} />
+      <meta property="og:image" content={image} />
+
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={image} />
+
+      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      <script type="application/ld+json">{JSON.stringify(breadcrumb)}</script>
+    </Helmet>
+  );
 }
 
 export default function PublicProfile() {
@@ -68,6 +149,7 @@ export default function PublicProfile() {
 
   return (
     <div className="min-h-screen bg-[#f0f4f8] flex flex-col">
+      {!loading && <ProfileSEO profile={profile} slug={slug || ''} />}
       {/* Cabeçalho */}
       <header className="bg-gradient-to-r from-[#1E3A5F] to-[#2d4a6f]">
         <div className="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between">
