@@ -82,6 +82,12 @@ function PageLoader() {
   );
 }
 
+// Redireciona a URL antiga /p/:slug para a nova /m/:slug (301 no lado do cliente)
+function PublicProfileRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/m/${slug ?? ''}`} replace />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
