@@ -63,7 +63,7 @@ export async function exportRowsToPDF<T>(
   options: { fileName: string; title: string; subtitle?: string }
 ): Promise<void> {
   const { default: jsPDF } = await import('jspdf');
-  await import('jspdf-autotable');
+  const { default: autoTable } = await import('jspdf-autotable');
 
   const doc = new jsPDF();
 
@@ -82,8 +82,7 @@ export async function exportRowsToPDF<T>(
     })
   );
 
-  // @ts-ignore - jspdf-autotable adiciona este método
-  doc.autoTable({
+  autoTable(doc, {
     startY: options.subtitle ? 48 : 42,
     head: [columns.map((c) => c.header)],
     body,
