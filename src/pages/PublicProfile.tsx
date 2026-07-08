@@ -1,14 +1,17 @@
 /**
  * @file PublicProfile.tsx
- * @description Página pública do perfil (/p/:slug), acessível externamente sem login.
- * Exibe as informações profissionais do membro/convidado (quando publicado) com a
- * identidade visual do Gente (cabeçalho e rodapé) e uma chamada para inscrição,
- * direcionando para o formulário de cadastro existente (/auth?tab=signup).
+ * @description Página pública do perfil (/m/:slug), acessível externamente sem login e
+ * indexável pelo Google. Exibe as informações profissionais do membro (quando publicado)
+ * com a identidade visual do Gente (cabeçalho e rodapé), SEO completo (title/description/
+ * canonical/OpenGraph/Twitter), dados estruturados schema.org (ProfilePage + Person +
+ * BreadcrumbList) e imagem OG usando a foto do perfil. Uma chamada para inscrição direciona
+ * para o formulário de cadastro existente (/auth?tab=signup).
  * Os dados vêm da RPC segura get_public_profile, liberada para o papel anônimo.
  * @copyright Ranktop / Gente Networking
  */
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
