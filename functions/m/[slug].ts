@@ -164,7 +164,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     ].join('\n');
   }
 
+  const remover = new ElementRemover();
   return new HTMLRewriter()
+    .on('title', remover)
+    .on('meta[name="description"]', remover)
+    .on('link[rel="canonical"]', remover)
+    .on('meta[property^="og:"]', remover)
+    .on('meta[name^="twitter:"]', remover)
     .on('head', new HeadRewriter(tags))
     .transform(assetResponse);
 };
