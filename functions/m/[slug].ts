@@ -84,6 +84,14 @@ class HeadRewriter {
   }
 }
 
+/** Remove tags estáticas do index.html que serão substituídas pelas do perfil. */
+class ElementRemover {
+  element(element: Element) {
+    element.remove();
+  }
+}
+
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, params, env, next } = context;
   const slug = String(params.slug || '');
