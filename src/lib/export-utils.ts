@@ -82,8 +82,7 @@ export async function exportRowsToPDF<T>(
     })
   );
 
-  // @ts-ignore - jspdf-autotable adiciona este método
-  doc.autoTable({
+  autoTable(doc, {
     startY: options.subtitle ? 48 : 42,
     head: [columns.map((c) => c.header)],
     body,
