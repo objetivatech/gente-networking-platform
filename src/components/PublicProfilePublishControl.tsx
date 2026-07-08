@@ -24,7 +24,7 @@ export function PublicProfilePublishControl({ profile, onTogglePublish, isUpdati
   const { toast } = useToast();
   const { fields, missing, isComplete } = getProfileCompleteness(profile);
   const isPublished = !!profile?.public_profile_enabled;
-  const publicPath = `/p/${profile?.slug || profile?.id || ''}`;
+  const publicPath = `/m/${profile?.slug || profile?.id || ''}`;
   const publicUrl = `${window.location.origin}${publicPath}`;
 
   const copyLink = () => {

@@ -56,7 +56,7 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
   const [isDrawing, setIsDrawing] = useState(true);
   const { toast } = useToast();
 
-  const profilePath = `/p/${member.slug || member.id}`;
+  const profilePath = `/m/${member.slug || member.id}`;
   const profileUrl = `${window.location.origin}${profilePath}`;
 
 
