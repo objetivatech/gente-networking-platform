@@ -1138,6 +1138,12 @@ export type Database = {
           what_i_do: string
         }[]
       }
+      get_public_profile_slugs: {
+        Args: never
+        Returns: {
+          slug: string
+        }[]
+      }
       get_rank_from_points: {
         Args: { _points: number }
         Returns: Database["public"]["Enums"]["member_rank"]

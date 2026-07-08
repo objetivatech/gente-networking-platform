@@ -1,52 +1,60 @@
-# Correção de Logos e Responsividade Mobile
+# Páginas públicas de membros — SEO, Schema e OG
 
-Investiguei os prints e o código. Encontrei **duas causas raiz concretas**, ambas corrigíveis apenas no frontend/templates (sem mexer em regras de negócio).
+## Objetivo
+Tornar as páginas públicas de perfil indexáveis pelo Google, com estrutura de SEO completa, dados estruturados (schema.org) e imagem OG usando a foto do perfil. Adotar URL amigável e curta `/m/[nome-do-membro]`.
 
-## Problema 1 — Logos não aparecem (quebrados)
+## Decisões confirmadas
+- URL pública passa a ser `https://comunidade.gentenetworking.com.br/m/[slug]` (o slug já é gerado a partir do nome, ex. `joao-silva`). A rota interna `/membro/:slug` (logado) permanece intacta.
+- Previews sociais (WhatsApp/LinkedIn/Facebook) via **Cloudflare Pages Function** que injeta as meta tags no HTML no edge — funciona tanto para Google quanto para redes sociais.
 
-Os componentes importam os logos a partir de arquivos `.asset.json`, cujo `url` aponta para o CDN da Lovable (`/__l5e/assets-v1/...`). Este projeto **é publicado via Cloudflare Pages** (não usa Lovable Cloud), então esse endereço **não existe em produção** — por isso o rodapé mostra a imagem quebrada ("Gente Comunidade").
+---
 
-Os PNGs corretos **já existem** em `public/` (`logo-gente-comunidade.png`, `logo-gente-networking.png`), e alguns componentes (DigitalMemberCard, PublicProfile) já usam o caminho público correto.
+## 1. Nova rota pública `/m/:slug`
+- `src/App.tsx`: adicionar `<Route path="/m/:slug" element={<PublicProfile/>} />`.
+- Manter `/p/:slug` como **redirect permanente** para `/m/:slug` (compatibilidade com links já compartilhados), usando `<Navigate>`.
+- Atualizar todos os pontos que montam o link público para usar `/m/`:
+  - `PublicProfilePublishControl.tsx` (`publicPath`, link "Copiar"/"Abrir").
+  - `DigitalMemberCard.tsx` (QR Code aponta para a página pública).
+  - Qualquer outro lugar que gere `/p/:slug`.
 
-### Correção
-Trocar em todos os arquivos abaixo o import `@/assets/logo-*.png.asset.json` + `logo.url` pelo caminho público estático:
-- `logo-gente-comunidade.png` → `"/logo-gente-comunidade.png"`
-- `logo-gente-networking.png` → `"/logo-gente-networking.png"`
+## 2. SEO client-side (Helmet) na `PublicProfile.tsx`
+Adicionar `<Helmet>` preenchido com os dados do perfil (após carregar a RPC):
+- `<title>`: `Nome — Cargo na Empresa | Gente Networking`.
+- `<meta name="description">`: bio/what_i_do resumido (~155 chars).
+- `<link rel="canonical">` e `og:url`: `https://comunidade.gentenetworking.com.br/m/{slug}` (auto-referência).
+- `og:type=profile`, `og:title`, `og:description`.
+- **`og:image` e `twitter:image` = `avatar_url`** do perfil (foto). Fallback: logo Gente Networking quando não houver foto.
+- `twitter:card=summary_large_image`.
+- Quando o perfil não existe / não publicado: `<meta name="robots" content="noindex">`.
 
-Arquivos afetados:
-```text
-src/components/layout/Footer.tsx      (comunidade)
-src/components/layout/Sidebar.tsx     (comunidade)
-src/pages/Auth.tsx                    (networking)
-src/pages/AuthConfirm.tsx             (networking)
-src/pages/RedefinirSenha.tsx          (networking)
-src/pages/ConvitePublico.tsx          (networking)
-src/pages/GuestWelcome.tsx            (networking)
-src/pages/Instalar.tsx                (networking)
-```
+## 3. Dados estruturados (schema.org)
+JSON-LD via Helmet na `PublicProfile.tsx`:
+- `@type: ProfilePage` contendo um `Person` (`name`, `jobTitle`=cargo, `worksFor`=empresa, `image`=avatar, `description`=bio, `sameAs`=[linkedin, instagram, website]).
+- `BreadcrumbList` (Início → Membros → Nome).
 
-### E-mails
-Em `supabase/functions/_shared/email-templates.ts`, o `LOGO_URL` aponta para um domínio morto (`https://network-bloom-forge.lovable.app/...`). Trocar para o domínio real de produção onde o PNG é servido:
-`https://comunidade.gentenetworking.com.br/logo-gente-networking.png` (mesmo host do `APP_URL`). Assim o cabeçalho dos e-mails volta a exibir o logo.
+## 4. Edge: meta tags para crawlers sem JS (Cloudflare Pages Function)
+Como o app é SPA em Cloudflare Pages, crawlers sociais não executam JS. Criar uma **Pages Function** que intercepta `/m/*`:
+- `functions/m/[slug].ts` (Cloudflare Pages Functions): busca o perfil chamando a RPC `get_public_profile` (via REST do Supabase, com anon key em variável de ambiente do Pages), pega o HTML base (`index.html`) e injeta/reescreve as meta tags (`title`, `description`, `og:*`, `twitter:*`, canonical, JSON-LD) com os dados reais antes de servir. Usar `HTMLRewriter` (nativo no CF).
+- Se o perfil não existir/estiver despublicado, servir o HTML com `noindex` e título genérico.
+- Requer configurar as variáveis `SUPABASE_URL` e `SUPABASE_ANON_KEY` no ambiente do Cloudflare Pages (documentar em `docs/CLOUDFLARE_ENV_SETUP.md`).
 
-## Problema 2 — Overflow horizontal no mobile (página "amontoada"/cortada)
+## 5. Indexação (sitemap + robots)
+- `public/robots.txt`: já permite tudo; adicionar nada que bloqueie `/m/`.
+- `public/sitemap.xml`: hoje é estático. Como os perfis públicos são dinâmicos, incluir as URLs `/m/{slug}` dos perfis com `public_profile_enabled = true`. Proposta: criar `scripts/generate-sitemap.ts` (hooks `predev`/`prebuild`) que consulta os slugs publicados via RPC e gera o sitemap com as rotas estáticas + `/m/{slug}`. (Confirma-se durante a implementação se prefere manter estático e adicionar só as rotas fixas.)
 
-Nos prints a página inteira aparece cortada à direita. A causa não é grade errada (as grades já colapsam) e sim **strings longas sem quebra** (e-mails, URLs, links) dentro dos cards. Como não podem quebrar, forçam a largura mínima do conteúdo a ficar maior que a tela, e o navegador mobile renderiza a página "afastada"/cortada. O `overflow-x-hidden` global apenas corta visualmente, sem resolver a origem.
+## 6. RPC
+- `get_public_profile` já retorna os campos necessários (nome, avatar, cargo, empresa, bio, redes, slug, team_name). Nenhuma mudança de schema prevista. Se o sitemap dinâmico for adotado, adicionar uma RPC leve `get_public_profile_slugs()` (SECURITY DEFINER, anon) retornando apenas `slug` dos perfis publicados.
 
-Exemplo confirmado (print de Indicações): em `src/pages/Indicacoes.tsx` o e-mail do contato está em um `<a class="flex items-center gap-1">` sem `min-w-0`/`break-all`, estourando o card.
+---
 
-### Correção (categoria, não caso isolado)
-Auditar e aplicar quebra de texto/`min-w-0` onde há e-mail, telefone, URL ou link exibido, nas páginas que compartilham esse padrão:
-- `Indicacoes.tsx` — links de e-mail/telefone: adicionar `min-w-0 break-all` no `<a>` e garantir `min-w-0` nos flex pais.
-- `PedidosIndicacao.tsx`, `Negocios.tsx`, `Membros.tsx`, `MemberProfile.tsx`, `Profile.tsx`, `PublicProfile.tsx`, `Encontros.tsx` e o card "Próximos Encontros" do dashboard (`Index.tsx`, link do Google Meet) — aplicar `break-words`/`break-all` + `truncate` conforme o caso em e-mails, URLs de reunião e slugs públicos.
-- Reforçar `min-w-0` em containers flex que contêm esses textos, para permitir o encolhimento.
-
-Isso elimina a largura intrínseca excessiva e faz a página caber corretamente na tela do celular.
-
-## Verificação
-- Rodar checagem de overflow via Playwright em largura 390px na página pública `/auth` (única acessível no sandbox, pois o Supabase é externo) — deve permanecer sem offenders.
-- Inspecionar visualmente Footer/Sidebar/Auth para confirmar que os logos carregam a partir de `/logo-gente-*.png`.
-- `tsgo --noEmit` para garantir que a remoção dos imports `.asset.json` não quebrou tipos.
+## Detalhes técnicos
+- **Arquivos front**: `src/App.tsx`, `src/pages/PublicProfile.tsx`, `src/components/PublicProfilePublishControl.tsx`, `src/components/DigitalMemberCard.tsx`.
+- **Edge**: `functions/m/[slug].ts` (Cloudflare Pages Function, `HTMLRewriter`).
+- **Infra/docs**: `docs/CLOUDFLARE_ENV_SETUP.md` (novas env vars), possivelmente `scripts/generate-sitemap.ts` + `package.json` (predev/prebuild).
+- **DB (opcional, sitemap dinâmico)**: migration com `get_public_profile_slugs()`.
+- Todos os novos arquivos com o cabeçalho JSDoc de copyright Ranktop (padrão do projeto).
+- Idioma PT-BR mantido; cores/branding Gente Networking (#1E3A5F / #F7941D).
 
 ## Fora de escopo
-Nenhuma mudança em lógica de negócio, RPCs, pontuação ou dados. Apenas caminhos de imagem, template de e-mail e classes utilitárias de layout.
+- Não altera a lógica de negócio de perfis nem o fluxo de publicação (gating de completude permanece).
+- Não migra o mecanismo de deploy (CF Pages + GitHub) nem o Worker de proxy do Supabase.

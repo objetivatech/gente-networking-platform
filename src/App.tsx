@@ -15,7 +15,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -82,6 +82,12 @@ function PageLoader() {
   );
 }
 
+// Redireciona a URL antiga /p/:slug para a nova /m/:slug (301 no lado do cliente)
+function PublicProfileRedirect() {
+  const { slug } = useParams<{ slug: string }>();
+  return <Navigate to={`/m/${slug ?? ''}`} replace />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -99,7 +105,9 @@ const App = () => (
               <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
               <Route path="/instalar" element={<Instalar />} />
               <Route path="/auth/confirm" element={<ErrorBoundary fallbackMessage="Erro ao confirmar email. Tente recarregar a página."><AuthConfirm /></ErrorBoundary>} />
-              <Route path="/p/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />
+              <Route path="/m/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />
+              {/* Compatibilidade: URL antiga /p/:slug redireciona para /m/:slug */}
+              <Route path="/p/:slug" element={<PublicProfileRedirect />} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/feed" element={<Feed />} />
