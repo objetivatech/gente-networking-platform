@@ -94,3 +94,21 @@ console.log('SUPABASE_KEY:', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 ```
 
 Se retornar `undefined`, as variáveis não foram configuradas corretamente.
+
+## Meta tags no edge para páginas públicas de perfil (/m/:slug)
+
+A Pages Function `functions/m/[slug].ts` injeta as meta tags de SEO/OpenGraph
+(incluindo a foto do perfil como imagem OG) no HTML servido em `/m/:slug`, para
+que crawlers que não executam JavaScript (WhatsApp, LinkedIn, Facebook) exibam
+o preview correto.
+
+Ela lê variáveis de ambiente do **runtime** do Cloudflare Pages (sem o prefixo
+`VITE_`). Configure em **Cloudflare Pages > Settings > Environment variables**
+(Production e Preview):
+
+- `SUPABASE_URL` → Project URL do Supabase (ex.: `https://vyfkddcbmwlwldaorxzy.supabase.co`)
+- `SUPABASE_ANON_KEY` → anon/public key do Supabase
+
+Após configurar, faça um novo deploy. Sem essas variáveis, a função ainda serve
+a página normalmente (a SPA renderiza no cliente), apenas sem as meta tags
+específicas do perfil para crawlers.
