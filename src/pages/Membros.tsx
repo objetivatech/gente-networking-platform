@@ -557,8 +557,7 @@ export default function Membros() {
         m.rank ? RANK_LABELS[m.rank] || m.rank : '-',
       ]);
       
-      // @ts-ignore - jspdf-autotable adds this method
-      doc.autoTable({
+      autoTable(doc, {
         startY: 42,
         head: [['Nome', 'Empresa', 'Telefone', 'Email', 'Grupo', 'Rank']],
         body: tableData,
