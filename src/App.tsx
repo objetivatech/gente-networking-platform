@@ -99,7 +99,9 @@ const App = () => (
               <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
               <Route path="/instalar" element={<Instalar />} />
               <Route path="/auth/confirm" element={<ErrorBoundary fallbackMessage="Erro ao confirmar email. Tente recarregar a página."><AuthConfirm /></ErrorBoundary>} />
-              <Route path="/p/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />
+              <Route path="/m/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />
+              {/* Compatibilidade: URL antiga /p/:slug redireciona para /m/:slug */}
+              <Route path="/p/:slug" element={<PublicProfileRedirect />} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/feed" element={<Feed />} />
