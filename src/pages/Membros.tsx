@@ -534,7 +534,7 @@ export default function Membros() {
   const exportToPDF = async () => {
     try {
       const { default: jsPDF } = await import('jspdf');
-      await import('jspdf-autotable');
+      const { default: autoTable } = await import('jspdf-autotable');
       
       const filteredMembers = getFilteredMembers();
       const doc = new jsPDF();
