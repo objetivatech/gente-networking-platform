@@ -92,40 +92,40 @@ function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewPr
   return (
     <Card className={`hover:shadow-md transition-shadow ${isFacilitator ? 'border-amber-400 border-2 shadow-amber-100' : ''}`}>
       <CardContent className="pt-6">
-        <div className="flex items-start gap-4">
-          <Avatar className="h-14 w-14">
+        <div className="flex items-start gap-4 min-w-0">
+          <Avatar className="h-14 w-14 shrink-0">
             <AvatarImage src={member.avatar_url || undefined} alt={member.full_name} />
             <AvatarFallback className="bg-primary/10 text-primary text-lg">
               {initials}
             </AvatarFallback>
           </Avatar>
-          
+
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-foreground truncate">{member.full_name}</h3>
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h3 className="font-semibold text-foreground truncate min-w-0">{member.full_name}</h3>
               {member.rank && (
                 <RankBadge rank={member.rank as any} size="sm" />
               )}
             </div>
-            
+
             {isFacilitator && (
               <Badge className="bg-amber-100 text-amber-800 border-amber-300 mb-1 text-xs">
                 <Crown className="h-3 w-3 mr-1" />
                 Facilitador
               </Badge>
             )}
-            
+
             {member.position && (
               <p className="text-sm text-muted-foreground truncate">{member.position}</p>
             )}
-            
+
             {member.company && (
-              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                <Building2 className="h-3 w-3" />
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1 min-w-0">
+                <Building2 className="h-3 w-3 shrink-0" />
                 <span className="truncate">{member.company}</span>
               </div>
             )}
-            
+
             {member.business_segment && (
               <Badge variant="secondary" className="mt-2 text-xs">
                 {member.business_segment}
@@ -133,10 +133,10 @@ function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewPr
             )}
           </div>
         </div>
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
+
+        <Button
+          variant="outline"
+          size="sm"
           className="w-full mt-4"
           onClick={onViewProfile}
         >
@@ -616,10 +616,12 @@ export default function Membros() {
       </div>
 
       <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="membros">Membros</TabsTrigger>
-          <TabsTrigger value="grupos">Grupos</TabsTrigger>
-        </TabsList>
+        <div className="hscroll -mx-1 px-1">
+          <TabsList className="w-max">
+            <TabsTrigger value="membros">Membros</TabsTrigger>
+            <TabsTrigger value="grupos">Grupos</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="membros" className="space-y-4">
           {/* Search and Filters */}

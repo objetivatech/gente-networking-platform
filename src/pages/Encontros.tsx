@@ -57,10 +57,10 @@ export default function Encontros() {
     return (
       <Card className={`transition-all ${isPastMeeting ? 'opacity-70' : isSoon ? 'border-primary/50 shadow-md' : 'hover:shadow-md'}`}>
         <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-2">
-                <h3 className="font-semibold">{meeting.title}</h3>
+                <h3 className="font-semibold text-wrap-anywhere">{meeting.title}</h3>
                 {meeting.team && (
                   <Badge variant="outline" style={{ borderColor: meeting.team.color, color: meeting.team.color }}>
                     {meeting.team.name}
@@ -69,35 +69,36 @@ export default function Encontros() {
                 {isToday(parseLocalDate(meeting.meeting_date)) && <Badge className="bg-primary">Hoje</Badge>}
                 {isSoon && <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Em breve</Badge>}
               </div>
-              {meeting.description && <p className="text-sm text-muted-foreground mb-3">{meeting.description}</p>}
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {format(parseLocalDate(meeting.meeting_date), "EEEE, dd 'de' MMMM", { locale: ptBR })}
+              {meeting.description && <p className="text-sm text-muted-foreground mb-3 text-wrap-anywhere">{meeting.description}</p>}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1 min-w-0">
+                  <Calendar className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{format(parseLocalDate(meeting.meeting_date), "EEEE, dd 'de' MMMM", { locale: ptBR })}</span>
                 </div>
                 {meeting.meeting_time && (
                   <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-4 h-4 shrink-0" />
                     {meeting.meeting_time.slice(0, 5)}
                   </div>
                 )}
                 {meeting.location && (
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    {meeting.location}
+                  <div className="flex items-start gap-1 min-w-0 w-full sm:w-auto">
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="text-wrap-anywhere">{meeting.location}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
-                  <Users className="w-4 h-4" />
+                  <Users className="w-4 h-4 shrink-0" />
                   {meeting.attendees_count} confirmados
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap shrink-0">
+            <div className="flex items-center gap-2 flex-wrap sm:shrink-0 w-full sm:w-auto">
               {!isPastMeeting && (
                 <Button
                   variant={meeting.is_attending ? "default" : "outline"}
                   size="sm"
+                  className="flex-1 sm:flex-none"
                   onClick={() => toggleAttendance.mutate({ meetingId: meeting.id, isAttending: meeting.is_attending || false })}
                   disabled={toggleAttendance.isPending}
                 >
@@ -183,16 +184,18 @@ export default function Encontros() {
         <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : (
         <Tabs defaultValue="meetings" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="meetings" className="gap-2">
-              <Calendar className="w-4 h-4" /> Encontros
-            </TabsTrigger>
-            {canViewGuestsDirectory(userRole) && (
-              <TabsTrigger value="guests" className="gap-2">
-                <Ticket className="w-4 h-4" /> Convidados em Encontros
+          <div className="hscroll -mx-1 px-1">
+            <TabsList className="w-max">
+              <TabsTrigger value="meetings" className="gap-2">
+                <Calendar className="w-4 h-4" /> Encontros
               </TabsTrigger>
-            )}
-          </TabsList>
+              {canViewGuestsDirectory(userRole) && (
+                <TabsTrigger value="guests" className="gap-2">
+                  <Ticket className="w-4 h-4" /> Convidados em Encontros
+                </TabsTrigger>
+              )}
+            </TabsList>
+          </div>
 
           <TabsContent value="meetings" className="space-y-6">
             <div>
