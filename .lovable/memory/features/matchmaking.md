@@ -14,8 +14,18 @@ Avalia todos os perfis ativos (membros + convidados, exceto admins e o próprio)
 - +25 tags em comum (12 pts por tag, teto 25)
 - +15 mesmo segmento de negócio
 - +10 perfil do outro completo (what_i_do, ideal_client, business_segment, tags)
+- Bônus determinístico de oportunidade via `src/lib/matchmaking-rules.ts`: parceria complementar forte (+30, +10 adicional se houver público comum), troca de base compatível (+20), indicação estratégica (+10), afinidade de segmento/tags (+5).
 
 Texto normalizado (minúsculas, sem acento), interseção de palavras-chave (>=4 letras). Sem IA externa.
+
+## Oportunidades nos cards
+Além das badges simples de motivo, cada sugestão deve exibir hipótese prática:
+- `Parceria complementar`: serviços diferentes que podem gerar oferta conjunta (ex.: SEO + Desenvolvimento Web, Jurídico + Contábil, Marketing + Design).
+- `Troca de base compatível`: públicos-alvo parecidos com soluções diferentes.
+- `Indicação estratégica`: cruzamento claro entre cliente ideal e oferta do outro perfil.
+- `Afinidade de segmento/tags`: conexão exploratória quando faltam sinais mais fortes.
+
+Preservar abordagem determinística e sem IA externa nesta etapa. Não alterar gamificação: o check continua criando Gente em Ação e somando +10 pts via RPC.
 
 ## Aviso de perfil incompleto
 Campos obrigatórios para participar bem: `what_i_do`, `ideal_client`, `business_segment`, `tags`. Banner orienta completar em `/perfil`.

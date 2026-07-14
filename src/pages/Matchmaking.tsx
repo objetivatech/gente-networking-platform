@@ -34,7 +34,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from '@/components/ui/dialog';
 import {
-  HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Loader2, ImagePlus, X,
+  HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Loader2, ImagePlus, X, Lightbulb,
 } from 'lucide-react';
 
 const initials = (name: string) =>
@@ -202,8 +202,8 @@ export default function Matchmaking() {
                         <AvatarFallback>{initials(s.full_name)}</AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <CardTitle className="text-base truncate">{s.full_name}</CardTitle>
-                        {s.position && <p className="text-sm text-muted-foreground truncate">{s.position}</p>}
+                        <CardTitle className="text-base line-clamp-2 text-wrap-anywhere">{s.full_name}</CardTitle>
+                        {s.position && <p className="text-sm text-muted-foreground line-clamp-2 text-wrap-anywhere">{s.position}</p>}
                       </div>
                       <Badge variant="secondary" className="gap-1 shrink-0">
                         <Star className="h-3 w-3" /> {s.score}
@@ -214,18 +214,36 @@ export default function Matchmaking() {
                     <div className="space-y-1 text-sm">
                       {s.company && (
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Building2 className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{s.company}</span>
+                          <Building2 className="h-3.5 w-3.5 shrink-0" /> <span className="line-clamp-2 text-wrap-anywhere">{s.company}</span>
                         </div>
                       )}
                       {s.business_segment && (
                         <div className="flex items-center gap-2 text-muted-foreground">
-                          <Briefcase className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{s.business_segment}</span>
+                          <Briefcase className="h-3.5 w-3.5 shrink-0" /> <span className="line-clamp-2 text-wrap-anywhere">{s.business_segment}</span>
                         </div>
+                      )}
+                    </div>
+                    <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold leading-snug text-wrap-anywhere">{s.opportunityTitle}</p>
+                          <p className="text-xs leading-relaxed text-muted-foreground text-wrap-anywhere">{s.opportunityDescription}</p>
+                        </div>
+                      </div>
+                      {s.opportunityIdeas.length > 0 && (
+                        <ul className="space-y-1 pl-6 text-xs text-muted-foreground">
+                          {s.opportunityIdeas.slice(0, 2).map((idea) => (
+                            <li key={idea} className="list-disc text-wrap-anywhere">{idea}</li>
+                          ))}
+                        </ul>
                       )}
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {s.reasons.map((r) => (
-                        <Badge key={r} variant="outline" className="text-xs font-normal">{r}</Badge>
+                        <Badge key={r} variant="outline" className="text-xs font-normal leading-snug">
+                          <span className="text-wrap-anywhere">{r}</span>
+                        </Badge>
                       ))}
                     </div>
                     {s.role === 'convidado' && (

@@ -20,16 +20,16 @@ const scoringRules = [
 export default function ScoringRulesCard({ compact = false }: ScoringRulesCardProps) {
   if (compact) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2">
         {scoringRules.map((rule) => (
           <div
             key={rule.label}
-            className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-sm"
+            className="flex min-w-0 items-start gap-2 rounded-lg bg-muted/50 p-2 text-sm"
           >
-            <rule.icon className="h-4 w-4 text-primary shrink-0" />
-            <div className="min-w-0">
-              <span className="font-medium text-secondary">{rule.points}</span>
-              <span className="text-muted-foreground ml-1 truncate">{rule.description}</span>
+            <rule.icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+            <div className="min-w-0 leading-snug">
+              <p className="font-semibold text-secondary whitespace-nowrap">{rule.points}</p>
+              <p className="text-muted-foreground text-wrap-anywhere">{rule.description}</p>
             </div>
           </div>
         ))}
@@ -53,11 +53,11 @@ export default function ScoringRulesCard({ compact = false }: ScoringRulesCardPr
               <div className="p-2 rounded-full bg-primary/10">
                 <rule.icon className="h-5 w-5 text-primary" />
               </div>
-              <div>
+                <div className="min-w-0 leading-snug">
                 <p className="font-medium">{rule.label}</p>
                 <p className="text-sm">
                   <span className="font-bold text-secondary">{rule.points}</span>
-                  <span className="text-muted-foreground ml-1">{rule.description}</span>
+                    <span className="text-muted-foreground ml-1 text-wrap-anywhere">{rule.description}</span>
                 </p>
               </div>
             </div>

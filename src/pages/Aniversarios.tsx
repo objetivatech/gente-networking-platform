@@ -137,8 +137,15 @@ export default function Aniversarios() {
       {/* Navegação do Mês */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <CardTitle className="flex min-w-0 items-center gap-2 text-xl sm:text-2xl sm:order-2">
+              <Calendar className="h-5 w-5 shrink-0" />
+              <span className="text-wrap-anywhere leading-tight">
+                {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+              </span>
+            </CardTitle>
+            <div className="flex items-center justify-between gap-2 sm:order-1 sm:justify-start">
+              <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={handlePrevMonth}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -148,12 +155,12 @@ export default function Aniversarios() {
               <Button variant="ghost" size="sm" onClick={handleToday}>
                 Hoje
               </Button>
+              </div>
+              <Badge variant="outline" className="shrink-0 whitespace-nowrap text-xs sm:hidden">
+                {monthMembers.length} anivers.
+              </Badge>
             </div>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              {format(currentMonth, "MMMM 'de' yyyy", { locale: ptBR })}
-            </CardTitle>
-            <Badge variant="outline" className="text-sm">
+            <Badge variant="outline" className="hidden shrink-0 whitespace-nowrap text-sm sm:inline-flex sm:order-3">
               {monthMembers.length} aniversariante{monthMembers.length !== 1 ? 's' : ''}
             </Badge>
           </div>
@@ -174,9 +181,9 @@ export default function Aniversarios() {
                 <button
                   key={member.id}
                   onClick={() => navigate(`/membro/${member.slug || member.id}`)}
-                  className="w-full flex items-center gap-4 p-4 rounded-lg border hover:bg-muted/50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border hover:bg-muted/50 transition-colors text-left min-w-0"
                 >
-                  <div className="flex-shrink-0 w-16 text-center">
+                  <div className="flex-shrink-0 w-12 sm:w-16 text-center">
                     <p className="text-2xl font-bold text-primary">
                       {parseISO(member.birthday).getDate()}
                     </p>
@@ -184,7 +191,7 @@ export default function Aniversarios() {
                       {format(parseISO(member.birthday), 'MMM', { locale: ptBR })}
                     </p>
                   </div>
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12 shrink-0">
                     <AvatarImage src={member.avatar_url || ''} alt={member.full_name} />
                     <AvatarFallback className="bg-primary/10 text-primary font-bold">
                       {getInitials(member.full_name)}

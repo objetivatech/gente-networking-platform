@@ -43,7 +43,7 @@ function ActivityItem({ activity }: ActivityItemProps) {
   const Icon = config.icon;
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+    <div className="flex w-full max-w-full items-start gap-3 rounded-lg p-3 transition-colors hover:bg-muted/50 min-w-0">
       <Avatar className="h-10 w-10 shrink-0">
         <AvatarImage src={activity.user?.avatar_url || undefined} />
         <AvatarFallback>
@@ -51,15 +51,15 @@ function ActivityItem({ activity }: ActivityItemProps) {
         </AvatarFallback>
       </Avatar>
       
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start gap-2">
+      <div className="flex-1 min-w-0 max-w-full">
+        <div className="flex items-start gap-2 min-w-0 max-w-full">
           <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${config.color}`} />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
+          <div className="flex-1 min-w-0 max-w-full">
+            <p className="text-sm font-medium leading-snug text-foreground line-clamp-2 text-wrap-anywhere">
               {activity.title}
             </p>
             {activity.description && (
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="text-xs leading-snug text-muted-foreground line-clamp-2 text-wrap-anywhere">
                 {activity.description}
               </p>
             )}
@@ -86,7 +86,7 @@ export default function ActivityFeed({ limit = 10, showHeader = true }: Activity
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="w-full max-w-full min-w-0">
         {showHeader && (
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export default function ActivityFeed({ limit = 10, showHeader = true }: Activity
             </CardTitle>
           </CardHeader>
         )}
-        <CardContent>
+        <CardContent className="min-w-0 max-w-full">
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-start gap-3 animate-pulse">
@@ -114,7 +114,7 @@ export default function ActivityFeed({ limit = 10, showHeader = true }: Activity
 
   if (!activities?.length) {
     return (
-      <Card>
+      <Card className="w-full max-w-full min-w-0">
         {showHeader && (
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export default function ActivityFeed({ limit = 10, showHeader = true }: Activity
             </CardTitle>
           </CardHeader>
         )}
-        <CardContent>
+        <CardContent className="min-w-0 max-w-full">
           <div className="text-center py-8 text-muted-foreground">
             <ActivityIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>Nenhuma atividade registrada ainda.</p>
@@ -135,7 +135,7 @@ export default function ActivityFeed({ limit = 10, showHeader = true }: Activity
   }
 
   return (
-    <Card>
+    <Card className="w-full max-w-full min-w-0">
       {showHeader && (
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -145,9 +145,9 @@ export default function ActivityFeed({ limit = 10, showHeader = true }: Activity
           </CardTitle>
         </CardHeader>
       )}
-      <CardContent className="p-0">
-        <ScrollArea className="h-[400px]">
-          <div className="p-2">
+      <CardContent className="p-0 min-w-0 max-w-full">
+        <ScrollArea className="h-[400px] w-full max-w-full min-w-0">
+          <div className="p-2 min-w-0 max-w-full">
             {activities.map((activity) => (
               <ActivityItem key={activity.id} activity={activity} />
             ))}

@@ -97,7 +97,7 @@ export default function Index() {
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {statsCards.map((stat) => (
-          <Card key={stat.label} className="hover:shadow-md transition-shadow">
+          <Card key={stat.label} className="hover:shadow-md transition-shadow min-w-0">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div className={`p-2 rounded-lg bg-muted shrink-0 ${stat.color}`}>
@@ -116,7 +116,7 @@ export default function Index() {
       {/* Grid Principal */}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Feed de Atividades */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 min-w-0 max-w-full">
           <ActivityFeed limit={15} />
         </div>
 
@@ -203,24 +203,24 @@ export default function Index() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-            <div className="text-center p-3 rounded-lg bg-muted/50">
+          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-5 gap-3">
+            <div className="text-center p-3 rounded-lg bg-muted/50 min-w-0">
               <RankBadge rank="iniciante" size="lg" />
               <p className="text-xs text-muted-foreground mt-2">0-49 pts</p>
             </div>
-            <div className="text-center p-3 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50 min-w-0">
               <RankBadge rank="bronze" size="lg" />
               <p className="text-xs text-muted-foreground mt-2">50-149 pts</p>
             </div>
-            <div className="text-center p-3 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50 min-w-0">
               <RankBadge rank="prata" size="lg" />
               <p className="text-xs text-muted-foreground mt-2">150-299 pts</p>
             </div>
-            <div className="text-center p-3 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50 min-w-0">
               <RankBadge rank="ouro" size="lg" />
               <p className="text-xs text-muted-foreground mt-2">300-499 pts</p>
             </div>
-            <div className="text-center p-3 rounded-lg bg-muted/50">
+            <div className="text-center p-3 rounded-lg bg-muted/50 min-w-0">
               <RankBadge rank="diamante" size="lg" />
               <p className="text-xs text-muted-foreground mt-2">500+ pts</p>
             </div>
