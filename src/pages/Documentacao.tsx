@@ -427,6 +427,48 @@ export default function Documentacao() {
                     </p>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <HeartHandshake className="h-5 w-5" />
+                      MatchMaking — Oportunidades de Conexão (v3.23)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>
+                      Além do score de afinidade, o MatchMaking agora sugere <strong>oportunidades práticas</strong> de
+                      conexão baseadas no seu perfil e no do outro membro:
+                    </p>
+                    <ul>
+                      <li><strong>Parceria complementar:</strong> serviços diferentes que podem virar oferta conjunta (ex.: SEO + Desenvolvimento Web, Jurídico + Contábil).</li>
+                      <li><strong>Troca de base:</strong> públicos-alvo parecidos com soluções distintas — ideal para indicações mútuas.</li>
+                      <li><strong>Indicação estratégica:</strong> cruzamento direto entre seu cliente ideal e a oferta do outro perfil.</li>
+                      <li><strong>Afinidade de segmento/tags:</strong> conexão exploratória quando faltam sinais mais fortes.</li>
+                    </ul>
+                    <p className="text-sm text-muted-foreground">
+                      As sugestões continuam determinísticas (sem IA externa) e o check "Já conectei" segue registrando Gente em Ação + 10 pts de bônus.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Perfil Público (v3.21)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                    <p>
+                      Cada membro pode publicar um perfil público em <code>/m/&lt;seu-slug&gt;</code> com SEO completo
+                      (título, descrição, Open Graph e schema JSON-LD Person). A imagem de prévia social é sua foto de perfil.
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Controle a publicação em <strong>Perfil → Perfil Público</strong>. Links antigos <code>/p/&lt;slug&gt;</code> redirecionam automaticamente.
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
             </ScrollArea>
           </TabsContent>
