@@ -18,7 +18,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeMatchOpportunity, MatchType } from '@/lib/matchmaking-rules';
+import { analyzeMatchOpportunity, type MatchType } from '@/lib/matchmaking-rules';
 
 export interface MatchSuggestion {
   id: string;
