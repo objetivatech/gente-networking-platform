@@ -18,6 +18,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { analyzeMatchOpportunity, MatchType } from '@/lib/matchmaking-rules';
 
 export interface MatchSuggestion {
   id: string;
@@ -34,6 +35,13 @@ export interface MatchSuggestion {
   reasons: string[];
   sharedTags: string[];
   alreadyConnected: boolean;
+  matchType: MatchType;
+  partnershipScore: number;
+  opportunityTitle: string;
+  opportunityDescription: string;
+  opportunityIdeas: string[];
+  serviceCategories: string[];
+  sharedAudiences: string[];
 }
 
 export interface MyProfileForMatch {
@@ -198,20 +206,23 @@ export function useMatchmaking() {
         // +40: meu cliente ideal aparece no que o outro faz/segmento/tags (e vice-versa)
         const idealHit = overlapCount(myIdeal, otherProfileText);
         const reverseIdealHit = overlapCount(keywords(p.ideal_client), [...myWhat, ...myTagsNorm, mySegment].filter(Boolean));
-        if (idealHit > 0 || reverseIdealHit > 0) {
+        const hasIdealClientFit = idealHit > 0 || reverseIdealHit > 0;
+        if (hasIdealClientFit) {
           score += 40;
           reasons.push('Compatível com seu cliente ideal');
         }
 
         // +25: tags em comum (peso por quantidade)
         const sharedTagsNorm = myTagsNorm.filter((t) => otherTagsNorm.includes(t));
-        if (sharedTagsNorm.length > 0) {
+        const hasSharedTags = sharedTagsNorm.length > 0;
+        if (hasSharedTags) {
           score += Math.min(25, sharedTagsNorm.length * 12);
           reasons.push(`${sharedTagsNorm.length} tag(s) em comum`);
         }
 
         // +15: mesmo segmento de negócio
-        if (mySegment && normalize(p.business_segment) === mySegment) {
+        const hasSameSegment = !!mySegment && normalize(p.business_segment) === mySegment;
+        if (hasSameSegment) {
           score += 15;
           reasons.push('Mesmo segmento de negócio');
         }
@@ -221,6 +232,27 @@ export function useMatchmaking() {
         if (otherComplete) {
           score += 10;
           reasons.push('Perfil completo');
+        }
+
+        const opportunity = analyzeMatchOpportunity(
+          {
+            what_i_do: me?.what_i_do,
+            ideal_client: me?.ideal_client,
+            business_segment: me?.business_segment,
+            tags: myTags,
+          },
+          {
+            what_i_do: p.what_i_do,
+            ideal_client: p.ideal_client,
+            business_segment: p.business_segment,
+            tags: otherTags,
+          },
+          { hasIdealClientFit, hasSameSegment, hasSharedTags }
+        );
+
+        score += opportunity.partnershipScore;
+        if (opportunity.partnershipScore > 0 && !reasons.includes(opportunity.opportunityTitle)) {
+          reasons.unshift(opportunity.opportunityTitle);
         }
 
         if (score <= 0) continue;
@@ -243,6 +275,13 @@ export function useMatchmaking() {
           reasons,
           sharedTags,
           alreadyConnected: connectedSet.has(p.id),
+          matchType: opportunity.matchType,
+          partnershipScore: opportunity.partnershipScore,
+          opportunityTitle: opportunity.opportunityTitle,
+          opportunityDescription: opportunity.opportunityDescription,
+          opportunityIdeas: opportunity.opportunityIdeas,
+          serviceCategories: opportunity.serviceCategories,
+          sharedAudiences: opportunity.sharedAudiences,
         });
       }
 

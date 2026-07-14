@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import MemberSelect from '@/components/MemberSelect';
 import { Loader2, Plus, Handshake, User, Users, Trash2, Calendar, ImagePlus, X } from 'lucide-react';
@@ -510,69 +511,68 @@ export default function GenteEmAcao() {
               {meetings.map((meeting) => (
                 <div
                   key={meeting.id}
-                  className="flex items-start gap-4 p-4 rounded-lg border bg-card hover:shadow-sm transition-shadow"
+                  className="rounded-lg border bg-card p-4 transition-shadow hover:shadow-sm min-w-0"
                 >
-                  <Avatar className="h-12 w-12 border-2 border-primary/20 flex-shrink-0">
-                    {meeting.meeting_type === 'membro' && meeting.partner ? (
-                      <>
-                        <AvatarImage src={meeting.partner.avatar_url || ''} />
-                        <AvatarFallback>{getInitials(meeting.partner.full_name)}</AvatarFallback>
-                      </>
-                    ) : (
-                      <AvatarFallback className="bg-orange-100 text-orange-600">
-                        <User className="w-5 h-5" />
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium truncate">
-                        {meeting.meeting_type === 'membro'
-                          ? meeting.partner?.full_name
-                          : meeting.guest_name}
-                      </p>
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          meeting.meeting_type === 'membro'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-orange-100 text-orange-700'
-                        }`}
-                      >
-                        {meeting.meeting_type === 'membro' ? 'Membro' : 'Externo'}
-                      </span>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <Avatar className="h-12 w-12 border-2 border-primary/20 shrink-0">
+                      {meeting.meeting_type === 'membro' && meeting.partner ? (
+                        <>
+                          <AvatarImage src={meeting.partner.avatar_url || ''} />
+                          <AvatarFallback>{getInitials(meeting.partner.full_name)}</AvatarFallback>
+                        </>
+                      ) : (
+                        <AvatarFallback className="bg-accent text-accent-foreground">
+                          <User className="w-5 h-5" />
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 min-w-0">
+                            <p className="font-medium leading-snug text-wrap-anywhere">
+                              {meeting.meeting_type === 'membro'
+                                ? meeting.partner?.full_name
+                                : meeting.guest_name}
+                            </p>
+                            <Badge variant={meeting.meeting_type === 'membro' ? 'secondary' : 'outline'} className="shrink-0 whitespace-nowrap text-xs">
+                              {meeting.meeting_type === 'membro' ? 'Membro' : 'Externo'}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3 shrink-0" />
+                          <span className="whitespace-nowrap">{format(parseLocalDate(meeting.meeting_date), "dd/MM/yyyy", { locale: ptBR })}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteMeeting.mutate(meeting.id)}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                  </div>
+                  {(meeting.meeting_type === 'membro' ? meeting.partner?.company : meeting.guest_company) && (
+                    <p className="mt-3 text-sm text-muted-foreground text-wrap-anywhere">
                       {meeting.meeting_type === 'membro'
                         ? meeting.partner?.company
                         : meeting.guest_company}
                     </p>
-                    {meeting.notes && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{meeting.notes}</p>
-                    )}
-                    {meeting.image_url && (
-                      <img 
-                        src={meeting.image_url} 
-                        alt="Foto do encontro" 
-                        className="mt-2 h-24 w-auto rounded-lg object-cover cursor-pointer hover:opacity-90"
-                        onClick={() => window.open(meeting.image_url!, '_blank')}
-                      />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <div className="text-right text-sm">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        {format(parseLocalDate(meeting.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteMeeting.mutate(meeting.id)}
-                      className="text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  )}
+                  {meeting.notes && (
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-wrap-anywhere">{meeting.notes}</p>
+                  )}
+                  {meeting.image_url && (
+                    <img 
+                      src={meeting.image_url} 
+                      alt="Foto do encontro" 
+                      className="mt-3 max-h-64 w-full rounded-lg object-cover cursor-pointer transition-opacity hover:opacity-90 sm:w-auto sm:max-w-xs"
+                      onClick={() => window.open(meeting.image_url!, '_blank')}
+                    />
+                  )}
                   </div>
                 </div>
               ))}

@@ -79,6 +79,14 @@ interface MemberProfile {
   is_facilitator?: boolean;
 }
 
+function BusinessSegmentBadge({ segment }: { segment: string }) {
+  return (
+    <Badge variant="secondary" className="mt-2 h-auto max-w-full items-start rounded-md px-2 py-1 text-left text-xs leading-snug">
+      <span className="min-w-0 text-wrap-anywhere">{segment}</span>
+    </Badge>
+  );
+}
+
 function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewProfile: () => void }) {
   const initials = member.full_name
     .split(' ')
@@ -116,20 +124,18 @@ function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewPr
             )}
 
             {member.position && (
-              <p className="text-sm text-muted-foreground truncate">{member.position}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2 text-wrap-anywhere">{member.position}</p>
             )}
 
             {member.company && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1 min-w-0">
                 <Building2 className="h-3 w-3 shrink-0" />
-                <span className="truncate">{member.company}</span>
+                <span className="line-clamp-2 text-wrap-anywhere">{member.company}</span>
               </div>
             )}
 
             {member.business_segment && (
-              <Badge variant="secondary" className="mt-2 text-xs">
-                {member.business_segment}
-              </Badge>
+              <BusinessSegmentBadge segment={member.business_segment} />
             )}
           </div>
         </div>
@@ -167,9 +173,9 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
           </AvatarFallback>
         </Avatar>
         
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold">{member.full_name}</h2>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            <h2 className="text-xl font-bold text-wrap-anywhere">{member.full_name}</h2>
             {member.rank && <RankBadge rank={member.rank as any} />}
           </div>
           {member.position && (
@@ -202,7 +208,7 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
       {member.business_segment && (
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-1">Segmento</h4>
-          <Badge variant="secondary">{member.business_segment}</Badge>
+             <BusinessSegmentBadge segment={member.business_segment} />
         </div>
       )}
 
@@ -210,7 +216,7 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
       {member.bio && (
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-1">Sobre</h4>
-          <p className="text-sm">{member.bio}</p>
+          <p className="text-sm text-wrap-anywhere">{member.bio}</p>
         </div>
       )}
 
@@ -343,15 +349,15 @@ function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }:
       <CollapsibleTrigger asChild>
         <Button 
           variant="ghost" 
-          className="w-full justify-between h-auto py-3 px-4 mb-2"
+          className="w-full justify-between h-auto py-3 px-4 mb-2 gap-3 text-left"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <div 
               className="w-3 h-3 rounded-full" 
               style={{ backgroundColor: team.team_color }}
             />
-            <span className="font-semibold text-lg">{team.team_name}</span>
-            <Badge variant="secondary" className="ml-2">
+            <span className="font-semibold text-lg line-clamp-2 text-wrap-anywhere">{team.team_name}</span>
+            <Badge variant="secondary" className="ml-2 shrink-0 whitespace-nowrap">
               {filteredMembers.length} {filteredMembers.length === 1 ? 'membro' : 'membros'}
             </Badge>
           </div>

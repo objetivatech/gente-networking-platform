@@ -100,7 +100,7 @@ export default function Indicacoes() {
   const StatusBadge = ({ status }: { status: ReferralStatus }) => {
     const config = STATUS_CONFIG[status] || STATUS_CONFIG.morno;
     return (
-      <Badge variant="outline" className={`gap-1 ${config.bgColor} ${config.color} border`}>
+      <Badge variant="outline" className={`gap-1 ${config.bgColor} ${config.color} border shrink-0 whitespace-nowrap`}>
         <Thermometer className="h-3 w-3" />
         {config.label}
       </Badge>
@@ -137,25 +137,23 @@ export default function Indicacoes() {
     const statusConfig = STATUS_CONFIG[referralStatus];
 
     return (
-      <div className={`p-4 rounded-lg border-l-4 bg-card border ${statusConfig.bgColor.replace('bg-', 'border-l-').replace('100', '500')}`} style={{ borderLeftColor: referralStatus === 'frio' ? '#3b82f6' : referralStatus === 'quente' ? '#ef4444' : '#f59e0b' }}>
-        <div className="flex items-start gap-3">
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
+      <div className={`overflow-hidden rounded-lg border-l-4 bg-card border ${statusConfig.bgColor.replace('bg-', 'border-l-').replace('100', '500')}`} style={{ borderLeftColor: referralStatus === 'frio' ? '#3b82f6' : referralStatus === 'quente' ? '#ef4444' : '#f59e0b' }}>
+        <div className="flex items-start gap-3 border-b bg-muted/30 p-3 sm:p-4 min-w-0">
+          <Avatar className="h-10 w-10 border-2 border-primary/20 shrink-0">
             <AvatarImage src={user?.avatar_url || ''} />
             <AvatarFallback>{getInitials(user?.full_name || 'U')}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="min-w-0">
-                  <span className="text-xs text-muted-foreground">{label}: </span>
-                  <span className="font-medium break-words">{user?.full_name}</span>
-                </div>
-                <StatusBadge status={referralStatus} />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
+            <div className="flex flex-col gap-2 xs:flex-row xs:items-start xs:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{label}</p>
+                <p className="font-medium leading-snug text-wrap-anywhere">{user?.full_name}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
                   {format(new Date(referral.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                </span>
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <StatusBadge status={referralStatus} />
                 {type === 'sent' && (
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={() => deleteReferral.mutate(referral.id)}>
                     <Trash2 className="w-3.5 h-3.5" />
@@ -163,53 +161,56 @@ export default function Indicacoes() {
                 )}
               </div>
             </div>
-            <div className="mt-2 p-3 rounded-lg bg-muted/50">
-              <div className="flex items-center gap-2 mb-2 min-w-0">
-                <User className="w-4 h-4 text-primary shrink-0" />
-                <span className="font-medium break-words min-w-0">{referral.contact_name}</span>
-              </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                {referral.contact_phone && (
-                  <a href={`tel:${referral.contact_phone}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
-                    <Phone className="w-3.5 h-3.5 shrink-0" /> <span className="break-all">{referral.contact_phone}</span>
-                  </a>
-                )}
-                {referral.contact_email && (
-                  <a href={`mailto:${referral.contact_email}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
-                    <Mail className="w-3.5 h-3.5 shrink-0" /> <span className="break-all">{referral.contact_email}</span>
-                  </a>
-                )}
-              </div>
-              {referral.notes && <p className="mt-2 text-sm text-muted-foreground">{referral.notes}</p>}
-            </div>
-
-            {/* Recipient can update status */}
-            {type === 'received' && (
-              <div className="mt-3">
-                <Label className="text-xs text-muted-foreground mb-1 block">Atualizar status:</Label>
-                <div className="flex gap-1.5">
-                  {(Object.keys(STATUS_CONFIG) as ReferralStatus[]).map((s) => {
-                    const config = STATUS_CONFIG[s];
-                    const isActive = referralStatus === s;
-                    return (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => updateReferralStatus.mutate({ id: referral.id, status: s })}
-                        className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
-                          isActive
-                            ? `${config.bgColor} ${config.color} border`
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        }`}
-                      >
-                        {config.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
+        </div>
+
+        <div className="space-y-3 p-3 sm:p-4">
+          <div className="rounded-lg bg-muted/50 p-3 min-w-0">
+            <div className="flex items-start gap-2 mb-2 min-w-0">
+              <User className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <span className="font-medium leading-snug text-wrap-anywhere min-w-0">{referral.contact_name}</span>
+            </div>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-4">
+              {referral.contact_phone && (
+                <a href={`tel:${referral.contact_phone}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
+                  <Phone className="w-3.5 h-3.5 shrink-0" /> <span className="text-wrap-anywhere">{referral.contact_phone}</span>
+                </a>
+              )}
+              {referral.contact_email && (
+                <a href={`mailto:${referral.contact_email}`} className="flex items-center gap-1 min-w-0 hover:text-primary">
+                  <Mail className="w-3.5 h-3.5 shrink-0" /> <span className="text-wrap-anywhere">{referral.contact_email}</span>
+                </a>
+              )}
+            </div>
+            {referral.notes && <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-wrap-anywhere">{referral.notes}</p>}
+          </div>
+
+          {/* Recipient can update status */}
+          {type === 'received' && (
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Atualizar status:</Label>
+              <div className="grid grid-cols-3 gap-1.5">
+                {(Object.keys(STATUS_CONFIG) as ReferralStatus[]).map((s) => {
+                  const config = STATUS_CONFIG[s];
+                  const isActive = referralStatus === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => updateReferralStatus.mutate({ id: referral.id, status: s })}
+                      className={`min-w-0 rounded px-2 py-1 text-center text-xs font-medium transition-all whitespace-nowrap ${
+                        isActive
+                          ? `${config.bgColor} ${config.color} border`
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {config.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
