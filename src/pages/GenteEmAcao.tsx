@@ -573,7 +573,6 @@ export default function GenteEmAcao() {
                       onClick={() => window.open(meeting.image_url!, '_blank')}
                     />
                   )}
-                  </div>
                 </div>
               ))}
             </div>
