@@ -168,9 +168,9 @@ export function analyzeMatchOpportunity(
   context: { hasIdealClientFit: boolean; hasSameSegment: boolean; hasSharedTags: boolean }
 ): MatchOpportunity {
   const mine = inferCategories(myProfile);
-  const other = inferCategories(otherProfile);
-  const audiences = sharedAudience(myProfile, other);
-  const complementary = findComplementaryRule(mine, other);
+  const otherCategories = inferCategories(otherProfile);
+  const audiences = sharedAudience(myProfile, otherProfile);
+  const complementary = findComplementaryRule(mine, otherCategories);
 
   if (complementary) {
     return {
@@ -179,19 +179,19 @@ export function analyzeMatchOpportunity(
       opportunityTitle: 'Parceria complementar',
       opportunityDescription: `${complementary.myCategory.label} + ${complementary.otherCategory.label} ${complementary.rule.description}`,
       opportunityIdeas: complementary.rule.ideas,
-      serviceCategories: Array.from(new Set([...mine, ...other].map((category) => category.label))),
+      serviceCategories: Array.from(new Set([...mine, ...otherCategories].map((category) => category.label))),
       sharedAudiences: audiences,
     };
   }
 
-  if (audiences.length > 0 && mine.length > 0 && other.length > 0) {
+  if (audiences.length > 0 && mine.length > 0 && otherCategories.length > 0) {
     return {
       matchType: 'troca_base',
       partnershipScore: 20,
       opportunityTitle: 'Troca de base compatível',
       opportunityDescription: `Vocês atendem públicos parecidos (${audiences.slice(0, 2).join(', ')}) com soluções diferentes, o que pode gerar troca qualificada de contatos.`,
       opportunityIdeas: ['Comparar perfis de clientes atendidos', 'Listar clientes que precisam de serviços complementares', 'Fazer uma apresentação cruzada para oportunidades ativas'],
-      serviceCategories: Array.from(new Set([...mine, ...other].map((category) => category.label))),
+      serviceCategories: Array.from(new Set([...mine, ...otherCategories].map((category) => category.label))),
       sharedAudiences: audiences,
     };
   }
@@ -203,7 +203,7 @@ export function analyzeMatchOpportunity(
       opportunityTitle: 'Indicação estratégica',
       opportunityDescription: 'O perfil indica potencial para apresentar clientes ou oportunidades alinhadas ao cliente ideal informado.',
       opportunityIdeas: ['Trocar exemplos de cliente ideal', 'Mapear contatos que se encaixam no perfil buscado', 'Combinar uma apresentação objetiva entre as partes'],
-      serviceCategories: Array.from(new Set([...mine, ...other].map((category) => category.label))),
+      serviceCategories: Array.from(new Set([...mine, ...otherCategories].map((category) => category.label))),
       sharedAudiences: audiences,
     };
   }
@@ -215,7 +215,7 @@ export function analyzeMatchOpportunity(
       opportunityTitle: 'Afinidade de segmento',
       opportunityDescription: 'Há proximidade de segmento, útil para troca de repertório, benchmark e possíveis indicações internas.',
       opportunityIdeas: ['Trocar aprendizados do segmento', 'Identificar demandas recorrentes dos clientes', 'Avaliar oportunidades que não geram concorrência direta'],
-      serviceCategories: Array.from(new Set([...mine, ...other].map((category) => category.label))),
+      serviceCategories: Array.from(new Set([...mine, ...otherCategories].map((category) => category.label))),
       sharedAudiences: audiences,
     };
   }
@@ -230,7 +230,7 @@ export function analyzeMatchOpportunity(
     opportunityIdeas: context.hasSharedTags
       ? ['Conversar sobre as tags em comum', 'Identificar clientes com dores parecidas', 'Registrar próximos passos após a primeira conversa']
       : ['Completar perfil', 'Adicionar cliente ideal', 'Adicionar tags de especialidade'],
-    serviceCategories: Array.from(new Set([...mine, ...other].map((category) => category.label))),
+    serviceCategories: Array.from(new Set([...mine, ...otherCategories].map((category) => category.label))),
     sharedAudiences: audiences,
   };
 }
