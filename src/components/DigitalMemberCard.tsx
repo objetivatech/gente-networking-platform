@@ -189,24 +189,24 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <QrCode className="h-4 w-4 text-primary" /> Cartão Digital
+          <QrCode className="h-4 w-4 text-primary shrink-0" /> Cartão Digital
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {!canGenerate ? (
           <div className="flex flex-col items-center gap-2 py-8 text-center text-muted-foreground">
             <Lock className="h-6 w-6" />
-            <p className="text-sm">
+            <p className="text-sm text-wrap-anywhere">
               {lockedMessage || 'Complete e publique seu perfil para gerar o cartão digital.'}
             </p>
           </div>
         ) : (
           <>
-            <div className="relative rounded-lg overflow-hidden border">
-              <canvas ref={canvasRef} className="w-full h-auto block" />
+            <div className="relative w-full max-w-full overflow-hidden rounded-lg border">
+              <canvas ref={canvasRef} className="block w-full h-auto max-w-full" />
               {isDrawing && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/60">
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />

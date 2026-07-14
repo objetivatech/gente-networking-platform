@@ -129,12 +129,17 @@
     @apply border-border;
   }
 
+  /*
+   * Regras responsivas na raiz:
+   * - Sem `overflow-x: hidden` global (mascarava overflow real).
+   * - `min-width: 0` em html/body/#root evita que qualquer descendente flex
+   *   force o documento a esticar horizontalmente.
+   */
   html,
   body,
   #root {
     width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
+    min-width: 0;
   }
 
   body {
@@ -147,6 +152,45 @@
   canvas,
   svg {
     max-width: 100%;
+    height: auto;
+  }
+}
+
+@layer utilities {
+  /*
+   * .text-wrap-anywhere — quebra strings longas (URLs, e-mails, tags de
+   * segmento compostas) em qualquer ponto, evitando estouro horizontal.
+   */
+  .text-wrap-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /*
+   * .stack-safe — força `min-width: 0` em filhos diretos de containers
+   * flex/grid. Corrige o bug clássico do Tailwind onde `flex-1` herda
+   * `min-width: auto` e conteúdo longo empurra o layout.
+   */
+  .stack-safe > * {
+    min-width: 0;
+  }
+
+  /*
+   * .hscroll — habilita rolagem horizontal controlada para tabs/filtros
+   * com muitos itens no mobile, sem quebrar o layout do container pai.
+   */
+  .hscroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .hscroll::-webkit-scrollbar {
+    height: 4px;
+  }
+  .hscroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 9999px;
   }
 }
 

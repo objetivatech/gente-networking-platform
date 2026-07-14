@@ -274,22 +274,22 @@ export default function Profile() {
                 </div>
               ) : (
                 <>
-                  <div>
-                    <h2 className="text-2xl font-bold">{profile?.full_name}</h2>
-                    {profile?.position && profile?.company && <p className="text-muted-foreground">{profile.position} na {profile.company}</p>}
+                  <div className="min-w-0">
+                    <h2 className="text-2xl font-bold text-wrap-anywhere">{profile?.full_name}</h2>
+                    {profile?.position && profile?.company && <p className="text-muted-foreground text-wrap-anywhere">{profile.position} na {profile.company}</p>}
                   </div>
                   {(profile as any)?.tags?.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {(profile as any).tags.map((tag: string) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
                     </div>
                   )}
-                  {profile?.bio && <p className="text-foreground/80">{profile.bio}</p>}
-                  <div className="flex flex-wrap gap-4 pt-2">
-                    {profile?.email && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Mail className="w-4 h-4 shrink-0" /><span className="break-all">{profile.email}</span></div>}
-                    {profile?.phone && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Phone className="w-4 h-4 shrink-0" /><span className="break-all">{profile.phone}</span></div>}
-                    {profile?.company && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0"><Building className="w-4 h-4 shrink-0" /><span className="break-words">{profile.company}</span></div>}
+                  {profile?.bio && <p className="text-foreground/80 text-wrap-anywhere">{profile.bio}</p>}
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2">
+                    {profile?.email && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Mail className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.email}</span></div>}
+                    {profile?.phone && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Phone className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.phone}</span></div>}
+                    {profile?.company && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Building className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.company}</span></div>}
                   </div>
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex gap-3 pt-2 flex-wrap">
                     {profile?.linkedin_url && <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Linkedin className="w-5 h-5" /></a>}
                     {profile?.instagram_url && <a href={`https://instagram.com/${profile.instagram_url.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Instagram className="w-5 h-5" /></a>}
                     {profile?.website_url && <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Globe className="w-5 h-5" /></a>}
@@ -305,11 +305,13 @@ export default function Profile() {
       {/* Tabs: Sobre, Estatísticas, Cases */}
       {!isEditing && (
         <Tabs defaultValue="about" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="about">Sobre</TabsTrigger>
-            <TabsTrigger value="stats">Estatísticas</TabsTrigger>
-            <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
-          </TabsList>
+          <div className="hscroll -mx-1 px-1">
+            <TabsList className="w-max">
+              <TabsTrigger value="about">Sobre</TabsTrigger>
+              <TabsTrigger value="stats">Estatísticas</TabsTrigger>
+              <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="about" className="space-y-4">
             {/* Professional info cards */}

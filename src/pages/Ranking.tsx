@@ -221,7 +221,7 @@ export default function Ranking() {
                   <div className="w-6 sm:w-8 flex justify-center shrink-0">
                     {getPositionIcon(member.position_rank)}
                   </div>
-                  
+
                   <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={member.avatar_url || undefined} />
                     <AvatarFallback>
@@ -233,7 +233,7 @@ export default function Ranking() {
                     <p className="font-medium truncate">{member.full_name}</p>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0">
                       <span className="truncate">{member.company || member.member_position || 'Membro'}</span>
-                      <span className="hidden sm:inline">•</span>
+                      <span className="hidden sm:inline shrink-0">•</span>
                       <span className="truncate hidden sm:inline">{member.team_name}</span>
                     </div>
                   </div>
@@ -242,7 +242,7 @@ export default function Ranking() {
                     <RankBadge rank={member.rank} size="sm" showLabel={false} />
                   </div>
 
-                  <Badge variant="outline" className="font-bold shrink-0 whitespace-nowrap">
+                  <Badge variant="outline" className="font-bold shrink-0 whitespace-nowrap tabular-nums">
                     {member.points} pts
                   </Badge>
                 </div>

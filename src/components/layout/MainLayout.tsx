@@ -44,12 +44,17 @@ export default function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background">
       <div className="flex">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+        <div className="flex-1 flex flex-col min-h-screen min-w-0 lg:ml-0">
           <Header onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 min-w-0 overflow-x-hidden p-4 lg:p-6 pb-20 lg:pb-6">
+          <main
+            className="flex-1 min-w-0 p-4 lg:p-6"
+            style={{
+              paddingBottom: 'max(5rem, calc(env(safe-area-inset-bottom) + 5rem))',
+            }}
+          >
             <div className="w-full min-w-0 max-w-full">
               <ErrorBoundary
                 resetKey={location.pathname}

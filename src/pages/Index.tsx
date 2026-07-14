@@ -95,17 +95,17 @@ export default function Index() {
       </div>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {statsCards.map((stat) => (
           <Card key={stat.label} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-muted ${stat.color}`}>
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className={`p-2 rounded-lg bg-muted shrink-0 ${stat.color}`}>
                   <stat.icon className="w-5 h-5" />
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xl sm:text-2xl font-bold tabular-nums truncate">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground truncate">{stat.label}</p>
                 </div>
               </div>
             </CardContent>
@@ -166,9 +166,9 @@ export default function Index() {
                         )}
                       </div>
                       {meeting.location && (
-                        <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground min-w-0">
-                          <MapPin className="h-3 w-3 shrink-0" />
-                          <span className="break-all">{meeting.location}</span>
+                        <div className="flex items-start gap-1 mt-1 text-xs text-muted-foreground min-w-0">
+                          <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
+                          <span className="text-wrap-anywhere">{meeting.location}</span>
                         </div>
                       )}
                     </div>
