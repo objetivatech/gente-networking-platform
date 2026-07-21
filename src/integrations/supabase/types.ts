@@ -279,6 +279,137 @@ export type Database = {
           },
         ]
       }
+      crm_lead_history: {
+        Row: {
+          created_at: string
+          from_status: Database["public"]["Enums"]["crm_lead_status"] | null
+          id: string
+          lead_id: string
+          moved_by: string | null
+          reason: string | null
+          to_status: Database["public"]["Enums"]["crm_lead_status"]
+        }
+        Insert: {
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["crm_lead_status"] | null
+          id?: string
+          lead_id: string
+          moved_by?: string | null
+          reason?: string | null
+          to_status: Database["public"]["Enums"]["crm_lead_status"]
+        }
+        Update: {
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["crm_lead_status"] | null
+          id?: string
+          lead_id?: string
+          moved_by?: string | null
+          reason?: string | null
+          to_status?: Database["public"]["Enums"]["crm_lead_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_lead_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_leads: {
+        Row: {
+          autentique_document_id: string | null
+          business_segment: string | null
+          company: string | null
+          contract_status: string | null
+          created_at: string
+          efi_subscription_id: string | null
+          email: string
+          first_attendance_at: string | null
+          id: string
+          invitation_id: string | null
+          invited_by: string | null
+          meeting_attendance_count: number
+          metadata: Json
+          name: string
+          notes: string | null
+          payment_status: string | null
+          phone: string | null
+          profile_id: string | null
+          source: Database["public"]["Enums"]["crm_lead_source"]
+          source_detail: string | null
+          status: Database["public"]["Enums"]["crm_lead_status"]
+          target_team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          autentique_document_id?: string | null
+          business_segment?: string | null
+          company?: string | null
+          contract_status?: string | null
+          created_at?: string
+          efi_subscription_id?: string | null
+          email: string
+          first_attendance_at?: string | null
+          id?: string
+          invitation_id?: string | null
+          invited_by?: string | null
+          meeting_attendance_count?: number
+          metadata?: Json
+          name: string
+          notes?: string | null
+          payment_status?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          source?: Database["public"]["Enums"]["crm_lead_source"]
+          source_detail?: string | null
+          status?: Database["public"]["Enums"]["crm_lead_status"]
+          target_team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          autentique_document_id?: string | null
+          business_segment?: string | null
+          company?: string | null
+          contract_status?: string | null
+          created_at?: string
+          efi_subscription_id?: string | null
+          email?: string
+          first_attendance_at?: string | null
+          id?: string
+          invitation_id?: string | null
+          invited_by?: string | null
+          meeting_attendance_count?: number
+          metadata?: Json
+          name?: string
+          notes?: string | null
+          payment_status?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          source?: Database["public"]["Enums"]["crm_lead_source"]
+          source_detail?: string | null
+          status?: Database["public"]["Enums"]["crm_lead_status"]
+          target_team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_leads_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_leads_target_team_id_fkey"
+            columns: ["target_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gente_em_acao: {
         Row: {
           created_at: string | null
@@ -1219,6 +1350,19 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "facilitador" | "membro" | "convidado"
+      crm_lead_source:
+        | "lp_gentehub"
+        | "lp_participe"
+        | "lp_networking"
+        | "site_elementor"
+        | "convite_manual"
+        | "api"
+      crm_lead_status:
+        | "novo"
+        | "em_qualificacao"
+        | "qualificado"
+        | "fechado"
+        | "perdido"
       member_rank: "iniciante" | "bronze" | "prata" | "ouro" | "diamante"
     }
     CompositeTypes: {
@@ -1348,6 +1492,21 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "facilitador", "membro", "convidado"],
+      crm_lead_source: [
+        "lp_gentehub",
+        "lp_participe",
+        "lp_networking",
+        "site_elementor",
+        "convite_manual",
+        "api",
+      ],
+      crm_lead_status: [
+        "novo",
+        "em_qualificacao",
+        "qualificado",
+        "fechado",
+        "perdido",
+      ],
       member_rank: ["iniciante", "bronze", "prata", "ouro", "diamante"],
     },
   },

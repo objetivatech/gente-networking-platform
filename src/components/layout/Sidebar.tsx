@@ -27,6 +27,7 @@ import {
   HeartHandshake,
   Megaphone,
   Radio,
+  KanbanSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -70,6 +71,7 @@ const menuItems = [
 const adminItems = [
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard', roles: ['admin'] },
   { icon: UsersRound, label: 'Gestão de Pessoas', path: '/admin/pessoas', roles: ['admin', 'facilitador'] },
+  { icon: KanbanSquare, label: 'CRM de Leads', path: '/admin/crm', roles: ['admin'] },
   { icon: ClipboardList, label: 'Gestão de Registros', path: '/admin/registros', roles: ['admin'] },
   { icon: Settings, label: 'Admin', path: '/admin', roles: ['admin', 'facilitador'] },
 ];
