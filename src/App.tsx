@@ -61,6 +61,7 @@ const AuthConfirm = lazyWithRetry(() => import("./pages/AuthConfirm"));
 const Matchmaking = lazyWithRetry(() => import("./pages/Matchmaking"));
 const Oportunidades = lazyWithRetry(() => import("./pages/Oportunidades"));
 const PedidosIndicacao = lazyWithRetry(() => import("./pages/PedidosIndicacao"));
+const AdminCrm = lazyWithRetry(() => import("./pages/AdminCrm"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -136,6 +137,7 @@ const App = () => (
                 <Route path="/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/pessoas" element={<GestaoPessoas />} />
+                <Route path="/admin/crm" element={<AdminCrm />} />
                 <Route path="/admin/registros" element={<AdminRegistros />} />
                 {/* Rotas antigas mantidas para compatibilidade */}
                 <Route path="/admin/membros" element={<GerenciarMembros />} />
