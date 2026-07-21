@@ -282,29 +282,42 @@ export type Database = {
       crm_lead_history: {
         Row: {
           created_at: string
+          event_type: string
           from_status: Database["public"]["Enums"]["crm_lead_status"] | null
           id: string
           lead_id: string
+          metadata: Json
           moved_by: string | null
           reason: string | null
+          source_snapshot: Database["public"]["Enums"]["crm_lead_source"] | null
           to_status: Database["public"]["Enums"]["crm_lead_status"]
         }
         Insert: {
           created_at?: string
+          event_type?: string
           from_status?: Database["public"]["Enums"]["crm_lead_status"] | null
           id?: string
           lead_id: string
+          metadata?: Json
           moved_by?: string | null
           reason?: string | null
+          source_snapshot?:
+            | Database["public"]["Enums"]["crm_lead_source"]
+            | null
           to_status: Database["public"]["Enums"]["crm_lead_status"]
         }
         Update: {
           created_at?: string
+          event_type?: string
           from_status?: Database["public"]["Enums"]["crm_lead_status"] | null
           id?: string
           lead_id?: string
+          metadata?: Json
           moved_by?: string | null
           reason?: string | null
+          source_snapshot?:
+            | Database["public"]["Enums"]["crm_lead_source"]
+            | null
           to_status?: Database["public"]["Enums"]["crm_lead_status"]
         }
         Relationships: [
@@ -322,6 +335,9 @@ export type Database = {
           autentique_document_id: string | null
           business_segment: string | null
           company: string | null
+          contract_sent_at: string | null
+          contract_signed_at: string | null
+          contract_signed_pdf_path: string | null
           contract_status: string | null
           created_at: string
           efi_subscription_id: string | null
@@ -330,6 +346,7 @@ export type Database = {
           id: string
           invitation_id: string | null
           invited_by: string | null
+          is_hub: boolean | null
           meeting_attendance_count: number
           metadata: Json
           name: string
@@ -347,6 +364,9 @@ export type Database = {
           autentique_document_id?: string | null
           business_segment?: string | null
           company?: string | null
+          contract_sent_at?: string | null
+          contract_signed_at?: string | null
+          contract_signed_pdf_path?: string | null
           contract_status?: string | null
           created_at?: string
           efi_subscription_id?: string | null
@@ -355,6 +375,7 @@ export type Database = {
           id?: string
           invitation_id?: string | null
           invited_by?: string | null
+          is_hub?: boolean | null
           meeting_attendance_count?: number
           metadata?: Json
           name: string
@@ -372,6 +393,9 @@ export type Database = {
           autentique_document_id?: string | null
           business_segment?: string | null
           company?: string | null
+          contract_sent_at?: string | null
+          contract_signed_at?: string | null
+          contract_signed_pdf_path?: string | null
           contract_status?: string | null
           created_at?: string
           efi_subscription_id?: string | null
@@ -380,6 +404,7 @@ export type Database = {
           id?: string
           invitation_id?: string | null
           invited_by?: string | null
+          is_hub?: boolean | null
           meeting_attendance_count?: number
           metadata?: Json
           name?: string
@@ -1028,6 +1053,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          is_hub: boolean
           name: string
           updated_at: string | null
         }
@@ -1036,6 +1062,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_hub?: boolean
           name: string
           updated_at?: string | null
         }
@@ -1044,6 +1071,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          is_hub?: boolean
           name?: string
           updated_at?: string | null
         }
@@ -1127,6 +1155,10 @@ export type Database = {
             }
             Returns: string
           }
+      add_crm_lead_note: {
+        Args: { _lead_id: string; _note: string }
+        Returns: Json
+      }
       are_same_team: {
         Args: { p_user_id1: string; p_user_id2: string }
         Returns: boolean
@@ -1317,6 +1349,16 @@ export type Database = {
         }
         Returns: Json
       }
+      promote_crm_lead_to_member: {
+        Args: {
+          _lead_id: string
+          _reason?: string
+          _skip_contract?: boolean
+          _skip_payment?: boolean
+          _team_id: string
+        }
+        Returns: Json
+      }
       promote_guest_to_member: {
         Args: {
           _guest_id: string
@@ -1361,6 +1403,7 @@ export type Database = {
         | "novo"
         | "em_qualificacao"
         | "qualificado"
+        | "hub_ativo"
         | "fechado"
         | "perdido"
       member_rank: "iniciante" | "bronze" | "prata" | "ouro" | "diamante"
@@ -1504,6 +1547,7 @@ export const Constants = {
         "novo",
         "em_qualificacao",
         "qualificado",
+        "hub_ativo",
         "fechado",
         "perdido",
       ],
