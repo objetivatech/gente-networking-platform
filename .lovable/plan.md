@@ -1,340 +1,117 @@
-## Diagnóstico objetivo
+# Plano de Unificação — Leads, CRM e Contratos (v3.24.0)
 
-Os prints mostram problemas que não são mais de “overflow global”, mas de composição interna dos cards em telas estreitas:
+Baseado no PDF revisado e nas decisões:
 
-1. **Home**
-   - O `ActivityFeed` ainda usa textos em `truncate` dentro de estruturas aninhadas com `ScrollArea`; isso corta nomes, descrições e pode empurrar a área interna.
-   - O `ScoringRulesCard compact` usa `grid-cols-2` e coloca pontuação + descrição na mesma linha, o que causa textos amontoados.
+- LPs escrevem direto no Gente (cross-project, sem sync);
+- Lead do Gente HUB = mesma role `convidado` + `source='gente_hub'` (só tag/badge);
+- **Pagamentos adiados** — arquitetura preparada mas fora do escopo desta versão;
+- Contratos via **Autentique** (Fase futura, mas com colunas já prontas).
 
-2. **Membros**
-   - A badge de `business_segment` usa o `Badge` global, mas o texto está direto dentro de um `inline-flex`. Em segmentos longos, a badge ainda não ganha uma área real de quebra.
-   - O modal do membro repete o mesmo padrão no campo “Segmento”.
-
-3. **Aniversariantes**
-   - O cabeçalho do seletor mensal está em uma única linha: botões, mês e contador. Em mobile, o contador vira um círculo grande e quebra palavras como “aniversariantes”.
-
-4. **Gente em Ação**
-   - Cada reunião é um card horizontal com avatar à esquerda e data/excluir à direita. No mobile, sobra uma coluna estreita para nome, empresa, observações e imagem, causando cortes e textos empilhados.
-
-5. **Indicações**
-   - O card mistura avatar, nome do membro, data, badge, dados do contato e texto da indicação em uma mesma região visual. A badge de status pode quebrar palavra curta (“Quente”), e a indicação perde espaço útil.
-
-6. **MatchMaking**
-   - Hoje o motor gera motivos simples: cliente ideal, tags comuns, mesmo segmento e perfil completo.
-   - Ele ainda não diferencia **serviços iguais** de **negócios complementares**, nem transforma compatibilidade em hipótese prática de parceria, oferta conjunta ou troca de contatos.
-
----
-
-## Plano de implementação
-
-### 1. Reforço dos utilitários responsivos sem mascarar overflow
-
-Manter a regra já aprovada: **não usar `overflow-x: hidden` global**.
-
-Ajustar apenas padrões locais:
-
-- Aplicar `min-w-0`, `max-w-full`, `text-wrap-anywhere` e `leading-snug` nos pontos onde há conteúdo de usuário.
-- Criar um padrão reutilizável para badges longas quando necessário:
-  - badge com `h-auto`, `items-start`, `text-left`, `leading-snug`;
-  - texto interno em `<span className="min-w-0 text-wrap-anywhere">...`.
-- Usar `whitespace-nowrap` somente para badges curtas e controladas, como status “Frio”, “Morno”, “Quente” e pontuações pequenas.
-
-Arquivos envolvidos:
-- `src/index.css` se for necessário criar um utilitário específico para badges longas.
-- `src/components/ui/badge.tsx` somente se a correção global for segura; caso contrário, ajustar localmente.
-
----
-
-### 2. Home: feed e sistema de pontuação
-
-#### ActivityFeed
-
-Alterar `src/components/ActivityFeed.tsx` para:
-
-- Garantir que `Card`, `CardContent`, `ScrollArea`, itens e wrappers internos usem `w-full min-w-0 max-w-full`.
-- Trocar `truncate` em título/descrição por uma abordagem mobile-safe:
-  - título com `line-clamp-2` ou quebra natural;
-  - descrição com `line-clamp-2` e `text-wrap-anywhere`.
-- Preservar a altura rolável do feed, mas impedir que o conteúdo interno crie largura maior que o card.
-
-#### Sistema de Pontuação
-
-Alterar `src/components/ScoringRulesCard.tsx` e o bloco de ranking em `src/pages/Index.tsx`:
-
-- Em modo `compact`, cada regra passa a ter estrutura em duas linhas:
+## Escopo desta entrega
 
 ```text
-[ícone] 25 pts
-        por reunião 1-a-1
+Fase 1  Fundação CRM         (agora)
+Fase 2  Aba Convidados       (agora)
+Fase 3  Kanban CRM Admin     (agora)
+Fase 4  Autentique           (próxima release)
+Fase 5  Pagamentos           (a decidir depois)
 ```
 
-- Usar `grid-cols-1 xs:grid-cols-2 sm:grid-cols-3` para as regras compactas.
-- Nas descrições longas, permitir quebra limpa com `text-wrap-anywhere` e `leading-snug`.
-- No ranking, usar grade mais tolerante em telas pequenas: `grid-cols-2 xs:grid-cols-3 sm:grid-cols-5`, evitando cards estreitos demais.
+## Fase 1 — Fundação: `crm_leads` + ingestão pública
 
-Resultado esperado:
-- Feed sem transbordar.
-- Tabela de gamificação legível, sem sobreposição de texto.
+### 1.1 Migration
 
----
+Nova tabela `crm_leads` (única fonte da verdade para leads/convidados). Já cria colunas de contrato/pagamento mesmo sem uso imediato — evita migration futura destrutiva.
 
-### 3. Membros: badges de segmento quebrando corretamente
+Campos principais: `name, email, phone, company, business_segment, source` (enum: `lp_gentehub | lp_participe | lp_networking | site_elementor | convite_manual | api`), `source_detail, target_team_id, status` (enum: `novo | em_qualificacao | qualificado | fechado | perdido`), `notes, invited_by, invitation_id, profile_id, meeting_attendance_count, first_attendance_at, contract_status, payment_status, autentique_document_id, efi_subscription_id, metadata jsonb`.
 
-Alterar `src/pages/Membros.tsx`:
+Tabela auxiliar `crm_lead_history` (log de movimentações no kanban: `lead_id, from_status, to_status, moved_by, moved_at, reason`).
 
-- No `MemberCard`, renderizar `business_segment` como badge longa:
+**RLS**:
 
-```text
-[ Segmento de negócio longo pode quebrar em duas ou mais linhas dentro do card ]
-```
+- Admin: acesso total.
+- Facilitador: SELECT/UPDATE apenas em leads com `target_team_id` pertencente ao(s) seu(s) grupo(s).
+- Membro/convidado: sem acesso.
+- Anon: apenas INSERT via edge function (nunca direto).
 
-- Aplicar o mesmo padrão no modal do membro.
-- Revisar também nome, cargo, empresa e grupo para manter `min-w-0`/`text-wrap-anywhere` nos containers certos.
-- Manter visual atual e ranking/facilitador sem redesign.
+**Grants** conforme padrão: `GRANT ALL ON crm_leads TO service_role; GRANT SELECT, INSERT, UPDATE, DELETE TO authenticated` (sem `anon`).
 
-Resultado esperado:
-- Tipos de negócio longos não empurram nem cortam o card.
-- Badge fica visualmente aceitável mesmo com duas linhas.
+### 1.2 Edge Function `submit-lead` (pública, CORS aberto)
 
----
+- Zod-valida body: `{ name, email, phone?, company?, business_segment?, target_team_id?, source, source_detail? }`.
+- Deduplica por email: se já existir em `crm_leads`, faz UPDATE (merge não-destrutivo) e retorna id.
+- Cria `invitation` automaticamente (30 dias, `invited_by = null` para origem LP, ou id do admin geral).
+- Dispara email de boas-vindas via `send-email` com o link do convite.
+- Retorna `{ lead_id, invitation_code, invite_url }`.
 
-### 4. Aniversariantes: seletor mensal compacto e elegante
+### 1.3 Edge Function `list-public-teams` (GET público)
 
-Alterar `src/pages/Aniversarios.tsx`:
+Retorna `[{ id, name }]` dos grupos ativos — usada pelas LPs para popular o dropdown de escolha de grupo.
 
-- Transformar o cabeçalho do mês em layout responsivo:
-  - no desktop: controles, mês e contador na mesma linha;
-  - no mobile: mês em destaque e controles/contador em linha separada.
-- Reduzir o contador para formato curto no mobile:
-  - `3 anivers.` em telas pequenas;
-  - `3 aniversariantes` em telas maiores.
-- Evitar que o contador vire círculo grande ou quebre palavras.
-- Ajustar os cards dos aniversariantes com `min-w-0`, avatar um pouco menor em mobile e textos com `truncate` controlado.
+### 1.4 Ajuste no projeto @LPs Gente (documentado, não implementado nesta migração)
 
-Resultado esperado:
-- Seletor do mês proporcional e sem aparência “quebrada”.
+`useCreateLead` passa a fazer POST em `https://vyfkddcbmwlwldaorxzy.supabase.co/functions/v1/submit-lead` em vez de gravar em `leads` local. A tabela `leads` das LPs vira legado (mantida para histórico). **Esse ajuste será feito no projeto LPs em uma sessão separada** — este plano só entrega o endpoint do lado Gente.
 
----
+### 1.5 Backfill
 
-### 5. Gente em Ação: cards com conteúdo distribuído no card inteiro
+Edge Function one-shot `migrate-existing-guests`:
 
-Alterar `src/pages/GenteEmAcao.tsx`:
+- Cria `crm_leads` para cada `invitations` com status `accepted` (status = `em_qualificacao`).
+- Para convidados já promovidos a membros → `status='fechado'`.
+- Deduplica por email.
 
-- Redesenhar cada card de reunião para mobile-first:
+## CONFIRME ANTES, MAS ACHO QUE JÁ TEMOS A ABA PARA CONVIDADOS NA PÁGINA DE ENCONTROS - Fase 2 — Aba de Convidados em `/encontros -` 
 
-```text
-[avatar] Nome do contato        [data] [excluir]
-         [badge Membro/Externo]
+- Refatorar `Encontros.tsx` com `<Tabs>`: aba **Encontros** (atual) + aba **Convidados**.
+- Aba Convidados lista todos com role `convidado`, join com `attendances` para count/última presença, filtros por grupo/período/status, colunas com badge de origem (LP/HUB/convite manual).
+- Reaproveita `useAdminGuests`; adiciona `useGuestsWithAttendance`.
+- Facilitador vê só do seu grupo; admin vê todos.
+- Trigger em `attendances` (AFTER INSERT): se attendee é convidado e existe `crm_leads` correspondente com `status='novo'`, move para `em_qualificacao` e registra em `crm_lead_history`.
 
-Empresa / organização
-Observações da reunião ocupando a largura total
-Foto do encontro ocupando largura adequada
-```
+## Fase 3 — CRM Kanban `/admin/crm`
 
-- Em mobile, o conteúdo deixa de competir com a coluna de data/excluir.
-- Em desktop, manter aparência compacta, mas com melhor hierarquia.
-- Aplicar `text-wrap-anywhere` em nome, empresa e observações.
-- Ajustar a imagem para ter `max-w-full`, altura controlada e não estreitar o texto.
+- Nova rota admin-only.
+- `@dnd-kit/core` + `@dnd-kit/sortable` para drag-and-drop entre 5 colunas.
+- Componentes: `CrmKanban`, `CrmLeadCard` (nome, badge grupo, badge origem com destaque para HUB, data), `CrmLeadDetail` (modal com histórico + ações), `CrmFilters` (grupo, origem, período, status).
+- Ao mover para `fechado` manualmente: se `profile_id` existir → chama `promote_guest_to_member` automaticamente e adiciona ao `target_team_id`.
+- Ao promover manualmente via `GestaoPessoas`: trigger atualiza `crm_leads.status='fechado'` (bidirecional).
+- Item "CRM" no `Sidebar.tsx` visível só para admin.
 
-Resultado esperado:
-- Cards legíveis, sem texto amontoado ou cortado.
-- Registro visualmente mais parecido com app mobile.
+## Fase 4 — Autentique (fora desta release, plano registrado)
 
----
+Colunas já criadas em `crm_leads`. Próxima entrega:
 
-### 6. Indicações: redesenho dos cards recebidos/enviados
+- Secret `AUTENTIQUE_API_KEY` via `add_secret`.
+- Bucket `contracts` com templates PDF.
+- Edge Functions `autentique-create-document`, `autentique-webhook`, `autentique-check-status`.
+- Botão "Enviar Contrato" no `CrmLeadDetail`.
 
-Alterar `src/pages/Indicacoes.tsx`:
+## Fase 5 — Pagamentos (adiada)
 
-Criar uma composição mais clara para `ReferralCard`:
+A decidir entre Efi (BR-nativo, PIX/boleto) e Stripe (built-in Lovable). Recomendo revisitar após CRM em produção com dados reais de conversão.
 
-```text
-Cabeçalho do card
-[foto] De/Para: Nome do membro       [status]
-       Data                          [excluir se enviada]
+## Impactos e riscos
 
-Corpo do card
-Contato indicado
-Telefone / email
-Texto da indicação / observações
+- `crm_leads` é aditiva; não altera `invitations`, `profiles`, `user_roles` — zero risco para features existentes.
+- Trigger de attendance é `AFTER INSERT` idempotente (só age se lead está em `novo`) — não interfere no fluxo de presença atual (que já foi corrigido em v3.11+).
+- LPs continuam funcionando com sua tabela `leads` até a migração do hook — sem downtime.
+- Cross-project CORS: `submit-lead` precisa liberar origem `gentenetworking.com.br` e domínios das LPs.
 
-Ações
-Atualizar status: [Frio] [Morno] [Quente]
-```
+## Documentação e changelog
 
-Ajustes específicos:
+- Novo `docs/CRM_LEADS.md` (arquitetura, fluxos, webhooks).
+- Atualizar `docs/USER_FLOWS.md` (jornada lead → convidado → membro).
+- Atualizar `docs/TECHNICAL_DOCUMENTATION.md` (tabelas + edge functions).
+- Atualizar `README.md` (novos endpoints públicos).
+- Entrada `v3.24.0` em `system_changelog` cobrindo Fases 1-3.
+- Registrar em `mem://features/crm-leads-unificado` a decisão arquitetural (fonte única = Gente, HUB via source tag).
 
-- Cabeçalho separado do corpo com `border-b` ou área de fundo sutil.
-- Nome do membro e data ficam isolados do texto da indicação.
-- Status badge curta usa `whitespace-nowrap` para não quebrar “Quente”.
-- Dados do contato e observações ocupam a largura completa do card.
-- Botões de status ficam em grid de 3 colunas com texto centralizado e sem sobreposição.
-- Preservar exportação, abas e mecânica de atualização de status.
+## Ordem de implementação
 
-Resultado esperado:
-- Cards mais limpos e legíveis.
-- A indicação em si passa a ter prioridade visual.
-
----
-
-## Evolução proposta do MatchMaking
-
-### Objetivo
-
-Transformar o MatchMaking de uma lista de “motivos de compatibilidade” em uma ferramenta com **hipóteses práticas de conexão**, incluindo:
-
-1. **Indicação de serviço**
-   - Quando um membro atende exatamente o tipo de cliente que outro procura.
-
-2. **Parceria complementar**
-   - Quando os serviços não são iguais, mas podem formar uma oferta conjunta.
-   - Exemplo: SEO + desenvolvimento web, contabilidade + jurídico, fotografia + eventos, marketing + design.
-
-3. **Troca de contatos / base compatível**
-   - Quando ambos atendem públicos parecidos, mas vendem soluções diferentes.
-
-4. **Oferta conjunta ao mercado**
-   - Quando os perfis permitem sugerir um pacote de serviço ou abordagem comercial combinada.
-
----
-
-### Como implementar sem IA externa nesta etapa
-
-Criar um motor determinístico em `src/lib/matchmaking-rules.ts`, usando os campos já existentes:
-
-- `what_i_do`
-- `ideal_client`
-- `business_segment`
-- `tags`
-- `company`
-- `position`
-
-O motor faria:
-
-1. **Inferência de categorias de serviço**
-   - Mapear palavras-chave para categorias como:
-     - marketing, SEO, tráfego, branding, design, vídeo, tecnologia, jurídico, contábil, financeiro, RH, saúde, eventos, arquitetura, imóveis, educação, seguros, consultoria etc.
-
-2. **Mapa de complementaridade**
-   - Definir pares de categorias que costumam gerar parceria.
-   - Exemplo:
-
-```text
-SEO + desenvolvimento web => pacote de site com aquisição orgânica
-Contabilidade + jurídico => regularização e estruturação empresarial
-RH + treinamento => desenvolvimento de equipes
-Design + social media => presença digital completa
-Fotografia + eventos => cobertura e produção para experiências presenciais
-```
-
-3. **Análise de público-alvo compatível**
-   - Comparar palavras do `ideal_client` de ambos.
-   - Se ambos atendem “clínicas”, “empresas”, “empreendedores”, “imobiliárias”, “indústrias”, etc., gerar insight de base compatível.
-
-4. **Novos campos no `MatchSuggestion`**
-
-```text
-matchType: "indicacao" | "parceria" | "troca_base" | "segmento" | "tags"
-partnershipScore: number
-opportunityTitle: string
-opportunityDescription: string
-opportunityIdeas: string[]
-```
-
-5. **Pontuação complementar ao score atual**
-   - Manter o score existente para não quebrar a lógica.
-   - Adicionar bônus moderado para complementaridade real:
-     - +30 parceria complementar forte;
-     - +20 público-alvo compatível;
-     - +15 troca de contatos provável;
-     - +10 oferta conjunta possível.
-
-6. **Cards de MatchMaking mais úteis**
-
-Cada card deixaria de mostrar apenas badges como:
-
-```text
-Compatível com seu cliente ideal
-Mesmo segmento de negócio
-```
-
-E passaria a mostrar algo como:
-
-```text
-Oportunidade: Parceria complementar
-SEO + Desenvolvimento Web podem gerar uma oferta conjunta para empresas que precisam captar leads pelo site.
-
-Possíveis próximos passos:
-- Trocar cases de clientes atendidos
-- Mapear clientes que precisam do serviço complementar
-- Criar uma oferta conjunta para clínicas e empresas locais
-```
-
----
-
-### Escopo controlado para a primeira versão
-
-Implementar agora:
-
-- Motor determinístico sem custo externo.
-- Novos insights nos cards de MatchMaking.
-- Priorização visual das oportunidades de parceria.
-- Preservar a ação “Já conectei”, a criação de Gente em Ação e os +10 pontos.
-- Sem novas tabelas, sem alteração de RLS, sem edge function e sem IA generativa nesta etapa.
-
-Deixar como evolução futura:
-
-- IA para gerar textos personalizados por membro.
-- Registro de “interesse em parceria”.
-- Funil de oportunidades colaborativas.
-- Histórico de troca de contatos.
-- Métrica de conversão das conexões sugeridas.
-
----
-
-## Validação
-
-Após implementação, validar com Playwright nas larguras:
-
-- 360px
-- 390px
-- 768px
-- desktop padrão
-
-Critérios mínimos:
-
-- `document.documentElement.scrollWidth === document.documentElement.clientWidth` nas páginas afetadas.
-- Home sem feed transbordando.
-- Gamificação sem texto sobreposto.
-- Segmentos em Membros quebrando dentro da badge.
-- Seletor de aniversariantes proporcional no mobile.
-- Cards de Gente em Ação usando a largura total.
-- Cards de Indicações com cabeçalho separado e corpo legível.
-- MatchMaking exibindo oportunidades complementares sem alterar pontuação existente de gamificação.
-
----
-
-## Arquivos previstos
-
-- `src/components/ActivityFeed.tsx`
-- `src/components/ScoringRulesCard.tsx`
-- `src/pages/Index.tsx`
-- `src/pages/Membros.tsx`
-- `src/pages/Aniversarios.tsx`
-- `src/pages/GenteEmAcao.tsx`
-- `src/pages/Indicacoes.tsx`
-- `src/hooks/useMatchmaking.ts`
-- `src/pages/Matchmaking.tsx`
-- `src/lib/matchmaking-rules.ts` novo arquivo utilitário
-- `src/index.css` somente se for necessário adicionar utilitário local de quebra/estrutura
-
----
-
-## Fora do escopo nesta entrega
-
-- Alterar regras de pontuação.
-- Alterar banco, RLS, migrations ou roles.
-- Alterar segurança/PII.
-- Recriar layout inteiro do app.
-- Adicionar IA externa ou cobrança por uso.
-- Alterar Cloudflare, Supabase Functions ou deploy.
+1. Migration `crm_leads` + `crm_lead_history` + RLS + grants + triggers de sync bidirecional.
+2. Edge Functions `submit-lead`, `list-public-teams`, `migrate-existing-guests`.
+3. Hook `useCrmLeads` + backfill.
+4. Aba Convidados em `Encontros.tsx` + trigger de attendance.
+5. Página `/admin/crm` com Kanban + item no Sidebar.
+6. Documentação + changelog v3.24.0.
+7. (Sessão separada) Ajustar `useCreateLead` no projeto @LPs Gente para apontar para `submit-lead`.
