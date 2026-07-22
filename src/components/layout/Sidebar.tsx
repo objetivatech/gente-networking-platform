@@ -30,6 +30,8 @@ interface MenuItem {
   label: string;
   path: string;
   roles?: string[];
+  /** v3.28.0 — papéis que NÃO devem ver este item na navegação (rota continua acessível por URL). */
+  hiddenForRoles?: string[];
 }
 
 interface MenuGroup {
@@ -39,6 +41,9 @@ interface MenuGroup {
   defaultOpen?: boolean;
 }
 
+// v3.28.0: admin não participa das mecânicas de networking; menu foca em gestão.
+const HIDE_FOR_ADMIN = ['admin'];
+
 const menuGroups: MenuGroup[] = [
   {
     id: 'inicio',
@@ -46,7 +51,7 @@ const menuGroups: MenuGroup[] = [
     defaultOpen: true,
     items: [
       { icon: Home, label: 'Início', path: '/' },
-      { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: User, label: 'Meu Perfil', path: '/perfil' },
     ],
   },
@@ -56,23 +61,23 @@ const menuGroups: MenuGroup[] = [
     defaultOpen: true,
     items: [
       { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Calendar, label: 'Encontros', path: '/encontros', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: MessageCircle, label: 'Conselho 24/7', path: '/conselho', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: MessageCircle, label: 'Conselho 24/7', path: '/conselho', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
     ],
   },
   {
     id: 'networking',
     label: 'Networking',
     items: [
-      { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: Megaphone, label: 'Oportunidades', path: '/oportunidades', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: Radio, label: 'Pedidos de Indicação', path: '/pedidos-indicacao', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: Megaphone, label: 'Oportunidades', path: '/oportunidades', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: Radio, label: 'Pedidos de Indicação', path: '/pedidos-indicacao', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: UserPlus, label: 'Convites', path: '/convites', roles: ['admin', 'facilitador', 'membro'] },
     ],
   },
@@ -81,7 +86,7 @@ const menuGroups: MenuGroup[] = [
     label: 'Desempenho',
     items: [
       { icon: BarChart3, label: 'Estatísticas', path: '/estatisticas', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: Trophy, label: 'Ranking', path: '/ranking', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: Trophy, label: 'Ranking', path: '/ranking', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
     ],
   },
   {
