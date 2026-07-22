@@ -1,6 +1,6 @@
 /**
- * dispatch-hub-billing — Enviado quando um lead HUB entra em Qualificado.
- * Envia email placeholder de checkout. Provedor real será integrado em release futura.
+ * dispatch-hub-billing — Cobrança HUB idempotente + retry manual (v3.26.0).
+ * Registra cada tentativa em hub_billing_events + crm_lead_history.
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
@@ -33,54 +33,99 @@ Deno.serve(async (req) => {
     if (claimsErr || !claimsData?.claims) return json({ error: 'Unauthorized' }, 401);
     const userId = claimsData.claims.sub as string;
 
-    const { data: role } = await admin
+    const { data: roleRow } = await admin
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
-      .in('role', ['admin', 'facilitador'])
+      .eq('role', 'admin')
       .maybeSingle();
-    if (!role) return json({ error: 'Sem permissão' }, 403);
+    if (!roleRow) return json({ error: 'Apenas administradores podem disparar cobranças' }, 403);
 
     const body = await req.json().catch(() => ({}));
     const leadId = body?.lead_id as string | undefined;
+    const forceRetry = !!body?.force_retry;
     if (!leadId) return json({ error: 'lead_id obrigatório' }, 400);
 
     const { data: lead } = await admin
       .from('crm_leads')
-      .select('id, name, email, source')
+      .select('id, name, email, source, status, payment_status, is_hub')
       .eq('id', leadId)
       .single();
     if (!lead) return json({ error: 'Lead não encontrado' }, 404);
+    if (!lead.is_hub) return json({ error: 'Cobrança HUB só se aplica a leads Gente HUB' }, 400);
+    if (lead.payment_status === 'paid') return json({ error: 'Lead já está pago' }, 409);
 
-    // Envia email placeholder via edge function send-email já existente
+    // Idempotência: se já existe evento 'triggered' ou 'email_sent' recente e não é retry, bloquear
+    const { data: prior } = await admin
+      .from('hub_billing_events')
+      .select('id, attempt, event_type')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    const hasPrior = (prior ?? []).length > 0;
+    if (hasPrior && !forceRetry) {
+      return json({ error: 'Já existe cobrança em andamento. Use "Reenviar" para nova tentativa.' }, 409);
+    }
+    const nextAttempt = ((prior ?? [])[0]?.attempt ?? 0) + 1;
+
+    // 1. Registrar tentativa
+    await admin.from('hub_billing_events').insert({
+      lead_id: leadId,
+      event_type: forceRetry && hasPrior ? 'retry' : 'triggered',
+      status: 'pending',
+      attempt: nextAttempt,
+      payload: { requested_by: userId },
+      triggered_by: userId,
+    });
+
+    // 2. Enviar email
+    let emailStatus: 'sent' | 'failed' = 'sent';
+    let emailError: string | null = null;
     try {
       await admin.functions.invoke('send-email', {
         body: {
           to: lead.email,
           subject: 'Cobrança Gente HUB — próximos passos',
-          html: `<p>Olá, ${lead.name}!</p>
+          html: `<p>Olá, ${escapeHtml(lead.name)}!</p>
                  <p>Você foi qualificado para o programa <strong>Gente HUB</strong>.
                  Em breve enviaremos o link de pagamento e o contrato para assinatura digital.</p>
                  <p>Se tiver dúvidas, responda este email.</p>`,
         },
       });
     } catch (e) {
-      console.error('dispatch-hub-billing: falha no envio de email', e);
+      emailStatus = 'failed';
+      emailError = e instanceof Error ? e.message : String(e);
+      console.error('dispatch-hub-billing: falha email', e);
     }
 
-    await admin.from('crm_leads').update({ payment_status: 'pending' }).eq('id', leadId);
-    await admin.from('crm_lead_history').insert({
+    // 3. Registrar resultado do email
+    await admin.from('hub_billing_events').insert({
       lead_id: leadId,
-      from_status: null,
-      to_status: null,
-      moved_by: userId,
-      reason: 'hub_billing_email_sent',
-      source_snapshot: lead.source,
-      event_type: 'hub_billing_triggered',
-      metadata: { email_to: lead.email },
+      event_type: emailStatus === 'sent' ? 'email_sent' : 'failed',
+      status: emailStatus,
+      attempt: nextAttempt,
+      payload: { email_to: lead.email, error: emailError },
+      triggered_by: userId,
     });
 
-    return json({ success: true });
+    // 4. Atualizar status pagamento
+    if (lead.payment_status !== 'pending') {
+      await admin.from('crm_leads').update({ payment_status: 'pending' }).eq('id', leadId);
+    }
+
+    // 5. Log histórico auditoria
+    await admin.from('crm_lead_history').insert({
+      lead_id: leadId,
+      from_status: lead.status,
+      to_status: lead.status,
+      moved_by: userId,
+      reason: emailStatus === 'sent' ? 'hub_billing_email_sent' : 'hub_billing_failed',
+      source_snapshot: lead.source,
+      event_type: emailStatus === 'sent' ? 'hub_billing_triggered' : 'hub_billing_failed',
+      metadata: { email_to: lead.email, attempt: nextAttempt, retry: forceRetry, error: emailError },
+    });
+
+    return json({ success: true, attempt: nextAttempt, email_status: emailStatus });
   } catch (err) {
     console.error('dispatch-hub-billing fatal', err);
     return json({ error: err instanceof Error ? err.message : 'Erro interno' }, 500);
@@ -92,4 +137,8 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+}
+
+function escapeHtml(s: string) {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }
