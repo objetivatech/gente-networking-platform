@@ -287,7 +287,7 @@ export default function AdminCrm() {
                           {lead.profile_id && lead.status === 'fechado' && (
                             <Crown className="h-4 w-4 text-amber-500" />
                           )}
-                          <ContractIcon status={lead.contract_status} />
+                          <ContractBadge status={lead.contract_status} />
                         </div>
                       </div>
 
