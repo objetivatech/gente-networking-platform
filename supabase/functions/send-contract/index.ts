@@ -1,6 +1,7 @@
 /**
- * send-contract — Cria documento no Autentique para um lead do CRM.
- * Admin-only. Salva autentique_document_id em crm_leads e loga em crm_lead_history.
+ * send-contract — Cria documento no Autentique usando modelo configurável (v3.26.0).
+ * Admin-only. Aceita template_id + variables, renderiza placeholders,
+ * salva autentique_document_id + signing_url em crm_leads e loga em crm_lead_history.
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
@@ -19,9 +20,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return json({ error: 'Unauthorized' }, 401);
-    }
+    if (!authHeader?.startsWith('Bearer ')) return json({ error: 'Unauthorized' }, 401);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -38,7 +37,6 @@ Deno.serve(async (req) => {
     if (claimsErr || !claimsData?.claims) return json({ error: 'Unauthorized' }, 401);
     const userId = claimsData.claims.sub as string;
 
-    // Verifica papel admin
     const { data: roleRow } = await admin
       .from('user_roles')
       .select('role')
@@ -47,17 +45,17 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!roleRow) return json({ error: 'Apenas administradores podem enviar contratos' }, 403);
 
-    if (!autentiqueKey) {
-      return json({ error: 'AUTENTIQUE_API_KEY não configurada' }, 503);
-    }
+    if (!autentiqueKey) return json({ error: 'AUTENTIQUE_API_KEY não configurada' }, 503);
 
     const body = await req.json().catch(() => ({}));
     const leadId = body?.lead_id as string | undefined;
+    const templateId = body?.template_id as string | undefined;
+    const variables = (body?.variables ?? {}) as Record<string, string>;
     if (!leadId) return json({ error: 'lead_id obrigatório' }, 400);
 
     const { data: lead, error: leadErr } = await admin
       .from('crm_leads')
-      .select('id, name, email, source, status, contract_status, autentique_document_id')
+      .select('id, name, email, phone, company, business_segment, source, status, contract_status, target_team_id')
       .eq('id', leadId)
       .single();
     if (leadErr || !lead) return json({ error: 'Lead não encontrado' }, 404);
@@ -65,18 +63,65 @@ Deno.serve(async (req) => {
       return json({ error: 'Contrato já foi enviado' }, 409);
     }
 
-    // Documento simples com HTML default. Em produção, aponte para um template PDF hospedado.
-    const html = `
-      <h1>Contrato de Adesão — Gente Networking</h1>
-      <p>Contratante: ${escapeHtml(lead.name)} (${escapeHtml(lead.email)})</p>
-      <p>Este documento formaliza a adesão do contratante ao programa Gente Networking / Gente HUB
-      conforme condições comerciais previamente acordadas.</p>
-      <p>Ao assinar, o contratante declara estar ciente e de acordo com os termos apresentados.</p>
-    `;
+    // Buscar modelo (informado ou padrão)
+    let template: {
+      id: string;
+      name: string;
+      body_html: string;
+      version: number;
+    } | null = null;
+
+    if (templateId) {
+      const { data } = await admin
+        .from('contract_templates')
+        .select('id, name, body_html, version')
+        .eq('id', templateId)
+        .maybeSingle();
+      template = data as typeof template;
+    }
+    if (!template) {
+      const { data } = await admin
+        .from('contract_templates')
+        .select('id, name, body_html, version')
+        .eq('is_default', true)
+        .eq('is_active', true)
+        .maybeSingle();
+      template = data as typeof template;
+    }
+    if (!template) {
+      return json({ error: 'Nenhum modelo de contrato disponível. Cadastre um modelo padrão em /admin/contratos.' }, 400);
+    }
+
+    // Nome do grupo
+    let teamName = '';
+    if (lead.target_team_id) {
+      const { data: t } = await admin.from('teams').select('name').eq('id', lead.target_team_id).maybeSingle();
+      teamName = (t as { name?: string } | null)?.name ?? '';
+    }
+
+    const builtIn: Record<string, string> = {
+      nome: lead.name,
+      email: lead.email,
+      empresa: lead.company ?? '',
+      telefone: lead.phone ?? '',
+      segmento: lead.business_segment ?? '',
+      grupo: teamName,
+      data_hoje: new Date().toLocaleDateString('pt-BR'),
+    };
+    const merged: Record<string, string> = { ...builtIn, ...variables };
+
+    const html = renderTemplate(template.body_html, merged);
 
     const mutation = `
       mutation CreateDoc($doc: DocumentInput!, $signers: [SignerInput!]!, $file: Upload!) {
-        createDocument(document: $doc, signers: $signers, file: $file) { id name }
+        createDocument(document: $doc, signers: $signers, file: $file) {
+          id
+          name
+          signatures {
+            public_id
+            link { short_link }
+          }
+        }
       }
     `;
 
@@ -105,14 +150,15 @@ Deno.serve(async (req) => {
     }
 
     let docId: string | null = null;
+    let signingUrl: string | null = null;
     try {
       const parsed = JSON.parse(respText);
-      docId = parsed?.data?.createDocument?.id ?? null;
-      if (!docId) {
-        console.error('Autentique response sem doc id', parsed);
-        return json({ error: 'Resposta inválida do Autentique', details: parsed }, 502);
-      }
-    } catch (e) {
+      const doc = parsed?.data?.createDocument;
+      docId = doc?.id ?? null;
+      const sig = Array.isArray(doc?.signatures) ? doc.signatures[0] : null;
+      signingUrl = sig?.link?.short_link ?? null;
+      if (!docId) return json({ error: 'Resposta inválida do Autentique', details: parsed }, 502);
+    } catch {
       return json({ error: 'Resposta inválida do Autentique', raw: respText }, 502);
     }
 
@@ -122,6 +168,10 @@ Deno.serve(async (req) => {
         autentique_document_id: docId,
         contract_status: 'sent',
         contract_sent_at: new Date().toISOString(),
+        contract_signing_url: signingUrl,
+        contract_template_id: template.id,
+        contract_template_version: template.version,
+        contract_variables: merged,
       })
       .eq('id', leadId);
 
@@ -133,23 +183,33 @@ Deno.serve(async (req) => {
       reason: 'contract_sent',
       source_snapshot: lead.source,
       event_type: 'contract_sent',
-      metadata: { autentique_document_id: docId },
+      metadata: {
+        autentique_document_id: docId,
+        signing_url: signingUrl,
+        template_id: template.id,
+        template_version: template.version,
+        template_name: template.name,
+      },
     });
 
-    return json({ success: true, autentique_document_id: docId });
+    return json({ success: true, autentique_document_id: docId, signing_url: signingUrl });
   } catch (err) {
     console.error('send-contract fatal', err);
     return json({ error: err instanceof Error ? err.message : 'Erro interno' }, 500);
   }
 });
 
+function renderTemplate(html: string, vars: Record<string, string>): string {
+  return html.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (_m, key: string) => {
+    const v = vars[key];
+    if (v === undefined || v === null) return '';
+    return String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+  });
+}
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 }
