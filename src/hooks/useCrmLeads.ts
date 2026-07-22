@@ -93,6 +93,8 @@ export const CRM_EVENT_LABEL: Record<string, string> = {
   contract_expired: 'Contrato expirado',
   contract_event: 'Evento de contrato',
   hub_billing_triggered: 'Cobrança HUB disparada',
+  hub_billing_failed: 'Falha na cobrança HUB',
+  payment_paid_manual: 'Pagamento marcado manualmente',
   promoted: 'Promovido a membro',
   note_added: 'Nota adicionada',
   manual_edit: 'Edição manual',
