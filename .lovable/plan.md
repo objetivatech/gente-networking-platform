@@ -1,188 +1,127 @@
 
-# v3.26.0 — Contratos gerenciáveis, menu inteligente e CRM completo
+# v3.27.0 — Identidade nas imagens, PWA persistente e CRM completo
 
-## Revisão do que já está entregue (v3.24 + v3.25)
-- CRM unificado (`crm_leads` + `crm_lead_history`), Kanban com coluna **HUB Ativo**, badge/filtro HUB, drawer clicável com ações.
-- Edge Functions: `submit-lead`, `send-contract` (Autentique GraphQL), `autentique-webhook`, `dispatch-hub-billing`, `get-contract-url`, `list-public-teams`, `migrate-existing-guests`.
-- Storage `contracts` privado + `get-contract-url` (URL assinada de 5 min, admin-only).
-- RPCs `promote_crm_lead_to_member` (com validações) e `add_crm_lead_note`.
-- Página `/admin/crm/auditoria` com filtros + CSV.
-- Trigger de roteamento HUB e trigger de cobrança em `qualificado`.
+Escopo dividido em 6 frentes. Tudo revisado desktop + mobile e documentado ao final.
 
-## Pendências identificadas (a corrigir nesta versão)
-1. `send-contract` usa **HTML fixo hardcoded** — não dá para editar o contrato sem código.
-2. Não há **variáveis dinâmicas** no contrato (nome, empresa, valor, plano, datas etc.).
-3. Drawer não exibe **link de assinatura** (URL pública do Autentique) nem **status visual** (pendente/assinado/rejeitado) com destaque.
-4. Cobrança HUB é apenas um email placeholder — falta **registrar tentativas, retry manual e estados** (pendente/enviada/paga/falha).
-5. Auditoria só exporta CSV — falta **PDF** e filtro por **intervalo de datas**.
-6. Sidebar tem 22+ itens planos — sem agrupamento, difícil de usar no mobile.
-7. Promoção existe, mas não é um **wizard guiado** — é um dialog único.
+## 1. Imagens do Gente aplicadas ao app (assets + PWA)
 
----
+- Publicar via `lovable-assets` os 6 uploads: `gente-comunidade-cor.png`, `gente-comunidade-2.png` (branco), `gente-networking-cor.png`, `gente-networking-2.png` (branco), e as 3 fotos de reunião (`1768355357092`, `1768490884426`, `1781456022738`).
+- Substituir referências:
+  - App interno (Sidebar, Header, cartão, emails no app) → logo **Gente Comunidade** (cor no claro / branco no escuro e em fundos navy).
+  - Landing/páginas públicas (`Auth`, `ConvitePublico`, `GuestWelcome`, `RedefinirSenha`, `AuthConfirm`, `Instalar`, `PublicProfile`, `SEO` og:image) e emails externos → logo **Gente Networking**.
+  - Hero das telas públicas (`Auth`, `ConvitePublico`, `GuestWelcome`, `Instalar`) e ilustração no `PWAInstallPrompt` → foto `1781456022738` (versão com identidade Gente) como imagem principal; usar as outras 2 fotos como variações em cards secundários.
+- Regenerar/gravar os PNGs do PWA (`public/icons/icon-*.png`, `icon-maskable-*`, `apple-touch-icon`, `logo-gente-card.png`, `logo-gente-branco.png`, `logo-gente.png`, `logo-gente-comunidade.png`, `logo-gente-networking.png`) a partir do logo colorido do Gente Comunidade, mantendo padding seguro para maskable (safe area de 20%). Splash Apple recriada com fundo navy `#1E3A5F` + logo branco centralizado.
+- `manifest.webmanifest`: revisar `name`, `short_name`, `theme_color #1E3A5F`, `background_color #FFFFFF`, `icons` (novos hashes), `shortcuts` mantidos.
+- Purge do Worker Cloudflare para os paths de logos/ícones após deploy.
 
-## 1. Modelos de contrato editáveis (nova feature)
+## 2. PWA Install Prompt persistente
 
-**Nova tabela `contract_templates`** (admin-only):
-- `name`, `slug` (único), `description`
-- `body_html` (template com placeholders `{{nome}}`, `{{email}}`, `{{empresa}}`, `{{plano}}`, `{{valor}}`, `{{data_hoje}}`, `{{grupo}}`)
-- `variables_schema` (JSONB descrevendo campos que o admin preenche antes de enviar)
-- `is_active`, `is_default`, `version` (incrementa a cada save)
-- `created_by`, timestamps
-- RLS: leitura/escrita apenas `admin`. GRANTs adequados.
+`src/components/PWAInstallPrompt.tsx` e `src/hooks/usePWAInstall.ts`:
 
-**Nova tabela `contract_template_versions`** para snapshot histórico de cada alteração (auditoria de contrato).
+- Aparece **sempre** (mobile via `beforeinstallprompt`, iOS via detecção UA + `!isStandalone`, desktop Chromium/Edge via `beforeinstallprompt`).
+- "Agora não" → grava `pwa-banner-dismissed = Date.now()` e reaparece após **2 dias** (48h), não 7.
+- Detecção de instalação:
+  - Escutar evento `appinstalled` → grava `pwa-installed = true` e nunca mais mostra.
+  - Checar `window.matchMedia('(display-mode: standalone)')` e `navigator.standalone` (iOS) → considera instalado.
+  - Se `isStandalone` ou `pwa-installed` presente → não renderiza.
+- Ilustração do card usa a nova foto Gente + microcopy revisada.
+- Também exposto botão manual "Instalar agora" na página `/instalar` sem alteração de fluxo.
 
-**UI `/admin/contratos`** (nova rota admin):
-- Lista de modelos com badge "Padrão" / "Ativo".
-- Editor com preview lado-a-lado (Textarea com HTML + `dangerouslySetInnerHTML` sanitizado do preview).
-- Chips clicáveis para inserir placeholders.
-- Botão "Definir como padrão".
-- Responsivo: em mobile, editor e preview empilhados em tabs (Editar / Prévia).
+## 3. Auditoria CRM — exportação CSV/PDF + filtros
 
-**Refatorar `send-contract`**:
-- Aceita `template_id` (opcional; usa padrão se omitido) e `variables` (objeto chave-valor com o que o admin preencheu).
-- Renderiza placeholders no servidor com escape HTML.
-- Salva `template_id`, `template_version` e `variables_used` em `crm_leads` (novas colunas) e em `crm_lead_history.metadata`.
+`src/pages/AdminCrmAuditoria.tsx`:
 
-**Fluxo no Drawer** (novo botão "Enviar contrato"):
-- Abre modal `SendContractDialog` com:
-  - Select do modelo (padrão pré-selecionado).
-  - Form dinâmico gerado a partir de `variables_schema` (ex.: valor mensal, plano HUB, observações).
-  - Pré-preenchimento automático com dados do lead (nome, email, empresa).
-  - Prévia final antes de enviar.
+- Novos filtros: `from_status`, `to_status`, `date_from`, `date_to` (date pickers) além dos já existentes (busca, evento, origem).
+- `useCrmAuditFeed` aceitar range de datas server-side (paginação segura, mantém limit 500 por padrão).
+- Botão **Exportar CSV** (já existe) e novo **Exportar PDF** via `jsPDF` + `jspdf-autotable` (mesmo padrão do `ExportButton`), com cabeçalho branded (logo Gente Networking) e linha de filtros aplicados.
+- Layout responsivo: filtros em grid `sm:grid-cols-2 lg:grid-cols-5`, ações empilhadas no mobile.
 
-## 2. Status de contrato + link de assinatura no lead
+## 4. Status do contrato no card do lead + Kanban
 
-- Adicionar coluna `contract_signing_url` em `crm_leads` (armazena URL pública Autentique retornada em `createDocument`).
-- `send-contract` passa a extrair `signatures { public_id link { short_link } }` do payload GraphQL e persistir a URL.
-- **Drawer**: bloco destacado "Contrato" com:
-  - Badge colorido: `pendente` (cinza), `enviado` (azul), `assinado` (verde), `rejeitado` (vermelho).
-  - Botão "Abrir link de assinatura" (quando `sent`).
-  - Botão "Copiar link" (para reenvio manual).
-  - Botão "Baixar PDF" (quando `signed`).
-  - Timestamp da última mudança.
-- **Kanban**: ícone de contrato no card já existe; adicionar tooltip e cor por status.
-- `autentique-webhook` já salva PDF; adicionar tratamento do evento `document.rejected` → seta `contract_status='rejected'` e loga em histórico.
+`src/pages/AdminCrm.tsx` (`LeadCard`) e `LeadDrawer.tsx`:
 
-## 3. Cobrança HUB — regras automáticas robustas
+- Adicionar badge de contrato colorida no card do Kanban (`Pendente`, `Enviado`, `Assinado`, `Rejeitado`, `Expirado`) com o mesmo mapping já usado no drawer.
+- Card mostra ícone de link se `contract_signing_url` presente.
+- `autentique-webhook`: garantir que ao evento `signed` o PDF é baixado e salvo em `contracts/{lead_id}/{doc_id}.pdf` (já existe) e o Kanban recebe update via invalidação/realtime (`crm_leads` já publicado). Confirmar `contract_signed_pdf_path` alimentado no webhook.
+- Drawer: já expõe "Abrir link de assinatura" e "Baixar PDF" — reorganizar bloco Contrato em card próprio com timestamps (`contract_sent_at`, `contract_signed_at`) e botão "Copiar link".
 
-**Nova tabela `hub_billing_events`**:
-- `lead_id`, `event_type` (`triggered`, `email_sent`, `payment_link_sent`, `paid`, `failed`, `retry`), `status`, `payload` (JSONB), `attempt`, `created_at`.
-- RLS admin-only.
+## 5. Fluxo guiado de promoção (finalização)
 
-**Refatorar `dispatch-hub-billing`**:
-- Idempotente (não dispara 2x para o mesmo lead sem retry manual).
-- Registra cada tentativa em `hub_billing_events` E em `crm_lead_history` (event_type `hub_billing_*`).
-- Atualiza `crm_leads.payment_status` conforme progresso.
-- Aceita `force_retry: true` para reenvio manual.
+`PromoteLeadDialog.tsx` + RPC `promote_crm_lead_to_member`:
 
-**Trigger DB**: ao mover HUB lead para `qualificado`, insere evento `triggered` e chama a function via `pg_net` (ou registra pendência e o front dispara — vamos usar registro pendente + botão no drawer, mais simples e auditável).
+- Transformar em wizard de 3 passos (Stepper): **1) Validações** (checklist atual) → **2) Grupo destino** (com destaque `is_hub` quando aplicável e opção "Mover para grupo premium" filtrando `teams.is_hub = true`) → **3) Confirmação** (resumo + motivo se aplicável).
+- Permissões: admin sempre; facilitador **apenas se** lead pertence ao seu grupo destino (validação no RPC via `has_role` + `team_members`).
+- Registrar no `crm_lead_history` evento `promoted_to_member` com metadata `{ team_id, previous_team_id, skip_contract, skip_payment, reason }` (já parcialmente existente — completar campos).
+- Bloqueio explícito quando `needsAccount` ou contrato HUB pendente sem justificativa.
 
-**Drawer HUB** — nova seção "Cobrança":
-- Status atual + histórico de tentativas.
-- Botão "Reenviar cobrança" (admin).
-- Botão "Marcar como pago manualmente" (com motivo obrigatório, logado).
+## 6. Versionamento de modelos de contrato + reatribuição
 
-## 4. Wizard guiado de promoção lead → membro
+`contract_template_versions` já existe (snapshot criado em cada save). Ampliar:
 
-Substituir `PromoteLeadDialog` por wizard multi-step (`Stepper`):
-1. **Validação**: checklist visual (conta criada, contrato assinado, pagamento pago se HUB, grupo selecionado). Cada item com ícone verde/vermelho e ação corretiva ("Enviar contrato agora", "Marcar pago", "Convidar para criar conta").
-2. **Configuração**: seleciona grupo destino (com destaque para grupos HUB se `is_hub`), role final (`membro` padrão).
-3. **Confirmação**: resumo + campo de observação obrigatório para auditoria.
-4. Executa RPC `promote_crm_lead_to_member` e mostra sucesso.
+- Editor `AdminContractTemplates.tsx` / `ContractTemplateEditor.tsx`:
+  - Aba "Versões" com lista (versão, autor, data, diff resumido) e ação **Restaurar** (cria nova versão a partir da anterior).
+  - Prévia comparando versão selecionada vs atual.
+- Novo botão **Reatribuir modelo em leads existentes**:
+  - Modal admin: escolhe template + versão + filtro de leads (`status`, `is_hub`, `contract_status ∈ {not_sent, rejected, expired}`).
+  - Ação em massa atualiza `crm_leads.contract_template_id` e `contract_template_version` **sem apagar `contract_variables` nem histórico**; leads com contrato `sent`/`signed` são preservados (opção "forçar" desabilitada para não quebrar auditoria).
+  - Cada alteração gera evento `contract_template_reassigned` em `crm_lead_history` com `{ from_template, to_template, from_version, to_version }`.
+- `send-contract` já usa `template.version` — nenhum breaking change no fluxo Autentique.
 
-Responsivo: steps em coluna única no mobile, horizontal no desktop.
+## 7. Responsividade + documentação
 
-## 5. Timeline expandida no drawer
-
-Estender `LeadAuditTimeline`:
-- Agrupamento por dia (headers "Hoje", "Ontem", `dd/MM/yyyy`).
-- Ícones distintos por `event_type` (origem/LP, status, contract_sent, contract_signed, contract_rejected, hub_billing_*, payment_paid, note_added, promoted_to_member).
-- Mostrar **origem** (LP/HUB/manual) em cada evento.
-- Mostrar **responsável** com nome + avatar quando disponível.
-- Colapsável ("Ver mais" após 10 eventos).
-- Mobile: card empilhado; Desktop: linha do tempo lateral.
-
-## 6. Exportação da auditoria (CSV + PDF + filtros de data)
-
-`/admin/crm/auditoria`:
-- Novos filtros: **date-range picker** (`from`/`to`), origem, event_type, from_status, to_status (já existem parcialmente).
-- Botão "Exportar" com dropdown: **CSV** (existe) + **PDF** (novo, via `jspdf` + `autotable` já no projeto).
-- PDF inclui cabeçalho com filtros aplicados, contagem total, tabela paginada.
-- Nome do arquivo inclui range de datas.
-
-## 7. Reorganização do menu (Sidebar + BottomNav)
-
-**Novo `Sidebar` com grupos colapsáveis** (usando shadcn `Collapsible`):
-
-- **Início** (link direto)
-- **Feed** (link direto)
-- **Comunidade** (grupo)
-  - Membros, Convidados, Aniversários, MatchMaking
-- **Networking** (grupo)
-  - Gente em Ação, Depoimentos, Negócios, Indicações, Oportunidades, Pedidos de Indicação
-- **Encontros & Conteúdo** (grupo)
-  - Encontros, Conteúdos, Conselho 24/7
-- **Performance** (grupo)
-  - Estatísticas, Ranking
-- **Meu espaço** (grupo)
-  - Meu Perfil, Convites, Configurações
-- **Ajuda** (grupo)
-  - Changelog, Documentação
-- **Administração** (grupo, admin/facilitador)
-  - Dashboard, Gestão de Pessoas, CRM de Leads, Auditoria CRM, Modelos de Contrato, Gestão de Registros, Admin
-
-Comportamento:
-- Persistir estado aberto/fechado em `localStorage` por grupo.
-- Auto-abrir o grupo que contém a rota ativa.
-- Mobile (sheet): mesma estrutura; grupos começam fechados exceto o ativo.
-- BottomNav mobile: manter 5 atalhos (Início, Feed, Membros, Encontros, Perfil) — sem mudar.
-
-## 8. Responsividade e documentação (transversal)
-
-- Todos os novos componentes seguem regras já registradas em `mem://design/responsive-rules` (min-w-0, text-wrap-anywhere, sem overflow-x hidden global).
-- Testar cada tela nova em 375px e 1280px.
-- Documentar em:
-  - `docs/CRM_LEADS.md` — seções "Modelos de contrato", "Cobrança HUB", "Wizard de promoção", "Auditoria".
-  - Novo `docs/CONTRACT_TEMPLATES.md` — como criar/editar modelos, lista de placeholders, versionamento.
-  - `docs/TECHNICAL_DOCUMENTATION.md` — nova estrutura do menu.
-- Nova entrada em `system_changelog` (v3.26.0).
-- Atualizar memória: `mem://features/crm-leads-unificado.md`, criar `mem://features/contract-templates`, criar `mem://design/menu-structure`, atualizar `mem://index.md`.
-
----
+- Regressão mobile em: Kanban CRM (cards), drawer, wizard de promoção, editor de contratos (aba versões), auditoria (filtros/PDF), popup PWA e páginas públicas com nova hero.
+- Aplicar regras de `mem://design/responsive-rules` (min-w-0, `.text-wrap-anywhere`, sem overflow global).
+- Atualizações de docs:
+  - `docs/PWA_IMPLEMENTATION.md` — política de reexibição 2 dias + `appinstalled` + iOS.
+  - `docs/CRM_LEADS.md` — status de contrato no card, wizard de promoção, versionamento e reatribuição de modelos, filtros de auditoria + PDF.
+  - `docs/TECHNICAL_DOCUMENTATION.md` — nova asset library (Gente Comunidade × Networking) e uso por contexto.
+  - `src/pages/Changelog.tsx` — entrada **v3.27.0** consolidando tudo.
+- Memórias:
+  - Nova `mem://features/v3270-pwa-crm-contratos.md`.
+  - Atualizar `mem://features/crm-leads-unificado.md` (adicionar versionamento + reatribuição + wizard).
+  - Atualizar `mem://design/visual-identity.md` (dois logos por contexto).
 
 ## Detalhes técnicos
 
-### Migração (uma única, ordenada)
-1. `CREATE TABLE public.contract_templates (...)` + GRANTs (admin) + RLS + policies.
-2. `CREATE TABLE public.contract_template_versions (...)` + GRANTs + RLS.
-3. `CREATE TABLE public.hub_billing_events (...)` + GRANTs + RLS.
-4. `ALTER TABLE crm_leads ADD COLUMN contract_signing_url text, template_id uuid REFERENCES contract_templates, template_version int, contract_variables jsonb`.
-5. Trigger `contract_templates_bump_version` (snapshot em versions a cada UPDATE).
-6. Seed do modelo padrão (o HTML atual do `send-contract`).
+### Migrations
 
-### Edge Functions
-- Refatorar `send-contract`: aceita `template_id` + `variables`, renderiza, salva `contract_signing_url`.
-- Refatorar `autentique-webhook`: trata `document.rejected`.
-- Refatorar `dispatch-hub-billing`: idempotente + registra em `hub_billing_events`.
-- Nenhuma function nova (mantém superfície mínima).
+```sql
+-- 1. Metadados de reatribuição
+ALTER TABLE public.crm_leads
+  ADD COLUMN IF NOT EXISTS contract_signed_at TIMESTAMPTZ;
 
-### Frontend novos arquivos
-- `src/pages/AdminContractTemplates.tsx`
-- `src/components/contracts/ContractTemplateEditor.tsx`
-- `src/components/crm/SendContractDialog.tsx`
-- `src/components/crm/PromoteLeadWizard.tsx` (substitui dialog)
-- `src/components/crm/HubBillingPanel.tsx`
-- `src/components/layout/SidebarGroup.tsx` (colapsável)
-- `src/hooks/useContractTemplates.ts`
-- `src/hooks/useHubBilling.ts`
-- Rota `/admin/contratos` em `App.tsx`.
+-- 2. Índices p/ auditoria com range de datas
+CREATE INDEX IF NOT EXISTS idx_crm_history_created_at ON public.crm_lead_history (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_crm_history_event_type ON public.crm_lead_history (event_type);
 
-### Fora de escopo
-- Integração real com gateway de pagamento (mantém decisão adiada da v3.24).
-- Editor rich-text WYSIWYG — usar textarea HTML + preview (evita dependência nova).
+-- 3. RPC de reatribuição em massa (admin-only)
+CREATE OR REPLACE FUNCTION public.reassign_contract_template(
+  _template_id uuid,
+  _version int,
+  _lead_ids uuid[]
+) RETURNS int
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ ... $$;
+```
 
-## Riscos e mitigação
-- **Quebrar contratos em andamento**: mantém coluna `body_html` no lead atual até assinatura; template versionado garante que reenvios usam a versão certa.
-- **Menu quebrar navegação**: preservar todas as rotas atuais; só reagrupar. Testes visuais em `/` para cada role.
-- **Trigger de cobrança duplicando**: idempotência por `lead_id + status='pending'`.
+Grants padrão: `EXECUTE ... TO authenticated`; função valida `has_role(auth.uid(),'admin')` internamente.
+
+### Arquivos afetados (novos/alterados)
+
+- `src/components/PWAInstallPrompt.tsx`, `src/hooks/usePWAInstall.ts`
+- `src/pages/AdminCrm.tsx` (badge contrato no card), `src/components/crm/LeadCard.tsx` (se existir, senão inline)
+- `src/components/crm/LeadDrawer.tsx`, `src/components/crm/PromoteLeadDialog.tsx` → wizard
+- `src/pages/AdminCrmAuditoria.tsx` (filtros + PDF)
+- `src/pages/AdminContractTemplates.tsx`, `src/components/contracts/ContractTemplateEditor.tsx`, novo `ContractTemplateVersionsPanel.tsx`, novo `ReassignTemplateDialog.tsx`
+- `src/hooks/useContractTemplates.ts` (restore version, reassign mutation)
+- `supabase/functions/autentique-webhook/index.ts` (confirmar gravação de `contract_signed_at` + `contract_signed_pdf_path`)
+- Migration em `supabase/migrations/…`
+- Docs: `docs/PWA_IMPLEMENTATION.md`, `docs/CRM_LEADS.md`, `docs/TECHNICAL_DOCUMENTATION.md`, `src/pages/Changelog.tsx`
+- Assets: `src/assets/logo-gente-comunidade.*.asset.json`, `logo-gente-networking.*.asset.json`, `hero-networking-*.asset.json`; PNGs do PWA em `public/icons/` e `public/logo-*.png`
+
+### Não escopo
+
+- Provedor de pagamento (Efi/Stripe) — usuário adiou.
+- Refatoração do sidebar/menu (já entregue em v3.26.0).
+- Mudanças em RLS de tabelas fora do CRM/contratos.
+
+Sem breaking changes; RPC de reatribuição é aditiva e nunca sobrescreve leads com contrato ativo.
