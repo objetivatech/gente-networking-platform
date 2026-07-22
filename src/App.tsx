@@ -20,6 +20,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "@/components/layout/MainLayout";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { LgpdBanner } from "@/components/LgpdBanner";
 import { Loader2 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import Index from './pages/Index';
@@ -64,6 +65,9 @@ const PedidosIndicacao = lazyWithRetry(() => import("./pages/PedidosIndicacao"))
 const AdminCrm = lazyWithRetry(() => import("./pages/AdminCrm"));
 const AdminCrmAuditoria = lazyWithRetry(() => import("./pages/AdminCrmAuditoria"));
 const AdminContractTemplates = lazyWithRetry(() => import("./pages/AdminContractTemplates"));
+const TermosDeUso = lazyWithRetry(() => import("./pages/legal/TermosDeUso"));
+const PoliticaPrivacidade = lazyWithRetry(() => import("./pages/legal/PoliticaPrivacidade"));
+const PoliticaCookies = lazyWithRetry(() => import("./pages/legal/PoliticaCookies"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -99,6 +103,7 @@ const App = () => (
         <Sonner />
         <OfflineIndicator />
         <PWAInstallPrompt />
+        <LgpdBanner />
         <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
@@ -111,6 +116,10 @@ const App = () => (
               <Route path="/m/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />
               {/* Compatibilidade: URL antiga /p/:slug redireciona para /m/:slug */}
               <Route path="/p/:slug" element={<PublicProfileRedirect />} />
+              {/* Páginas legais públicas (LGPD) */}
+              <Route path="/termos-de-uso" element={<TermosDeUso />} />
+              <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+              <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/feed" element={<Feed />} />
