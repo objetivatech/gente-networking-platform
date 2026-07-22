@@ -12,7 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Plus, Trash2, Star, Pencil } from 'lucide-react';
+import { FileText, Plus, Trash2, Star, Pencil, History, Users } from 'lucide-react';
 import { useAdmin } from '@/hooks/useAdmin';
 import {
   useContractTemplates,
@@ -20,6 +20,8 @@ import {
   type ContractTemplate,
 } from '@/hooks/useContractTemplates';
 import { ContractTemplateEditor } from '@/components/contracts/ContractTemplateEditor';
+import { ContractVersionsDialog } from '@/components/contracts/ContractVersionsDialog';
+import { ReassignTemplateDialog } from '@/components/contracts/ReassignTemplateDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +40,8 @@ export default function AdminContractTemplates() {
   const [editing, setEditing] = useState<ContractTemplate | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ContractTemplate | null>(null);
+  const [versionsFor, setVersionsFor] = useState<ContractTemplate | null>(null);
+  const [reassignFor, setReassignFor] = useState<ContractTemplate | null>(null);
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
 
@@ -113,6 +117,12 @@ export default function AdminContractTemplates() {
                   <Button size="sm" variant="outline" onClick={() => setEditing(t)}>
                     <Pencil className="h-4 w-4 mr-1" /> Editar
                   </Button>
+                  <Button size="sm" variant="outline" onClick={() => setVersionsFor(t)}>
+                    <History className="h-4 w-4 mr-1" /> Versões
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setReassignFor(t)}>
+                    <Users className="h-4 w-4 mr-1" /> Reatribuir
+                  </Button>
                   <Button
                     size="sm"
                     variant="ghost"
@@ -151,6 +161,21 @@ export default function AdminContractTemplates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {versionsFor && (
+        <ContractVersionsDialog
+          template={versionsFor}
+          open={!!versionsFor}
+          onOpenChange={(o) => !o && setVersionsFor(null)}
+        />
+      )}
+      {reassignFor && (
+        <ReassignTemplateDialog
+          template={reassignFor}
+          open={!!reassignFor}
+          onOpenChange={(o) => !o && setReassignFor(null)}
+        />
+      )}
     </div>
   );
 }
