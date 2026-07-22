@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
-const logoGente = '/logo-gente-comunidade.png';
+const logoGente = '/logo-gente.png';
 
 interface SidebarProps {
   open: boolean;

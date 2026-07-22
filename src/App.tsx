@@ -103,8 +103,8 @@ const App = () => (
         <Sonner />
         <OfflineIndicator />
         <PWAInstallPrompt />
-        <LgpdBanner />
         <BrowserRouter>
+          <LgpdBanner />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/auth" element={<Auth />} />
