@@ -10,6 +10,8 @@
  */
 const logoComunidade = '/logo-gente-comunidade.png';
 
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
   return (
     <footer className="border-t border-border bg-card py-4 px-4 lg:px-6">
@@ -21,6 +23,22 @@ export default function Footer() {
             className="h-8 w-auto"
           />
         </span>
+
+        <nav
+          aria-label="Documentos legais"
+          className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs"
+        >
+          <Link to="/termos-de-uso" className="text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+            Termos de Uso
+          </Link>
+          <Link to="/politica-de-privacidade" className="text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+            Política de Privacidade
+          </Link>
+          <Link to="/politica-de-cookies" className="text-muted-foreground hover:text-foreground underline-offset-2 hover:underline">
+            Política de Cookies
+          </Link>
+        </nav>
+
         <span className="text-sm text-muted-foreground">
           © 2026. Criado e operado com{' '}
           <strong className="text-destructive">♥</strong> por{' '}
@@ -41,46 +59,14 @@ export default function Footer() {
         </span>
 
         <span className="text-xs text-muted-foreground max-w-2xl">
-          Projeto construído com tecnologias de nuvem, banco de dados e inteligência artificial, 
+          Projeto construído com tecnologias de nuvem, banco de dados e inteligência artificial,
           incluindo serviços de edge computing, plataformas low-code e modelos de IA generativa.
           <br />
           Recursos visuais licenciados por{' '}
-          <a
-            href="https://www.freepikcompany.com/legal"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground transition-colors"
-          >
-            Freepik
-          </a>
-          ,{' '}
-          <a
-            href="https://www.freepikcompany.com/legal#nav-flaticon"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground transition-colors"
-          >
-            Flaticon
-          </a>
-          ,{' '}
-          <a
-            href="https://fontawesome.com/license/free"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground transition-colors"
-          >
-            FontAwesome
-          </a>{' '}
-          e{' '}
-          <a
-            href="https://lottiefiles.com/page/terms-and-conditions"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground transition-colors"
-          >
-            LottieFiles
-          </a>
-          .
+          <a href="https://www.freepikcompany.com/legal" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Freepik</a>,{' '}
+          <a href="https://www.freepikcompany.com/legal#nav-flaticon" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Flaticon</a>,{' '}
+          <a href="https://fontawesome.com/license/free" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">FontAwesome</a> e{' '}
+          <a href="https://lottiefiles.com/page/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">LottieFiles</a>.
         </span>
       </div>
     </footer>
