@@ -1,19 +1,21 @@
 /**
- * AdminCrm - Kanban do CRM de leads unificado (v3.24.0).
+ * AdminCrm - Kanban do CRM de leads unificado (v3.24.0 + v3.25.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  *
- * Página admin-only. Permite visualizar leads vindos de LPs, convites manuais
- * e API em um Kanban de 5 colunas com filtros e movimentação por select.
+ * Página admin-only. Kanban com filtros, coluna HUB Ativo, drawer de auditoria,
+ * ações de contrato e promoção. Automação: leads HUB roteados por trigger,
+ * cobrança e contrato disparados por gatilhos ao virar Qualificado.
  */
 import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Toggle } from '@/components/ui/toggle';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import {
@@ -27,14 +29,26 @@ import {
   type CrmLeadSource,
   type CrmLead,
 } from '@/hooks/useCrmLeads';
-import { KanbanSquare, Search, RefreshCcw, Crown } from 'lucide-react';
+import {
+  KanbanSquare,
+  Search,
+  RefreshCcw,
+  Crown,
+  Sparkles,
+  ScrollText,
+  FileText,
+  FilePen,
+  FileX,
+} from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { LeadDrawer } from '@/components/crm/LeadDrawer';
 
 const STATUS_COLORS: Record<CrmLeadStatus, string> = {
   novo: 'bg-slate-500',
   em_qualificacao: 'bg-blue-500',
   qualificado: 'bg-amber-500',
+  hub_ativo: 'bg-orange-500',
   fechado: 'bg-emerald-600',
   perdido: 'bg-rose-500',
 };
@@ -48,6 +62,14 @@ const SOURCE_COLORS: Record<CrmLeadSource, string> = {
   api: 'bg-muted text-foreground',
 };
 
+function ContractIcon({ status }: { status: CrmLead['contract_status'] }) {
+  if (status === 'signed') return <FilePen className="h-3.5 w-3.5 text-emerald-600" />;
+  if (status === 'sent') return <FileText className="h-3.5 w-3.5 text-amber-600" />;
+  if (status === 'rejected' || status === 'expired')
+    return <FileX className="h-3.5 w-3.5 text-rose-600" />;
+  return null;
+}
+
 export default function AdminCrm() {
   const { isAdmin, isLoading: loadingRole } = useAdmin();
   const { teams } = useTeams();
@@ -58,6 +80,8 @@ export default function AdminCrm() {
   const [search, setSearch] = useState('');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
+  const [onlyHub, setOnlyHub] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
 
@@ -69,6 +93,7 @@ export default function AdminCrm() {
 
   const filtered = useMemo(() => {
     return (leads ?? []).filter((l) => {
+      if (onlyHub && !l.is_hub) return false;
       if (search) {
         const s = search.toLowerCase();
         if (
@@ -82,14 +107,23 @@ export default function AdminCrm() {
       if (teamFilter !== 'all' && l.target_team_id !== teamFilter) return false;
       return true;
     });
-  }, [leads, search, sourceFilter, teamFilter]);
+  }, [leads, search, sourceFilter, teamFilter, onlyHub]);
+
+  const hasAnyHub = useMemo(() => (leads ?? []).some((l) => l.is_hub), [leads]);
+  const visibleStatuses = useMemo(() => {
+    // Esconde HUB Ativo do kanban quando não há lead HUB e o filtro não força
+    if (!hasAnyHub && !onlyHub) return CRM_STATUS_ORDER.filter((s) => s !== 'hub_ativo');
+    return CRM_STATUS_ORDER;
+  }, [hasAnyHub, onlyHub]);
 
   const byStatus = useMemo(() => {
     const map = new Map<CrmLeadStatus, CrmLead[]>();
-    CRM_STATUS_ORDER.forEach((s) => map.set(s, []));
-    filtered.forEach((l) => map.get(l.status)?.push(l));
+    visibleStatuses.forEach((s) => map.set(s, []));
+    filtered.forEach((l) => {
+      if (map.has(l.status)) map.get(l.status)!.push(l);
+    });
     return map;
-  }, [filtered]);
+  }, [filtered, visibleStatuses]);
 
   return (
     <div className="space-y-6">
@@ -100,25 +134,32 @@ export default function AdminCrm() {
             <span className="text-wrap-anywhere">CRM de Leads</span>
           </h1>
           <p className="text-muted-foreground text-sm">
-            Funil unificado de leads: LPs, site externo, convites manuais e API.
+            Funil unificado: LPs, site externo, convites manuais e API. Leads Gente HUB entram com automações de cobrança e contrato.
           </p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => backfill.mutate()}
-          disabled={backfill.isPending}
-          className="gap-2"
-        >
-          <RefreshCcw className={`h-4 w-4 ${backfill.isPending ? 'animate-spin' : ''}`} />
-          Sincronizar convidados existentes
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild className="gap-2">
+            <Link to="/admin/crm/auditoria">
+              <ScrollText className="h-4 w-4" /> Auditoria
+            </Link>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => backfill.mutate()}
+            disabled={backfill.isPending}
+            className="gap-2"
+          >
+            <RefreshCcw className={`h-4 w-4 ${backfill.isPending ? 'animate-spin' : ''}`} />
+            Sincronizar convidados
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <div className="relative">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="relative lg:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por nome, email ou empresa..."
@@ -153,6 +194,15 @@ export default function AdminCrm() {
                 ))}
               </SelectContent>
             </Select>
+            <div className="lg:col-span-4">
+              <Toggle
+                pressed={onlyHub}
+                onPressedChange={setOnlyHub}
+                className="gap-2 data-[state=on]:bg-amber-500 data-[state=on]:text-white"
+              >
+                <Sparkles className="h-4 w-4" /> Somente Gente HUB
+              </Toggle>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -161,8 +211,12 @@ export default function AdminCrm() {
       {isLoading ? (
         <p className="text-muted-foreground">Carregando leads...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
-          {CRM_STATUS_ORDER.map((status) => {
+        <div
+          className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${
+            visibleStatuses.length === 6 ? 'xl:grid-cols-6' : 'xl:grid-cols-5'
+          }`}
+        >
+          {visibleStatuses.map((status) => {
             const items = byStatus.get(status) ?? [];
             return (
               <Card key={status} className="min-w-0">
@@ -182,7 +236,13 @@ export default function AdminCrm() {
                   {items.map((lead) => (
                     <div
                       key={lead.id}
-                      className="rounded-md border bg-card p-3 space-y-2 hover:bg-muted/40 transition-colors"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedLead(lead)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') setSelectedLead(lead);
+                      }}
+                      className="rounded-md border bg-card p-3 space-y-2 hover:bg-muted/40 focus:bg-muted/40 outline-none transition-colors cursor-pointer"
                     >
                       <div className="flex items-start justify-between gap-2 min-w-0">
                         <div className="min-w-0 flex-1">
@@ -198,9 +258,17 @@ export default function AdminCrm() {
                             </p>
                           )}
                         </div>
-                        {lead.profile_id && lead.status === 'fechado' && (
-                          <Crown className="h-4 w-4 text-amber-500 shrink-0" />
-                        )}
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          {lead.is_hub && (
+                            <Badge className="bg-amber-500 text-white text-[10px] gap-1">
+                              <Sparkles className="h-3 w-3" /> HUB
+                            </Badge>
+                          )}
+                          {lead.profile_id && lead.status === 'fechado' && (
+                            <Crown className="h-4 w-4 text-amber-500" />
+                          )}
+                          <ContractIcon status={lead.contract_status} />
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap gap-1">
@@ -217,11 +285,19 @@ export default function AdminCrm() {
                             {lead.meeting_attendance_count}× presença
                           </Badge>
                         )}
+                        {lead.payment_status === 'pending' && (
+                          <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-700">
+                            Pgto pendente
+                          </Badge>
+                        )}
                       </div>
 
-                      <div className="flex items-center justify-between gap-2 pt-1">
+                      <div
+                        className="flex items-center justify-between gap-2 pt-1"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <span className="text-[10px] text-muted-foreground">
-                          {format(parseISO(lead.created_at), "dd/MM/yy", { locale: ptBR })}
+                          {format(parseISO(lead.created_at), 'dd/MM/yy', { locale: ptBR })}
                         </span>
                         <Select
                           value={lead.status}
@@ -229,7 +305,7 @@ export default function AdminCrm() {
                             updateStatus.mutate({ id: lead.id, status: v as CrmLeadStatus })
                           }
                         >
-                          <SelectTrigger className="h-7 text-xs w-32">
+                          <SelectTrigger className="h-7 text-xs w-36">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -254,14 +330,21 @@ export default function AdminCrm() {
         <CardHeader>
           <CardTitle className="text-base">Como funciona</CardTitle>
           <CardDescription className="text-xs">
-            Leads entram como <strong>Novo</strong> (via LP ou API). Quando marcam presença em um
-            encontro, viram <strong>Em Qualificação</strong> automaticamente. Movimentar para{' '}
-            <strong>Fechado</strong> um lead com conta criada promove automaticamente para membro.
-            Contratos e pagamentos serão integrados nas próximas releases (Autentique + provedor a
-            definir).
+            Leads entram como <strong>Novo</strong>. Ao marcar presença → <strong>Em Qualificação</strong>.
+            Ao mover para <strong>Qualificado</strong>: leads Gente HUB disparam automação de cobrança
+            e recebem contrato Autentique (se configurado). <strong>HUB Ativo</strong> mostra os leads
+            HUB com contrato/pagamento concluídos, prontos para promoção. Clique em qualquer card para
+            abrir a auditoria e ações. Promover um lead com conta criada torna-o membro do grupo destino.
           </CardDescription>
         </CardHeader>
       </Card>
+
+      <LeadDrawer
+        lead={selectedLead}
+        teamName={selectedLead?.target_team_id ? teamMap.get(selectedLead.target_team_id) : null}
+        onOpenChange={(o) => !o && setSelectedLead(null)}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }
