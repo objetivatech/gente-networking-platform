@@ -43,6 +43,10 @@ export interface CrmLead {
   contract_sent_at: string | null;
   contract_signed_at: string | null;
   autentique_document_id: string | null;
+  contract_signing_url: string | null;
+  contract_template_id: string | null;
+  contract_template_version: number | null;
+  contract_variables: Record<string, string> | null;
   payment_status: CrmPaymentStatus;
   metadata: Record<string, unknown> | null;
   created_at: string;
