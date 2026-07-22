@@ -1,13 +1,12 @@
 /**
- * AdminCrmAuditoria - Página de auditoria global do CRM (v3.25.0).
- * Admin-only. Timeline completa de eventos com filtros e exportação CSV.
+ * AdminCrmAuditoria - Auditoria global do CRM com filtros e exportação CSV/PDF (v3.27.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  */
 import { useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isAfter, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,11 +19,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ScrollText, Download, ArrowLeft } from 'lucide-react';
+import { ScrollText, Download, ArrowLeft, FileText } from 'lucide-react';
 import { useAdmin } from '@/hooks/useAdmin';
 import {
   CRM_EVENT_LABEL,
   CRM_SOURCE_LABEL,
+  CRM_STATUS_LABEL,
+  CRM_STATUS_ORDER,
   useCrmAuditFeed,
 } from '@/hooks/useCrmLeads';
 
@@ -34,13 +35,24 @@ export default function AdminCrmAuditoria() {
   const [search, setSearch] = useState('');
   const [eventFilter, setEventFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
+  const [fromStatus, setFromStatus] = useState('all');
+  const [toStatus, setToStatus] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
 
   const filtered = useMemo(() => {
+    const df = dateFrom ? new Date(dateFrom) : null;
+    const dt = dateTo ? new Date(`${dateTo}T23:59:59`) : null;
     return (data ?? []).filter((row) => {
       if (eventFilter !== 'all' && row.event_type !== eventFilter) return false;
       if (sourceFilter !== 'all' && row.source_snapshot !== sourceFilter) return false;
+      if (fromStatus !== 'all' && row.from_status !== fromStatus) return false;
+      if (toStatus !== 'all' && row.to_status !== toStatus) return false;
+      const created = parseISO(row.created_at);
+      if (df && isBefore(created, df)) return false;
+      if (dt && isAfter(created, dt)) return false;
       if (search) {
         const s = search.toLowerCase();
         const hit =
@@ -52,11 +64,10 @@ export default function AdminCrmAuditoria() {
       }
       return true;
     });
-  }, [data, search, eventFilter, sourceFilter]);
+  }, [data, search, eventFilter, sourceFilter, fromStatus, toStatus, dateFrom, dateTo]);
 
-  const exportCsv = () => {
-    const header = ['Data', 'Lead', 'Email', 'Evento', 'De', 'Para', 'Motivo', 'Origem', 'Por'];
-    const rows = filtered.map((r) => [
+  const buildRows = () =>
+    filtered.map((r) => [
       format(parseISO(r.created_at), 'dd/MM/yy HH:mm'),
       r.lead?.name ?? '',
       r.lead?.email ?? '',
@@ -67,10 +78,14 @@ export default function AdminCrmAuditoria() {
       r.source_snapshot ?? '',
       r.moved_by_name ?? (r.moved_by ? 'Usuário' : 'Sistema'),
     ]);
-    const csv =
-      [header, ...rows]
-        .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
-        .join('\n');
+
+  const header = ['Data', 'Lead', 'Email', 'Evento', 'De', 'Para', 'Motivo', 'Origem', 'Por'];
+
+  const exportCsv = () => {
+    const rows = buildRows();
+    const csv = [header, ...rows]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -78,6 +93,35 @@ export default function AdminCrmAuditoria() {
     a.download = `crm-auditoria-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const exportPdf = async () => {
+    const { jsPDF } = await import('jspdf');
+    const autoTable = (await import('jspdf-autotable')).default;
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(14);
+    doc.text('Auditoria do CRM — Gente Networking', 14, 14);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    const filtersSummary = [
+      `Emitido em ${format(new Date(), 'dd/MM/yy HH:mm')}`,
+      dateFrom || dateTo ? `Período: ${dateFrom || '...'} → ${dateTo || '...'}` : null,
+      eventFilter !== 'all' ? `Evento: ${CRM_EVENT_LABEL[eventFilter] ?? eventFilter}` : null,
+      sourceFilter !== 'all' ? `Origem: ${CRM_SOURCE_LABEL[sourceFilter as never] ?? sourceFilter}` : null,
+      fromStatus !== 'all' ? `De: ${CRM_STATUS_LABEL[fromStatus as never] ?? fromStatus}` : null,
+      toStatus !== 'all' ? `Para: ${CRM_STATUS_LABEL[toStatus as never] ?? toStatus}` : null,
+      `Total: ${filtered.length} evento(s)`,
+    ].filter(Boolean).join(' · ');
+    doc.text(filtersSummary, 14, 20);
+    autoTable(doc, {
+      head: [header],
+      body: buildRows(),
+      startY: 26,
+      styles: { fontSize: 7, cellPadding: 2 },
+      headStyles: { fillColor: [30, 58, 95] },
+      columnStyles: { 6: { cellWidth: 60 } },
+    });
+    doc.save(`crm-auditoria-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
   return (
@@ -89,27 +133,31 @@ export default function AdminCrmAuditoria() {
             <span className="text-wrap-anywhere">Auditoria do CRM</span>
           </h1>
           <p className="text-sm text-muted-foreground">
-            Trilha completa de eventos: mudanças de status, contratos, promoções e notas.
+            Trilha completa de eventos: mudanças de status, contratos, promoções, cobrança HUB e notas.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
             <Link to="/admin/crm">
               <ArrowLeft className="h-4 w-4 mr-1" /> Voltar ao CRM
             </Link>
           </Button>
-          <Button onClick={exportCsv} disabled={!filtered.length}>
-            <Download className="h-4 w-4 mr-1" /> Exportar CSV
+          <Button variant="outline" onClick={exportCsv} disabled={!filtered.length}>
+            <Download className="h-4 w-4 mr-1" /> CSV
+          </Button>
+          <Button onClick={exportPdf} disabled={!filtered.length}>
+            <FileText className="h-4 w-4 mr-1" /> PDF
           </Button>
         </div>
       </div>
 
       <Card>
-        <CardContent className="pt-6 grid sm:grid-cols-3 gap-3">
+        <CardContent className="pt-6 grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <Input
             placeholder="Buscar por lead, email, motivo, usuário..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="lg:col-span-2"
           />
           <Select value={eventFilter} onValueChange={setEventFilter}>
             <SelectTrigger>
@@ -118,9 +166,7 @@ export default function AdminCrmAuditoria() {
             <SelectContent>
               <SelectItem value="all">Todos os eventos</SelectItem>
               {Object.entries(CRM_EVENT_LABEL).map(([k, v]) => (
-                <SelectItem key={k} value={k}>
-                  {v}
-                </SelectItem>
+                <SelectItem key={k} value={k}>{v}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -131,12 +177,40 @@ export default function AdminCrmAuditoria() {
             <SelectContent>
               <SelectItem value="all">Todas as origens</SelectItem>
               {Object.entries(CRM_SOURCE_LABEL).map(([k, v]) => (
-                <SelectItem key={k} value={k}>
-                  {v}
-                </SelectItem>
+                <SelectItem key={k} value={k}>{v}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <Select value={fromStatus} onValueChange={setFromStatus}>
+            <SelectTrigger>
+              <SelectValue placeholder="Status anterior" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Qualquer status anterior</SelectItem>
+              {CRM_STATUS_ORDER.map((s) => (
+                <SelectItem key={s} value={s}>{CRM_STATUS_LABEL[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={toStatus} onValueChange={setToStatus}>
+            <SelectTrigger>
+              <SelectValue placeholder="Status novo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Qualquer status novo</SelectItem>
+              {CRM_STATUS_ORDER.map((s) => (
+                <SelectItem key={s} value={s}>{CRM_STATUS_LABEL[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div>
+            <label className="text-[11px] text-muted-foreground">De</label>
+            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          </div>
+          <div>
+            <label className="text-[11px] text-muted-foreground">Até</label>
+            <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          </div>
         </CardContent>
       </Card>
 
