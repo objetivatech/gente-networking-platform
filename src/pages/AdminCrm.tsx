@@ -182,6 +182,55 @@ export default function AdminCrm() {
         </div>
       </div>
 
+      {/* Guia de ingestão (v3.28.0) */}
+      <Accordion type="single" collapsible className="rounded-lg border bg-muted/30">
+        <AccordionItem value="ingestao" className="border-0">
+          <AccordionTrigger className="px-4 py-3 hover:no-underline">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <Info className="h-4 w-4 text-primary" />
+              Como os leads chegam ao CRM?
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-4 pb-4 text-sm space-y-3 text-muted-foreground">
+            <p>
+              Todo lead entra por uma única porta: a Edge Function{' '}
+              <code className="text-foreground">submit-lead</code>. Cada origem preenche o campo{' '}
+              <code className="text-foreground">source</code> e o CRM organiza automaticamente.
+            </p>
+            <ul className="list-disc pl-5 space-y-1.5">
+              <li>
+                <strong className="text-foreground">LPs Gente</strong> (Gente HUB, Participe,
+                Networking): formulários no projeto <em>LPs Gente</em> chamam a função com{' '}
+                <code>source=&quot;lp_gentehub&quot;</code> / <code>&quot;lp_participe&quot;</code> /{' '}
+                <code>&quot;lp_networking&quot;</code>. Leads HUB entram já com automação de
+                cobrança e contrato.
+              </li>
+              <li>
+                <strong className="text-foreground">Site</strong> (WordPress em{' '}
+                gentenetworking.com.br): plugins <em>WPForms</em>, <em>Contact Form 7</em> ou{' '}
+                <em>Elementor Forms</em> disparam webhook para{' '}
+                <code>submit-lead</code> com <code>source=&quot;site_elementor&quot;</code>.
+              </li>
+              <li>
+                <strong className="text-foreground">API</strong>: qualquer sistema externo pode
+                enviar leads via POST autenticado, usando <code>source=&quot;api&quot;</code>.
+              </li>
+              <li>
+                <strong className="text-foreground">Convite manual</strong>: leads criados
+                internamente por facilitador/admin recebem <code>source=&quot;convite_manual&quot;</code>.
+              </li>
+            </ul>
+            <p>
+              📘 Passo a passo detalhado (URLs, payload e exemplos):{' '}
+              <Link to="/documentacao" className="text-primary underline">
+                Documentação da plataforma
+              </Link>
+              .
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
       {/* Filtros */}
       <Card>
         <CardContent className="pt-6">
