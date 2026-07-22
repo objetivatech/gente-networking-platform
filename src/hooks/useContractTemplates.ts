@@ -143,30 +143,39 @@ export function useSaveContractTemplate() {
         is_default: input.is_default ?? false,
       };
 
+      // Cast supabase client to any: contract_templates ainda não está no types.ts gerado
+      // até a próxima regeneração após a migration desta versão.
+      const sb = supabase as unknown as {
+        from: (t: string) => {
+          update: (p: unknown) => { eq: (c: string, v: string) => { select: (s: string) => { single: () => Promise<{ data: unknown; error: unknown }> } } };
+          insert: (p: unknown) => { select: (s: string) => { single: () => Promise<{ data: unknown; error: unknown }> } };
+        };
+      };
+
       if (input.id) {
-        const { data, error } = await supabase
-          .from('contract_templates' as never)
+        const { data, error } = await sb
+          .from('contract_templates')
           .update(patch)
           .eq('id', input.id)
           .select('*')
           .single();
-        if (error) throw error;
-        return data as unknown as ContractTemplate;
+        if (error) throw error as Error;
+        return data as ContractTemplate;
       }
 
       const slug = input.slug || slugify(input.name) || `modelo-${Date.now()}`;
       const { data: userData } = await supabase.auth.getUser();
-      const { data, error } = await supabase
-        .from('contract_templates' as never)
+      const { data, error } = await sb
+        .from('contract_templates')
         .insert({
           ...patch,
           slug,
           created_by: userData?.user?.id ?? null,
-        } as never)
+        })
         .select('*')
         .single();
-      if (error) throw error;
-      return data as unknown as ContractTemplate;
+      if (error) throw error as Error;
+      return data as ContractTemplate;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['contract-templates'] });
