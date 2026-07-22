@@ -62,12 +62,32 @@ const SOURCE_COLORS: Record<CrmLeadSource, string> = {
   api: 'bg-muted text-foreground',
 };
 
-function ContractIcon({ status }: { status: CrmLead['contract_status'] }) {
-  if (status === 'signed') return <FilePen className="h-3.5 w-3.5 text-emerald-600" />;
-  if (status === 'sent') return <FileText className="h-3.5 w-3.5 text-amber-600" />;
-  if (status === 'rejected' || status === 'expired')
-    return <FileX className="h-3.5 w-3.5 text-rose-600" />;
-  return null;
+const CONTRACT_BADGE_STYLE: Record<string, string> = {
+  sent: 'bg-blue-100 text-blue-800 border-blue-300',
+  signed: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  rejected: 'bg-rose-100 text-rose-800 border-rose-300',
+  expired: 'bg-amber-100 text-amber-800 border-amber-300',
+};
+
+const CONTRACT_BADGE_LABEL: Record<string, string> = {
+  sent: 'Enviado',
+  signed: 'Assinado',
+  rejected: 'Rejeitado',
+  expired: 'Expirado',
+};
+
+function ContractBadge({ status }: { status: CrmLead['contract_status'] }) {
+  if (!status || status === 'not_sent') return null;
+  const Icon = status === 'signed' ? FilePen : status === 'rejected' || status === 'expired' ? FileX : FileText;
+  return (
+    <Badge
+      variant="outline"
+      className={`text-[10px] gap-1 ${CONTRACT_BADGE_STYLE[status] ?? ''}`}
+    >
+      <Icon className="h-3 w-3" />
+      {CONTRACT_BADGE_LABEL[status] ?? status}
+    </Badge>
+  );
 }
 
 export default function AdminCrm() {
