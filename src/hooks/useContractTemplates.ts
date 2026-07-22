@@ -226,3 +226,61 @@ export function renderTemplatePreview(
     return String(v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
   });
 }
+
+/** Restaura uma versão antiga como o novo conteúdo atual (gera nova versão). */
+export function useRestoreContractVersion() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const save = useSaveContractTemplate();
+
+  return useMutation({
+    mutationFn: async (args: { templateId: string; version: ContractTemplateVersion }) => {
+      return save.mutateAsync({
+        id: args.templateId,
+        name: args.version.name,
+        body_html: args.version.body_html,
+        variables_schema: args.version.variables_schema,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['contract-templates'] });
+      qc.invalidateQueries({ queryKey: ['contract-template-versions'] });
+      toast({ title: 'Versão restaurada', description: 'Uma nova versão foi criada com esse conteúdo.' });
+    },
+  });
+}
+
+/** Reatribui um modelo (e versão) a leads existentes cujo contrato não foi enviado/assinado. */
+export function useReassignContractTemplate() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (args: { templateId: string; version: number; leadIds: string[] }) => {
+      const { data, error } = await supabase.rpc('reassign_contract_template' as never, {
+        _template_id: args.templateId,
+        _version: args.version,
+        _lead_ids: args.leadIds,
+      } as never);
+      if (error) throw error;
+      const res = data as { success: boolean; updated?: number; skipped?: number; error?: string };
+      if (!res?.success) throw new Error(res?.error || 'Falha na reatribuição');
+      return res;
+    },
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['crm-leads'] });
+      qc.invalidateQueries({ queryKey: ['crm-lead-history'] });
+      toast({
+        title: 'Modelo reatribuído',
+        description: `Atualizados: ${res.updated ?? 0} | Pulados (contrato ativo): ${res.skipped ?? 0}`,
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: 'Erro ao reatribuir',
+        description: err instanceof Error ? err.message : 'Falha desconhecida',
+        variant: 'destructive',
+      });
+    },
+  });
+}

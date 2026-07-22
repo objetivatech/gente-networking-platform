@@ -1517,6 +1517,10 @@ export type Database = {
         Returns: Json
       }
       reactivate_member: { Args: { _member_id: string }; Returns: Json }
+      reassign_contract_template: {
+        Args: { _lead_ids: string[]; _template_id: string; _version: number }
+        Returns: Json
+      }
       recalculate_all_monthly_points: {
         Args: { _year_month?: string }
         Returns: number
