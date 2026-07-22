@@ -1,5 +1,5 @@
 /**
- * LeadDrawer - Painel lateral de detalhes de um lead do CRM com ações e timeline.
+ * LeadDrawer - Painel lateral do lead com contrato (modelo+prévia), cobrança HUB e timeline (v3.26.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
@@ -29,6 +29,8 @@ import {
   Building2,
   Users,
   Sparkles,
+  ExternalLink,
+  XCircle,
 } from 'lucide-react';
 import {
   CRM_SOURCE_LABEL,
@@ -36,11 +38,12 @@ import {
   useAddLeadNote,
   useGetContractUrl,
   useLeadHistory,
-  useSendContract,
   type CrmLead,
 } from '@/hooks/useCrmLeads';
 import { LeadAuditTimeline } from './LeadAuditTimeline';
 import { PromoteLeadDialog } from './PromoteLeadDialog';
+import { SendContractDialog } from './SendContractDialog';
+import { HubBillingPanel } from './HubBillingPanel';
 
 interface Props {
   lead: CrmLead | null;
@@ -49,18 +52,38 @@ interface Props {
   isAdmin: boolean;
 }
 
+const CONTRACT_BADGE: Record<string, string> = {
+  not_sent: 'bg-muted text-muted-foreground border-muted-foreground/30',
+  sent: 'bg-blue-100 text-blue-800 border-blue-300',
+  signed: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+  rejected: 'bg-rose-100 text-rose-800 border-rose-300',
+  expired: 'bg-amber-100 text-amber-800 border-amber-300',
+};
+
+const CONTRACT_LABEL: Record<string, string> = {
+  not_sent: 'Não enviado',
+  sent: 'Enviado — aguardando assinatura',
+  signed: 'Assinado',
+  rejected: 'Rejeitado',
+  expired: 'Expirado',
+};
+
 export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
   const open = !!lead;
   const { data: history, isLoading } = useLeadHistory(lead?.id ?? null);
-  const sendContract = useSendContract();
   const addNote = useAddLeadNote();
   const getContractUrl = useGetContractUrl();
   const [note, setNote] = useState('');
   const [promoteOpen, setPromoteOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
 
   if (!lead) return null;
 
-  const contractSent = lead.contract_status === 'sent' || lead.contract_status === 'signed';
+  const contractKey = lead.contract_status ?? 'not_sent';
+  const contractSent =
+    lead.contract_status === 'sent' || lead.contract_status === 'signed';
+  const canResend =
+    lead.contract_status === 'rejected' || lead.contract_status === 'expired';
   const canDownloadPdf = lead.contract_status === 'signed' && !!lead.contract_signed_pdf_path;
 
   const handleDownloadPdf = async () => {
@@ -92,6 +115,9 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
               <Badge variant="outline">{CRM_STATUS_LABEL[lead.status]}</Badge>
               <Badge variant="secondary">{CRM_SOURCE_LABEL[lead.source]}</Badge>
               {teamName && <Badge variant="outline">{teamName}</Badge>}
+              <Badge variant="outline" className={CONTRACT_BADGE[contractKey] ?? ''}>
+                Contrato: {CONTRACT_LABEL[contractKey] ?? contractKey}
+              </Badge>
             </div>
           </SheetHeader>
 
@@ -118,14 +144,21 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
               {lead.meeting_attendance_count > 0 && (
                 <p className="text-xs">Presenças: {lead.meeting_attendance_count}</p>
               )}
-              <p className="text-xs">
-                Contrato:{' '}
-                <span className="font-medium">
-                  {lead.contract_status ?? 'não enviado'}
-                </span>{' '}
-                • Pagamento:{' '}
-                <span className="font-medium">{lead.payment_status ?? '—'}</span>
-              </p>
+              {lead.contract_signing_url && lead.contract_status === 'sent' && (
+                <a
+                  href={lead.contract_signing_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs inline-flex items-center gap-1 text-primary hover:underline text-wrap-anywhere"
+                >
+                  <ExternalLink className="h-3 w-3" /> Abrir link de assinatura
+                </a>
+              )}
+              {lead.contract_status === 'rejected' && (
+                <p className="text-xs flex items-center gap-1 text-rose-600">
+                  <XCircle className="h-3 w-3" /> Contrato rejeitado — reenvie um novo modelo.
+                </p>
+              )}
             </div>
 
             {isAdmin && (
@@ -137,15 +170,19 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => sendContract.mutate(lead.id)}
-                      disabled={contractSent || sendContract.isPending}
+                      onClick={() => setSendOpen(true)}
+                      disabled={contractSent && !canResend}
                     >
                       {lead.contract_status === 'signed' ? (
                         <FilePen className="h-4 w-4 mr-1" />
                       ) : (
                         <FileText className="h-4 w-4 mr-1" />
                       )}
-                      {contractSent ? 'Contrato enviado' : 'Enviar contrato'}
+                      {contractSent && !canResend
+                        ? 'Contrato enviado'
+                        : canResend
+                          ? 'Reenviar contrato'
+                          : 'Enviar contrato'}
                     </Button>
                     {canDownloadPdf && (
                       <Button size="sm" variant="outline" onClick={handleDownloadPdf}>
@@ -160,17 +197,20 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
                       <Crown className="h-4 w-4 mr-1" />
                       Promover para membro
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      asChild
-                    >
+                    <Button size="sm" variant="ghost" asChild>
                       <a href={`mailto:${lead.email}`}>
                         <Mail className="h-4 w-4 mr-1" /> Email
                       </a>
                     </Button>
                   </div>
                 </div>
+
+                {lead.is_hub && (
+                  <>
+                    <Separator />
+                    <HubBillingPanel lead={lead} />
+                  </>
+                )}
               </>
             )}
 
@@ -209,7 +249,15 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
       </Sheet>
 
       {isAdmin && (
-        <PromoteLeadDialog lead={lead} open={promoteOpen} onOpenChange={setPromoteOpen} />
+        <>
+          <SendContractDialog
+            lead={lead}
+            teamName={teamName ?? null}
+            open={sendOpen}
+            onOpenChange={setSendOpen}
+          />
+          <PromoteLeadDialog lead={lead} open={promoteOpen} onOpenChange={setPromoteOpen} />
+        </>
       )}
     </>
   );
