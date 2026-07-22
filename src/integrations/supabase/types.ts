@@ -203,6 +203,95 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_template_versions: {
+        Row: {
+          body_html: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          name: string
+          template_id: string
+          variables_schema: Json
+          version: number
+        }
+        Insert: {
+          body_html: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          template_id: string
+          variables_schema?: Json
+          version: number
+        }
+        Update: {
+          body_html?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          template_id?: string
+          variables_schema?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_template_versions_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_templates: {
+        Row: {
+          body_html: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          slug: string
+          updated_at: string
+          updated_by: string | null
+          variables_schema: Json
+          version: number
+        }
+        Insert: {
+          body_html: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+          updated_by?: string | null
+          variables_schema?: Json
+          version?: number
+        }
+        Update: {
+          body_html?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables_schema?: Json
+          version?: number
+        }
+        Relationships: []
+      }
       council_posts: {
         Row: {
           created_at: string | null
@@ -338,7 +427,11 @@ export type Database = {
           contract_sent_at: string | null
           contract_signed_at: string | null
           contract_signed_pdf_path: string | null
+          contract_signing_url: string | null
           contract_status: string | null
+          contract_template_id: string | null
+          contract_template_version: number | null
+          contract_variables: Json | null
           created_at: string
           efi_subscription_id: string | null
           email: string
@@ -367,7 +460,11 @@ export type Database = {
           contract_sent_at?: string | null
           contract_signed_at?: string | null
           contract_signed_pdf_path?: string | null
+          contract_signing_url?: string | null
           contract_status?: string | null
+          contract_template_id?: string | null
+          contract_template_version?: number | null
+          contract_variables?: Json | null
           created_at?: string
           efi_subscription_id?: string | null
           email: string
@@ -396,7 +493,11 @@ export type Database = {
           contract_sent_at?: string | null
           contract_signed_at?: string | null
           contract_signed_pdf_path?: string | null
+          contract_signing_url?: string | null
           contract_status?: string | null
+          contract_template_id?: string | null
+          contract_template_version?: number | null
+          contract_variables?: Json | null
           created_at?: string
           efi_subscription_id?: string | null
           email?: string
@@ -419,6 +520,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "crm_leads_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "crm_leads_invitation_id_fkey"
             columns: ["invitation_id"]
@@ -473,6 +581,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      hub_billing_events: {
+        Row: {
+          attempt: number
+          created_at: string
+          event_type: string
+          id: string
+          lead_id: string
+          payload: Json
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          attempt?: number
+          created_at?: string
+          event_type: string
+          id?: string
+          lead_id: string
+          payload?: Json
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          lead_id?: string
+          payload?: Json
+          status?: string
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_billing_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
