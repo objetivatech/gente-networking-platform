@@ -157,7 +157,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   const filterItems = (items: MenuItem[]) => {
     if (isLoading || !role) return items.filter((i) => !i.roles);
-    return items.filter((i) => !i.roles || i.roles.includes(role));
+    return items.filter(
+      (i) =>
+        (!i.roles || i.roles.includes(role)) &&
+        !(i.hiddenForRoles && i.hiddenForRoles.includes(role)),
+    );
   };
 
   const toggle = (id: string) => setOpenGroups((s) => ({ ...s, [id]: !s[id] }));
