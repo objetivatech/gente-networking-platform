@@ -1,127 +1,157 @@
 
-# v3.27.0 — Identidade nas imagens, PWA persistente e CRM completo
+# v3.28.0 — Revisão do CRM, LGPD, menu do admin e correções
 
-Escopo dividido em 6 frentes. Tudo revisado desktop + mobile e documentado ao final.
+Foco: destravar a captura de leads (LPs + site WordPress), documentar tudo, fechar o loop contrato→Kanban, entregar o wizard de promoção com auditoria, adicionar banner LGPD com documentos jurídicos, enxugar o menu do admin, corrigir o Health Score e gerar os ícones/PWA a partir dos novos logos.
 
-## 1. Imagens do Gente aplicadas ao app (assets + PWA)
+Nenhuma feature de membro é removida; apenas o menu do admin é filtrado. Toda mudança é aditiva no banco e revisada mobile-first.
 
-- Publicar via `lovable-assets` os 6 uploads: `gente-comunidade-cor.png`, `gente-comunidade-2.png` (branco), `gente-networking-cor.png`, `gente-networking-2.png` (branco), e as 3 fotos de reunião (`1768355357092`, `1768490884426`, `1781456022738`).
-- Substituir referências:
-  - App interno (Sidebar, Header, cartão, emails no app) → logo **Gente Comunidade** (cor no claro / branco no escuro e em fundos navy).
-  - Landing/páginas públicas (`Auth`, `ConvitePublico`, `GuestWelcome`, `RedefinirSenha`, `AuthConfirm`, `Instalar`, `PublicProfile`, `SEO` og:image) e emails externos → logo **Gente Networking**.
-  - Hero das telas públicas (`Auth`, `ConvitePublico`, `GuestWelcome`, `Instalar`) e ilustração no `PWAInstallPrompt` → foto `1781456022738` (versão com identidade Gente) como imagem principal; usar as outras 2 fotos como variações em cards secundários.
-- Regenerar/gravar os PNGs do PWA (`public/icons/icon-*.png`, `icon-maskable-*`, `apple-touch-icon`, `logo-gente-card.png`, `logo-gente-branco.png`, `logo-gente.png`, `logo-gente-comunidade.png`, `logo-gente-networking.png`) a partir do logo colorido do Gente Comunidade, mantendo padding seguro para maskable (safe area de 20%). Splash Apple recriada com fundo navy `#1E3A5F` + logo branco centralizado.
-- `manifest.webmanifest`: revisar `name`, `short_name`, `theme_color #1E3A5F`, `background_color #FFFFFF`, `icons` (novos hashes), `shortcuts` mantidos.
-- Purge do Worker Cloudflare para os paths de logos/ícones após deploy.
+---
 
-## 2. PWA Install Prompt persistente
+## 1. CRM — Ingestão de leads (LPs + Site WordPress + API)
 
-`src/components/PWAInstallPrompt.tsx` e `src/hooks/usePWAInstall.ts`:
+**Diagnóstico atual:** a edge function `submit-lead` está pronta e aceita `source ∈ {lp_gentehub, lp_participe, lp_networking, site_elementor, convite_manual, api}`. Nenhum lead das LPs está entrando → o projeto "LPs Gente" nunca foi apontado para a URL da função. O site em WordPress não tem hoje um caminho oficial. Não é falha de código, é falta de integração + documentação.
 
-- Aparece **sempre** (mobile via `beforeinstallprompt`, iOS via detecção UA + `!isStandalone`, desktop Chromium/Edge via `beforeinstallprompt`).
-- "Agora não" → grava `pwa-banner-dismissed = Date.now()` e reaparece após **2 dias** (48h), não 7.
-- Detecção de instalação:
-  - Escutar evento `appinstalled` → grava `pwa-installed = true` e nunca mais mostra.
-  - Checar `window.matchMedia('(display-mode: standalone)')` e `navigator.standalone` (iOS) → considera instalado.
-  - Se `isStandalone` ou `pwa-installed` presente → não renderiza.
-- Ilustração do card usa a nova foto Gente + microcopy revisada.
-- Também exposto botão manual "Instalar agora" na página `/instalar` sem alteração de fluxo.
+**Entregas nesta plataforma (Comunidade):**
+- Painel de "Como conectar leads" no topo do `AdminCrm` (colapsável, persistido em `localStorage`) mostrando:
+  - URL pública da edge function `submit-lead` (com botão copiar).
+  - Exemplo de payload por origem (`lp_gentehub`, `lp_participe`, `lp_networking`, `site_elementor`, `api`).
+  - Explicação curta de cada filtro/origem (o que significa, quem dispara).
+  - Link para a documentação nova (`/docs` internos e `docs/`).
+- Tooltip explicativo em cada chip de filtro de origem no Kanban e na Auditoria.
+- Nenhuma mudança nas regras de dedup/upsert do backend.
 
-## 3. Auditoria CRM — exportação CSV/PDF + filtros
+**Documentação nova (arquivos):**
+- `docs/CRM_INGESTAO_LEADS.md` — visão geral das origens, contrato do payload, curl de exemplo, troubleshooting (409/400), como testar.
+- `docs/INTEGRACAO_LPS_GENTE.md` — passo a passo para o projeto Lovable "LPs Gente" chamar `submit-lead` (fetch client-side + hidden fields de origem por LP). Inclui exemplo React pronto.
+- `docs/INTEGRACAO_WORDPRESS.md` — três caminhos suportados no site atual em WordPress:
+  1. **WPForms / Contact Form 7 / Elementor Forms + Webhook** (recomendado): configurar action "Webhook" apontando para `https://vyfkddcbmwlwldaorxzy.supabase.co/functions/v1/submit-lead` com header `apikey` (anon) e mapping de campos → `source: "site_elementor"`.
+  2. **Zapier / Make** intermediário para forms que não suportam webhook nativo.
+  3. **Snippet PHP** em `functions.php` (fornecido pronto) que dispara `wp_remote_post` no hook `wpcf7_mail_sent` / `elementor_pro/forms/new_record`.
+- Todos os documentos ficam acessíveis dentro da plataforma via a página `/documentacao` (adicionar entradas no índice).
 
-`src/pages/AdminCrmAuditoria.tsx`:
+---
 
-- Novos filtros: `from_status`, `to_status`, `date_from`, `date_to` (date pickers) além dos já existentes (busca, evento, origem).
-- `useCrmAuditFeed` aceitar range de datas server-side (paginação segura, mantém limit 500 por padrão).
-- Botão **Exportar CSV** (já existe) e novo **Exportar PDF** via `jsPDF` + `jspdf-autotable` (mesmo padrão do `ExportButton`), com cabeçalho branded (logo Gente Networking) e linha de filtros aplicados.
-- Layout responsivo: filtros em grid `sm:grid-cols-2 lg:grid-cols-5`, ações empilhadas no mobile.
+## 2. Assinatura de contrato → reflete no Kanban
 
-## 4. Status do contrato no card do lead + Kanban
+Backend já grava `contract_status` via `autentique-webhook`. Precisamos garantir o loop de UI e a robustez do webhook.
 
-`src/pages/AdminCrm.tsx` (`LeadCard`) e `LeadDrawer.tsx`:
+- Confirmar/registrar a URL do webhook na conta Autentique (documentar em `docs/CRM_LEADS.md`).
+- No `LeadDrawer`: banner grande com status atual do contrato + botão "Abrir link de assinatura" (já existe) + botão "Baixar PDF assinado" quando `contract_signed_pdf_path` estiver preenchido (usa `get-contract-url`).
+- Realtime: assinar `postgres_changes` em `crm_leads` (filtro `id=eq.<lead>`) enquanto o drawer está aberto para atualizar status sem refresh. Cleanup no `useEffect`.
+- Badge do card no Kanban (`ContractBadge`) já existe; adicionar a variante "expired" faltante e tooltip com data de envio/assinatura.
+- Fallback: botão "Sincronizar status" no drawer que chama nova função `sync-contract-status` (consulta Autentique via GraphQL usando `autentique_document_id` e atualiza `crm_leads` + `crm_lead_history`). Cobre casos em que o webhook não chegou.
 
-- Adicionar badge de contrato colorida no card do Kanban (`Pendente`, `Enviado`, `Assinado`, `Rejeitado`, `Expirado`) com o mesmo mapping já usado no drawer.
-- Card mostra ícone de link se `contract_signing_url` presente.
-- `autentique-webhook`: garantir que ao evento `signed` o PDF é baixado e salvo em `contracts/{lead_id}/{doc_id}.pdf` (já existe) e o Kanban recebe update via invalidação/realtime (`crm_leads` já publicado). Confirmar `contract_signed_pdf_path` alimentado no webhook.
-- Drawer: já expõe "Abrir link de assinatura" e "Baixar PDF" — reorganizar bloco Contrato em card próprio com timestamps (`contract_sent_at`, `contract_signed_at`) e botão "Copiar link".
+---
 
-## 5. Fluxo guiado de promoção (finalização)
+## 3. Wizard guiado de promoção (finalização)
 
-`PromoteLeadDialog.tsx` + RPC `promote_crm_lead_to_member`:
+Transformar `PromoteLeadDialog` em wizard multi-etapa:
 
-- Transformar em wizard de 3 passos (Stepper): **1) Validações** (checklist atual) → **2) Grupo destino** (com destaque `is_hub` quando aplicável e opção "Mover para grupo premium" filtrando `teams.is_hub = true`) → **3) Confirmação** (resumo + motivo se aplicável).
-- Permissões: admin sempre; facilitador **apenas se** lead pertence ao seu grupo destino (validação no RPC via `has_role` + `team_members`).
-- Registrar no `crm_lead_history` evento `promoted_to_member` com metadata `{ team_id, previous_team_id, skip_contract, skip_payment, reason }` (já parcialmente existente — completar campos).
-- Bloqueio explícito quando `needsAccount` ou contrato HUB pendente sem justificativa.
+1. **Validações** (readonly): conta criada?, grupo selecionado?, contrato assinado?, pagamento pago (para HUB)? Cada linha com ícone verde/amarelo/vermelho. Permite marcar "Pular com motivo" (motivo obrigatório).
+2. **Destino**: seletor de grupo (destaca grupos `is_hub = true` como "Grupo Premium"). Opção "Mover para grupo premium" já cobre esse ramo.
+3. **Confirmação**: resumo + botão "Promover".
 
-## 6. Versionamento de modelos de contrato + reatribuição
+- Chamada única para a RPC `promote_crm_lead_to_member` já existente (sem mudar assinatura; passamos `skip_reasons` como JSON). Se a RPC ainda não aceita skip, adicionar parâmetro opcional `_skip_reasons jsonb` de forma aditiva.
+- Grava em `crm_lead_history` com `event_type = 'promoted_to_member'` incluindo `metadata` (grupo destino, validações puladas, timestamp, responsável). Já suportado.
+- Permissões: somente `admin`. Facilitador vê o botão desabilitado com tooltip.
 
-`contract_template_versions` já existe (snapshot criado em cada save). Ampliar:
+---
 
-- Editor `AdminContractTemplates.tsx` / `ContractTemplateEditor.tsx`:
-  - Aba "Versões" com lista (versão, autor, data, diff resumido) e ação **Restaurar** (cria nova versão a partir da anterior).
-  - Prévia comparando versão selecionada vs atual.
-- Novo botão **Reatribuir modelo em leads existentes**:
-  - Modal admin: escolhe template + versão + filtro de leads (`status`, `is_hub`, `contract_status ∈ {not_sent, rejected, expired}`).
-  - Ação em massa atualiza `crm_leads.contract_template_id` e `contract_template_version` **sem apagar `contract_variables` nem histórico**; leads com contrato `sent`/`signed` são preservados (opção "forçar" desabilitada para não quebrar auditoria).
-  - Cada alteração gera evento `contract_template_reassigned` em `crm_lead_history` com `{ from_template, to_template, from_version, to_version }`.
-- `send-contract` já usa `template.version` — nenhum breaking change no fluxo Autentique.
+## 4. LGPD — Banner de cookies + documentos jurídicos
 
-## 7. Responsividade + documentação
+- Novo componente `LgpdBanner` fixo no rodapé em primeira visita (persistência em `localStorage: gente:lgpd-consent:v1` com `{ status, ts, categories }`). Opções: **Aceitar todos**, **Somente essenciais**, **Personalizar**. Não bloqueia navegação. Design alinhado ao brand (navy/orange).
+- Novas páginas públicas (sem auth):
+  - `/termos-de-uso` → `src/pages/legal/TermosDeUso.tsx`
+  - `/politica-de-privacidade` → `src/pages/legal/PoliticaPrivacidade.tsx`
+  - `/politica-de-cookies` → `src/pages/legal/PoliticaCookies.tsx`
+- Textos redigidos conforme **LGPD (Lei 13.709/2018)**, **Marco Civil da Internet** e **CDC**, cobrindo: bases legais, dados coletados, finalidades, retenção, compartilhamento (Supabase, Resend, Cloudflare, Autentique), direitos do titular (arts. 17-22), canal do encarregado (DPO) por e-mail, cookies (essenciais/analíticos/marketing). Marcadas como "modelo editável — revisar com jurídico" no rodapé de cada documento (obrigatório para não induzir o usuário a assumir texto como parecer jurídico).
+- Links no `Footer.tsx` da plataforma e um `<Link>` "Ler políticas" no próprio banner.
+- SEO: `noindex` nas páginas legais opcional? Não — deixar indexáveis (melhor para transparência).
 
-- Regressão mobile em: Kanban CRM (cards), drawer, wizard de promoção, editor de contratos (aba versões), auditoria (filtros/PDF), popup PWA e páginas públicas com nova hero.
-- Aplicar regras de `mem://design/responsive-rules` (min-w-0, `.text-wrap-anywhere`, sem overflow global).
-- Atualizações de docs:
-  - `docs/PWA_IMPLEMENTATION.md` — política de reexibição 2 dias + `appinstalled` + iOS.
-  - `docs/CRM_LEADS.md` — status de contrato no card, wizard de promoção, versionamento e reatribuição de modelos, filtros de auditoria + PDF.
-  - `docs/TECHNICAL_DOCUMENTATION.md` — nova asset library (Gente Comunidade × Networking) e uso por contexto.
-  - `src/pages/Changelog.tsx` — entrada **v3.27.0** consolidando tudo.
-- Memórias:
-  - Nova `mem://features/v3270-pwa-crm-contratos.md`.
-  - Atualizar `mem://features/crm-leads-unificado.md` (adicionar versionamento + reatribuição + wizard).
-  - Atualizar `mem://design/visual-identity.md` (dois logos por contexto).
+---
+
+## 5. Correção: Health Score do admin (`column reference "user_id" is ambiguous`)
+
+Causa: a função `get_members_health_scores` declara **OUT parameter** `user_id` no `RETURNS TABLE(...)`, e as CTEs internas (`refs`, `test`, `council`, `ga`, `att`, `bc`, `members`, `team_of`) usam alias/coluna também chamado `user_id`. O planner do PostgreSQL não sabe se, em joins como `ga.user_id = mem.user_id`, o `user_id` do lado direito é a OUT variable ou a coluna da CTE `members`.
+
+Correção mínima e segura (migration aditiva, `CREATE OR REPLACE FUNCTION`): adicionar `#variable_conflict use_column` no topo do bloco plpgsql **e** renomear a OUT param para `out_user_id` (mais explícito) mantendo o mesmo shape de retorno via alias no SELECT (`p.id AS user_id` continua). Alternativa aceita: renomear as colunas das CTEs para `uid`. Vamos aplicar as duas medidas para blindar. Nenhuma mudança de schema, nenhum impacto em `useMemberHealthScores`.
+
+---
+
+## 6. Menu do admin — foco em gestão
+
+Regra: o **admin** não pontua nem participa das mecânicas de networking, então o menu dele deve ocultar itens operacionais de membro. Membros/facilitadores continuam vendo tudo como hoje.
+
+Itens **ocultos para `admin`** (mantidos para membro/facilitador):
+- Feed, MatchMaking, Aniversários, Conselho 24/7
+- Gente em Ação, Indicações, Negócios, Depoimentos, Oportunidades, Pedidos de Indicação
+- Ranking
+
+Itens **mantidos para `admin`**:
+- Início/Dashboard, Membros, Convidados, Encontros (para acompanhar), Convites, Estatísticas, Conteúdos, Documentação, Changelog + todo o grupo Administração.
+
+Implementação: adicionar campo opcional `hiddenForRoles?: string[]` nos items do `Sidebar.tsx` e filtrar em `filterItems`. Espelhar o mesmo filtro no `BottomNav.tsx` para mobile. Rotas continuam acessíveis por URL (não removemos guards) — só a navegação é enxuta.
+
+---
+
+## 7. PWA — variações de ícone a partir dos novos logos
+
+- Gerar do arquivo `gente-comunidade-cor.png` (colorido, brand) as variações padrão PWA: `192x192`, `256x256`, `384x384`, `512x512`, `512x512 maskable`, `180x180 apple-touch`, `favicon-32x32`, `favicon-16x16`. Fundo navy `#1E3A5F` nas versões maskable para respeitar safe area.
+- Substituir `public/icons/icon-*.png` e `public/apple-touch-icon.png`.
+- Atualizar `public/manifest.webmanifest` (garantir `purpose: "maskable"` no 512 dedicado).
+- Atualizar hero/emails para os novos assets do Gente Networking (`gente-networking-cor.png`) via `lovable-assets` quando aplicável, mantendo os hooks/refs já existentes (não trocar caminhos que já apontam para pointers válidos).
+
+---
+
+## 8. Documentação de UI/UX (desktop + mobile)
+
+Novo `docs/UI_UX_GUIDELINES.md` consolidando:
+- Regras de responsividade (referência `mem://design/responsive-rules`).
+- Padrões de menu (sidebar colapsável desktop, BottomNav mobile, agrupamento).
+- Padrões de drawer/dialog (CRM, contratos, promoção).
+- Uso de badges de status (contratos, cobrança, leads).
+- Checklist mobile antes de commit: sem overflow-x, textos com `text-wrap-anywhere` em strings longas, tabelas com `hscroll`, botões com área mínima 40px.
+
+Atualizar `docs/CRM_LEADS.md` com o wizard novo, o painel de ingestão e a sincronização de contrato.
+
+---
+
+## 9. Changelog + memórias
+
+- Nova entrada **v3.28.0** em `system_changelog` cobrindo todos os itens.
+- Nova memória `mem://features/v3280-crm-lgpd-menu-admin.md` resumindo o escopo.
+- Atualizar `mem://index.md` (uma linha).
+
+---
 
 ## Detalhes técnicos
 
-### Migrations
+**Migrations (aditivas):**
+- `fix_health_score_ambiguous_user_id.sql` — recria `get_members_health_scores` com `#variable_conflict use_column` e alias `uid` nas CTEs.
+- (Se necessário) `promote_crm_lead_add_skip_reasons.sql` — adiciona parâmetro opcional `_skip_reasons jsonb DEFAULT '[]'` à RPC de promoção; registra em `metadata`.
 
-```sql
--- 1. Metadados de reatribuição
-ALTER TABLE public.crm_leads
-  ADD COLUMN IF NOT EXISTS contract_signed_at TIMESTAMPTZ;
+**Edge functions:**
+- Nova `sync-contract-status` (admin-only, checa JWT + role): consulta Autentique GraphQL por `document(id)` e atualiza `crm_leads.contract_status` + insere evento em `crm_lead_history`.
 
--- 2. Índices p/ auditoria com range de datas
-CREATE INDEX IF NOT EXISTS idx_crm_history_created_at ON public.crm_lead_history (created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_crm_history_event_type ON public.crm_lead_history (event_type);
+**Frontend:**
+- `src/pages/AdminCrm.tsx`: painel "Como capturamos leads" no topo + tooltips nos filtros.
+- `src/components/crm/LeadDrawer.tsx`: banner de contrato + botão "Sincronizar status" + botão "Baixar PDF".
+- `src/components/crm/PromoteLeadDialog.tsx`: wizard 3 etapas.
+- `src/components/LgpdBanner.tsx` (novo) montado em `App.tsx` no layout público/autenticado.
+- `src/pages/legal/*.tsx` (3 novos) + rotas em `App.tsx`.
+- `src/components/layout/Footer.tsx`: links legais.
+- `src/components/layout/Sidebar.tsx` e `src/components/layout/BottomNav.tsx`: suporte a `hiddenForRoles`.
+- `src/components/layout/PWAInstallPrompt.tsx`: sem mudança (já v3.27.0).
 
--- 3. RPC de reatribuição em massa (admin-only)
-CREATE OR REPLACE FUNCTION public.reassign_contract_template(
-  _template_id uuid,
-  _version int,
-  _lead_ids uuid[]
-) RETURNS int
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ ... $$;
-```
+**Testes rápidos:**
+- Rodar `supabase--linter` após migrations.
+- Chamar `get_members_health_scores` como admin via `supabase--read_query` para validar ausência de erro.
+- Smoke-test da `submit-lead` com curl documentado.
 
-Grants padrão: `EXECUTE ... TO authenticated`; função valida `has_role(auth.uid(),'admin')` internamente.
+---
 
-### Arquivos afetados (novos/alterados)
+## Fora do escopo (confirmado)
 
-- `src/components/PWAInstallPrompt.tsx`, `src/hooks/usePWAInstall.ts`
-- `src/pages/AdminCrm.tsx` (badge contrato no card), `src/components/crm/LeadCard.tsx` (se existir, senão inline)
-- `src/components/crm/LeadDrawer.tsx`, `src/components/crm/PromoteLeadDialog.tsx` → wizard
-- `src/pages/AdminCrmAuditoria.tsx` (filtros + PDF)
-- `src/pages/AdminContractTemplates.tsx`, `src/components/contracts/ContractTemplateEditor.tsx`, novo `ContractTemplateVersionsPanel.tsx`, novo `ReassignTemplateDialog.tsx`
-- `src/hooks/useContractTemplates.ts` (restore version, reassign mutation)
-- `supabase/functions/autentique-webhook/index.ts` (confirmar gravação de `contract_signed_at` + `contract_signed_pdf_path`)
-- Migration em `supabase/migrations/…`
-- Docs: `docs/PWA_IMPLEMENTATION.md`, `docs/CRM_LEADS.md`, `docs/TECHNICAL_DOCUMENTATION.md`, `src/pages/Changelog.tsx`
-- Assets: `src/assets/logo-gente-comunidade.*.asset.json`, `logo-gente-networking.*.asset.json`, `hero-networking-*.asset.json`; PNGs do PWA em `public/icons/` e `public/logo-*.png`
-
-### Não escopo
-
-- Provedor de pagamento (Efi/Stripe) — usuário adiou.
-- Refatoração do sidebar/menu (já entregue em v3.26.0).
-- Mudanças em RLS de tabelas fora do CRM/contratos.
-
-Sem breaking changes; RPC de reatribuição é aditiva e nunca sobrescreve leads com contrato ativo.
+- Não vamos escolher provedor de pagamento (mantido em aberto conforme decisão anterior).
+- Não vamos alterar RLS de tabelas existentes.
+- Não vamos remover rotas do admin — apenas ocultar da navegação.
