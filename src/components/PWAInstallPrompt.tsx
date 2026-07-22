@@ -1,26 +1,41 @@
+/**
+ * PWAInstallPrompt — banner de instalação do PWA (v3.27.0).
+ * - Aparece sempre que não instalado (mobile Android/desktop via beforeinstallprompt, iOS via tutorial).
+ * - "Agora não" oculta por 2 dias.
+ * - Se o usuário instalar (evento appinstalled ou detecção standalone), nunca mais aparece.
+ *
+ * @author Diogo Devitte / Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente.
+ */
 import { useState, useEffect } from 'react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Button } from '@/components/ui/button';
 import { X, Download, Smartphone } from 'lucide-react';
 
+const DISMISS_KEY = 'pwa-banner-dismissed';
+const DISMISS_MS = 2 * 24 * 60 * 60 * 1000; // 2 dias
+
 export function PWAInstallPrompt() {
   const { isInstallable, isInstalled, isIOS, isStandalone, promptInstall } = usePWAInstall();
-  const [dismissed, setDismissed] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    // Check if user previously dismissed the banner
-    const wasDismissed = localStorage.getItem('pwa-banner-dismissed');
-    if (wasDismissed) {
-      const dismissedTime = parseInt(wasDismissed, 10);
-      // Show again after 7 days
-      if (Date.now() - dismissedTime < 7 * 24 * 60 * 60 * 1000) {
-        setDismissed(true);
-        return;
-      }
+    if (isInstalled || isStandalone) {
+      setShowBanner(false);
+      return;
     }
 
-    // Show banner after a delay if installable
+    const wasDismissed = localStorage.getItem(DISMISS_KEY);
+    if (wasDismissed) {
+      const dismissedAt = parseInt(wasDismissed, 10);
+      if (!Number.isNaN(dismissedAt) && Date.now() - dismissedAt < DISMISS_MS) {
+        setShowBanner(false);
+        return;
+      }
+      // Passou de 2 dias — limpa flag para permitir novo aparecimento.
+      localStorage.removeItem(DISMISS_KEY);
+    }
+
     const timer = setTimeout(() => {
       if ((isInstallable || isIOS) && !isInstalled && !isStandalone) {
         setShowBanner(true);
@@ -32,20 +47,18 @@ export function PWAInstallPrompt() {
 
   const handleDismiss = () => {
     setShowBanner(false);
-    setDismissed(true);
-    localStorage.setItem('pwa-banner-dismissed', Date.now().toString());
+    localStorage.setItem(DISMISS_KEY, Date.now().toString());
   };
 
   const handleInstall = async () => {
     if (isIOS) {
-      // For iOS, redirect to install page with instructions
       window.location.href = '/instalar';
     } else {
       await promptInstall();
     }
   };
 
-  if (dismissed || isInstalled || isStandalone || !showBanner) {
+  if (isInstalled || isStandalone || !showBanner) {
     return null;
   }
 
@@ -58,22 +71,22 @@ export function PWAInstallPrompt() {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-foreground text-sm">
-              Instale o Gente Networking
+              Instale o Gente Comunidade
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Acesso rápido direto da sua tela inicial, mesmo sem internet.
+              Acesse rápido pela tela inicial, receba avisos e use offline.
             </p>
-            <div className="flex gap-2 mt-3">
-              <Button 
-                size="sm" 
+            <div className="flex flex-wrap gap-2 mt-3">
+              <Button
+                size="sm"
                 onClick={handleInstall}
                 className="flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
                 Instalar
               </Button>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="ghost"
                 onClick={handleDismiss}
               >
@@ -83,6 +96,7 @@ export function PWAInstallPrompt() {
           </div>
           <button
             onClick={handleDismiss}
+            aria-label="Fechar"
             className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
           >
             <X className="w-4 h-4" />
