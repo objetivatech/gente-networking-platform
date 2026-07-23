@@ -36,7 +36,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
-const logoGente = '/logo-gente-comunidade-branco.png';
+const logoGente = '/logo-gente-networking-branco.png';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
 import SEO from '@/components/SEO';
 
@@ -291,7 +291,7 @@ export default function Auth() {
             />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-primary">Gente Networking</CardTitle>
+            <CardTitle className="text-2xl font-bold text-primary">Gente Comunidade</CardTitle>
             <CardDescription className="text-muted-foreground">
               Conectando pessoas, gerando negócios
             </CardDescription>

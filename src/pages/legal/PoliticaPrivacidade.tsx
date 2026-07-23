@@ -23,8 +23,7 @@ export default function PoliticaPrivacidade() {
           href="https://comunidade.gentenetworking.com.br/politica-de-privacidade"
         />
       </Helmet>
-      <main className="min-h-screen bg-background">
-        <article className="mx-auto max-w-3xl px-4 py-10 prose prose-sm sm:prose-base dark:prose-invert">
+      <article className="mx-auto max-w-3xl px-4 py-10 prose prose-sm sm:prose-base dark:prose-invert">
           <p className="text-xs text-muted-foreground">Última atualização: {updated}</p>
           <h1>Política de Privacidade</h1>
           <p>
@@ -173,8 +172,7 @@ export default function PoliticaPrivacidade() {
             e deve ser validado por assessoria jurídica antes da adoção em produção, ajustando
             operadores, prazos e endereços conforme sua realidade contratual.
           </p>
-        </article>
-      </main>
+      </article>
     </>
   );
 }
