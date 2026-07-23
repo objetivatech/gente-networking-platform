@@ -1,157 +1,71 @@
+## Objetivo
 
-# v3.28.0 — Revisão do CRM, LGPD, menu do admin e correções
+Restaurar os logos corretos nos pontos indicados, ajustar o Cartão Digital (dois logos + quebra de linha automática) e corrigir o erro na página pública do perfil (`/m/:slug`).
 
-Foco: destravar a captura de leads (LPs + site WordPress), documentar tudo, fechar o loop contrato→Kanban, entregar o wizard de promoção com auditoria, adicionar banner LGPD com documentos jurídicos, enxugar o menu do admin, corrigir o Health Score e gerar os ícones/PWA a partir dos novos logos.
+## Escopo — apenas frontend/apresentação e assets. Nenhuma alteração em DB, RPC, edge functions, permissões ou lógica de negócio.
 
-Nenhuma feature de membro é removida; apenas o menu do admin é filtrado. Toda mudança é aditiva no banco e revisada mobile-first.
+### 1) Substituir arquivos de logo em `public/`
 
----
+Sobrescrever as versões brancas com as imagens em anexo (garantindo consistência visual):
 
-## 1. CRM — Ingestão de leads (LPs + Site WordPress + API)
+- `public/logo-gente-comunidade-branco.png` ← `user-uploads://gente-comunidade_Editado.png`
+- `public/logo-gente-networking-branco.png` ← `user-uploads://gente-networking_Editado.png`
 
-**Diagnóstico atual:** a edge function `submit-lead` está pronta e aceita `source ∈ {lp_gentehub, lp_participe, lp_networking, site_elementor, convite_manual, api}`. Nenhum lead das LPs está entrando → o projeto "LPs Gente" nunca foi apontado para a URL da função. O site em WordPress não tem hoje um caminho oficial. Não é falha de código, é falta de integração + documentação.
+Manter intactos: `logo-gente.png`, `logo-gente-comunidade.png`, `logo-gente-networking.png`, `logo-gente-card.png` (usados em emails, PWA, favicons, etc.).
 
-**Entregas nesta plataforma (Comunidade):**
-- Painel de "Como conectar leads" no topo do `AdminCrm` (colapsável, persistido em `localStorage`) mostrando:
-  - URL pública da edge function `submit-lead` (com botão copiar).
-  - Exemplo de payload por origem (`lp_gentehub`, `lp_participe`, `lp_networking`, `site_elementor`, `api`).
-  - Explicação curta de cada filtro/origem (o que significa, quem dispara).
-  - Link para a documentação nova (`/docs` internos e `docs/`).
-- Tooltip explicativo em cada chip de filtro de origem no Kanban e na Auditoria.
-- Nenhuma mudança nas regras de dedup/upsert do backend.
+### 2) Apontar componentes para as versões brancas nos fundos escuros
 
-**Documentação nova (arquivos):**
-- `docs/CRM_INGESTAO_LEADS.md` — visão geral das origens, contrato do payload, curl de exemplo, troubleshooting (409/400), como testar.
-- `docs/INTEGRACAO_LPS_GENTE.md` — passo a passo para o projeto Lovable "LPs Gente" chamar `submit-lead` (fetch client-side + hidden fields de origem por LP). Inclui exemplo React pronto.
-- `docs/INTEGRACAO_WORDPRESS.md` — três caminhos suportados no site atual em WordPress:
-  1. **WPForms / Contact Form 7 / Elementor Forms + Webhook** (recomendado): configurar action "Webhook" apontando para `https://vyfkddcbmwlwldaorxzy.supabase.co/functions/v1/submit-lead` com header `apikey` (anon) e mapping de campos → `source: "site_elementor"`.
-  2. **Zapier / Make** intermediário para forms que não suportam webhook nativo.
-  3. **Snippet PHP** em `functions.php` (fornecido pronto) que dispara `wp_remote_post` no hook `wpcf7_mail_sent` / `elementor_pro/forms/new_record`.
-- Todos os documentos ficam acessíveis dentro da plataforma via a página `/documentacao` (adicionar entradas no índice).
+- `**src/pages/Auth.tsx**` (linha 39): `logoGente` → `/logo-gente-comunidade-branco.png`. O logo aparece dentro de um card navy no formulário de login.
+- `**src/components/layout/Sidebar.tsx**` (linha 21): `logoGente` → `/logo-gente-comunidade-branco.png`. Topo da sidebar tem fundo navy.
+- `**src/components/layout/Footer.tsx**` (linha 11): `logoComunidade` → `/logo-gente-comunidade-branco.png`. Rodapé é navy.
 
----
+Não alterar: `AuthConfirm`, `ConvitePublico`, `GuestWelcome`, `Instalar`, `RedefinirSenha`, `PublicProfile` — continuam com `/logo-gente-networking.png` (essas páginas são externas/públicas com identidade Networking). - **IMPORTANTE: Se nessas páginas o local onde o logo fica tiver a cor azul escura de fundo, substituir pelo logo gente networking branco que está em anexo.**
 
-## 2. Assinatura de contrato → reflete no Kanban
+### 3) Cartão Digital do Membro (`src/components/DigitalMemberCard.tsx`)
 
-Backend já grava `contract_status` via `autentique-webhook`. Precisamos garantir o loop de UI e a robustez do webhook.
+Restabelecer configuração dos dois logos e resolver sobreposição de texto/QR.
 
-- Confirmar/registrar a URL do webhook na conta Autentique (documentar em `docs/CRM_LEADS.md`).
-- No `LeadDrawer`: banner grande com status atual do contrato + botão "Abrir link de assinatura" (já existe) + botão "Baixar PDF assinado" quando `contract_signed_pdf_path` estiver preenchido (usa `get-contract-url`).
-- Realtime: assinar `postgres_changes` em `crm_leads` (filtro `id=eq.<lead>`) enquanto o drawer está aberto para atualizar status sem refresh. Cleanup no `useEffect`.
-- Badge do card no Kanban (`ContractBadge`) já existe; adicionar a variante "expired" faltante e tooltip com data de envio/assinatura.
-- Fallback: botão "Sincronizar status" no drawer que chama nova função `sync-contract-status` (consulta Autentique via GraphQL usando `autentique_document_id` e atualiza `crm_leads` + `crm_lead_history`). Cobre casos em que o webhook não chegou.
+**Logos no canvas:**
 
----
+- Trocar `LOGO_COMUNIDADE_SRC` → `/logo-gente-comunidade-branco.png` (destaque, canto superior esquerdo, tamanho atual `logoH=100`).
+- Trocar `LOGO_NETWORKING_SRC` → `/logo-gente-networking-branco.png` (secundário, canto superior direito, menor). Remover o `globalAlpha = 0.55` que o deixa quase invisível — usar opacidade cheia (o branco já garante o efeito discreto sobre o navy). Ajustar `nH` para ~40 para manter proporção menor que o principal.
 
-## 3. Wizard guiado de promoção (finalização)
+**Quebra de linha automática (sem reduzir fonte):**
 
-Transformar `PromoteLeadDialog` em wizard multi-etapa:
+- Introduzir helper `wrapText(ctx, text, x, y, maxWidth, lineHeight)` que quebra por palavras e retorna a próxima coordenada Y.
+- Definir uma largura útil à esquerda do QR: `TEXT_MAX_WIDTH = qrX - 14 - 60 - 20` (≈ 596 px com layout atual). Aplicar em:
+  - **Nome** (fonte 46, lineHeight 52) — começa em y=200 para acomodar até 2 linhas antes do bloco de cargo.
+  - **Cargo/empresa** (fonte 26, lineHeight 32).
+  - **Segmento** (fonte 22, lineHeight 28).
+  - **Email/telefone** (fonte 24, lineHeight 30) — normalmente já cabem, mas passar pelo mesmo wrapper.
+- Reorganizar Ys para serem calculados dinamicamente a partir do Y retornado por cada `wrapText`, evitando colisões e mantendo o QR na posição atual (canto inferior direito).
+- Se o total exceder a altura do card, ampliar `H` de 560 para 620 (mudança pontual, sem quebrar layout responsivo pois o canvas usa `w-full h-auto`).
 
-1. **Validações** (readonly): conta criada?, grupo selecionado?, contrato assinado?, pagamento pago (para HUB)? Cada linha com ícone verde/amarelo/vermelho. Permite marcar "Pular com motivo" (motivo obrigatório).
-2. **Destino**: seletor de grupo (destaca grupos `is_hub = true` como "Grupo Premium"). Opção "Mover para grupo premium" já cobre esse ramo.
-3. **Confirmação**: resumo + botão "Promover".
+### 4) Página pública `/m/:slug` — erro "Algo deu errado"
 
-- Chamada única para a RPC `promote_crm_lead_to_member` já existente (sem mudar assinatura; passamos `skip_reasons` como JSON). Se a RPC ainda não aceita skip, adicionar parâmetro opcional `_skip_reasons jsonb` de forma aditiva.
-- Grava em `crm_lead_history` com `event_type = 'promoted_to_member'` incluindo `metadata` (grupo destino, validações puladas, timestamp, responsável). Já suportado.
-- Permissões: somente `admin`. Facilitador vê o botão desabilitado com tooltip.
+- Investigação inicial: a RPC `get_public_profile` responde `[]` para slugs inexistentes/não publicados (verificado), o que deveria acionar o estado "Perfil não disponível" e **não** o ErrorBoundary. O erro atual vem de uma exceção durante render/efeito.
+- Ações corretivas em `src/pages/PublicProfile.tsx` (sem tocar em RPC/RLS):
+  1. Tratar erro da RPC explicitamente: desestruturar `{ data, error }`, logar `error`, e cair no estado "Perfil não disponível" em vez de propagar.
+  2. Guardar acesso seguro: `Array.isArray(data) ? data[0] : null`.
+  3. Envolver a montagem de `jsonLd`/`breadcrumb` em try/catch defensivo — se algum campo vier em formato inesperado, cair para SEO mínimo (title + noindex) em vez de estourar.
+  4. Renderizar `<ProfileSEO>` também durante `loading` (com título neutro) para evitar remontagem do Helmet no ciclo de vida.
+- Após deploy, revalidar com o slug real do usuário (`/m/diogo-devitte-membro-...`). Se ainda houver erro, capturar o stack via console para segundo ciclo — mas as guardas acima já cobrem os cenários prováveis (RPC error, `data` não-array, campos nulos em JSON-LD).
 
----
+### 5) Documentação e Changelog
 
-## 4. LGPD — Banner de cookies + documentos jurídicos
-
-- Novo componente `LgpdBanner` fixo no rodapé em primeira visita (persistência em `localStorage: gente:lgpd-consent:v1` com `{ status, ts, categories }`). Opções: **Aceitar todos**, **Somente essenciais**, **Personalizar**. Não bloqueia navegação. Design alinhado ao brand (navy/orange).
-- Novas páginas públicas (sem auth):
-  - `/termos-de-uso` → `src/pages/legal/TermosDeUso.tsx`
-  - `/politica-de-privacidade` → `src/pages/legal/PoliticaPrivacidade.tsx`
-  - `/politica-de-cookies` → `src/pages/legal/PoliticaCookies.tsx`
-- Textos redigidos conforme **LGPD (Lei 13.709/2018)**, **Marco Civil da Internet** e **CDC**, cobrindo: bases legais, dados coletados, finalidades, retenção, compartilhamento (Supabase, Resend, Cloudflare, Autentique), direitos do titular (arts. 17-22), canal do encarregado (DPO) por e-mail, cookies (essenciais/analíticos/marketing). Marcadas como "modelo editável — revisar com jurídico" no rodapé de cada documento (obrigatório para não induzir o usuário a assumir texto como parecer jurídico).
-- Links no `Footer.tsx` da plataforma e um `<Link>` "Ler políticas" no próprio banner.
-- SEO: `noindex` nas páginas legais opcional? Não — deixar indexáveis (melhor para transparência).
-
----
-
-## 5. Correção: Health Score do admin (`column reference "user_id" is ambiguous`)
-
-Causa: a função `get_members_health_scores` declara **OUT parameter** `user_id` no `RETURNS TABLE(...)`, e as CTEs internas (`refs`, `test`, `council`, `ga`, `att`, `bc`, `members`, `team_of`) usam alias/coluna também chamado `user_id`. O planner do PostgreSQL não sabe se, em joins como `ga.user_id = mem.user_id`, o `user_id` do lado direito é a OUT variable ou a coluna da CTE `members`.
-
-Correção mínima e segura (migration aditiva, `CREATE OR REPLACE FUNCTION`): adicionar `#variable_conflict use_column` no topo do bloco plpgsql **e** renomear a OUT param para `out_user_id` (mais explícito) mantendo o mesmo shape de retorno via alias no SELECT (`p.id AS user_id` continua). Alternativa aceita: renomear as colunas das CTEs para `uid`. Vamos aplicar as duas medidas para blindar. Nenhuma mudança de schema, nenhum impacto em `useMemberHealthScores`.
-
----
-
-## 6. Menu do admin — foco em gestão
-
-Regra: o **admin** não pontua nem participa das mecânicas de networking, então o menu dele deve ocultar itens operacionais de membro. Membros/facilitadores continuam vendo tudo como hoje.
-
-Itens **ocultos para `admin`** (mantidos para membro/facilitador):
-- Feed, MatchMaking, Aniversários, Conselho 24/7
-- Gente em Ação, Indicações, Negócios, Depoimentos, Oportunidades, Pedidos de Indicação
-- Ranking
-
-Itens **mantidos para `admin`**:
-- Início/Dashboard, Membros, Convidados, Encontros (para acompanhar), Convites, Estatísticas, Conteúdos, Documentação, Changelog + todo o grupo Administração.
-
-Implementação: adicionar campo opcional `hiddenForRoles?: string[]` nos items do `Sidebar.tsx` e filtrar em `filterItems`. Espelhar o mesmo filtro no `BottomNav.tsx` para mobile. Rotas continuam acessíveis por URL (não removemos guards) — só a navegação é enxuta.
-
----
-
-## 7. PWA — variações de ícone a partir dos novos logos
-
-- Gerar do arquivo `gente-comunidade-cor.png` (colorido, brand) as variações padrão PWA: `192x192`, `256x256`, `384x384`, `512x512`, `512x512 maskable`, `180x180 apple-touch`, `favicon-32x32`, `favicon-16x16`. Fundo navy `#1E3A5F` nas versões maskable para respeitar safe area.
-- Substituir `public/icons/icon-*.png` e `public/apple-touch-icon.png`.
-- Atualizar `public/manifest.webmanifest` (garantir `purpose: "maskable"` no 512 dedicado).
-- Atualizar hero/emails para os novos assets do Gente Networking (`gente-networking-cor.png`) via `lovable-assets` quando aplicável, mantendo os hooks/refs já existentes (não trocar caminhos que já apontam para pointers válidos).
-
----
-
-## 8. Documentação de UI/UX (desktop + mobile)
-
-Novo `docs/UI_UX_GUIDELINES.md` consolidando:
-- Regras de responsividade (referência `mem://design/responsive-rules`).
-- Padrões de menu (sidebar colapsável desktop, BottomNav mobile, agrupamento).
-- Padrões de drawer/dialog (CRM, contratos, promoção).
-- Uso de badges de status (contratos, cobrança, leads).
-- Checklist mobile antes de commit: sem overflow-x, textos com `text-wrap-anywhere` em strings longas, tabelas com `hscroll`, botões com área mínima 40px.
-
-Atualizar `docs/CRM_LEADS.md` com o wizard novo, o painel de ingestão e a sincronização de contrato.
-
----
-
-## 9. Changelog + memórias
-
-- Nova entrada **v3.28.0** em `system_changelog` cobrindo todos os itens.
-- Nova memória `mem://features/v3280-crm-lgpd-menu-admin.md` resumindo o escopo.
-- Atualizar `mem://index.md` (uma linha).
-
----
+- Nova entrada `v3.29.0 — Ajustes de identidade visual e correção do perfil público` em:
+  - `mem://features/v3290-logos-cartao-perfil-publico.md` (memória).
+  - Inserir no `system_changelog` do Supabase via migração SQL simples (padrão dos itens anteriores).
+- Atualizar `docs/UI_UX_GUIDELINES.md` com a regra: **logos brancos são obrigatórios em superfícies navy** (Auth, Sidebar, Footer, Cartão) e logos coloridos em superfícies claras/emails.
 
 ## Detalhes técnicos
 
-**Migrations (aditivas):**
-- `fix_health_score_ambiguous_user_id.sql` — recria `get_members_health_scores` com `#variable_conflict use_column` e alias `uid` nas CTEs.
-- (Se necessário) `promote_crm_lead_add_skip_reasons.sql` — adiciona parâmetro opcional `_skip_reasons jsonb DEFAULT '[]'` à RPC de promoção; registra em `metadata`.
+- Nenhuma dependência nova.
+- Substituição dos PNGs via `cp /mnt/user-uploads/... public/...` (arquivos são de projeto, mantidos no repo como as demais logos já estão).
+- Cartão continua PNG 1000×(560→620), download via `canvas.toDataURL`.
+- `wrapText` respeita palavras isoladas maiores que a largura (força quebra por caractere como fallback).
 
-**Edge functions:**
-- Nova `sync-contract-status` (admin-only, checa JWT + role): consulta Autentique GraphQL por `document(id)` e atualiza `crm_leads.contract_status` + insere evento em `crm_lead_history`.
+## Fora de escopo
 
-**Frontend:**
-- `src/pages/AdminCrm.tsx`: painel "Como capturamos leads" no topo + tooltips nos filtros.
-- `src/components/crm/LeadDrawer.tsx`: banner de contrato + botão "Sincronizar status" + botão "Baixar PDF".
-- `src/components/crm/PromoteLeadDialog.tsx`: wizard 3 etapas.
-- `src/components/LgpdBanner.tsx` (novo) montado em `App.tsx` no layout público/autenticado.
-- `src/pages/legal/*.tsx` (3 novos) + rotas em `App.tsx`.
-- `src/components/layout/Footer.tsx`: links legais.
-- `src/components/layout/Sidebar.tsx` e `src/components/layout/BottomNav.tsx`: suporte a `hiddenForRoles`.
-- `src/components/layout/PWAInstallPrompt.tsx`: sem mudança (já v3.27.0).
-
-**Testes rápidos:**
-- Rodar `supabase--linter` após migrations.
-- Chamar `get_members_health_scores` como admin via `supabase--read_query` para validar ausência de erro.
-- Smoke-test da `submit-lead` com curl documentado.
-
----
-
-## Fora do escopo (confirmado)
-
-- Não vamos escolher provedor de pagamento (mantido em aberto conforme decisão anterior).
-- Não vamos alterar RLS de tabelas existentes.
-- Não vamos remover rotas do admin — apenas ocultar da navegação.
+- Alterar RPC `get_public_profile`, RLS, colunas de perfil, edge functions ou fluxo de publicação.
+- Alterar logos em emails, PWA icons, favicon, ou páginas externas (Convite, GuestWelcome, RedefinirSenha, AuthConfirm, Instalar).
