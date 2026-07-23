@@ -138,6 +138,9 @@ const App = () => (
                 <Route path="/conteudos" element={<Conteudos />} />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/convites" element={<Convites />} />
+                <Route path="/termos-de-uso" element={<TermosDeUso />} />
+                <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+                <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
                 <Route path="/conselho" element={<Conselho />} />
                 <Route path="/changelog" element={<Changelog />} />
                 <Route path="/documentacao" element={<Documentacao />} />

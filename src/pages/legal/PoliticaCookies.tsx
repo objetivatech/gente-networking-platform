@@ -33,8 +33,7 @@ export default function PoliticaCookies() {
           href="https://comunidade.gentenetworking.com.br/politica-de-cookies"
         />
       </Helmet>
-      <main className="min-h-screen bg-background">
-        <article className="mx-auto max-w-3xl px-4 py-10 prose prose-sm sm:prose-base dark:prose-invert">
+      <article className="mx-auto max-w-3xl px-4 py-10 prose prose-sm sm:prose-base dark:prose-invert">
           <p className="text-xs text-muted-foreground">Última atualização: {updated}</p>
           <h1>Política de Cookies</h1>
           <p>
@@ -118,8 +117,7 @@ export default function PoliticaCookies() {
             <strong>Nota:</strong> Modelo editável. Ajuste categorias, prazos e chaves de acordo
             com as tecnologias em uso na versão vigente da plataforma.
           </p>
-        </article>
-      </main>
+      </article>
     </>
   );
 }

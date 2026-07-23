@@ -20,8 +20,7 @@ export default function TermosDeUso() {
         />
         <link rel="canonical" href="https://comunidade.gentenetworking.com.br/termos-de-uso" />
       </Helmet>
-      <main className="min-h-screen bg-background">
-        <article className="mx-auto max-w-3xl px-4 py-10 prose prose-sm sm:prose-base dark:prose-invert">
+      <article className="mx-auto max-w-3xl px-4 py-10 prose prose-sm sm:prose-base dark:prose-invert">
           <p className="text-xs text-muted-foreground">Última atualização: {updated}</p>
           <h1>Termos de Uso</h1>
           <p>
@@ -119,8 +118,7 @@ export default function TermosDeUso() {
             revisão por assessoria jurídica de sua confiança para adequação a especificidades do
             seu operador e público.
           </p>
-        </article>
-      </main>
+      </article>
     </>
   );
 }
