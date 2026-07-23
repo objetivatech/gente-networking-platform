@@ -124,8 +124,9 @@ function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
 
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      <script type="application/ld+json">{JSON.stringify(breadcrumb)}</script>
+      <script type="application/ld+json">{(() => { try { return JSON.stringify(jsonLd); } catch { return '{}'; } })()}</script>
+      <script type="application/ld+json">{(() => { try { return JSON.stringify(breadcrumb); } catch { return '{}'; } })()}</script>
+
     </Helmet>
   );
 }
