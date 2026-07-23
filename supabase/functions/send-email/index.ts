@@ -4,6 +4,9 @@ import {
   passwordResetEmailTemplate,
   confirmEmailTemplate,
   invitationEmailTemplate,
+  meetingRequestEmailTemplate,
+  meetingResponseEmailTemplate,
+  hubInvitationEmailTemplate,
 } from "../_shared/email-templates.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -17,7 +20,7 @@ interface EmailRequest {
   to: string;
   subject: string;
   html?: string;
-  template?: "magic_link" | "password_reset" | "confirm_email" | "invitation";
+  template?: "magic_link" | "password_reset" | "confirm_email" | "invitation" | "hub_invitation" | "meeting_request" | "meeting_response";
   template_data?: {
     name?: string;
     link?: string;
@@ -25,6 +28,14 @@ interface EmailRequest {
     inviter_name?: string;
     guest_name?: string;
     invite_link?: string;
+    hub_context?: string;
+    recipient_name?: string;
+    requester_name?: string;
+    proposed_start?: string;
+    duration_minutes?: number;
+    location?: string;
+    message?: string;
+    status?: "confirmed" | "declined";
   };
   from?: string;
 }
@@ -59,6 +70,36 @@ const handler = async (req: Request): Promise<Response> => {
             template_data.inviter_name || "Um membro",
             template_data.guest_name || "",
             template_data.invite_link || ""
+          );
+          break;
+        case "hub_invitation":
+          html = hubInvitationEmailTemplate(
+            template_data.inviter_name || "Um membro",
+            template_data.guest_name || "",
+            template_data.invite_link || "",
+            template_data.hub_context || ""
+          );
+          break;
+        case "meeting_request":
+          html = meetingRequestEmailTemplate(
+            template_data.recipient_name || "",
+            template_data.requester_name || "Um membro",
+            template_data.proposed_start || "",
+            template_data.duration_minutes || 60,
+            template_data.location || "",
+            template_data.message || "",
+            template_data.link || ""
+          );
+          break;
+        case "meeting_response":
+          html = meetingResponseEmailTemplate(
+            template_data.requester_name || "",
+            template_data.recipient_name || "Um membro",
+            (template_data.status as "confirmed" | "declined") || "confirmed",
+            template_data.proposed_start || "",
+            template_data.duration_minutes || 60,
+            template_data.location || "",
+            template_data.link || ""
           );
           break;
       }
