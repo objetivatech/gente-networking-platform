@@ -1,71 +1,45 @@
 ## Objetivo
 
-Restaurar os logos corretos nos pontos indicados, ajustar o Cartão Digital (dois logos + quebra de linha automática) e corrigir o erro na página pública do perfil (`/m/:slug`).
+Reforçar a hierarquia de marca (Gente Networking = negócio, Gente Comunidade = produto) na tela de login e manter as páginas legais dentro do ambiente autenticado da plataforma, além de confirmar o logo em uso nos e-mails.
 
-## Escopo — apenas frontend/apresentação e assets. Nenhuma alteração em DB, RPC, edge functions, permissões ou lógica de negócio.
+## 1) E-mails — confirmação
 
-### 1) Substituir arquivos de logo em `public/`
+Verificado: `supabase/functions/_shared/email-templates.ts` já usa `/logo-gente-networking.png` (linha 6, `LOGO_URL`). Todos os templates (magic link, reset, confirmação, convite) herdam essa constante. **Nenhuma mudança necessária** — apenas registrar a confirmação na resposta ao usuário.
 
-Sobrescrever as versões brancas com as imagens em anexo (garantindo consistência visual):
+## 2) Tela de login (`src/pages/Auth.tsx`)
 
-- `public/logo-gente-comunidade-branco.png` ← `user-uploads://gente-comunidade_Editado.png`
-- `public/logo-gente-networking-branco.png` ← `user-uploads://gente-networking_Editado.png`
+- Linha 39: `const logoGente = '/logo-gente-networking.png';` (troca do branco de Comunidade para o de Networking).
+- Linha 289: `alt="Gente Networking"` (já está correto, manter).
+- Linha 294: trocar `<CardTitle>Gente Networking</CardTitle>` por `<CardTitle>Gente Comunidade</CardTitle>`.
+- Linha 296: manter subtítulo "Conectando pessoas, gerando negócios".
+- Linha 281 (SEO description): sem alteração — segue mencionando Gente Networking como marca.
 
-Manter intactos: `logo-gente.png`, `logo-gente-comunidade.png`, `logo-gente-networking.png`, `logo-gente-card.png` (usados em emails, PWA, favicons, etc.).
+O card de fundo navy do formulário continua com logo branco (agora o de Networking), coerente com o branding do negócio.
 
-### 2) Apontar componentes para as versões brancas nos fundos escuros
+## 3) Páginas legais dentro da plataforma
 
-- `**src/pages/Auth.tsx**` (linha 39): `logoGente` → `/logo-gente-comunidade-branco.png`. O logo aparece dentro de um card navy no formulário de login.
-- `**src/components/layout/Sidebar.tsx**` (linha 21): `logoGente` → `/logo-gente-comunidade-branco.png`. Topo da sidebar tem fundo navy.
-- `**src/components/layout/Footer.tsx**` (linha 11): `logoComunidade` → `/logo-gente-comunidade-branco.png`. Rodapé é navy.
+Hoje `/termos-de-uso`, `/politica-de-privacidade` e `/politica-de-cookies` estão registradas em `src/App.tsx` (linhas 120–122) **fora** do `<Route element={<MainLayout />}>` (linha 123), então abrem em tela cheia sem Sidebar/Header/Footer.
 
-Não alterar: `AuthConfirm`, `ConvitePublico`, `GuestWelcome`, `Instalar`, `RedefinirSenha`, `PublicProfile` — continuam com `/logo-gente-networking.png` (essas páginas são externas/públicas com identidade Networking). - **IMPORTANTE: Se nessas páginas o local onde o logo fica tiver a cor azul escura de fundo, substituir pelo logo gente networking branco que está em anexo.**
+Ação:
 
-### 3) Cartão Digital do Membro (`src/components/DigitalMemberCard.tsx`)
+- Mover essas três rotas para dentro do bloco `MainLayout`, ao lado de `/documentacao` (linha 146). Assim herdam o layout autenticado (Sidebar + Header + Footer), igual a `Documentacao.tsx`.
+- Ajustar os três componentes em `src/pages/legal/` para remover o wrapper `<main className="min-h-screen bg-background">` (o `MainLayout` já provê container e background) e manter apenas o `<article>` com o conteúdo. `Helmet` permanece.
+- Manter os links no `Footer.tsx` e no `LgpdBanner.tsx` — continuam funcionando, agora dentro da moldura da plataforma.
 
-Restabelecer configuração dos dois logos e resolver sobreposição de texto/QR.
+Observação de acesso: as rotas passam a exigir autenticação (padrão do `MainLayout` via `AuthContext`). Se o requisito for permitir consulta pública dessas políticas (usuário deslogado clicando no link do banner LGPD antes de logar), o correto seria manter a rota pública mas embrulhar num layout leve. **Preciso confirmar com você antes de implementar** (ver Pergunta abaixo).
 
-**Logos no canvas:**
+## 4) Documentação e changelog
 
-- Trocar `LOGO_COMUNIDADE_SRC` → `/logo-gente-comunidade-branco.png` (destaque, canto superior esquerdo, tamanho atual `logoH=100`).
-- Trocar `LOGO_NETWORKING_SRC` → `/logo-gente-networking-branco.png` (secundário, canto superior direito, menor). Remover o `globalAlpha = 0.55` que o deixa quase invisível — usar opacidade cheia (o branco já garante o efeito discreto sobre o navy). Ajustar `nH` para ~40 para manter proporção menor que o principal.
-
-**Quebra de linha automática (sem reduzir fonte):**
-
-- Introduzir helper `wrapText(ctx, text, x, y, maxWidth, lineHeight)` que quebra por palavras e retorna a próxima coordenada Y.
-- Definir uma largura útil à esquerda do QR: `TEXT_MAX_WIDTH = qrX - 14 - 60 - 20` (≈ 596 px com layout atual). Aplicar em:
-  - **Nome** (fonte 46, lineHeight 52) — começa em y=200 para acomodar até 2 linhas antes do bloco de cargo.
-  - **Cargo/empresa** (fonte 26, lineHeight 32).
-  - **Segmento** (fonte 22, lineHeight 28).
-  - **Email/telefone** (fonte 24, lineHeight 30) — normalmente já cabem, mas passar pelo mesmo wrapper.
-- Reorganizar Ys para serem calculados dinamicamente a partir do Y retornado por cada `wrapText`, evitando colisões e mantendo o QR na posição atual (canto inferior direito).
-- Se o total exceder a altura do card, ampliar `H` de 560 para 620 (mudança pontual, sem quebrar layout responsivo pois o canvas usa `w-full h-auto`).
-
-### 4) Página pública `/m/:slug` — erro "Algo deu errado"
-
-- Investigação inicial: a RPC `get_public_profile` responde `[]` para slugs inexistentes/não publicados (verificado), o que deveria acionar o estado "Perfil não disponível" e **não** o ErrorBoundary. O erro atual vem de uma exceção durante render/efeito.
-- Ações corretivas em `src/pages/PublicProfile.tsx` (sem tocar em RPC/RLS):
-  1. Tratar erro da RPC explicitamente: desestruturar `{ data, error }`, logar `error`, e cair no estado "Perfil não disponível" em vez de propagar.
-  2. Guardar acesso seguro: `Array.isArray(data) ? data[0] : null`.
-  3. Envolver a montagem de `jsonLd`/`breadcrumb` em try/catch defensivo — se algum campo vier em formato inesperado, cair para SEO mínimo (title + noindex) em vez de estourar.
-  4. Renderizar `<ProfileSEO>` também durante `loading` (com título neutro) para evitar remontagem do Helmet no ciclo de vida.
-- Após deploy, revalidar com o slug real do usuário (`/m/diogo-devitte-membro-...`). Se ainda houver erro, capturar o stack via console para segundo ciclo — mas as guardas acima já cobrem os cenários prováveis (RPC error, `data` não-array, campos nulos em JSON-LD).
-
-### 5) Documentação e Changelog
-
-- Nova entrada `v3.29.0 — Ajustes de identidade visual e correção do perfil público` em:
-  - `mem://features/v3290-logos-cartao-perfil-publico.md` (memória).
-  - Inserir no `system_changelog` do Supabase via migração SQL simples (padrão dos itens anteriores).
-- Atualizar `docs/UI_UX_GUIDELINES.md` com a regra: **logos brancos são obrigatórios em superfícies navy** (Auth, Sidebar, Footer, Cartão) e logos coloridos em superfícies claras/emails.
-
-## Detalhes técnicos
-
-- Nenhuma dependência nova.
-- Substituição dos PNGs via `cp /mnt/user-uploads/... public/...` (arquivos são de projeto, mantidos no repo como as demais logos já estão).
-- Cartão continua PNG 1000×(560→620), download via `canvas.toDataURL`.
-- `wrapText` respeita palavras isoladas maiores que a largura (força quebra por caractere como fallback).
+- `docs/UI_UX_GUIDELINES.md`: registrar que **Gente Networking é a marca do negócio** (usada em e-mails, login, páginas externas/públicas) e **Gente Comunidade é o produto** (nome exibido como título dentro do app, sidebar, cartão do membro etc.).
+- Nova entrada `v3.30.0 — Hierarquia de marca (Networking/Comunidade) e páginas legais no layout` em `system_changelog` (migration curta) e memória `mem://features/v3300-branding-hierarquia-legal-layout.md`.
 
 ## Fora de escopo
 
-- Alterar RPC `get_public_profile`, RLS, colunas de perfil, edge functions ou fluxo de publicação.
-- Alterar logos em emails, PWA icons, favicon, ou páginas externas (Convite, GuestWelcome, RedefinirSenha, AuthConfirm, Instalar).
+- Sidebar/Footer/Cartão Digital continuam com o logo de **Gente Comunidade branco** (é onde o produto se apresenta).
+- Nenhuma mudança em RPC, RLS, edge functions, permissões ou lógica de negócio.
+
+## Pergunta antes de implementar
+
+As páginas legais devem ser acessíveis **também por usuários deslogados** (pelo link do banner LGPD na tela de login)? Se sim, mantenho rota pública com um layout enxuto (Header simples + Footer, sem Sidebar). Se não, movo direto para dentro do `MainLayout` autenticado.
+
+**As páginas legais devem estar dsponiveis apenas para usuários logados.**
