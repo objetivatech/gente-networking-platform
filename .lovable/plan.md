@@ -1,45 +1,107 @@
-## Objetivo
+# v3.31.0 — Perfil do Membro & Convites Gente HUB
 
-Reforçar a hierarquia de marca (Gente Networking = negócio, Gente Comunidade = produto) na tela de login e manter as páginas legais dentro do ambiente autenticado da plataforma, além de confirmar o logo em uso nos e-mails.
+## 1. Layout do Perfil do Membro (largura total)
 
-## 1) E-mails — confirmação
+**Arquivo:** `src/pages/MemberProfile.tsx`
 
-Verificado: `supabase/functions/_shared/email-templates.ts` já usa `/logo-gente-networking.png` (linha 6, `LOGO_URL`). Todos os templates (magic link, reset, confirmação, convite) herdam essa constante. **Nenhuma mudança necessária** — apenas registrar a confirmação na resposta ao usuário.
+- Trocar `max-w-4xl mx-auto` por `max-w-6xl mx-auto` (consistente com `Profile.tsx` conforme memória v3.20.0).
+- Reorganizar o card de perfil: no desktop (`md:`), transformar o bloco de bio/tags/contatos em `grid md:grid-cols-3` para que "O que eu faço / Cliente Ideal / Como me indicar" (aba "Sobre") ocupe a largura total abaixo do avatar, e a bio se expanda ao lado da foto em vez de deixar espaço em branco.
+- Mover a bio (`member.bio`) para a coluna lateral direita da foto, preenchendo o vazio identificado no print.
 
-## 2) Tela de login (`src/pages/Auth.tsx`)
+Escopo puramente visual — sem mudança de dados.
 
-- Linha 39: `const logoGente = '/logo-gente-networking.png';` (troca do branco de Comunidade para o de Networking).
-- Linha 289: `alt="Gente Networking"` (já está correto, manter).
-- Linha 294: trocar `<CardTitle>Gente Networking</CardTitle>` por `<CardTitle>Gente Comunidade</CardTitle>`.
-- Linha 296: manter subtítulo "Conectando pessoas, gerando negócios".
-- Linha 281 (SEO description): sem alteração — segue mencionando Gente Networking como marca.
+## 2. Agendar Gente em Ação (com confirmação)
 
-O card de fundo navy do formulário continua com logo branco (agora o de Networking), coerente com o branding do negócio.
+### Renomeação
+- `src/components/ScheduleMeetingDialog.tsx`: trocar rótulo do botão "Agendar 1x1" por **"Agendar Gente em Ação"** e ajustar títulos internos do diálogo.
+- Mesmo ajuste onde o componente é referenciado em `MemberProfile.tsx` e `Profile.tsx`.
 
-## 3) Páginas legais dentro da plataforma
+### Fluxo de confirmação (novo)
+Hoje o botão gera imediatamente um link do Google Calendar / `.ics`. Vamos introduzir uma etapa de **solicitação → confirmação** antes de liberar o convite:
 
-Hoje `/termos-de-uso`, `/politica-de-privacidade` e `/politica-de-cookies` estão registradas em `src/App.tsx` (linhas 120–122) **fora** do `<Route element={<MainLayout />}>` (linha 123), então abrem em tela cheia sem Sidebar/Header/Footer.
+**Nova tabela `meeting_requests`** (migration):
+- `id`, `requester_id` (uuid → profiles), `recipient_id` (uuid → profiles)
+- `proposed_start` (timestamptz), `duration_minutes` (int), `location` (text), `message` (text)
+- `status` enum: `pending` | `confirmed` | `declined` | `cancelled`
+- `responded_at`, `created_at`, `updated_at`
+- RLS: requester e recipient podem SELECT; requester pode INSERT/DELETE (cancelar); recipient pode UPDATE (aceitar/recusar).
+- GRANTs conforme padrão (authenticated + service_role).
 
-Ação:
+**Fluxo novo no diálogo:**
+1. Solicitante preenche data/hora/duração/local/mensagem e clica **"Enviar solicitação"** (substitui os botões atuais de Google/.ics).
+2. Sistema insere em `meeting_requests` (status `pending`) e:
+   - Cria entrada no `activity_feed` para o destinatário (notificação in-app).
+   - Dispara email via edge function existente `send-email` ("Fulano quer agendar um Gente em Ação com você").
+3. Destinatário vê a solicitação em **nova seção no `Feed.tsx`** (card "Solicitações de Gente em Ação pendentes") com botões **Confirmar** / **Recusar**.
+4. Ao confirmar:
+   - Status → `confirmed`.
+   - Retorna ao solicitante os botões **"Google Calendar"** e **"Baixar .ics"** (lógica atual do `scheduling-utils.ts` reaproveitada) via nova aba "Meus agendamentos" no perfil OU via link no email de confirmação.
+   - Email para o solicitante avisando que foi aceito.
+5. Ao recusar: status → `declined`, notificação para o solicitante.
 
-- Mover essas três rotas para dentro do bloco `MainLayout`, ao lado de `/documentacao` (linha 146). Assim herdam o layout autenticado (Sidebar + Header + Footer), igual a `Documentacao.tsx`.
-- Ajustar os três componentes em `src/pages/legal/` para remover o wrapper `<main className="min-h-screen bg-background">` (o `MainLayout` já provê container e background) e manter apenas o `<article>` com o conteúdo. `Helmet` permanece.
-- Manter os links no `Footer.tsx` e no `LgpdBanner.tsx` — continuam funcionando, agora dentro da moldura da plataforma.
+**Novo hook:** `src/hooks/useMeetingRequests.ts` (list, create, respond, cancel).
 
-Observação de acesso: as rotas passam a exigir autenticação (padrão do `MainLayout` via `AuthContext`). Se o requisito for permitir consulta pública dessas políticas (usuário deslogado clicando no link do banner LGPD antes de logar), o correto seria manter a rota pública mas embrulhar num layout leve. **Preciso confirmar com você antes de implementar** (ver Pergunta abaixo).
+**Nova aba no perfil próprio:** "Agendamentos" em `Profile.tsx` listando pendentes/confirmados (enviados e recebidos).
 
-## 4) Documentação e changelog
+Nenhuma pontuação é atribuída (o registro de "Gente em Ação" na tabela `gente_em_acao` continua manual — apenas oferece um botão "Registrar como Gente em Ação" no card do agendamento confirmado).
 
-- `docs/UI_UX_GUIDELINES.md`: registrar que **Gente Networking é a marca do negócio** (usada em e-mails, login, páginas externas/públicas) e **Gente Comunidade é o produto** (nome exibido como título dentro do app, sidebar, cartão do membro etc.).
-- Nova entrada `v3.30.0 — Hierarquia de marca (Networking/Comunidade) e páginas legais no layout` em `system_changelog` (migration curta) e memória `mem://features/v3300-branding-hierarquia-legal-layout.md`.
+## 3. Cases externos (não vinculados a negócios)
 
-## Fora de escopo
+**Migration mínima em `business_cases`:**
+- Adicionar coluna `case_type` text com default `'externo'` e check em (`'plataforma'`, `'externo'`).
+- Backfill: linhas com `business_deal_id IS NOT NULL` → `case_type = 'plataforma'`; demais → `'externo'`.
+- Ajustar trigger/constraint que hoje força `business_deal_id NOT NULL` (referência memória "business-cases-intent") para exigir vínculo **apenas** quando `case_type = 'plataforma'`.
 
-- Sidebar/Footer/Cartão Digital continuam com o logo de **Gente Comunidade branco** (é onde o produto se apresenta).
-- Nenhuma mudança em RPC, RLS, edge functions, permissões ou lógica de negócio.
+**UI:**
+- `useBusinessCases.ts`: aceitar/salvar `case_type` no `createCase`.
+- Formulário de criação de case (em `Profile.tsx` — aba Cases): toggle "Case da plataforma (vinculado a negócio)" vs "Case externo". Quando "plataforma", exige seleção de `business_deal_id` (dropdown com `business_deals` do usuário). Quando "externo", libera `client_name` livre.
+- Exibição em `MemberProfile.tsx` (aba Cases) e `Profile.tsx`: badge distintivo:
+  - `plataforma` → Badge verde "Fechado no Gente"
+  - `externo` → Badge secundária "Case externo"
 
-## Pergunta antes de implementar
+## 4. Convites para o Gente HUB
 
-As páginas legais devem ser acessíveis **também por usuários deslogados** (pelo link do banner LGPD na tela de login)? Se sim, mantenho rota pública com um layout enxuto (Header simples + Footer, sem Sidebar). Se não, movo direto para dentro do `MainLayout` autenticado.
+Hoje `invitations` liga o convidado a um `team_id` (grupo do Gente Comunidade). Para o **Gente HUB** (produto separado, servido pelo CRM/leads), a mecânica precisa se diferenciar:
 
-**As páginas legais devem estar dsponiveis apenas para usuários logados.**
+**Migration em `invitations`:**
+- Nova coluna `invite_target` text com check em (`'comunidade'`, `'hub'`), default `'comunidade'`.
+- `team_id` passa a ser **nullable** e obrigatório apenas quando `invite_target = 'comunidade'` (constraint condicional).
+- Backfill: tudo existente → `'comunidade'`.
+
+**Fluxo do convite Gente HUB:**
+- Ao aceitar um convite `invite_target = 'hub'`, em vez de criar profile + team_member, o handler (`AuthConfirm.tsx` ou RPC atual `accept_invitation`) cria um registro em **`crm_leads`** com:
+  - `origin = 'convite_membro'` (nova origem), `status = 'novo'`
+  - `referred_by_user_id = invitations.invited_by`
+  - Dados básicos (nome/email/phone) preenchidos do convite/cadastro.
+- Convidado NÃO vira usuário da plataforma via esse fluxo — cai no CRM para o admin qualificar e rodar o fluxo de contrato/cobrança do HUB (já existente em v3.25.0).
+
+**UI em `Convites.tsx`:**
+- Adicionar `RadioGroup` no diálogo: **"Convidar para"** → `Gente Comunidade (grupo)` | `Gente HUB (produto premium)`.
+- Se **Comunidade**: mantém o `Select` de grupo (obrigatório).
+- Se **HUB**: esconde grupo, mostra campos obrigatórios (nome + email + telefone) e um textarea opcional "Contexto para o time comercial".
+- Badge diferenciada na lista: "Comunidade" (padrão) vs "HUB" (laranja/destaque).
+- Stats atualizadas para separar contagens por destino.
+
+**Referência cruzada CRM:**
+- No `LeadDrawer.tsx`, quando o lead veio de `origin = 'convite_membro'`, mostrar quem indicou (link para o perfil do membro).
+- Recompensa/pontuação para o indicador **fica fora deste escopo** — pode ser proposto em uma iteração seguinte.
+
+## 5. Documentação & Changelog
+
+- Nova memória: `.lovable/memory/features/v3310-perfil-agendamento-cases-hub-convites.md` com resumo dos 4 blocos.
+- Atualizar `docs/INVITATION_FLOW.md` com a variante Gente HUB.
+- Atualizar `docs/CRM_INGESTAO_LEADS.md` adicionando origem `convite_membro`.
+- Inserir entrada `v3.31.0` em `system_changelog` (via `supabase--insert`) com as 4 mudanças listadas.
+
+## Detalhes técnicos
+
+- Migrations agrupadas em uma única chamada `supabase--migration` cobrindo: `meeting_requests` + coluna `case_type` + coluna `invite_target` + ajuste da constraint de `business_cases` + ajuste no RPC `accept_invitation` para bifurcar em `crm_leads` quando `invite_target = 'hub'`.
+- Envios de email reusam `supabase/functions/send-email/index.ts` com novos templates em `_shared/email-templates.ts` (`meetingRequestEmail`, `meetingConfirmedEmail`, `hubInviteEmail`).
+- Notificações in-app via `activity_feed` (padrão já usado por Pedidos de Indicação — memória v3.19.0).
+- Nenhum recurso existente é removido; todas as mudanças são aditivas com defaults preservando comportamento atual dos dados legados.
+
+## Pontos a confirmar antes de implementar
+
+1. **Ao confirmar um agendamento**, você prefere que o **próprio sistema** já anexe o convite `.ics` no email de confirmação (mais automático) OU que ambos os lados baixem/abram manualmente pelos botões (mais simples)?
+2. **Convite Gente HUB**: o email/telefone devem ser obrigatórios (para virar lead) ou opcionais como no convite de Comunidade? Recomendo obrigatórios.
+3. **Case externo**: ao adicionar, quer permitir upload de imagem/logo do cliente (já suportado por `image_url`) ou manter só texto nesta primeira iteração?
