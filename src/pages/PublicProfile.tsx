@@ -42,7 +42,7 @@ interface PublicProfileData {
   team_name: string | null;
 }
 
-const LOGO = '/logo-gente-networking.png';
+const LOGO = '/logo-gente-networking-branco.png';
 const SITE_URL = 'https://comunidade.gentenetworking.com.br';
 const OG_FALLBACK = `${SITE_URL}${LOGO}`;
 
@@ -124,8 +124,9 @@ function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
 
-      <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      <script type="application/ld+json">{JSON.stringify(breadcrumb)}</script>
+      <script type="application/ld+json">{(() => { try { return JSON.stringify(jsonLd); } catch { return '{}'; } })()}</script>
+      <script type="application/ld+json">{(() => { try { return JSON.stringify(breadcrumb); } catch { return '{}'; } })()}</script>
+
     </Helmet>
   );
 }
@@ -139,17 +140,30 @@ export default function PublicProfile() {
     let active = true;
     (async () => {
       setLoading(true);
-      const { data } = await supabase.rpc('get_public_profile', { _slug: slug || '' });
-      if (!active) return;
-      setProfile((data && data[0]) ? (data[0] as PublicProfileData) : null);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase.rpc('get_public_profile', { _slug: slug || '' });
+        if (!active) return;
+        if (error) {
+          console.error('[PublicProfile] RPC error:', error);
+          setProfile(null);
+        } else {
+          const first = Array.isArray(data) && data.length ? (data[0] as PublicProfileData) : null;
+          setProfile(first);
+        }
+      } catch (err) {
+        console.error('[PublicProfile] fetch failed:', err);
+        if (active) setProfile(null);
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
     return () => { active = false; };
   }, [slug]);
 
+
   return (
     <div className="min-h-screen bg-[#f0f4f8] flex flex-col">
-      {!loading && <ProfileSEO profile={profile} slug={slug || ''} />}
+      <ProfileSEO profile={loading ? null : profile} slug={slug || ''} />
       {/* Cabeçalho */}
       <header className="bg-gradient-to-r from-[#1E3A5F] to-[#2d4a6f]">
         <div className="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between">

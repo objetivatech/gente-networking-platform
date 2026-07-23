@@ -8,7 +8,7 @@
  * 
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
-const logoComunidade = '/logo-gente-comunidade.png';
+const logoComunidade = '/logo-gente-comunidade-branco.png';
 
 import { Link } from 'react-router-dom';
 

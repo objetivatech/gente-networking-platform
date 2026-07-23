@@ -23,7 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, KeyRound, CheckCircle2 } from 'lucide-react';
 import { PasswordStrengthIndicator } from '@/components/PasswordStrengthIndicator';
-const logoGente = '/logo-gente-networking.png';
+const logoGente = '/logo-gente-networking-branco.png';
 
 export default function RedefinirSenha() {
   const [password, setPassword] = useState('');
