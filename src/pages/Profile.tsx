@@ -17,6 +17,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MeetingRequestsPanel } from '@/components/MeetingRequestsPanel';
+import { useMeetingRequests } from '@/hooks/useMeetingRequests';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +40,7 @@ export default function Profile() {
   const { cases, createCase, deleteCase } = useBusinessCases();
   const { myDeals } = useBusinessDeals();
   const { toast } = useToast();
+  const { pendingReceivedCount } = useMeetingRequests();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
