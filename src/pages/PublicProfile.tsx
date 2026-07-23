@@ -163,7 +163,7 @@ export default function PublicProfile() {
 
   return (
     <div className="min-h-screen bg-[#f0f4f8] flex flex-col">
-      {!loading && <ProfileSEO profile={profile} slug={slug || ''} />}
+      <ProfileSEO profile={loading ? null : profile} slug={slug || ''} />
       {/* Cabeçalho */}
       <header className="bg-gradient-to-r from-[#1E3A5F] to-[#2d4a6f]">
         <div className="max-w-4xl mx-auto px-4 py-5 flex items-center justify-between">
