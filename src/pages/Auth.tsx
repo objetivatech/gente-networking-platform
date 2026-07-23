@@ -291,7 +291,7 @@ export default function Auth() {
             />
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold text-primary">Gente Networking</CardTitle>
+            <CardTitle className="text-2xl font-bold text-primary">Gente Comunidade</CardTitle>
             <CardDescription className="text-muted-foreground">
               Conectando pessoas, gerando negócios
             </CardDescription>
