@@ -206,10 +206,27 @@ export default function Convites() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-rd-no-capture="true">
                 <FormField
                   control={form.control}
+                  name="target"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de convite *</FormLabel>
+                      <Tabs value={field.value} onValueChange={field.onChange} className="w-full">
+                        <TabsList className="grid grid-cols-2 w-full">
+                          <TabsTrigger value="comunidade" className="gap-1"><Users className="h-3.5 w-3.5" /> Comunidade</TabsTrigger>
+                          <TabsTrigger value="hub" className="gap-1"><Building2 className="h-3.5 w-3.5" /> Gente HUB</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome (opcional)</FormLabel>
+                      <FormLabel>Nome {target === 'hub' ? '*' : '(opcional)'}</FormLabel>
                       <FormControl>
                         <Input placeholder="Nome do convidado" {...field} />
                       </FormControl>
@@ -223,7 +240,7 @@ export default function Convites() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email (opcional)</FormLabel>
+                      <FormLabel>Email {target === 'hub' ? '*' : '(opcional)'}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="email@exemplo.com" {...field} />
                       </FormControl>
@@ -232,36 +249,70 @@ export default function Convites() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="teamId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Grupo do convidado *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o grupo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {availableTeams.length === 0 ? (
-                            <div className="p-2 text-sm text-muted-foreground">Você não pertence a nenhum grupo</div>
-                          ) : (
-                            availableTeams.map(team => (
-                              <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {target === 'comunidade' && (
+                  <FormField
+                    control={form.control}
+                    name="teamId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Grupo do convidado *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione o grupo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {availableTeams.length === 0 ? (
+                              <div className="p-2 text-sm text-muted-foreground">Você não pertence a nenhum grupo</div>
+                            ) : (
+                              availableTeams.map(team => (
+                                <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {target === 'hub' && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Telefone (opcional)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(11) 90000-0000" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="hubContext"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contexto (opcional)</FormLabel>
+                          <FormControl>
+                            <Textarea placeholder="Ex.: interessado em plano Premium, atua com marketing digital..." rows={3} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
 
                 <p className="text-sm text-muted-foreground">
-                  O convidado verá apenas os encontros do grupo selecionado.
-                  {' '}Se informar o email, o convite será enviado automaticamente.
+                  {target === 'comunidade'
+                    ? 'O convidado verá apenas os encontros do grupo selecionado. Se informar o email, o convite será enviado automaticamente.'
+                    : 'O aceite gera um lead no CRM do Gente HUB (origem: convite_membro). Nenhum acesso à comunidade é criado.'}
                 </p>
 
                 <Button type="submit" className="w-full" disabled={createInvitation.isPending}>
