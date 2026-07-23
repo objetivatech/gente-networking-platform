@@ -90,6 +90,7 @@ export type Database = {
       business_cases: {
         Row: {
           business_deal_id: string | null
+          case_type: string
           client_name: string | null
           created_at: string | null
           description: string | null
@@ -102,6 +103,7 @@ export type Database = {
         }
         Insert: {
           business_deal_id?: string | null
+          case_type?: string
           client_name?: string | null
           created_at?: string | null
           description?: string | null
@@ -114,6 +116,7 @@ export type Database = {
         }
         Update: {
           business_deal_id?: string | null
+          case_type?: string
           client_name?: string | null
           created_at?: string | null
           description?: string | null
@@ -632,6 +635,7 @@ export type Database = {
           email: string | null
           expires_at: string
           id: string
+          invite_target: string
           invited_by: string
           metadata: Json | null
           name: string | null
@@ -646,6 +650,7 @@ export type Database = {
           email?: string | null
           expires_at?: string
           id?: string
+          invite_target?: string
           invited_by: string
           metadata?: Json | null
           name?: string | null
@@ -660,6 +665,7 @@ export type Database = {
           email?: string | null
           expires_at?: string
           id?: string
+          invite_target?: string
           invited_by?: string
           metadata?: Json | null
           name?: string | null
@@ -722,6 +728,63 @@ export type Database = {
           {
             foreignKeyName: "matchmaking_connections_target_id_fkey"
             columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_requests: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          id: string
+          location: string | null
+          message: string | null
+          proposed_start: string
+          recipient_id: string
+          requester_id: string
+          responded_at: string | null
+          status: Database["public"]["Enums"]["meeting_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          location?: string | null
+          message?: string | null
+          proposed_start: string
+          recipient_id: string
+          requester_id: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["meeting_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          location?: string | null
+          message?: string | null
+          proposed_start?: string
+          recipient_id?: string
+          requester_id?: string
+          responded_at?: string | null
+          status?: Database["public"]["Enums"]["meeting_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_requests_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_requests_requester_id_fkey"
+            columns: ["requester_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1552,6 +1615,7 @@ export type Database = {
         | "site_elementor"
         | "convite_manual"
         | "api"
+        | "convite_membro"
       crm_lead_status:
         | "novo"
         | "em_qualificacao"
@@ -1559,6 +1623,7 @@ export type Database = {
         | "hub_ativo"
         | "fechado"
         | "perdido"
+      meeting_request_status: "pending" | "confirmed" | "declined" | "cancelled"
       member_rank: "iniciante" | "bronze" | "prata" | "ouro" | "diamante"
     }
     CompositeTypes: {
@@ -1695,6 +1760,7 @@ export const Constants = {
         "site_elementor",
         "convite_manual",
         "api",
+        "convite_membro",
       ],
       crm_lead_status: [
         "novo",
@@ -1704,6 +1770,7 @@ export const Constants = {
         "fechado",
         "perdido",
       ],
+      meeting_request_status: ["pending", "confirmed", "declined", "cancelled"],
       member_rank: ["iniciante", "bronze", "prata", "ouro", "diamante"],
     },
   },

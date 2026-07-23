@@ -17,6 +17,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MeetingRequestsPanel } from '@/components/MeetingRequestsPanel';
+import { useMeetingRequests } from '@/hooks/useMeetingRequests';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
@@ -38,11 +40,12 @@ export default function Profile() {
   const { cases, createCase, deleteCase } = useBusinessCases();
   const { myDeals } = useBusinessDeals();
   const { toast } = useToast();
+  const { pendingReceivedCount } = useMeetingRequests();
   const [isEditing, setIsEditing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showNewCase, setShowNewCase] = useState(false);
-  const [newCase, setNewCase] = useState({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
+  const [newCase, setNewCase] = useState<{ title: string; description: string; client_name: string; result: string; business_deal_id: string; case_type: 'plataforma' | 'externo' }>({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -165,10 +168,18 @@ export default function Profile() {
   };
 
   const handleCreateCase = () => {
-    if (!newCase.title.trim() || !newCase.business_deal_id) return;
-    createCase.mutate({ ...newCase, business_deal_id: newCase.business_deal_id });
+    if (!newCase.title.trim()) return;
+    if (newCase.case_type === 'plataforma' && !newCase.business_deal_id) return;
+    createCase.mutate({
+      title: newCase.title,
+      description: newCase.description,
+      client_name: newCase.client_name,
+      result: newCase.result,
+      case_type: newCase.case_type,
+      business_deal_id: newCase.case_type === 'plataforma' ? newCase.business_deal_id : null,
+    });
     setShowNewCase(false);
-    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
+    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
   };
 
   if (isLoading) {
@@ -310,6 +321,9 @@ export default function Profile() {
               <TabsTrigger value="about">Sobre</TabsTrigger>
               <TabsTrigger value="stats">Estatísticas</TabsTrigger>
               <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
+              <TabsTrigger value="agendamentos">
+                Agendamentos{pendingReceivedCount > 0 && <span className="ml-1 rounded-full bg-primary text-primary-foreground text-xs px-1.5">{pendingReceivedCount}</span>}
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -387,19 +401,24 @@ export default function Profile() {
           <TabsContent value="cases" className="space-y-4">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h3 className="text-lg font-semibold">Meus Cases de Negócio</h3>
-              {myDeals && myDeals.length > 0 ? (
-                <Button size="sm" onClick={() => setShowNewCase(true)}><Plus className="h-4 w-4 mr-1" /> Novo Case</Button>
-              ) : (
-                <p className="text-sm text-muted-foreground">Registre um negócio em <a href="/negocios" className="text-primary underline">Negócios</a> primeiro para criar um case.</p>
-              )}
+              <Button size="sm" onClick={() => setShowNewCase(true)}><Plus className="h-4 w-4 mr-1" /> Novo Case</Button>
             </div>
             {cases?.length ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {cases.map(c => (
                   <Card key={c.id} className="hover:shadow-md transition-shadow">
                     <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-base">{c.title}</CardTitle>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            {c.case_type === 'plataforma' ? (
+                              <Badge className="bg-primary/90 hover:bg-primary">Da plataforma</Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-orange-500 text-orange-600">Externo</Badge>
+                            )}
+                          </div>
+                          <CardTitle className="text-base text-wrap-anywhere">{c.title}</CardTitle>
+                        </div>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => deleteCase.mutate(c.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -418,10 +437,14 @@ export default function Profile() {
                 <CardContent className="py-12 text-center text-muted-foreground">
                   <Briefcase className="h-10 w-10 mx-auto mb-2 opacity-50" />
                   <p>Nenhum case registrado</p>
-                  <p className="text-sm mt-1">Registre seus cases de sucesso para compartilhar com a comunidade</p>
+                  <p className="text-sm mt-1">Registre seus cases de sucesso — vinculados a negócios da plataforma ou externos.</p>
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="agendamentos" className="space-y-4">
+            <MeetingRequestsPanel />
           </TabsContent>
         </Tabs>
       )}
@@ -432,27 +455,56 @@ export default function Profile() {
           <DialogHeader><DialogTitle>Novo Case de Negócio</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Negócio vinculado *</Label>
-              <Select value={newCase.business_deal_id} onValueChange={v => setNewCase({ ...newCase, business_deal_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione um negócio" /></SelectTrigger>
-                <SelectContent>
-                  {myDeals?.map(deal => (
-                    <SelectItem key={deal.id} value={deal.id}>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(deal.value))}
-                      {deal.client_name ? ` - ${deal.client_name}` : ''} ({deal.deal_date})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Tipo de case *</Label>
+              <Tabs value={newCase.case_type} onValueChange={(v) => setNewCase({ ...newCase, case_type: v as 'plataforma' | 'externo', business_deal_id: v === 'externo' ? '' : newCase.business_deal_id })} className="w-full">
+                <TabsList className="grid grid-cols-2 w-full">
+                  <TabsTrigger value="plataforma">Da plataforma</TabsTrigger>
+                  <TabsTrigger value="externo">Externo</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <p className="text-xs text-muted-foreground">
+                {newCase.case_type === 'plataforma'
+                  ? 'Vinculado a um negócio registrado no menu Negócios.'
+                  : 'Case externo à plataforma — não exige vínculo com Negócios.'}
+              </p>
             </div>
-            <div className="space-y-2"><Label>Título</Label><Input value={newCase.title} onChange={e => setNewCase({ ...newCase, title: e.target.value })} placeholder="Ex: Projeto de Marketing Digital" /></div>
+
+            {newCase.case_type === 'plataforma' && (
+              <div className="space-y-2">
+                <Label>Negócio vinculado *</Label>
+                {myDeals && myDeals.length > 0 ? (
+                  <Select value={newCase.business_deal_id} onValueChange={v => setNewCase({ ...newCase, business_deal_id: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione um negócio" /></SelectTrigger>
+                    <SelectContent>
+                      {myDeals.map(deal => (
+                        <SelectItem key={deal.id} value={deal.id}>
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(deal.value))}
+                          {deal.client_name ? ` - ${deal.client_name}` : ''} ({deal.deal_date})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nenhum negócio registrado. Cadastre em <a href="/negocios" className="text-primary underline">Negócios</a> ou escolha "Externo".</p>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2"><Label>Título *</Label><Input value={newCase.title} onChange={e => setNewCase({ ...newCase, title: e.target.value })} placeholder="Ex: Projeto de Marketing Digital" /></div>
             <div className="space-y-2"><Label>Cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
             <div className="space-y-2"><Label>Descrição</Label><Textarea value={newCase.description} onChange={e => setNewCase({ ...newCase, description: e.target.value })} placeholder="Descreva o projeto..." rows={3} /></div>
             <div className="space-y-2"><Label>Resultado</Label><Input value={newCase.result} onChange={e => setNewCase({ ...newCase, result: e.target.value })} placeholder="Ex: Aumento de 200% nas vendas" /></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewCase(false)}>Cancelar</Button>
-            <Button onClick={handleCreateCase} disabled={createCase.isPending || !newCase.title.trim() || !newCase.business_deal_id}>
+            <Button
+              onClick={handleCreateCase}
+              disabled={
+                createCase.isPending ||
+                !newCase.title.trim() ||
+                (newCase.case_type === 'plataforma' && !newCase.business_deal_id)
+              }
+            >
               {createCase.isPending ? 'Criando...' : 'Criar Case'}
             </Button>
           </DialogFooter>
