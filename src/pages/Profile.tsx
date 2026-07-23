@@ -321,6 +321,9 @@ export default function Profile() {
               <TabsTrigger value="about">Sobre</TabsTrigger>
               <TabsTrigger value="stats">Estatísticas</TabsTrigger>
               <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
+              <TabsTrigger value="agendamentos">
+                Agendamentos{pendingReceivedCount > 0 && <span className="ml-1 rounded-full bg-primary text-primary-foreground text-xs px-1.5">{pendingReceivedCount}</span>}
+              </TabsTrigger>
             </TabsList>
           </div>
 
