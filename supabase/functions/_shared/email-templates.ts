@@ -443,3 +443,90 @@ ${ctaButton('Ver Pedido de Indicação', `${APP_URL}/pedidos-indicacao`)}`;
 
   return emailWrapper(emailContent);
 }
+// ---------------------------------------------------------------------------
+// v3.31.0 — Solicitação e resposta de Agendar Gente em Ação + Convite HUB
+// ---------------------------------------------------------------------------
+
+function formatDateTimePtBr(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Sao_Paulo' });
+  } catch { return iso; }
+}
+
+export function meetingRequestEmailTemplate(
+  recipientName: string,
+  requesterName: string,
+  proposedStart: string,
+  durationMinutes: number,
+  location: string,
+  message: string,
+  link: string,
+): string {
+  const details = `
+<p style="color: #1e3a5f; font-size: 16px; margin: 6px 0;"><strong>Quando:</strong> ${formatDateTimePtBr(proposedStart)}</p>
+<p style="color: #1e3a5f; font-size: 16px; margin: 6px 0;"><strong>Duração:</strong> ${durationMinutes} minutos</p>
+${location ? `<p style="color: #1e3a5f; font-size: 16px; margin: 6px 0;"><strong>Local:</strong> ${location}</p>` : ''}
+${message ? `<p style="color: #475569; font-style: italic; margin: 12px 0 0; padding-top: 12px; border-top: 1px solid #e2e8f0;">"${message}"</p>` : ''}
+`;
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Nova solicitação de Gente em Ação 🤝</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${recipientName || 'membro'}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  <strong style="color: #1e3a5f;">${requesterName}</strong> quer agendar um 1x1 com você.
+</p>
+${infoBox(details, 'blue')}
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Confirme ou recuse dentro da plataforma. O convite de calendário só é liberado após sua confirmação.
+</p>
+${ctaButton('Ver solicitação', link)}`;
+  return emailWrapper(emailContent);
+}
+
+export function meetingResponseEmailTemplate(
+  requesterName: string,
+  recipientName: string,
+  status: 'confirmed' | 'declined',
+  proposedStart: string,
+  durationMinutes: number,
+  location: string,
+  link: string,
+): string {
+  const isConfirmed = status === 'confirmed';
+  const details = `
+<p style="color: #1e3a5f; font-size: 16px; margin: 6px 0;"><strong>Quando:</strong> ${formatDateTimePtBr(proposedStart)}</p>
+<p style="color: #1e3a5f; font-size: 16px; margin: 6px 0;"><strong>Duração:</strong> ${durationMinutes} minutos</p>
+${location ? `<p style="color: #1e3a5f; font-size: 16px; margin: 6px 0;"><strong>Local:</strong> ${location}</p>` : ''}
+`;
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">${isConfirmed ? 'Gente em Ação confirmado ✅' : 'Solicitação recusada'}</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${requesterName || 'membro'}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  <strong style="color: #1e3a5f;">${recipientName}</strong> ${isConfirmed ? 'confirmou' : 'recusou'} a sua solicitação de Gente em Ação.
+</p>
+${infoBox(details, isConfirmed ? 'green' : 'orange')}
+${isConfirmed ? `<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">Você já pode adicionar o encontro ao seu calendário (Google Calendar ou .ics) pela aba Agendamentos.</p>` : ''}
+${ctaButton(isConfirmed ? 'Adicionar ao calendário' : 'Ver detalhes', link)}`;
+  return emailWrapper(emailContent);
+}
+
+export function hubInvitationEmailTemplate(inviterName: string, guestName: string, inviteLink: string, hubContext: string): string {
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Convite para o Gente HUB 🚀</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${guestName || ''}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  <strong style="color: #1e3a5f;">${inviterName}</strong> convidou você para conhecer o <strong>Gente HUB</strong> — o programa premium do ecossistema Gente Networking.
+</p>
+${hubContext ? infoBox(`<p style="color: #9a3412; font-size: 15px; line-height: 1.6; margin: 0;">${hubContext}</p>`, 'orange') : ''}
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Ao aceitar, nossa equipe entrará em contato com detalhes sobre planos, benefícios e ativação.
+</p>
+${ctaButton('Aceitar convite', inviteLink)}`;
+  return emailWrapper(emailContent);
+}
