@@ -42,7 +42,7 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showNewCase, setShowNewCase] = useState(false);
-  const [newCase, setNewCase] = useState({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
+  const [newCase, setNewCase] = useState<{ title: string; description: string; client_name: string; result: string; business_deal_id: string; case_type: 'plataforma' | 'externo' }>({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -165,10 +165,18 @@ export default function Profile() {
   };
 
   const handleCreateCase = () => {
-    if (!newCase.title.trim() || !newCase.business_deal_id) return;
-    createCase.mutate({ ...newCase, business_deal_id: newCase.business_deal_id });
+    if (!newCase.title.trim()) return;
+    if (newCase.case_type === 'plataforma' && !newCase.business_deal_id) return;
+    createCase.mutate({
+      title: newCase.title,
+      description: newCase.description,
+      client_name: newCase.client_name,
+      result: newCase.result,
+      case_type: newCase.case_type,
+      business_deal_id: newCase.case_type === 'plataforma' ? newCase.business_deal_id : null,
+    });
     setShowNewCase(false);
-    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '' });
+    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
   };
 
   if (isLoading) {
