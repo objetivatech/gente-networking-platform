@@ -22,8 +22,8 @@ import { useToast } from '@/hooks/use-toast';
 
 const NAVY = '#1E3A5F';
 const ORANGE = '#F7941D';
-const LOGO_COMUNIDADE_SRC = '/logo-gente-comunidade.png';
-const LOGO_NETWORKING_SRC = '/logo-gente-networking.png';
+const LOGO_COMUNIDADE_SRC = '/logo-gente-comunidade-branco.png';
+const LOGO_NETWORKING_SRC = '/logo-gente-networking-branco.png';
 
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {
@@ -33,6 +33,58 @@ const loadImage = (src: string) =>
     img.onerror = reject;
     img.src = src;
   });
+
+/**
+ * Desenha texto com quebra automática por palavra, respeitando `maxWidth`.
+ * Palavras individuais maiores que a largura são quebradas por caractere.
+ * Retorna o Y da próxima linha (após o bloco desenhado).
+ */
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+): number {
+  if (!text) return y;
+  const words = String(text).split(/\s+/).filter(Boolean);
+  let line = '';
+  let cursorY = y;
+  const flush = (l: string) => {
+    ctx.fillText(l, x, cursorY);
+    cursorY += lineHeight;
+  };
+  const breakLong = (word: string): string[] => {
+    const parts: string[] = [];
+    let buf = '';
+    for (const ch of word) {
+      const test = buf + ch;
+      if (ctx.measureText(test).width > maxWidth && buf) {
+        parts.push(buf);
+        buf = ch;
+      } else {
+        buf = test;
+      }
+    }
+    if (buf) parts.push(buf);
+    return parts;
+  };
+  for (const raw of words) {
+    const pieces = ctx.measureText(raw).width > maxWidth ? breakLong(raw) : [raw];
+    for (const w of pieces) {
+      const test = line ? `${line} ${w}` : w;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        flush(line);
+        line = w;
+      } else {
+        line = test;
+      }
+    }
+  }
+  if (line) flush(line);
+  return cursorY;
+}
 
 interface DigitalMemberCardProps {
   member: {
@@ -59,7 +111,6 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
   const profilePath = `/m/${member.slug || member.id}`;
   const profileUrl = `${window.location.origin}${profilePath}`;
 
-
   useEffect(() => {
     let cancelled = false;
 
@@ -69,21 +120,19 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
       const canvas = canvasRef.current;
       if (!canvas) return;
       const W = 1000;
-      const H = 560;
+      const H = 620;
       canvas.width = W;
       canvas.height = H;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Fundo navy
+      // Fundo navy + faixa lateral laranja
       ctx.fillStyle = NAVY;
       ctx.fillRect(0, 0, W, H);
-
-      // Faixa lateral laranja
       ctx.fillStyle = ORANGE;
       ctx.fillRect(0, 0, 16, H);
 
-      // Logo da Comunidade (destaque) + Networking (secundário, watermark)
+      // Logo Comunidade — destaque, canto superior esquerdo
       try {
         const comunidadeImg = await loadImage(LOGO_COMUNIDADE_SRC);
         if (cancelled) return;
@@ -99,45 +148,50 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
         ctx.fillText('COMUNIDADE', 60, 112);
       }
 
-      // Logo Networking (segundo plano, canto superior direito, menor e suave)
+      // Logo Networking — secundário, canto superior direito
       try {
         const networkingImg = await loadImage(LOGO_NETWORKING_SRC);
         if (cancelled) return;
-        const nH = 46;
+        const nH = 56;
         const nW = (networkingImg.width / networkingImg.height) * nH;
-        ctx.save();
-        ctx.globalAlpha = 0.55;
-        ctx.drawImage(networkingImg, W - nW - 60, 50, nW, nH);
-        ctx.restore();
+        ctx.drawImage(networkingImg, W - nW - 60, 62, nW, nH);
       } catch {
         // fallback silencioso
       }
 
+      // QR Code (canto inferior direito) — desenhado antes para calcular largura útil do texto
+      const qrSize = 260;
+      const qrX = W - qrSize - 60;
+      const qrY = H - qrSize - 90;
+      const TEXT_MAX_WIDTH = qrX - 60 - 20; // margem esquerda 60, gap 20 antes do QR
 
       // Nome
+      ctx.textBaseline = 'alphabetic';
       ctx.fillStyle = '#FFFFFF';
       ctx.font = 'bold 46px Arial, sans-serif';
-      ctx.fillText(member.full_name || 'Membro', 60, 240);
-
+      let y = wrapText(ctx, member.full_name || 'Membro', 60, 210, TEXT_MAX_WIDTH, 52);
 
       // Cargo / empresa
-      ctx.fillStyle = '#CBD5E1';
-      ctx.font = '26px Arial, sans-serif';
       const roleLine = [member.position, member.company].filter(Boolean).join(' • ');
-      if (roleLine) ctx.fillText(roleLine, 60, 285);
+      if (roleLine) {
+        ctx.fillStyle = '#CBD5E1';
+        ctx.font = '26px Arial, sans-serif';
+        y = wrapText(ctx, roleLine, 60, y + 10, TEXT_MAX_WIDTH, 32);
+      }
 
+      // Segmento
       if (member.business_segment) {
         ctx.fillStyle = ORANGE;
         ctx.font = '22px Arial, sans-serif';
-        ctx.fillText(member.business_segment, 60, 325);
+        y = wrapText(ctx, member.business_segment, 60, y + 8, TEXT_MAX_WIDTH, 28);
       }
 
       // Contatos
       ctx.fillStyle = '#E2E8F0';
       ctx.font = '24px Arial, sans-serif';
-      let y = 400;
-      if (member.email) { ctx.fillText(member.email, 60, y); y += 40; }
-      if (member.phone) { ctx.fillText(member.phone, 60, y); y += 40; }
+      y += 20;
+      if (member.email) y = wrapText(ctx, member.email, 60, y, TEXT_MAX_WIDTH, 30) + 6;
+      if (member.phone) y = wrapText(ctx, member.phone, 60, y, TEXT_MAX_WIDTH, 30);
 
       // QR Code
       try {
@@ -153,10 +207,6 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
           qrImg.src = qrDataUrl;
         });
         if (cancelled) return;
-        const qrSize = 260;
-        const qrX = W - qrSize - 60;
-        const qrY = H - qrSize - 70;
-        // fundo branco arredondado
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(qrX - 14, qrY - 14, qrSize + 28, qrSize + 28);
         ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
@@ -173,6 +223,7 @@ export function DigitalMemberCard({ member, canGenerate = true, lockedMessage }:
     draw();
     return () => { cancelled = true; };
   }, [member.full_name, member.position, member.company, member.email, member.phone, member.business_segment, profileUrl, canGenerate]);
+
 
 
   const handleDownload = () => {

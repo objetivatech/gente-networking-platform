@@ -139,13 +139,26 @@ export default function PublicProfile() {
     let active = true;
     (async () => {
       setLoading(true);
-      const { data } = await supabase.rpc('get_public_profile', { _slug: slug || '' });
-      if (!active) return;
-      setProfile((data && data[0]) ? (data[0] as PublicProfileData) : null);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase.rpc('get_public_profile', { _slug: slug || '' });
+        if (!active) return;
+        if (error) {
+          console.error('[PublicProfile] RPC error:', error);
+          setProfile(null);
+        } else {
+          const first = Array.isArray(data) && data.length ? (data[0] as PublicProfileData) : null;
+          setProfile(first);
+        }
+      } catch (err) {
+        console.error('[PublicProfile] fetch failed:', err);
+        if (active) setProfile(null);
+      } finally {
+        if (active) setLoading(false);
+      }
     })();
     return () => { active = false; };
   }, [slug]);
+
 
   return (
     <div className="min-h-screen bg-[#f0f4f8] flex flex-col">
