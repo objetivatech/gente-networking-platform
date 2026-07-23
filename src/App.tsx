@@ -116,10 +116,7 @@ const App = () => (
               <Route path="/m/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />
               {/* Compatibilidade: URL antiga /p/:slug redireciona para /m/:slug */}
               <Route path="/p/:slug" element={<PublicProfileRedirect />} />
-              {/* Páginas legais públicas (LGPD) */}
-              <Route path="/termos-de-uso" element={<TermosDeUso />} />
-              <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
-              <Route path="/politica-de-cookies" element={<PoliticaCookies />} />
+              {/* Páginas legais (LGPD) — dentro do MainLayout, exigem autenticação */}
               <Route element={<MainLayout />}>
                 <Route path="/" element={<Index />} />
                 <Route path="/feed" element={<Feed />} />
