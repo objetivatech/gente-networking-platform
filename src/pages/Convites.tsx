@@ -16,15 +16,29 @@ import { useTeams } from '@/hooks/useTeams';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
-import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users } from 'lucide-react';
+import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users, Building2 } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 const inviteSchema = z.object({
+  target: z.enum(['comunidade', 'hub']).default('comunidade'),
   name: z.string().optional(),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
-  teamId: z.string().min(1, 'Selecione um grupo'),
+  teamId: z.string().optional(),
+  hubContext: z.string().optional(),
+  phone: z.string().optional(),
+}).refine((d) => d.target !== 'comunidade' || (d.teamId && d.teamId.length > 0), {
+  message: 'Selecione o grupo do convidado',
+  path: ['teamId'],
+}).refine((d) => d.target !== 'hub' || (d.email && d.email.length > 0), {
+  message: 'Email é obrigatório para convite Gente HUB',
+  path: ['email'],
+}).refine((d) => d.target !== 'hub' || (d.name && d.name.length > 0), {
+  message: 'Nome é obrigatório para convite Gente HUB',
+  path: ['name'],
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -60,22 +74,31 @@ export default function Convites() {
 
   const form = useForm<z.infer<typeof inviteSchema>>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: { name: '', email: '', teamId: '' },
+    defaultValues: { target: 'comunidade', name: '', email: '', teamId: '', hubContext: '', phone: '' },
   });
 
-  // Pre-seleciona primeiro grupo disponível ao abrir
+  const target = form.watch('target');
+
+  // Pre-seleciona primeiro grupo disponível ao abrir (só para comunidade)
   useEffect(() => {
-    if (open && availableTeams.length > 0 && !form.getValues('teamId')) {
+    if (open && target === 'comunidade' && availableTeams.length > 0 && !form.getValues('teamId')) {
       form.setValue('teamId', availableTeams[0].id);
     }
-  }, [open, availableTeams, form]);
+  }, [open, availableTeams, form, target]);
 
   const onSubmit = (data: z.infer<typeof inviteSchema>) => {
     createInvitation.mutate(
-      { name: data.name || undefined, email: data.email || undefined, teamId: data.teamId },
+      {
+        target: data.target,
+        name: data.name || undefined,
+        email: data.email || undefined,
+        teamId: data.target === 'comunidade' ? data.teamId : undefined,
+        hubContext: data.target === 'hub' ? data.hubContext || undefined : undefined,
+        phone: data.target === 'hub' ? data.phone || undefined : undefined,
+      },
       {
         onSuccess: () => {
-          form.reset();
+          form.reset({ target: 'comunidade', name: '', email: '', teamId: '', hubContext: '', phone: '' });
           setOpen(false);
         },
       }
