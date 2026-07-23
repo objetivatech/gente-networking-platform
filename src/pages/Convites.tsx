@@ -387,12 +387,16 @@ export default function Convites() {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <code className="text-lg font-mono font-bold text-primary">{invitation.code}</code>
                         {getStatusBadge(invitation)}
-                        {invitation.team_id && teamNamesMap[invitation.team_id] && (
+                        {invitation.invite_target === 'hub' ? (
+                          <Badge className="gap-1 bg-orange-500 hover:bg-orange-600">
+                            <Building2 className="h-3 w-3" /> Gente HUB
+                          </Badge>
+                        ) : invitation.team_id && teamNamesMap[invitation.team_id] ? (
                           <Badge variant="outline" className="gap-1">
                             <Users className="h-3 w-3" />
                             {teamNamesMap[invitation.team_id]}
                           </Badge>
-                        )}
+                        ) : null}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {invitation.name && <span className="mr-2">{invitation.name}</span>}
