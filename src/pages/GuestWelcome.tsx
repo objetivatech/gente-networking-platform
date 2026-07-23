@@ -23,7 +23,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
-const logoGente = '/logo-gente-networking.png';
+const logoGente = '/logo-gente-networking-branco.png';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function GuestWelcome() {

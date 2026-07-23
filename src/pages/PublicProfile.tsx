@@ -42,7 +42,7 @@ interface PublicProfileData {
   team_name: string | null;
 }
 
-const LOGO = '/logo-gente-networking.png';
+const LOGO = '/logo-gente-networking-branco.png';
 const SITE_URL = 'https://comunidade.gentenetworking.com.br';
 const OG_FALLBACK = `${SITE_URL}${LOGO}`;
 

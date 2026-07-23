@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-const logoGente = '/logo-gente-networking.png';
+const logoGente = '/logo-gente-networking-branco.png';
 
 type ConfirmState = 'processing' | 'accepting_invite' | 'success' | 'error' | 'expired';
 
