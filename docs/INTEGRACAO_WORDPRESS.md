@@ -1,6 +1,6 @@
 # Integração — WordPress (site institucional) → CRM
 
-**Versão:** v3.28.0
+**Versão:** v3.32.0
 **Site alvo:** https://gentenetworking.com.br (WordPress)
 
 O CRM aceita leads do site institucional via **webhook HTTP** direto para a Edge Function
@@ -39,19 +39,27 @@ O CRM aceita leads do site institucional via **webhook HTTP** direto para a Edge
      ```
 4. Salve e envie um teste.
 
-## Opção B — Elementor Forms
+## Opção B — Elementor Forms (recomendado para o site atual)
+
+A função `submit-lead` é **pública** (`verify_jwt=false`) e aceita
+`application/x-www-form-urlencoded`, então o webhook nativo do Elementor
+funciona **sem proxy PHP e sem headers customizados**.
 
 1. Edite a página com Elementor e selecione o Form.
-2. **Actions After Submit → adicionar Webhook**.
-3. Cole a mesma URL da função em "Webhook URL".
-4. O Elementor envia como `application/x-www-form-urlencoded`. Ative a opção
-   "Advanced Data" e mapeie os campos com nomes exatamente iguais ao payload esperado:
-   `name`, `email`, `phone`, `company`, `segment`, `notes`.
-5. Adicione `source=site_elementor` como campo oculto (`hidden`).
+2. **Actions After Submit → Add Action → Webhook**.
+3. Em **Advanced → Webhook URL**, cole a URL da função:
+   `https://<PROJECT_REF>.functions.supabase.co/submit-lead`
+4. Marque **Advanced Data** = `Yes` (o Elementor passa a enviar chaves no formato
+   `form_fields[name]`, que a função reconhece automaticamente).
+5. Garanta que os campos do formulário tenham os IDs **exatamente**: `name`,
+   `email`, `phone`, `company`, `segment` (opcionais além de name/email).
+6. Adicione um campo **Hidden** com ID `source` e valor `site_elementor`
+   (ou `lp_gentehub`, `lp_participe`, `lp_networking` conforme a página).
+7. Salve e envie um teste. O lead deve aparecer em `/admin/crm` em segundos.
 
-> ⚠️ Elementor não envia headers customizados por padrão. Se sua função exigir `apikey`,
-> use a **Opção C** (proxy PHP) ou coloque a função atrás de um Worker Cloudflare que
-> injete o header.
+> A função também aceita JSON puro — use isso apenas se você tiver um plugin
+> capaz de enviar `Content-Type: application/json` (WPForms com Webhooks Add-on,
+> Fluent Forms, etc.).
 
 ## Opção C — Snippet PHP (proxy simples)
 

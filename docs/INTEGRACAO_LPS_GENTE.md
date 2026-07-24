@@ -78,9 +78,32 @@ As LPs devem exibir o widget do Cloudflare Turnstile e enviar o token no campo
 `cf_turnstile_token`. A Edge Function chama internamente `verify-turnstile` — se falhar,
 o lead é rejeitado com `400`, protegendo o CRM contra bots.
 
-## 6. Erros comuns
+## 6. Diagnóstico — leads não chegam ao CRM
 
-- **401 Unauthorized** → verifique se está enviando `apikey` + `Authorization: Bearer <anon>`.
+Checklist rápido antes de abrir chamado:
+
+1. **Variáveis presentes em Cloudflare Pages** (projeto LPs Gente → Settings →
+   Environment Variables): `VITE_COMUNIDADE_SUBMIT_LEAD_URL` e
+   `VITE_COMUNIDADE_ANON_KEY` precisam existir **tanto em Production quanto em
+   Preview**. O Vite congela essas envs em build-time, então ausência = leads
+   silenciosamente descartados (aparece `console.warn "Skipping CRM sync"` no
+   navegador).
+2. **Refazer o deploy** depois de qualquer mudança de env. Sem novo build, o
+   bundle continua com os valores antigos (ou vazios).
+3. **Rede**: abra uma LP em produção → DevTools → Network → envie um lead.
+   - Sem requisição para `functions.supabase.co/submit-lead` → envs vazias no bundle.
+   - `200` → chegou; conferir `/admin/crm`.
+   - `400` com `invalid_payload` → conferir campo `source` (deve ser um dos enums
+     válidos: `lp_gentehub`, `lp_participe`, `lp_networking`, `site_elementor`,
+     `convite_manual`, `api`).
+   - `500` → checar logs em Supabase → Edge Functions → submit-lead.
+4. **Logs da função**: `Supabase Dashboard → Edge Functions → submit-lead → Logs`.
+   Cada payload rejeitado é logado com `raw:` para inspeção.
+
+## 7. Erros comuns
+
+- **401 Unauthorized** → não deve mais ocorrer (função é pública desde v3.32.0);
+  se aparecer, verificar se o `verify_jwt = false` continua em `supabase/config.toml`.
 - **400 invalid source** → o valor de `source` precisa estar na lista permitida
   (`docs/CRM_INGESTAO_LEADS.md`).
 - **CORS blocked** → a função já retorna `Access-Control-Allow-Origin: *`; se o navegador
