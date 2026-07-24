@@ -50,9 +50,37 @@ serve(async (req) => {
   }
 
   try {
-    const raw = await req.json();
+    // Aceita application/json e application/x-www-form-urlencoded / multipart/form-data
+    // (webhook nativo do Elementor Forms envia form-urlencoded).
+    const ct = (req.headers.get("content-type") || "").toLowerCase();
+    let raw: Record<string, unknown> = {};
+    if (ct.includes("application/json")) {
+      raw = await req.json().catch(() => ({}));
+    } else if (
+      ct.includes("application/x-www-form-urlencoded") ||
+      ct.includes("multipart/form-data")
+    ) {
+      const fd = await req.formData();
+      for (const [k, v] of fd.entries()) {
+        // Elementor envia chaves como form_fields[name] — normaliza para "name"
+        const key = k.replace(/^form_fields\[/, "").replace(/^fields\[/, "").replace(/\]$/, "");
+        raw[key] = typeof v === "string" ? v : String(v);
+      }
+    } else {
+      // Última tentativa: JSON
+      raw = await req.json().catch(() => ({}));
+    }
+
+    // Aliases comuns vindos de forms externos
+    if (!raw.name && (raw as any).full_name) raw.name = (raw as any).full_name;
+    if (!raw.business_segment && (raw as any).segment) {
+      raw.business_segment = (raw as any).segment;
+    }
+    if (!raw.source) raw.source = "site_elementor";
+
     const parsed = BodySchema.safeParse(raw);
     if (!parsed.success) {
+      console.error("[submit-lead] invalid payload", parsed.error.flatten(), "raw:", raw);
       return new Response(
         JSON.stringify({ error: "invalid_payload", details: parsed.error.flatten() }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
