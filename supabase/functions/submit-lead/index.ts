@@ -122,6 +122,9 @@ serve(async (req) => {
     // Se não tem invitation ainda, cria
     if (!invitationId) {
       const code = genCode();
+      // Sem team_id não é possível gerar convite "comunidade" (constraint do banco).
+      // Lead entra como "hub" (pré-triagem no CRM) até o admin promover para um grupo.
+      const inviteTarget = data.target_team_id ? "comunidade" : "hub";
       const { data: inv, error: invErr } = await supabase
         .from("invitations")
         .insert({
@@ -130,6 +133,7 @@ serve(async (req) => {
           name: data.name,
           invited_by: defaultInviter,
           team_id: data.target_team_id ?? null,
+          invite_target: inviteTarget,
           status: "pending",
           metadata: { source: data.source, source_detail: data.source_detail ?? null },
         })
