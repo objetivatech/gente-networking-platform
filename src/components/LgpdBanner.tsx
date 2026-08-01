@@ -1,6 +1,6 @@
 /**
- * LgpdBanner - Banner de consentimento de cookies conforme LGPD (v3.28.0).
- * Persiste a escolha do usuário em localStorage e não bloqueia a navegação.
+ * LgpdBanner - Preferências persistentes de cookies conforme LGPD (v3.33.0).
+ * Persiste a escolha e mantém um acesso flutuante para consulta ou revogação.
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
@@ -37,34 +37,55 @@ function writeConsent(c: Consent) {
 
 export function LgpdBanner() {
   const [visible, setVisible] = useState(false);
+  const [consent, setConsent] = useState<Consent | null>(null);
 
   useEffect(() => {
-    if (!readConsent()) {
+    const stored = readConsent();
+    setConsent(stored);
+    if (!stored) {
       // Pequeno delay para não competir com o loader inicial
       const t = setTimeout(() => setVisible(true), 800);
       return () => clearTimeout(t);
     }
   }, []);
 
-  if (!visible) return null;
-
   const acceptAll = () => {
-    writeConsent({
+    const next: Consent = {
       status: 'accepted_all',
       ts: new Date().toISOString(),
       categories: { essential: true, analytics: true, marketing: true },
-    });
+    };
+    writeConsent(next);
+    setConsent(next);
     setVisible(false);
   };
 
   const essentialOnly = () => {
-    writeConsent({
+    const next: Consent = {
       status: 'essential_only',
       ts: new Date().toISOString(),
       categories: { essential: true, analytics: false, marketing: false },
-    });
+    };
+    writeConsent(next);
+    setConsent(next);
     setVisible(false);
   };
+
+  if (!visible) {
+    return consent ? (
+      <Button
+        type="button"
+        size="icon"
+        variant="outline"
+        onClick={() => setVisible(true)}
+        aria-label="Abrir preferências de cookies"
+        title="Preferências de cookies"
+        className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-[60] h-11 w-11 rounded-full bg-card shadow-lg md:bottom-5"
+      >
+        <Cookie className="h-5 w-5" aria-hidden="true" />
+      </Button>
+    ) : null;
+  }
 
   return (
     <div
@@ -84,14 +105,16 @@ export function LgpdBanner() {
                 <ShieldCheck className="h-4 w-4 text-primary" />
                 Sua privacidade é importante
               </h2>
-              <button
+              <Button
                 type="button"
+                size="icon"
+                variant="ghost"
                 onClick={essentialOnly}
                 aria-label="Fechar aceitando apenas cookies essenciais"
-                className="text-muted-foreground hover:text-foreground -mt-1 -mr-1 p-1"
+                className="h-8 w-8 -mt-1 -mr-1"
               >
                 <X className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">
               Usamos cookies essenciais para o funcionamento da plataforma e, com sua autorização,
@@ -102,6 +125,12 @@ export function LgpdBanner() {
               </Link>
               .
             </p>
+            {consent && (
+              <p className="text-xs text-muted-foreground">
+                Preferência atual: {consent.status === 'accepted_all' ? 'todos os cookies' : 'somente essenciais'} · atualizada em{' '}
+                {new Date(consent.ts).toLocaleDateString('pt-BR')}.
+              </p>
+            )}
             <div className="flex flex-wrap gap-2 pt-1">
               <Button size="sm" onClick={acceptAll}>
                 Aceitar todos

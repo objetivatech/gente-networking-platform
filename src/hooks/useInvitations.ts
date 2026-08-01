@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export type InviteTarget = 'comunidade' | 'hub';
+export type InvitePurpose = 'premium_group' | 'hub_event' | 'whatsapp_community' | 'hub_legacy';
 
 export interface Invitation {
   id: string;
@@ -19,6 +20,8 @@ export interface Invitation {
   metadata: Record<string, unknown>;
   team_id: string | null;
   invite_target: InviteTarget;
+  invite_purpose: InvitePurpose;
+  event_id: string | null;
 }
 
 function generateCode(): string {
@@ -45,7 +48,11 @@ export function useInvitations() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []).map((i: any) => ({ ...i, invite_target: (i.invite_target as InviteTarget) || 'comunidade' })) as Invitation[];
+      return (data || []).map((i: any) => ({
+        ...i,
+        invite_target: (i.invite_target as InviteTarget) || 'comunidade',
+        invite_purpose: (i.invite_purpose as InvitePurpose) || (i.invite_target === 'hub' ? 'hub_legacy' : 'premium_group'),
+      })) as Invitation[];
     },
     enabled: !!user?.id,
   });
@@ -55,16 +62,19 @@ export function useInvitations() {
       name?: string;
       email?: string;
       teamId?: string;
-      target?: InviteTarget;
+      purpose?: Exclude<InvitePurpose, 'hub_legacy'>;
       hubContext?: string;
       phone?: string;
+      eventId?: string;
     }) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
-      const target: InviteTarget = input.target || 'comunidade';
-      if (target === 'comunidade' && !input.teamId) throw new Error('Selecione o grupo do convidado.');
-      if (target === 'hub' && !input.email) throw new Error('Email é obrigatório para convite Gente HUB.');
-      if (target === 'hub' && !input.name) throw new Error('Nome é obrigatório para convite Gente HUB.');
+      const purpose = input.purpose || 'premium_group';
+      const target: InviteTarget = purpose === 'premium_group' ? 'comunidade' : 'hub';
+      if (purpose === 'premium_group' && !input.teamId) throw new Error('Selecione o grupo do convidado.');
+      if (purpose === 'hub_event' && !input.eventId) throw new Error('Selecione o evento Gente HUB.');
+      if (purpose !== 'premium_group' && !input.email) throw new Error('Email é obrigatório para este convite.');
+      if (purpose !== 'premium_group' && !input.name) throw new Error('Nome é obrigatório para este convite.');
 
       const code = generateCode();
       const metadata: Record<string, unknown> = {};
@@ -82,6 +92,8 @@ export function useInvitations() {
           email: input.email || null,
           team_id: target === 'comunidade' ? input.teamId! : null,
           invite_target: target,
+          invite_purpose: purpose,
+          event_id: purpose === 'hub_event' ? input.eventId : null,
           metadata,
         } as any)
         .select()
@@ -91,7 +103,9 @@ export function useInvitations() {
 
       if (input.email) {
         try {
-          const inviteUrl = `${window.location.origin}/convite/${code}`;
+          const inviteUrl = purpose === 'whatsapp_community'
+            ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(user.id)}&convite=${encodeURIComponent(code)}`
+            : `${window.location.origin}/convite/${code}`;
           const { data: inviterProfile } = await supabase
             .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
           const inviterName = inviterProfile?.full_name || 'Um membro';
@@ -99,8 +113,10 @@ export function useInvitations() {
           await supabase.functions.invoke('send-email', {
             body: {
               to: input.email,
-              subject: target === 'hub'
-                ? 'Convite para o Gente HUB 🚀'
+              subject: purpose === 'hub_event'
+                ? 'Convite para um evento Gente HUB 🚀'
+                : purpose === 'whatsapp_community'
+                ? 'Convite para a Comunidade Gente'
                 : 'Você foi convidado para o Gente Networking! 🎉',
               template: target === 'hub' ? 'hub_invitation' : 'invitation',
               template_data: {
