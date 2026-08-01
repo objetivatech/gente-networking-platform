@@ -1464,8 +1464,11 @@ export type Database = {
           accepted_by: string
           code: string
           email: string
+          event_id: string
           expires_at: string
           id: string
+          invite_purpose: string
+          invite_target: string
           invited_by: string
           name: string
           status: string
