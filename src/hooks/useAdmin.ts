@@ -99,7 +99,7 @@ export function useAdminMeetings() {
   const queryClient = useQueryClient();
 
   const createMeeting = useMutation({
-    mutationFn: async (input: { title: string; description?: string; meeting_date: string; meeting_time?: string; location?: string; team_id?: string }) => {
+    mutationFn: async (input: { title: string; description?: string; meeting_date: string; meeting_time?: string; location?: string; team_id?: string; event_type?: 'premium_group' | 'hub_event' }) => {
       const { data, error } = await supabase.from('meetings').insert({
         ...input,
         created_by: user?.id,
