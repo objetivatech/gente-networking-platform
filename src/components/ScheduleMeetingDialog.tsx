@@ -24,6 +24,8 @@ interface ScheduleMeetingDialogProps {
   recipientId: string;
   memberName: string;
   availabilityNote?: string | null;
+  className?: string;
+  variant?: 'default' | 'outline';
 }
 
 function defaultStart(): string {
@@ -34,7 +36,7 @@ function defaultStart(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNote }: ScheduleMeetingDialogProps) {
+export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNote, className, variant = 'outline' }: ScheduleMeetingDialogProps) {
   const [open, setOpen] = useState(false);
   const [start, setStart] = useState<string>(defaultStart());
   const [duration, setDuration] = useState<string>('60');
@@ -58,7 +60,7 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant={variant} className={className}>
           <CalendarClock className="mr-2 h-4 w-4" /> Agendar Gente em Ação
         </Button>
       </DialogTrigger>

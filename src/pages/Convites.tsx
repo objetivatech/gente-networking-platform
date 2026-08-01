@@ -13,10 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
+import { useMeetings } from '@/hooks/useMeetings';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
-import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users, Building2 } from 'lucide-react';
+import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users, Building2, CalendarDays, MessageCircle } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -24,21 +25,25 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
 const inviteSchema = z.object({
-  target: z.enum(['comunidade', 'hub']).default('comunidade'),
+  purpose: z.enum(['premium_group', 'hub_event', 'whatsapp_community']).default('premium_group'),
   name: z.string().optional(),
   email: z.string().email('Email inválido').optional().or(z.literal('')),
   teamId: z.string().optional(),
+  eventId: z.string().optional(),
   hubContext: z.string().optional(),
   phone: z.string().optional(),
-}).refine((d) => d.target !== 'comunidade' || (d.teamId && d.teamId.length > 0), {
+}).refine((d) => d.purpose !== 'premium_group' || (d.teamId && d.teamId.length > 0), {
   message: 'Selecione o grupo do convidado',
   path: ['teamId'],
-}).refine((d) => d.target !== 'hub' || (d.email && d.email.length > 0), {
-  message: 'Email é obrigatório para convite Gente HUB',
+}).refine((d) => d.purpose === 'premium_group' || (d.email && d.email.length > 0), {
+  message: 'Email é obrigatório para este convite',
   path: ['email'],
-}).refine((d) => d.target !== 'hub' || (d.name && d.name.length > 0), {
-  message: 'Nome é obrigatório para convite Gente HUB',
+}).refine((d) => d.purpose === 'premium_group' || (d.name && d.name.length > 0), {
+  message: 'Nome é obrigatório para este convite',
   path: ['name'],
+}).refine((d) => d.purpose !== 'hub_event' || (d.eventId && d.eventId.length > 0), {
+  message: 'Selecione o evento Gente HUB',
+  path: ['eventId'],
 });
 
 type InviteFormData = z.infer<typeof inviteSchema>;
@@ -54,6 +59,7 @@ export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
   const { isAdmin } = useAdmin();
   const { teams } = useTeams();
+  const { meetings } = useMeetings();
   const { user } = useAuth();
   const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
@@ -74,31 +80,35 @@ export default function Convites() {
 
   const form = useForm<z.infer<typeof inviteSchema>>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: { target: 'comunidade', name: '', email: '', teamId: '', hubContext: '', phone: '' },
+    defaultValues: { purpose: 'premium_group', name: '', email: '', teamId: '', eventId: '', hubContext: '', phone: '' },
   });
 
-  const target = form.watch('target');
+  const purpose = form.watch('purpose');
+  const hubEvents = useMemo(() => (meetings || []).filter((meeting) =>
+    meeting.event_type === 'hub_event' && new Date(`${meeting.meeting_date}T23:59:59`) >= new Date()
+  ), [meetings]);
 
   // Pre-seleciona primeiro grupo disponível ao abrir (só para comunidade)
   useEffect(() => {
-    if (open && target === 'comunidade' && availableTeams.length > 0 && !form.getValues('teamId')) {
+    if (open && purpose === 'premium_group' && availableTeams.length > 0 && !form.getValues('teamId')) {
       form.setValue('teamId', availableTeams[0].id);
     }
-  }, [open, availableTeams, form, target]);
+  }, [open, availableTeams, form, purpose]);
 
   const onSubmit = (data: z.infer<typeof inviteSchema>) => {
     createInvitation.mutate(
       {
-        target: data.target,
+        purpose: data.purpose,
         name: data.name || undefined,
         email: data.email || undefined,
-        teamId: data.target === 'comunidade' ? data.teamId : undefined,
-        hubContext: data.target === 'hub' ? data.hubContext || undefined : undefined,
-        phone: data.target === 'hub' ? data.phone || undefined : undefined,
+        teamId: data.purpose === 'premium_group' ? data.teamId : undefined,
+        eventId: data.purpose === 'hub_event' ? data.eventId : undefined,
+        hubContext: data.purpose === 'hub_event' ? data.hubContext || undefined : undefined,
+        phone: data.purpose !== 'premium_group' ? data.phone || undefined : undefined,
       },
       {
         onSuccess: () => {
-          form.reset({ target: 'comunidade', name: '', email: '', teamId: '', hubContext: '', phone: '' });
+          form.reset({ purpose: 'premium_group', name: '', email: '', teamId: '', eventId: '', hubContext: '', phone: '' });
           setOpen(false);
         },
       }
@@ -106,13 +116,18 @@ export default function Convites() {
   };
 
   const copyLink = (code: string) => {
-    const url = `${window.location.origin}/convite/${code}`;
+    const invitation = invitations?.find((item) => item.code === code);
+    const url = invitation?.invite_purpose === 'whatsapp_community'
+      ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(invitation.invited_by)}&convite=${encodeURIComponent(code)}`
+      : `${window.location.origin}/convite/${code}`;
     navigator.clipboard.writeText(url);
     toast({ title: 'Link copiado!', description: 'O link do convite foi copiado para a área de transferência.' });
   };
 
   const shareInvite = (invitation: Invitation) => {
-    const url = `${window.location.origin}/convite/${invitation.code}`;
+    const url = invitation.invite_purpose === 'whatsapp_community'
+      ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(invitation.invited_by)}&convite=${encodeURIComponent(invitation.code)}`
+      : `${window.location.origin}/convite/${invitation.code}`;
     const text = `Venha fazer parte do Gente Networking! Use o código ${invitation.code} ou acesse: ${url}`;
     
     if (navigator.share) {
@@ -188,7 +203,7 @@ export default function Convites() {
             <UserPlus className="h-8 w-8 text-primary" />
             Convites
           </h1>
-          <p className="text-muted-foreground">Convide novos membros para a comunidade</p>
+          <p className="text-muted-foreground">Convide pessoas para grupos premium, eventos Gente HUB ou Comunidade Gente</p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
@@ -206,14 +221,15 @@ export default function Convites() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" data-rd-no-capture="true">
                 <FormField
                   control={form.control}
-                  name="target"
+                  name="purpose"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de convite *</FormLabel>
-                      <Tabs value={field.value} onValueChange={field.onChange} className="w-full">
-                        <TabsList className="grid grid-cols-2 w-full">
-                          <TabsTrigger value="comunidade" className="gap-1"><Users className="h-3.5 w-3.5" /> Comunidade</TabsTrigger>
-                          <TabsTrigger value="hub" className="gap-1"><Building2 className="h-3.5 w-3.5" /> Gente HUB</TabsTrigger>
+                       <Tabs value={field.value} onValueChange={field.onChange} className="w-full">
+                         <TabsList className="h-auto grid grid-cols-1 w-full sm:grid-cols-3">
+                           <TabsTrigger value="premium_group" className="gap-1 text-wrap-anywhere"><Users className="h-3.5 w-3.5" /> Grupo Premium</TabsTrigger>
+                           <TabsTrigger value="hub_event" className="gap-1 text-wrap-anywhere"><CalendarDays className="h-3.5 w-3.5" /> Evento HUB</TabsTrigger>
+                           <TabsTrigger value="whatsapp_community" className="gap-1 text-wrap-anywhere"><MessageCircle className="h-3.5 w-3.5" /> Comunidade Gente</TabsTrigger>
                         </TabsList>
                       </Tabs>
                       <FormMessage />
@@ -226,7 +242,7 @@ export default function Convites() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nome {target === 'hub' ? '*' : '(opcional)'}</FormLabel>
+                       <FormLabel>Nome {purpose !== 'premium_group' ? '*' : '(opcional)'}</FormLabel>
                       <FormControl>
                         <Input placeholder="Nome do convidado" {...field} />
                       </FormControl>
@@ -240,7 +256,7 @@ export default function Convites() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email {target === 'hub' ? '*' : '(opcional)'}</FormLabel>
+                       <FormLabel>Email {purpose !== 'premium_group' ? '*' : '(opcional)'}</FormLabel>
                       <FormControl>
                         <Input type="email" placeholder="email@exemplo.com" {...field} />
                       </FormControl>
@@ -249,7 +265,7 @@ export default function Convites() {
                   )}
                 />
 
-                {target === 'comunidade' && (
+                {purpose === 'premium_group' && (
                   <FormField
                     control={form.control}
                     name="teamId"
@@ -278,8 +294,30 @@ export default function Convites() {
                   />
                 )}
 
-                {target === 'hub' && (
+                {purpose === 'hub_event' && (
                   <>
+                    <FormField
+                      control={form.control}
+                      name="eventId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Evento Gente HUB *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Selecione o evento" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {hubEvents.length === 0 ? (
+                                <div className="p-2 text-sm text-muted-foreground">Nenhum evento HUB futuro cadastrado</div>
+                              ) : hubEvents.map((meeting) => (
+                                <SelectItem key={meeting.id} value={meeting.id}>
+                                  {meeting.title} · {format(new Date(`${meeting.meeting_date}T12:00:00`), 'dd/MM/yyyy')}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="phone"
@@ -310,9 +348,11 @@ export default function Convites() {
                 )}
 
                 <p className="text-sm text-muted-foreground">
-                  {target === 'comunidade'
-                    ? 'O convidado verá apenas os encontros do grupo selecionado. Se informar o email, o convite será enviado automaticamente.'
-                    : 'O aceite gera um lead no CRM do Gente HUB (origem: convite_membro). Nenhum acesso à comunidade é criado.'}
+                  {purpose === 'premium_group'
+                    ? 'O convidado terá acesso somente aos encontros do Grupo Premium selecionado.'
+                    : purpose === 'hub_event'
+                    ? 'O aceite registra um lead no CRM e vincula a pessoa ao evento Gente HUB, sem acesso de membro premium.'
+                    : 'O convite abre a LP Comunidade, que registra o lead e apresenta o acesso ao grupo de WhatsApp.'}
                 </p>
 
                 <Button type="submit" className="w-full" disabled={createInvitation.isPending}>
@@ -387,10 +427,16 @@ export default function Convites() {
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <code className="text-lg font-mono font-bold text-primary">{invitation.code}</code>
                         {getStatusBadge(invitation)}
-                        {invitation.invite_target === 'hub' ? (
+                         {invitation.invite_purpose === 'whatsapp_community' ? (
+                           <Badge variant="outline" className="gap-1">
+                             <MessageCircle className="h-3 w-3" /> Comunidade Gente
+                           </Badge>
+                         ) : invitation.invite_purpose === 'hub_event' ? (
                           <Badge className="gap-1 bg-orange-500 hover:bg-orange-600">
-                            <Building2 className="h-3 w-3" /> Gente HUB
+                             <CalendarDays className="h-3 w-3" /> Evento Gente HUB
                           </Badge>
+                         ) : invitation.invite_purpose === 'hub_legacy' ? (
+                           <Badge variant="secondary" className="gap-1"><Building2 className="h-3 w-3" /> Gente HUB legado</Badge>
                         ) : invitation.team_id && teamNamesMap[invitation.team_id] ? (
                           <Badge variant="outline" className="gap-1">
                             <Users className="h-3 w-3" />

@@ -633,8 +633,10 @@ export type Database = {
           code: string
           created_at: string
           email: string | null
+          event_id: string | null
           expires_at: string
           id: string
+          invite_purpose: string
           invite_target: string
           invited_by: string
           metadata: Json | null
@@ -648,8 +650,10 @@ export type Database = {
           code: string
           created_at?: string
           email?: string | null
+          event_id?: string | null
           expires_at?: string
           id?: string
+          invite_purpose?: string
           invite_target?: string
           invited_by: string
           metadata?: Json | null
@@ -663,8 +667,10 @@ export type Database = {
           code?: string
           created_at?: string
           email?: string | null
+          event_id?: string | null
           expires_at?: string
           id?: string
+          invite_purpose?: string
           invite_target?: string
           invited_by?: string
           metadata?: Json | null
@@ -673,6 +679,13 @@ export type Database = {
           team_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "invitations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "invitations_team_id_fkey"
             columns: ["team_id"]
@@ -796,6 +809,7 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           description: string | null
+          event_type: string
           id: string
           location: string | null
           meeting_date: string
@@ -807,6 +821,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          event_type?: string
           id?: string
           location?: string | null
           meeting_date: string
@@ -818,6 +833,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          event_type?: string
           id?: string
           location?: string | null
           meeting_date?: string
@@ -1448,8 +1464,11 @@ export type Database = {
           accepted_by: string
           code: string
           email: string
+          event_id: string
           expires_at: string
           id: string
+          invite_purpose: string
+          invite_target: string
           invited_by: string
           name: string
           status: string

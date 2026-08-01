@@ -33,6 +33,8 @@ const BodySchema = z.object({
     "api",
   ]),
   source_detail: z.string().trim().max(500).optional().nullable(),
+  invitation_code: z.string().trim().max(40).optional().nullable(),
+  invited_by: z.string().uuid().optional().nullable(),
   app_base_url: z.string().url().optional(),
 });
 
@@ -77,6 +79,9 @@ serve(async (req) => {
       raw.business_segment = (raw as any).segment;
     }
     if (!raw.source) raw.source = "site_elementor";
+    if (!raw.source_detail && (raw as any).landing_page) raw.source_detail = (raw as any).landing_page;
+    if (!raw.invitation_code && (raw as any).convite) raw.invitation_code = (raw as any).convite;
+    if (!raw.invited_by && (raw as any).ref) raw.invited_by = (raw as any).ref;
 
     const parsed = BodySchema.safeParse(raw);
     if (!parsed.success) {
@@ -158,6 +163,7 @@ serve(async (req) => {
       invitationCode = inv?.code ?? null;
     }
 
+    const trackedInviter = data.invited_by ?? defaultInviter;
     const leadPayload = {
       name: data.name,
       email: data.email,
@@ -168,7 +174,11 @@ serve(async (req) => {
       source_detail: data.source_detail ?? null,
       target_team_id: data.target_team_id ?? null,
       invitation_id: invitationId,
-      invited_by: defaultInviter,
+      invited_by: trackedInviter,
+      metadata: {
+        invitation_code: data.invitation_code ?? null,
+        landing_page: data.source_detail ?? null,
+      },
     };
 
     if (leadId) {

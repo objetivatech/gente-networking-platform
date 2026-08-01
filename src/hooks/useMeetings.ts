@@ -13,6 +13,7 @@ export interface Meeting {
   location: string | null;
   created_by: string | null;
   created_at: string;
+  event_type: 'premium_group' | 'hub_event';
   team?: { name: string; color: string } | null;
   attendees_count?: number;
   is_attending?: boolean;

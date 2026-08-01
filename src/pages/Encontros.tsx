@@ -32,15 +32,16 @@ export default function Encontros() {
   const { teams } = useTeams();
   const [open, setOpen] = useState(false);
   const [selectedMeeting, setSelectedMeeting] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '' });
+  const [formData, setFormData] = useState({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '', event_type: 'premium_group' as 'premium_group' | 'hub_event' });
 
-  const isAdmin = userRole === 'admin' || userRole === 'facilitador';
+  const canManageMeetings = userRole === 'admin' || userRole === 'facilitador';
+  const isGlobalAdmin = userRole === 'admin';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createMeeting.mutateAsync({ ...formData, team_id: formData.team_id || undefined });
+    await createMeeting.mutateAsync({ ...formData, team_id: formData.event_type === 'premium_group' ? formData.team_id || undefined : undefined });
     setOpen(false);
-    setFormData({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '' });
+    setFormData({ title: '', description: '', meeting_date: '', meeting_time: '', location: '', team_id: '', event_type: 'premium_group' });
   };
 
   const upcomingMeetings = (meetings?.filter(m => isFuture(parseLocalDate(m.meeting_date)) || isToday(parseLocalDate(m.meeting_date))) || [])
@@ -66,6 +67,7 @@ export default function Encontros() {
                     {meeting.team.name}
                   </Badge>
                 )}
+                {meeting.event_type === 'hub_event' && <Badge variant="secondary">Evento Gente HUB</Badge>}
                 {isToday(parseLocalDate(meeting.meeting_date)) && <Badge className="bg-primary">Hoje</Badge>}
                 {isSoon && <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Em breve</Badge>}
               </div>
@@ -108,14 +110,14 @@ export default function Encontros() {
               <Button variant="ghost" size="sm" onClick={() => setSelectedMeeting(selectedMeeting === meeting.id ? null : meeting.id)}>
                 <Users className="w-4 h-4" />
               </Button>
-              {isAdmin && (
+              {canManageMeetings && (
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteMeeting.mutate(meeting.id)}>
                   <Trash2 className="w-4 h-4" />
                 </Button>
               )}
             </div>
           </div>
-          {selectedMeeting === meeting.id && <AttendeesList meetingId={meeting.id} canRemove={isAdmin} onRemove={(userId) => removeAttendance.mutate({ meetingId: meeting.id, userId })} />}
+          {selectedMeeting === meeting.id && <AttendeesList meetingId={meeting.id} canRemove={canManageMeetings} onRemove={(userId) => removeAttendance.mutate({ meetingId: meeting.id, userId })} />}
         </CardContent>
       </Card>
     );
@@ -133,16 +135,35 @@ export default function Encontros() {
           <p className="text-muted-foreground">Agenda e presenças</p>
         </div>
 
-        {isAdmin && (
+        {canManageMeetings && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="w-4 h-4 mr-2" /> Novo Encontro</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Criar Encontro</DialogTitle></DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4" data-rd-no-capture="true">
-                <div className="space-y-2">
+                {isGlobalAdmin && (
+                  <div className="space-y-2">
+                    <Label>Tipo de encontro</Label>
+                    <Select
+                      value={formData.event_type}
+                      onValueChange={(value: 'premium_group' | 'hub_event') => setFormData({
+                        ...formData,
+                        event_type: value,
+                        team_id: value === 'hub_event' ? '' : formData.team_id,
+                      })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="premium_group">Encontro de Grupo Premium</SelectItem>
+                        <SelectItem value="hub_event">Evento Gente HUB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                {formData.event_type === 'premium_group' && <div className="space-y-2">
                   <Label htmlFor="title">Título</Label>
                   <Input id="title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Encontro Quinzenal" required />
-                </div>
+                </div>}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="meeting_date">Data</Label>

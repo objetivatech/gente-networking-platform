@@ -1,6 +1,6 @@
 # Integração — LPs Gente → CRM
 
-**Versão:** v3.28.0
+**Versão:** v3.33.0
 
 Este guia mostra como conectar os formulários do projeto **LPs Gente** (Landing Pages
 independentes da Comunidade) ao CRM.
@@ -64,6 +64,20 @@ await submitLead({
 | LP Gente HUB (assinatura premium)                                  | `lp_gentehub`     |
 | LP Participe / Solicitar convite / Abrir novo grupo                | `lp_participe`    |
 | LP institucional Gente Networking                                  | `lp_networking`   |
+| LP Comunidade Gente (WhatsApp)                                     | `lp_participe`    |
+
+Para a LP Comunidade, preserve também os parâmetros rastreáveis do link de convite:
+
+```json
+{
+  "source": "lp_participe",
+  "source_detail": "comunidade_whatsapp",
+  "invitation_code": "CODIGO_DO_LINK",
+  "invited_by": "UUID_DO_MEMBRO"
+}
+```
+
+O `submit-lead` aceita igualmente os aliases de URL `convite` e `ref`.
 
 ## 4. Teste
 
@@ -82,13 +96,13 @@ o lead é rejeitado com `400`, protegendo o CRM contra bots.
 
 Checklist rápido antes de abrir chamado:
 
-1. **Variáveis presentes em Cloudflare Pages** (projeto LPs Gente → Settings →
+1. **Salvar as variáveis no Cloudflare Pages** (projeto LPs Gente → Settings →
    Environment Variables): `VITE_COMUNIDADE_SUBMIT_LEAD_URL` e
    `VITE_COMUNIDADE_ANON_KEY` precisam existir **tanto em Production quanto em
    Preview**. O Vite congela essas envs em build-time, então ausência = leads
    silenciosamente descartados (aparece `console.warn "Skipping CRM sync"` no
    navegador).
-2. **Refazer o deploy** depois de qualquer mudança de env. Sem novo build, o
+2. **Refazer o deploy de produção** depois de qualquer mudança de env. Sem novo build, o
    bundle continua com os valores antigos (ou vazios).
 3. **Rede**: abra uma LP em produção → DevTools → Network → envie um lead.
    - Sem requisição para `functions.supabase.co/submit-lead` → envs vazias no bundle.
@@ -108,3 +122,10 @@ Checklist rápido antes de abrir chamado:
   (`docs/CRM_INGESTAO_LEADS.md`).
 - **CORS blocked** → a função já retorna `Access-Control-Allow-Origin: *`; se o navegador
   reclamar, geralmente é um proxy/CDN entre a LP e o Supabase (revise o worker).
+
+## 8. Contrato de confiabilidade entre projetos
+
+O salvamento local da LP e a sincronização com o CRM são operações distintas. A LP não deve
+ocultar uma falha do CRM: registre o status HTTP e o corpo de erro, mostre o envio local como
+concluído e mantenha uma ação de reenvio para a sincronização pendente. Isso evita perda
+silenciosa sem bloquear a captação principal.

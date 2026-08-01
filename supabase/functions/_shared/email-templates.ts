@@ -515,18 +515,19 @@ ${ctaButton(isConfirmed ? 'Adicionar ao calendário' : 'Ver detalhes', link)}`;
 }
 
 export function hubInvitationEmailTemplate(inviterName: string, guestName: string, inviteLink: string, hubContext: string): string {
+  const isCommunityInvite = inviteLink.includes('/comunidade');
   const emailContent = `
-<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Convite para o Gente HUB 🚀</h1>
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">${isCommunityInvite ? 'Convite para a Comunidade Gente' : 'Convite para um evento Gente HUB 🚀'}</h1>
 <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
   Olá <strong style="color: #1e3a5f;">${guestName || ''}</strong>,
 </p>
 <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
-  <strong style="color: #1e3a5f;">${inviterName}</strong> convidou você para conhecer o <strong>Gente HUB</strong> — o programa premium do ecossistema Gente Networking.
+  <strong style="color: #1e3a5f;">${inviterName}</strong> convidou você para ${isCommunityInvite ? 'entrar na <strong>Comunidade Gente</strong> no WhatsApp.' : 'participar de um <strong>evento Gente HUB</strong>.'}
 </p>
 ${hubContext ? infoBox(`<p style="color: #9a3412; font-size: 15px; line-height: 1.6; margin: 0;">${hubContext}</p>`, 'orange') : ''}
 <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
-  Ao aceitar, nossa equipe entrará em contato com detalhes sobre planos, benefícios e ativação.
+  ${isCommunityInvite ? 'Conclua seus dados na página para receber o acesso à Comunidade Gente.' : 'Ao aceitar, sua participação será vinculada ao evento e nossa equipe poderá acompanhar seu atendimento.'}
 </p>
-${ctaButton('Aceitar convite', inviteLink)}`;
+${ctaButton(isCommunityInvite ? 'Acessar Comunidade Gente' : 'Aceitar convite do evento', inviteLink)}`;
   return emailWrapper(emailContent);
 }
