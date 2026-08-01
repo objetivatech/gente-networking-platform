@@ -714,8 +714,8 @@ Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equi
 ## v3.17.0 — Fase 4: Cartão Digital + Agenda 1x1
 
 - **Cartão Digital** (`src/components/DigitalMemberCard.tsx`): cartão de visita em canvas com QR Code (`qrcode`) para `/membro/:slug`, download PNG. Disponível na aba "Cartão" do perfil (`Profile.tsx` e `MemberProfile.tsx`).
-- **Agenda 1x1** (`src/components/ScheduleMeetingDialog.tsx` + `src/lib/scheduling-utils.ts`): gera convite Google Calendar / `.ics` para reunião 1x1, sem OAuth. Botão "Agendar 1x1" no perfil de terceiros.
-- **Campo `availability_note`** em `profiles`: disponibilidade declarada para 1x1, editável em Configurações do perfil.
+- **Agendar Gente em Ação** (`src/components/ScheduleMeetingDialog.tsx`, `src/components/MeetingRequestsPanel.tsx` e `src/hooks/useMeetingRequests.ts`): cria uma solicitação entre membros; o convite Google Calendar / `.ics` só é liberado após a confirmação do destinatário.
+- **Campo `availability_note`** em `profiles`: disponibilidade declarada para encontros, editável em Configurações do perfil.
 - Item 10 (OAuth Google/LinkedIn) removido do escopo a pedido do cliente.
 
 ## v3.20.0 — Rebranding de Logos, Perfil Público e Responsividade
