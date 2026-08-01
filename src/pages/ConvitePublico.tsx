@@ -48,8 +48,8 @@ export default function ConvitePublico() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-50 via-white to-orange-50">
       <SEO
-        title="Convite para a comunidade"
-        description="Você foi convidado(a) para fazer parte do Gente Networking. Aceite seu convite e comece a fazer conexões valiosas."
+        title={invitation?.invite_purpose === 'hub_event' ? 'Convite para evento Gente HUB' : 'Convite para Grupo Premium'}
+        description="Aceite seu convite do Gente Networking e conclua seu cadastro."
       />
       {/* Main Content */}
       <main className="flex-1 flex items-center justify-center p-4">
@@ -76,13 +76,14 @@ export default function ConvitePublico() {
                     Convite Válido!
                   </h3>
                   <p className="text-sm text-green-600 dark:text-green-400 mt-1">
-                    {invitation.name ? `Olá ${invitation.name}, você` : 'Você'} foi convidado(a) para fazer parte da nossa comunidade de networking.
+                     {invitation.name ? `Olá ${invitation.name}, você` : 'Você'} foi convidado(a) para{' '}
+                     {invitation.invite_purpose === 'hub_event' ? 'participar de um evento Gente HUB.' : 'visitar um Grupo Premium do Gente Networking.'}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <p className="text-muted-foreground text-sm">
-                    Crie sua conta para acessar a plataforma e começar a fazer conexões valiosas.
+                     Crie sua conta para confirmar o convite e acessar as informações disponíveis para visitantes.
                   </p>
                 </div>
 
