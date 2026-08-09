@@ -137,7 +137,7 @@ serve(async (req) => {
           code,
           email: data.email,
           name: data.name,
-          invited_by: data.invited_by ?? defaultInviter,
+          invited_by: defaultInviter,
           team_id: data.target_team_id ?? null,
           invite_target: inviteTarget,
           invite_purpose: invitePurpose,
