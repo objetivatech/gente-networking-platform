@@ -127,8 +127,9 @@ serve(async (req) => {
     // Se não tem invitation ainda, cria
     if (!invitationId) {
       const code = genCode();
-      // Sem team_id não é possível gerar convite "comunidade" (constraint do banco).
-      // Lead entra como "hub" (pré-triagem no CRM) até o admin promover para um grupo.
+      // Com grupo definido -> convite de Grupo Premium.
+      // Sem grupo -> convite legado do HUB (pré-triagem no CRM), sem exigir team_id.
+      const invitePurpose = data.target_team_id ? "premium_group" : "hub_legacy";
       const inviteTarget = data.target_team_id ? "comunidade" : "hub";
       const { data: inv, error: invErr } = await supabase
         .from("invitations")
@@ -136,14 +137,16 @@ serve(async (req) => {
           code,
           email: data.email,
           name: data.name,
-          invited_by: defaultInviter,
+          invited_by: data.invited_by ?? defaultInviter,
           team_id: data.target_team_id ?? null,
           invite_target: inviteTarget,
+          invite_purpose: invitePurpose,
           status: "pending",
           metadata: { source: data.source, source_detail: data.source_detail ?? null },
         })
         .select("id, code")
         .single();
+
 
       if (invErr) {
         console.error("[submit-lead] invitation insert failed", invErr);
