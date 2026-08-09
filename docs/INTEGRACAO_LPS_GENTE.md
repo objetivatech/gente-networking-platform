@@ -120,8 +120,12 @@ Checklist rápido antes de abrir chamado:
   se aparecer, verificar se o `verify_jwt = false` continua em `supabase/config.toml`.
 - **400 invalid source** → o valor de `source` precisa estar na lista permitida
   (`docs/CRM_INGESTAO_LEADS.md`).
+- **500 `invitation_create_failed: "Convite para grupo premium exige grupo"`** →
+  corrigido em v3.33.1. O `submit-lead` agora define `invite_purpose` explicitamente:
+  `premium_group` quando há `target_team_id` e `hub_legacy` quando não há grupo.
 - **CORS blocked** → a função já retorna `Access-Control-Allow-Origin: *`; se o navegador
   reclamar, geralmente é um proxy/CDN entre a LP e o Supabase (revise o worker).
+
 
 ## 8. Contrato de confiabilidade entre projetos
 
