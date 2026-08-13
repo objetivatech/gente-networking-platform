@@ -43,6 +43,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LeadDrawer } from '@/components/crm/LeadDrawer';
+import { useCrmLeadPages, leadPageKey } from '@/hooks/useCrmLeadPages';
 import {
   Accordion,
   AccordionContent,
@@ -101,6 +102,7 @@ export default function AdminCrm() {
   const { isAdmin, isLoading: loadingRole } = useAdmin();
   const { teams } = useTeams();
   const { data: leads, isLoading } = useCrmLeads();
+  const { data: leadPages } = useCrmLeadPages();
   const updateStatus = useUpdateCrmLeadStatus();
   const backfill = useMigrateExistingGuests();
 
@@ -108,6 +110,7 @@ export default function AdminCrm() {
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [onlyHub, setOnlyHub] = useState(false);
+  const [pageFilter, setPageFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
@@ -132,9 +135,10 @@ export default function AdminCrm() {
       }
       if (sourceFilter !== 'all' && l.source !== sourceFilter) return false;
       if (teamFilter !== 'all' && l.target_team_id !== teamFilter) return false;
+      if (pageFilter !== 'all' && leadPageKey(l) !== pageFilter) return false;
       return true;
     });
-  }, [leads, search, sourceFilter, teamFilter, onlyHub]);
+  }, [leads, search, sourceFilter, teamFilter, onlyHub, pageFilter]);
 
   const hasAnyHub = useMemo(() => (leads ?? []).some((l) => l.is_hub), [leads]);
   const visibleStatuses = useMemo(() => {
@@ -270,6 +274,19 @@ export default function AdminCrm() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={pageFilter} onValueChange={setPageFilter}>
+              <SelectTrigger className="lg:col-span-2">
+                <SelectValue placeholder="Página de captação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as páginas de captação</SelectItem>
+                {(leadPages ?? []).map((p) => (
+                  <SelectItem key={p.id} value={p.page_key}>
+                    {(p.title || p.page_key).slice(0, 60)} ({p.leads_count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="lg:col-span-4">
               <Toggle
                 pressed={onlyHub}
@@ -282,6 +299,38 @@ export default function AdminCrm() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Páginas de captação descobertas automaticamente (v3.34.0) */}
+      {(leadPages ?? []).length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Páginas de captação</CardTitle>
+            <CardDescription>
+              Detectadas automaticamente a cada lead recebido — não é preciso cadastrar LP nenhuma.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {(leadPages ?? []).map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPageFilter(pageFilter === p.page_key ? 'all' : p.page_key)}
+                className={`rounded-md border px-3 py-2 text-left text-xs min-w-0 max-w-full transition-colors ${
+                  pageFilter === p.page_key ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
+                }`}
+              >
+                <span className="block font-medium text-wrap-anywhere">
+                  {p.title || p.page_key}
+                </span>
+                <span className="block text-muted-foreground text-wrap-anywhere">
+                  {p.leads_count} lead(s)
+                  {p.source ? ` · ${CRM_SOURCE_LABEL[p.source as CrmLeadSource] ?? p.source}` : ''}
+                </span>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Kanban */}
       {isLoading ? (

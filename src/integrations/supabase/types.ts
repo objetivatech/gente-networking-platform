@@ -422,6 +422,45 @@ export type Database = {
           },
         ]
       }
+      crm_lead_pages: {
+        Row: {
+          created_at: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          leads_count: number
+          page_key: string
+          page_url: string | null
+          source: Database["public"]["Enums"]["crm_lead_source"] | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          leads_count?: number
+          page_key: string
+          page_url?: string | null
+          source?: Database["public"]["Enums"]["crm_lead_source"] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          leads_count?: number
+          page_key?: string
+          page_url?: string | null
+          source?: Database["public"]["Enums"]["crm_lead_source"] | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       crm_leads: {
         Row: {
           autentique_document_id: string | null
@@ -1608,6 +1647,15 @@ export type Database = {
         Returns: number
       }
       recalculate_all_user_points: { Args: never; Returns: number }
+      register_crm_lead_page: {
+        Args: {
+          _page_key: string
+          _page_url: string
+          _source: Database["public"]["Enums"]["crm_lead_source"]
+          _title: string
+        }
+        Returns: string
+      }
       transfer_guest_to_team: {
         Args: { _guest_id: string; _new_team_id: string }
         Returns: Json

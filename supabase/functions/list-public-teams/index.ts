@@ -24,7 +24,7 @@ serve(async (req) => {
 
     const { data, error } = await supabase
       .from("teams")
-      .select("id, name")
+      .select("id, name, is_hub")
       .order("name", { ascending: true });
 
     if (error) {
@@ -34,7 +34,20 @@ serve(async (req) => {
       );
     }
 
-    return new Response(JSON.stringify({ teams: data ?? [] }), {
+    // slug facilita o uso direto em selects das LPs (sem UUID digitado)
+    const teams = (data ?? []).map((t: { id: string; name: string; is_hub: boolean }) => ({
+      id: t.id,
+      name: t.name,
+      is_hub: t.is_hub,
+      slug: t.name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, ""),
+    }));
+
+    return new Response(JSON.stringify({ teams }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "public, max-age=300" },
     });
