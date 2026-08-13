@@ -1,1 +1,0 @@
-- [LPs→CRM auto v3.34.0](mem://features/v3340-lps-crm-auto) — Parser Elementor, grupo por nome, auto-descoberta de páginas de captação, regra sem_grupo vs HUB
