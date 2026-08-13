@@ -274,6 +274,19 @@ export default function AdminCrm() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={pageFilter} onValueChange={setPageFilter}>
+              <SelectTrigger className="lg:col-span-2">
+                <SelectValue placeholder="Página de captação" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as páginas de captação</SelectItem>
+                {(leadPages ?? []).map((p) => (
+                  <SelectItem key={p.id} value={p.page_key}>
+                    {(p.title || p.page_key).slice(0, 60)} ({p.leads_count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <div className="lg:col-span-4">
               <Toggle
                 pressed={onlyHub}
