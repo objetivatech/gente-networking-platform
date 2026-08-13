@@ -3,6 +3,7 @@
 ## 1. Conferência das configurações Cloudflare (prints)
 
 **lps-gente-networking** — OK:
+
 - `VITE_COMUNIDADE_ANON_KEY` e `VITE_COMUNIDADE_SUBMIT_LEAD_URL` (aponta para `vyfkddcbmwlwldaorxzy.functions.supabase.co/submit-lead`) presentes em Produção.
 - `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` apontam para o Supabase **das LPs** (`kcnoqgnrwdjphjzqjnle`) — correto, são bancos diferentes.
 - Pendência: as variáveis só entram no bundle **após um novo deploy de produção**. Também é preciso replicá-las no ambiente **Preview** se quiser testar em preview.
@@ -19,7 +20,7 @@ Correção: reescrever o parser de `form-data`/`urlencoded` para interpretar cor
 
 Hoje é preciso colar o UUID do grupo no gerenciador de LPs. Proposta: a LP passa a mandar **texto** e o CRM resolve sozinho.
 
-- **Resolução de grupo por nome**: `submit-lead` passa a aceitar `target_team_name` (ou o próprio texto da opção escolhida no formulário, ex.: "GeNtE Master – Terça-Feira") e resolve o `team_id` por comparação normalizada (sem acentos/caixa/pontuação, match parcial). Se não achar, o lead entra como triagem HUB — nunca falha.
+- **Resolução de grupo por nome**: `submit-lead` passa a aceitar `target_team_name` (ou o próprio texto da opção escolhida no formulário, ex.: "GeNtE Master – Terça-Feira") e resolve o `team_id` por comparação normalizada (sem acentos/caixa/pontuação, match parcial). Se não achar, o lead entra como triagem HUB — nunca falha. **NÃO DÁ PARA ENTRAR COMO TRIAGEM HUB, POIS O HUB É UM EVENTO MENSAL QUE REALIZAMOS. VAI ACABAR CONFUNDINDO OS RESULTADOS E AS INFORMAÇÕES DO CRM. É PRECISO CRIAR UMA VALIDAÇÃO ESPECÍFICA PARA A LP GENTE HUB E OUTRA PARA OUTROS CASOS, POR EXEMPLO, "SEM GRUPO".**
 - **Auto-descoberta de LPs**: nova tabela `crm_lead_pages` (chave = URL/slug da página). No primeiro lead recebido, a página é registrada automaticamente com nome, origem, primeira e última captação e contador. Nenhum cadastro manual.
 - **Filtro dinâmico no CRM**: o filtro de origem em `/admin/crm` deixa de ser lista fixa e passa a listar as páginas descobertas (`crm_lead_pages`), com uma aba/painel "Páginas de captação" mostrando volume por LP.
 - **Endpoint de catálogo**: `list-public-teams` passa a devolver `id`, `name`, `slug` e `is_hub`, para as LPs montarem o select de grupos automaticamente (sem hardcode e sem UUID digitado).
