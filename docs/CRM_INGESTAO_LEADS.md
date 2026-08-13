@@ -1,6 +1,6 @@
 # CRM — Ingestão de Leads
 
-**Versão:** v3.28.0 · Julho/2026
+**Versão:** v3.34.0 · Agosto/2026
 
 Este documento explica como um lead chega ao CRM da Gente Comunidade, por origem,
 e como configurar cada fonte.
@@ -71,6 +71,17 @@ Retorno esperado: `200 OK` com `{ "ok": true, "lead_id": "uuid" }`.
   Comunidade. Não usar chave `service_role` no cliente.
 - **Convite manual** → botão "Novo lead" no `AdminCrm` (ou promoção manual a partir da
   gestão de convidados).
+
+## Grupo e página: automáticos (v3.34.0)
+
+- **Grupo**: envie `target_team_name` (texto do grupo). O CRM resolve o `team_id` por nome
+  normalizado. Sem correspondência, o lead fica **sem grupo** — e só é classificado como
+  Gente HUB quando `source = "lp_gentehub"`, preservando a leitura do funil.
+- **Página**: envie `page_url`. Cada página é registrada automaticamente em `crm_lead_pages`
+  e aparece no painel/filtro **Páginas de captação** do `/admin/crm`. Nenhuma LP precisa ser
+  cadastrada manualmente.
+- **Formulários externos**: chaves com colchetes (`fields[email][value]`, `form_fields[email]`)
+  são interpretadas corretamente pela função.
 
 ## Segurança e boas práticas
 

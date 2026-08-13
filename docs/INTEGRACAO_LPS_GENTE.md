@@ -1,6 +1,6 @@
 # Integração — LPs Gente → CRM
 
-**Versão:** v3.33.0
+**Versão:** v3.34.0
 
 Este guia mostra como conectar os formulários do projeto **LPs Gente** (Landing Pages
 independentes da Comunidade) ao CRM.
@@ -78,6 +78,28 @@ Para a LP Comunidade, preserve também os parâmetros rastreáveis do link de co
 ```
 
 O `submit-lead` aceita igualmente os aliases de URL `convite` e `ref`.
+
+## 3.1 Grupo automático e auto-descoberta de páginas (v3.34.0)
+
+Não é mais necessário colar o **UUID do grupo** no gerenciador de LPs:
+
+- Envie `target_team_name` com o **texto** do grupo escolhido pelo visitante
+  (ex.: `"GeNtE Master - Terça-Feira, das 7h30 às 9h"`). O CRM resolve o `team_id`
+  comparando sem acento/caixa e com match parcial. `target_team_id` continua aceito
+  e tem prioridade quando informado.
+- Envie `page_url` (e opcionalmente `page_title`). A página é registrada sozinha em
+  `crm_lead_pages` e passa a aparecer no painel **Páginas de captação** do `/admin/crm`,
+  com contagem de leads e filtro. **LPs novas aparecem automaticamente** — sem cadastro.
+- Para montar o select de grupos sem hardcode, consuma
+  `https://<PROJECT_REF>.functions.supabase.co/list-public-teams`, que devolve
+  `{ id, name, slug, is_hub }`.
+
+Regra de classificação quando não há grupo:
+
+| Situação | Resultado no CRM |
+| --- | --- |
+| `source = lp_gentehub` sem grupo | roteado para o grupo HUB (`group_resolution: hub_triage`) |
+| Qualquer outra origem sem grupo | lead sem grupo (`group_resolution: sem_grupo`) — **não** vira HUB |
 
 ## 4. Teste
 
