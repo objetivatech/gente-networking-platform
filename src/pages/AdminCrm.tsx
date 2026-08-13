@@ -102,6 +102,7 @@ export default function AdminCrm() {
   const { isAdmin, isLoading: loadingRole } = useAdmin();
   const { teams } = useTeams();
   const { data: leads, isLoading } = useCrmLeads();
+  const { data: leadPages } = useCrmLeadPages();
   const updateStatus = useUpdateCrmLeadStatus();
   const backfill = useMigrateExistingGuests();
 
