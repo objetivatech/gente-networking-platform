@@ -110,6 +110,7 @@ export default function AdminCrm() {
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [onlyHub, setOnlyHub] = useState(false);
+  const [pageFilter, setPageFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
@@ -134,9 +135,10 @@ export default function AdminCrm() {
       }
       if (sourceFilter !== 'all' && l.source !== sourceFilter) return false;
       if (teamFilter !== 'all' && l.target_team_id !== teamFilter) return false;
+      if (pageFilter !== 'all' && leadPageKey(l) !== pageFilter) return false;
       return true;
     });
-  }, [leads, search, sourceFilter, teamFilter, onlyHub]);
+  }, [leads, search, sourceFilter, teamFilter, onlyHub, pageFilter]);
 
   const hasAnyHub = useMemo(() => (leads ?? []).some((l) => l.is_hub), [leads]);
   const visibleStatuses = useMemo(() => {
