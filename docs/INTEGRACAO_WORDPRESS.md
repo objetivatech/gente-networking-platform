@@ -1,6 +1,6 @@
 # Integração — WordPress (site institucional) → CRM
 
-**Versão:** v3.32.0
+**Versão:** v3.34.0
 **Site alvo:** https://gentenetworking.com.br (WordPress)
 
 O CRM aceita leads do site institucional via **webhook HTTP** direto para a Edge Function
@@ -49,13 +49,22 @@ funciona **sem proxy PHP e sem headers customizados**.
 2. **Actions After Submit → Add Action → Webhook**.
 3. Em **Advanced → Webhook URL**, cole a URL da função:
    `https://<PROJECT_REF>.functions.supabase.co/submit-lead`
-4. Marque **Advanced Data** = `Yes` (o Elementor passa a enviar chaves no formato
-   `form_fields[name]`, que a função reconhece automaticamente).
+4. Marque **Advanced Data** = `Yes`. O Elementor envia chaves no formato
+   `fields[name][value]` / `form_fields[name]` — desde a **v3.34.0** a função interpreta
+   corretamente esse formato com colchetes (antes disso o envio falhava com
+   "Webhook error" porque `name` e `email` chegavam quebrados).
 5. Garanta que os campos do formulário tenham os IDs **exatamente**: `name`,
    `email`, `phone`, `company`, `segment` (opcionais além de name/email).
 6. Adicione um campo **Hidden** com ID `source` e valor `site_elementor`
    (ou `lp_gentehub`, `lp_participe`, `lp_networking` conforme a página).
-7. Salve e envie um teste. O lead deve aparecer em `/admin/crm` em segundos.
+7. **Grupo automático (v3.34.0)**: se o formulário tiver um campo de escolha de grupo com ID
+   `primeira_opcao`, `grupo` ou `target_team_name`, o CRM resolve o grupo **pelo nome**
+   (sem acento/caixa, com match parcial). Não é preciso informar UUID.
+   Se o texto não casar com nenhum grupo, o lead entra sem grupo (`sem_grupo`) — e **não**
+   é classificado como Gente HUB (isso acontece só quando `source = lp_gentehub`).
+8. A página é registrada automaticamente em **Páginas de captação** no `/admin/crm`
+   (usa `meta[page_url]`, enviado pelo Elementor com Advanced Data ligado).
+9. Salve e envie um teste. O lead deve aparecer em `/admin/crm` em segundos.
 
 > A função também aceita JSON puro — use isso apenas se você tiver um plugin
 > capaz de enviar `Content-Type: application/json` (WPForms com Webhooks Add-on,
