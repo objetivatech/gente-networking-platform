@@ -87,27 +87,36 @@ serve(async (req) => {
 
       const { data: existing } = await supabase
         .from("crm_leads")
-        .select("id")
+        .select("id, source, source_detail, target_team_id, invitation_id, profile_id, status")
         .eq("email", inv.email.toLowerCase())
         .maybeSingle();
 
-      const payload = {
-        name: inv.name ?? inv.email.split("@")[0],
-        email: inv.email.toLowerCase(),
-        source: "convite_manual" as const,
-        source_detail: `invitation:${inv.id}`,
-        target_team_id: inv.team_id,
-        invitation_id: inv.id,
-        invited_by: inv.invited_by,
-        profile_id: profileId,
-        status: leadStatus,
-      };
-
       if (existing) {
-        await supabase.from("crm_leads").update(payload).eq("id", existing.id);
-        stats.leads_updated++;
+        // v3.35.0 — Sincronização UNILATERAL e ADITIVA: nunca sobrescreve
+        // origem, detalhe de origem, status, notas ou metadata de lead existente.
+        const patch: Record<string, unknown> = {};
+        if (!existing.invitation_id) patch.invitation_id = inv.id;
+        if (!existing.target_team_id && inv.team_id) patch.target_team_id = inv.team_id;
+        if (!existing.profile_id && profileId) patch.profile_id = profileId;
+
+        if (Object.keys(patch).length === 0) {
+          stats.skipped++;
+        } else {
+          await supabase.from("crm_leads").update(patch).eq("id", existing.id);
+          stats.leads_updated++;
+        }
       } else {
-        const { error: insErr } = await supabase.from("crm_leads").insert(payload);
+        const { error: insErr } = await supabase.from("crm_leads").insert({
+          name: inv.name ?? inv.email.split("@")[0],
+          email: inv.email.toLowerCase(),
+          source: "convite_manual" as const,
+          source_detail: `invitation:${inv.id}`,
+          target_team_id: inv.team_id,
+          invitation_id: inv.id,
+          invited_by: inv.invited_by,
+          profile_id: profileId,
+          status: leadStatus,
+        });
         if (insErr) { console.error("insert failed", inv.id, insErr); stats.skipped++; }
         else stats.leads_created++;
       }

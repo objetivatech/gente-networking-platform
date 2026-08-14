@@ -267,7 +267,7 @@ serve(async (req) => {
     // ---- Dedup por email ----------------------------------------------------
     const { data: existing } = await supabase
       .from("crm_leads")
-      .select("id, invitation_id, status")
+      .select("id, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata")
       .eq("email", data.email)
       .maybeSingle();
 
@@ -341,7 +341,24 @@ serve(async (req) => {
     };
 
     if (leadId) {
-      await supabase.from("crm_leads").update(leadPayload).eq("id", leadId);
+      // v3.35.0 — Atualização NÃO destrutiva: só sobrescreve o que veio preenchido,
+      // preserva metadata anterior (merge) e nunca rebaixa o status do funil.
+      const prevMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
+      const mergedPayload: Record<string, unknown> = {
+        name: leadPayload.name,
+        email: leadPayload.email,
+        phone: leadPayload.phone ?? existing?.phone ?? null,
+        company: leadPayload.company ?? existing?.company ?? null,
+        business_segment: leadPayload.business_segment ?? existing?.business_segment ?? null,
+        source: leadPayload.source,
+        source_detail: leadPayload.source_detail ?? null,
+        target_team_id: leadPayload.target_team_id ?? existing?.target_team_id ?? null,
+        invitation_id: leadPayload.invitation_id,
+        invited_by: leadPayload.invited_by,
+        notes: leadPayload.notes ?? existing?.notes ?? null,
+        metadata: { ...prevMeta, ...leadPayload.metadata },
+      };
+      await supabase.from("crm_leads").update(mergedPayload).eq("id", leadId);
     } else {
       const { data: newLead, error: leadErr } = await supabase
         .from("crm_leads")

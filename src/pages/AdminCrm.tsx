@@ -44,13 +44,16 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LeadDrawer } from '@/components/crm/LeadDrawer';
 import { useCrmLeadPages, leadPageKey } from '@/hooks/useCrmLeadPages';
+import { formatLeadPageLabel } from '@/lib/crm-page-label';
+import { StageManagerDialog } from '@/components/crm/StageManagerDialog';
+import { useCrmPipelineStages, type CrmPipelineStage } from '@/hooks/useCrmPipelineStages';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Info } from 'lucide-react';
+import { Info, Columns3 } from 'lucide-react';
 
 const STATUS_COLORS: Record<CrmLeadStatus, string> = {
   novo: 'bg-slate-500',
@@ -112,6 +115,12 @@ export default function AdminCrm() {
   const [onlyHub, setOnlyHub] = useState(false);
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
+  const [stageManagerOpen, setStageManagerOpen] = useState(false);
+  const { data: stages } = useCrmPipelineStages();
+  const stageMap = useMemo(
+    () => new Map<string, CrmPipelineStage>((stages ?? []).map((s) => [s.key, s])),
+    [stages],
+  );
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
 
@@ -173,6 +182,9 @@ export default function AdminCrm() {
             <Link to="/admin/crm/auditoria">
               <ScrollText className="h-4 w-4" /> Auditoria
             </Link>
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() => setStageManagerOpen(true)}>
+            <Columns3 className="h-4 w-4" /> Colunas
           </Button>
           <Button
             variant="outline"
@@ -282,7 +294,7 @@ export default function AdminCrm() {
                 <SelectItem value="all">Todas as páginas de captação</SelectItem>
                 {(leadPages ?? []).map((p) => (
                   <SelectItem key={p.id} value={p.page_key}>
-                    {(p.title || p.page_key).slice(0, 60)} ({p.leads_count})
+                    {formatLeadPageLabel(p.title, p.page_url).label} ({p.leads_count})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -310,24 +322,38 @@ export default function AdminCrm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            {(leadPages ?? []).map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPageFilter(pageFilter === p.page_key ? 'all' : p.page_key)}
-                className={`rounded-md border px-3 py-2 text-left text-xs min-w-0 max-w-full transition-colors ${
-                  pageFilter === p.page_key ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
-                }`}
-              >
-                <span className="block font-medium text-wrap-anywhere">
-                  {p.title || p.page_key}
-                </span>
-                <span className="block text-muted-foreground text-wrap-anywhere">
-                  {p.leads_count} lead(s)
-                  {p.source ? ` · ${CRM_SOURCE_LABEL[p.source as CrmLeadSource] ?? p.source}` : ''}
-                </span>
-              </button>
-            ))}
+            {(leadPages ?? []).map((p) => {
+              const formatted = formatLeadPageLabel(p.title, p.page_url);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPageFilter(pageFilter === p.page_key ? 'all' : p.page_key)}
+                  className={`rounded-md border px-3 py-2 text-left text-xs min-w-0 max-w-full transition-colors ${
+                    pageFilter === p.page_key ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
+                  }`}
+                >
+                  <span className="block font-medium text-wrap-anywhere">{formatted.label}</span>
+                  <span className="block text-muted-foreground text-wrap-anywhere">
+                    {p.leads_count} lead(s)
+                    {p.source ? ` · ${CRM_SOURCE_LABEL[p.source as CrmLeadSource] ?? p.source}` : ''}
+                  </span>
+                  {formatted.params.length > 0 && (
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      {formatted.params.map((param) => (
+                        <Badge
+                          key={`${param.key}-${param.value}`}
+                          variant="secondary"
+                          className="text-[10px] font-normal"
+                        >
+                          {param.key}: {param.value}
+                        </Badge>
+                      ))}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </CardContent>
         </Card>
       )}
@@ -348,8 +374,17 @@ export default function AdminCrm() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 min-w-0">
-                      <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[status]}`} />
-                      <span className="truncate">{CRM_STATUS_LABEL[status]}</span>
+                      {stageMap.get(status)?.color ? (
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: stageMap.get(status)!.color }}
+                        />
+                      ) : (
+                        <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[status]}`} />
+                      )}
+                      <span className="truncate">
+                        {stageMap.get(status)?.label ?? CRM_STATUS_LABEL[status]}
+                      </span>
                     </span>
                     <Badge variant="secondary">{items.length}</Badge>
                   </CardTitle>
@@ -470,6 +505,9 @@ export default function AdminCrm() {
         onOpenChange={(o) => !o && setSelectedLead(null)}
         isAdmin={isAdmin}
       />
+
+      <StageManagerDialog open={stageManagerOpen} onOpenChange={setStageManagerOpen} />
+
     </div>
   );
 }
