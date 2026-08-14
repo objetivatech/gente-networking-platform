@@ -115,6 +115,11 @@ export default function AdminCrm() {
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
   const [stageManagerOpen, setStageManagerOpen] = useState(false);
+  const { data: stages } = useCrmPipelineStages();
+  const stageMap = useMemo(
+    () => new Map((stages ?? []).map((s) => [s.key, s])),
+    [stages],
+  );
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
 
@@ -368,8 +373,17 @@ export default function AdminCrm() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 min-w-0">
-                      <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[status]}`} />
-                      <span className="truncate">{CRM_STATUS_LABEL[status]}</span>
+                      {stageMap.get(status)?.color ? (
+                        <span
+                          className="h-2 w-2 rounded-full shrink-0"
+                          style={{ backgroundColor: stageMap.get(status)!.color }}
+                        />
+                      ) : (
+                        <span className={`h-2 w-2 rounded-full ${STATUS_COLORS[status]}`} />
+                      )}
+                      <span className="truncate">
+                        {stageMap.get(status)?.label ?? CRM_STATUS_LABEL[status]}
+                      </span>
                     </span>
                     <Badge variant="secondary">{items.length}</Badge>
                   </CardTitle>
