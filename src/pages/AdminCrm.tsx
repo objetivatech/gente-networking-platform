@@ -118,7 +118,7 @@ export default function AdminCrm() {
   const [stageManagerOpen, setStageManagerOpen] = useState(false);
   const { data: stages } = useCrmPipelineStages();
   const stageMap = useMemo(
-    () => new Map((stages ?? []).map((s) => [s.key, s])),
+    () => new Map<string, CrmPipelineStage>((stages ?? []).map((s) => [s.key, s])),
     [stages],
   );
 
