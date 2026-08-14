@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Settings, Mail, Bell, MessageSquare, Send, Calendar, Loader2, Trash2 } from 'lucide-react';
+import { Settings, Mail, Bell, MessageSquare, Send, Calendar, Loader2, Trash2, Plug } from 'lucide-react';
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { clearOfflineData, getOfflineDataSize } from '@/hooks/useOfflineData';
+import { IntegrationsPanel } from '@/components/settings/IntegrationsPanel';
+import { useAdmin } from '@/hooks/useAdmin';
 interface NotificationSettings {
   email_notifications_enabled: boolean;
   notify_on_testimonial: boolean;
@@ -19,6 +21,7 @@ interface NotificationSettings {
 
 export default function Configuracoes() {
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -264,6 +267,24 @@ export default function Configuracoes() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Integrações (v3.35.0) — admin apenas */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Plug className="h-5 w-5" />
+              Integrações
+            </CardTitle>
+            <CardDescription>
+              Pagamentos, assinatura digital e provedor de e-mail da plataforma.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <IntegrationsPanel />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

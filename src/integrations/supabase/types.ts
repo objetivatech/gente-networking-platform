@@ -463,6 +463,7 @@ export type Database = {
       }
       crm_leads: {
         Row: {
+          archived_at: string | null
           autentique_document_id: string | null
           business_segment: string | null
           company: string | null
@@ -491,11 +492,13 @@ export type Database = {
           profile_id: string | null
           source: Database["public"]["Enums"]["crm_lead_source"]
           source_detail: string | null
+          stage_key: string | null
           status: Database["public"]["Enums"]["crm_lead_status"]
           target_team_id: string | null
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           autentique_document_id?: string | null
           business_segment?: string | null
           company?: string | null
@@ -524,11 +527,13 @@ export type Database = {
           profile_id?: string | null
           source?: Database["public"]["Enums"]["crm_lead_source"]
           source_detail?: string | null
+          stage_key?: string | null
           status?: Database["public"]["Enums"]["crm_lead_status"]
           target_team_id?: string | null
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           autentique_document_id?: string | null
           business_segment?: string | null
           company?: string | null
@@ -557,6 +562,7 @@ export type Database = {
           profile_id?: string | null
           source?: Database["public"]["Enums"]["crm_lead_source"]
           source_detail?: string | null
+          stage_key?: string | null
           status?: Database["public"]["Enums"]["crm_lead_status"]
           target_team_id?: string | null
           updated_at?: string
@@ -584,6 +590,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      crm_pipeline_stages: {
+        Row: {
+          active: boolean
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          key: string
+          label: string
+          notify_emails: string[]
+          notify_on_enter: boolean
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          key: string
+          label: string
+          notify_emails?: string[]
+          notify_on_enter?: boolean
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          key?: string
+          label?: string
+          notify_emails?: string[]
+          notify_on_enter?: boolean
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       gente_em_acao: {
         Row: {
@@ -664,6 +715,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      integration_settings: {
+        Row: {
+          category: string
+          config: Json
+          created_at: string
+          environment: string
+          id: string
+          last_check_ok: boolean | null
+          last_checked_at: string | null
+          provider: string | null
+          rate_limit_count: number | null
+          rate_limit_window_hours: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category: string
+          config?: Json
+          created_at?: string
+          environment?: string
+          id?: string
+          last_check_ok?: boolean | null
+          last_checked_at?: string | null
+          provider?: string | null
+          rate_limit_count?: number | null
+          rate_limit_window_hours?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string
+          config?: Json
+          created_at?: string
+          environment?: string
+          id?: string
+          last_check_ok?: boolean | null
+          last_checked_at?: string | null
+          provider?: string | null
+          rate_limit_count?: number | null
+          rate_limit_window_hours?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       invitations: {
         Row: {
@@ -937,6 +1033,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_dispatch_log: {
+        Row: {
+          channel: string
+          context: string | null
+          created_at: string
+          error: string | null
+          id: string
+          provider: string | null
+          recipient: string
+          reference_id: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          channel?: string
+          context?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider?: string | null
+          recipient: string
+          reference_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          channel?: string
+          context?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          provider?: string | null
+          recipient?: string
+          reference_id?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: []
       }
       opportunities: {
         Row: {

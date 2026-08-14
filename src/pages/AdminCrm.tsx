@@ -44,13 +44,15 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LeadDrawer } from '@/components/crm/LeadDrawer';
 import { useCrmLeadPages, leadPageKey } from '@/hooks/useCrmLeadPages';
+import { formatLeadPageLabel } from '@/lib/crm-page-label';
+import { StageManagerDialog } from '@/components/crm/StageManagerDialog';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Info } from 'lucide-react';
+import { Info, Columns3 } from 'lucide-react';
 
 const STATUS_COLORS: Record<CrmLeadStatus, string> = {
   novo: 'bg-slate-500',
@@ -112,6 +114,7 @@ export default function AdminCrm() {
   const [onlyHub, setOnlyHub] = useState(false);
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
+  const [stageManagerOpen, setStageManagerOpen] = useState(false);
 
   if (!loadingRole && !isAdmin) return <Navigate to="/" replace />;
 
@@ -173,6 +176,9 @@ export default function AdminCrm() {
             <Link to="/admin/crm/auditoria">
               <ScrollText className="h-4 w-4" /> Auditoria
             </Link>
+          </Button>
+          <Button variant="outline" className="gap-2" onClick={() => setStageManagerOpen(true)}>
+            <Columns3 className="h-4 w-4" /> Colunas
           </Button>
           <Button
             variant="outline"
@@ -282,7 +288,7 @@ export default function AdminCrm() {
                 <SelectItem value="all">Todas as páginas de captação</SelectItem>
                 {(leadPages ?? []).map((p) => (
                   <SelectItem key={p.id} value={p.page_key}>
-                    {(p.title || p.page_key).slice(0, 60)} ({p.leads_count})
+                    {formatLeadPageLabel(p.title, p.page_url).label} ({p.leads_count})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -310,24 +316,38 @@ export default function AdminCrm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
-            {(leadPages ?? []).map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPageFilter(pageFilter === p.page_key ? 'all' : p.page_key)}
-                className={`rounded-md border px-3 py-2 text-left text-xs min-w-0 max-w-full transition-colors ${
-                  pageFilter === p.page_key ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
-                }`}
-              >
-                <span className="block font-medium text-wrap-anywhere">
-                  {p.title || p.page_key}
-                </span>
-                <span className="block text-muted-foreground text-wrap-anywhere">
-                  {p.leads_count} lead(s)
-                  {p.source ? ` · ${CRM_SOURCE_LABEL[p.source as CrmLeadSource] ?? p.source}` : ''}
-                </span>
-              </button>
-            ))}
+            {(leadPages ?? []).map((p) => {
+              const formatted = formatLeadPageLabel(p.title, p.page_url);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPageFilter(pageFilter === p.page_key ? 'all' : p.page_key)}
+                  className={`rounded-md border px-3 py-2 text-left text-xs min-w-0 max-w-full transition-colors ${
+                    pageFilter === p.page_key ? 'border-primary bg-primary/10' : 'hover:bg-muted/50'
+                  }`}
+                >
+                  <span className="block font-medium text-wrap-anywhere">{formatted.label}</span>
+                  <span className="block text-muted-foreground text-wrap-anywhere">
+                    {p.leads_count} lead(s)
+                    {p.source ? ` · ${CRM_SOURCE_LABEL[p.source as CrmLeadSource] ?? p.source}` : ''}
+                  </span>
+                  {formatted.params.length > 0 && (
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      {formatted.params.map((param) => (
+                        <Badge
+                          key={`${param.key}-${param.value}`}
+                          variant="secondary"
+                          className="text-[10px] font-normal"
+                        >
+                          {param.key}: {param.value}
+                        </Badge>
+                      ))}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </CardContent>
         </Card>
       )}

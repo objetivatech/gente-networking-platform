@@ -1,0 +1,250 @@
+/**
+ * IntegrationsPanel - Central de integrações da plataforma (v3.35.0).
+ *
+ * @author Diogo Devitte / Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente.
+ *
+ * Admin-only. Pagamentos, assinatura digital e e-mail: escolha do provedor,
+ * ambiente, remetente e limite de disparos. As chaves de API ficam no cofre de
+ * secrets do Supabase — aqui só é exibido "configurado / não configurado".
+ */
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { CreditCard, FileSignature, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
+import {
+  INTEGRATION_PROVIDERS,
+  useIntegrationSecrets,
+  useIntegrationSettings,
+  useSaveIntegration,
+  type IntegrationCategory,
+  type IntegrationSetting,
+} from '@/hooks/useIntegrations';
+
+const CATEGORY_META: Record<
+  IntegrationCategory,
+  { title: string; description: string; icon: typeof Mail }
+> = {
+  payments: {
+    title: 'Pagamentos',
+    description: 'Cobrança dos leads Gente HUB e assinaturas premium.',
+    icon: CreditCard,
+  },
+  signature: {
+    title: 'Assinatura digital',
+    description: 'Envio e assinatura dos contratos gerados pelo CRM.',
+    icon: FileSignature,
+  },
+  email: {
+    title: 'Disparo de e-mails',
+    description:
+      'Os templates continuam na plataforma — aqui muda apenas o meio de envio.',
+    icon: Mail,
+  },
+};
+
+function CategoryCard({
+  category,
+  setting,
+  secrets,
+}: {
+  category: IntegrationCategory;
+  setting?: IntegrationSetting;
+  secrets: Record<string, boolean>;
+}) {
+  const save = useSaveIntegration();
+  const meta = CATEGORY_META[category];
+  const Icon = meta.icon;
+  const providers = INTEGRATION_PROVIDERS[category];
+
+  const [provider, setProvider] = useState(setting?.provider ?? '');
+  const [environment, setEnvironment] = useState(setting?.environment ?? 'production');
+  const [fromName, setFromName] = useState(String(setting?.config?.['from_name'] ?? ''));
+  const [fromEmail, setFromEmail] = useState(String(setting?.config?.['from_email'] ?? ''));
+  const [limitCount, setLimitCount] = useState(setting?.rate_limit_count?.toString() ?? '');
+  const [limitWindow, setLimitWindow] = useState(
+    setting?.rate_limit_window_hours?.toString() ?? '',
+  );
+
+  useEffect(() => {
+    if (!setting) return;
+    setProvider(setting.provider ?? '');
+    setEnvironment(setting.environment ?? 'production');
+    setFromName(String(setting.config?.['from_name'] ?? ''));
+    setFromEmail(String(setting.config?.['from_email'] ?? ''));
+    setLimitCount(setting.rate_limit_count?.toString() ?? '');
+    setLimitWindow(setting.rate_limit_window_hours?.toString() ?? '');
+  }, [setting]);
+
+  const selected = providers.find((p) => p.value === provider);
+  const secretOk = selected ? secrets[selected.secret] : undefined;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Icon className="h-5 w-5 text-primary" />
+          {meta.title}
+        </CardTitle>
+        <CardDescription>{meta.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label>Provedor ativo</Label>
+            <Select value={provider} onValueChange={setProvider}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {providers.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Ambiente</Label>
+            <Select value={environment} onValueChange={setEnvironment}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sandbox">Teste (sandbox)</SelectItem>
+                <SelectItem value="production">Produção</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {category === 'email' && (
+          <>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Nome do remetente</Label>
+                <Input
+                  value={fromName}
+                  onChange={(e) => setFromName(e.target.value)}
+                  placeholder="Gente Networking"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>E-mail do remetente</Label>
+                <Input
+                  value={fromEmail}
+                  onChange={(e) => setFromEmail(e.target.value)}
+                  placeholder="noreply@gentenetworking.com.br"
+                />
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Limite de disparos</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={limitCount}
+                  onChange={(e) => setLimitCount(e.target.value)}
+                  placeholder="Ex.: 50 envios"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>A cada (horas)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={limitWindow}
+                  onChange={(e) => setLimitWindow(e.target.value)}
+                  placeholder="Ex.: 24"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              O limite vale para notificações; e-mails transacionais (login, convites) nunca são
+              bloqueados.
+            </p>
+          </>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t">
+          {selected ? (
+            <Badge
+              variant="outline"
+              className={`gap-1 ${
+                secretOk
+                  ? 'border-emerald-400 text-emerald-700'
+                  : 'border-amber-400 text-amber-700'
+              }`}
+            >
+              {secretOk ? (
+                <ShieldCheck className="h-3.5 w-3.5" />
+              ) : (
+                <ShieldAlert className="h-3.5 w-3.5" />
+              )}
+              {selected.secret}: {secretOk ? 'configurada' : 'não configurada'}
+            </Badge>
+          ) : (
+            <span className="text-xs text-muted-foreground">Selecione um provedor.</span>
+          )}
+
+          <Button
+            size="sm"
+            disabled={save.isPending}
+            onClick={() =>
+              save.mutate({
+                category,
+                provider: provider || null,
+                environment,
+                config:
+                  category === 'email'
+                    ? { from_name: fromName, from_email: fromEmail }
+                    : (setting?.config ?? {}),
+                rate_limit_count: limitCount ? Number(limitCount) : null,
+                rate_limit_window_hours: limitWindow ? Number(limitWindow) : null,
+              })
+            }
+          >
+            Salvar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function IntegrationsPanel() {
+  const { data: settings } = useIntegrationSettings();
+  const { data: secrets } = useIntegrationSecrets();
+
+  const byCategory = new Map((settings ?? []).map((s) => [s.category, s]));
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        As chaves de API ficam no cofre de secrets do Supabase e nunca são gravadas no banco. Peça a
+        inclusão da chave pelo nome indicado em cada bloco; aqui você escolhe o provedor ativo e as
+        regras de uso.
+      </p>
+      {(['payments', 'signature', 'email'] as IntegrationCategory[]).map((c) => (
+        <CategoryCard
+          key={c}
+          category={c}
+          setting={byCategory.get(c)}
+          secrets={secrets ?? {}}
+        />
+      ))}
+    </div>
+  );
+}

@@ -1,3 +1,10 @@
+/**
+ * send-email - Disparo de e-mails da plataforma.
+ *
+ * v3.35.0: os templates continuam aqui, mas o TRANSPORTE passa a ser o provedor
+ * ativo em Configurações → Integrações (Resend, Brevo, Sender...), com registro
+ * em `notification_dispatch_log` e limite de disparos configurável.
+ */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import {
   magicLinkEmailTemplate,
@@ -8,8 +15,7 @@ import {
   meetingResponseEmailTemplate,
   hubInvitationEmailTemplate,
 } from "../_shared/email-templates.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+import { sendEmail } from "../_shared/email-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { to, subject, html: providedHtml, template, template_data, from }: EmailRequest = await req.json();
+    const { to, subject, html: providedHtml, template, template_data, from, context }: EmailRequest & { context?: string } = await req.json();
 
     let html = providedHtml;
 
@@ -112,33 +118,33 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: from || "Gente Networking <noreply@gentenetworking.com.br>",
-        to: [to],
-        subject,
-        html,
-      }),
+    // E-mails transacionais (auth, convites) nunca são bloqueados por limite.
+    const transactional =
+      !template ||
+      ["magic_link", "password_reset", "confirm_email", "invitation", "hub_invitation"].includes(
+        template,
+      );
+
+    const result = await sendEmail({
+      to,
+      subject,
+      html,
+      from,
+      context: context ?? template ?? "generic",
+      bypassRateLimit: transactional,
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Resend error:", data);
-      return new Response(JSON.stringify({ error: data }), {
-        status: res.status,
+    if (!result.ok) {
+      console.error("Email dispatch failed:", result);
+      return new Response(JSON.stringify(result), {
+        status: result.skipped === "rate_limited" ? 429 : (result.status ?? 500),
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log("Email sent successfully:", data);
+    console.log("Email sent successfully via", result.provider);
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
