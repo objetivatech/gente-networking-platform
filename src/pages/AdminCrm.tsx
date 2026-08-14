@@ -46,6 +46,7 @@ import { LeadDrawer } from '@/components/crm/LeadDrawer';
 import { useCrmLeadPages, leadPageKey } from '@/hooks/useCrmLeadPages';
 import { formatLeadPageLabel } from '@/lib/crm-page-label';
 import { StageManagerDialog } from '@/components/crm/StageManagerDialog';
+import { useCrmPipelineStages, type CrmPipelineStage } from '@/hooks/useCrmPipelineStages';
 import {
   Accordion,
   AccordionContent,
