@@ -490,6 +490,9 @@ export default function AdminCrm() {
         onOpenChange={(o) => !o && setSelectedLead(null)}
         isAdmin={isAdmin}
       />
+
+      <StageManagerDialog open={stageManagerOpen} onOpenChange={setStageManagerOpen} />
+
     </div>
   );
 }
