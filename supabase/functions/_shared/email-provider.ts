@@ -10,6 +10,7 @@
  * exclusivamente nos secrets do Supabase — nunca no banco.
  */
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getSecret } from "./secrets.ts";
 
 export type EmailProvider = "resend" | "brevo" | "sender" | "smtp";
 
