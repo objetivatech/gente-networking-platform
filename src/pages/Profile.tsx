@@ -259,14 +259,14 @@ export default function Profile() {
                     <div className="space-y-2"><Label>Cargo</Label><Input value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Aniversário</Label><Input type="date" value={formData.birthday} onChange={e => setFormData({ ...formData, birthday: e.target.value })} /></div>
                   </div>
-                  <div className="space-y-2"><Label>Bio</Label><Textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} placeholder="Conte um pouco sobre você..." rows={3} /></div>
+                  <div className="space-y-2"><Label>Bio</Label><RichTextEditor value={formData.bio} onChange={v => setFormData({ ...formData, bio: v })} placeholder="Conte um pouco sobre você..." minHeight={100} /></div>
 
                   {/* New fields */}
                   <div className="space-y-4 border-t pt-4">
                     <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Informações Profissionais</h3>
-                    <div className="space-y-2"><Label className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> O que eu faço</Label><Textarea value={formData.what_i_do} onChange={e => setFormData({ ...formData, what_i_do: e.target.value })} placeholder="Descreva seus serviços e especialidades..." rows={2} /></div>
-                    <div className="space-y-2"><Label className="flex items-center gap-2"><Target className="h-4 w-4" /> Meu Cliente Ideal</Label><Textarea value={formData.ideal_client} onChange={e => setFormData({ ...formData, ideal_client: e.target.value })} placeholder="Qual perfil de cliente você busca?" rows={2} /></div>
-                    <div className="space-y-2"><Label className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Como me indicar</Label><Textarea value={formData.how_to_refer_me} onChange={e => setFormData({ ...formData, how_to_refer_me: e.target.value })} placeholder="Diga como os membros podem indicar você..." rows={2} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> O que eu faço</Label><RichTextEditor value={formData.what_i_do} onChange={v => setFormData({ ...formData, what_i_do: v })} placeholder="Descreva seus serviços e especialidades..." minHeight={90} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><Target className="h-4 w-4" /> Meu Cliente Ideal</Label><RichTextEditor value={formData.ideal_client} onChange={v => setFormData({ ...formData, ideal_client: v })} placeholder="Qual perfil de cliente você busca?" minHeight={90} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Como me indicar</Label><RichTextEditor value={formData.how_to_refer_me} onChange={v => setFormData({ ...formData, how_to_refer_me: v })} placeholder="Diga como os membros podem indicar você..." minHeight={90} /></div>
                     <div className="space-y-2"><Label className="flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Disponibilidade para 1x1</Label><Input value={formData.availability_note} onChange={e => setFormData({ ...formData, availability_note: e.target.value })} placeholder="Ex: Terças e quintas à tarde" /></div>
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2"><Tag className="h-4 w-4" /> Tags / Habilidades</Label>
