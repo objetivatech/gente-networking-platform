@@ -250,7 +250,42 @@ function CategoryCard({
           </>
         )}
 
+        {selected && (
+          <div className="space-y-3 pt-2 border-t">
+            <p className="text-xs text-muted-foreground">
+              Credenciais de {selected.label}. Ficam cifradas no cofre do banco e nunca são exibidas
+              novamente.
+            </p>
+            <SecretField
+              name={selected.secret}
+              label={`Chave de API (${selected.secret})`}
+              configured={secrets[selected.secret]}
+            />
+            {selected.extraSecrets?.map((extra) => (
+              <SecretField
+                key={extra.name}
+                name={extra.name}
+                label={`${extra.label} (${extra.name})`}
+                configured={secrets[extra.name]}
+              />
+            ))}
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              disabled={!secretOk || testIntegration.isPending}
+              onClick={() =>
+                testIntegration.mutate({ category, provider: selected.value, secret: selected.secret })
+              }
+            >
+              <PlugZap className="h-4 w-4" />
+              Testar conexão
+            </Button>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t">
+
           {selected ? (
             <Badge
               variant="outline"
