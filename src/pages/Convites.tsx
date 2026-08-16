@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
-import { useMeetings } from '@/hooks/useMeetings';
+import { useHubMeetings } from '@/hooks/useHubMeetings';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
@@ -21,7 +21,6 @@ import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
 const inviteSchema = z.object({
@@ -59,7 +58,6 @@ export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
   const { isAdmin } = useAdmin();
   const { teams } = useTeams();
-  const { meetings } = useMeetings();
   const { user } = useAuth();
   const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
