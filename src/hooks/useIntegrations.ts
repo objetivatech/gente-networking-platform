@@ -25,12 +25,25 @@ export interface IntegrationSetting {
   last_check_ok: boolean | null;
 }
 
-export const INTEGRATION_PROVIDERS: Record<
-  IntegrationCategory,
-  { value: string; label: string; secret: string }[]
-> = {
+export interface ProviderOption {
+  value: string;
+  label: string;
+  secret: string;
+  /** Campos extras de credencial exigidos pelo provedor. */
+  extraSecrets?: { name: string; label: string }[];
+}
+
+export const INTEGRATION_PROVIDERS: Record<IntegrationCategory, ProviderOption[]> = {
   payments: [
-    { value: 'efi', label: 'EFI (Gerencianet)', secret: 'EFI_API_KEY' },
+    {
+      value: 'efi',
+      label: 'EFI (Gerencianet)',
+      secret: 'EFI_API_KEY',
+      extraSecrets: [
+        { name: 'EFI_CLIENT_ID', label: 'Client ID' },
+        { name: 'EFI_CLIENT_SECRET', label: 'Client Secret' },
+      ],
+    },
     { value: 'mercadopago', label: 'Mercado Pago', secret: 'MERCADOPAGO_API_KEY' },
     { value: 'asaas', label: 'Asaas', secret: 'ASAAS_API_KEY' },
     { value: 'infinitypay', label: 'Infinity Pay', secret: 'INFINITYPAY_API_KEY' },
@@ -44,7 +57,15 @@ export const INTEGRATION_PROVIDERS: Record<
     { value: 'resend', label: 'Resend', secret: 'RESEND_API_KEY' },
     { value: 'brevo', label: 'Brevo', secret: 'BREVO_API_KEY' },
     { value: 'sender', label: 'Sender', secret: 'SENDER_API_KEY' },
-    { value: 'smtp', label: 'SMTP genérico', secret: 'SMTP_API_KEY' },
+    {
+      value: 'smtp',
+      label: 'SMTP genérico',
+      secret: 'SMTP_API_KEY',
+      extraSecrets: [
+        { name: 'SMTP_HOST', label: 'Servidor SMTP' },
+        { name: 'SMTP_USER', label: 'Usuário SMTP' },
+      ],
+    },
   ],
 };
 
