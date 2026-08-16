@@ -48,7 +48,7 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showNewCase, setShowNewCase] = useState(false);
-  const [newCase, setNewCase] = useState<{ title: string; description: string; client_name: string; result: string; business_deal_id: string; case_type: 'plataforma' | 'externo' }>({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
+  const [newCase, setNewCase] = useState<{ title: string; client_name: string; client_context: string; problem: string; solution: string; success_result: string; business_deal_id: string; case_type: 'plataforma' | 'externo' }>({ title: '', client_name: '', client_context: '', problem: '', solution: '', success_result: '', business_deal_id: '', case_type: 'plataforma' });
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
