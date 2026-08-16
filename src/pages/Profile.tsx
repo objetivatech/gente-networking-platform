@@ -502,9 +502,24 @@ export default function Profile() {
             )}
 
             <div className="space-y-2"><Label>Título *</Label><Input value={newCase.title} onChange={e => setNewCase({ ...newCase, title: e.target.value })} placeholder="Ex: Projeto de Marketing Digital" /></div>
-            <div className="space-y-2"><Label>Cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={newCase.description} onChange={e => setNewCase({ ...newCase, description: e.target.value })} placeholder="Descreva o projeto..." rows={3} /></div>
-            <div className="space-y-2"><Label>Resultado</Label><Input value={newCase.result} onChange={e => setNewCase({ ...newCase, result: e.target.value })} placeholder="Ex: Aumento de 200% nas vendas" /></div>
+            <div className="space-y-2"><Label>Nome do cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><User className="h-4 w-4 text-primary" /> 1. Cliente *</Label>
+              <RichTextEditor value={newCase.client_context} onChange={v => setNewCase({ ...newCase, client_context: v })} placeholder="Quem é o cliente e qual o contexto dele?" minHeight={90} />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><HelpCircle className="h-4 w-4 text-primary" /> 2. Problema *</Label>
+              <RichTextEditor value={newCase.problem} onChange={v => setNewCase({ ...newCase, problem: v })} placeholder="Qual desafio ele precisava resolver?" minHeight={90} />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><Lightbulb className="h-4 w-4 text-primary" /> 3. Solução *</Label>
+              <RichTextEditor value={newCase.solution} onChange={v => setNewCase({ ...newCase, solution: v })} placeholder="O que você entregou?" minHeight={90} />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /> 4. Sucesso *</Label>
+              <RichTextEditor value={newCase.success_result} onChange={v => setNewCase({ ...newCase, success_result: v })} placeholder="Quais resultados foram alcançados?" minHeight={90} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewCase(false)}>Cancelar</Button>
@@ -513,6 +528,7 @@ export default function Profile() {
               disabled={
                 createCase.isPending ||
                 !newCase.title.trim() ||
+                !caseStepsFilled ||
                 (newCase.case_type === 'plataforma' && !newCase.business_deal_id)
               }
             >
