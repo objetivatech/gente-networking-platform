@@ -165,3 +165,26 @@ ambiente, remetente e limite de disparos.
 na plataforma; `send-email` apenas escolhe o provedor ativo, aplica o limite
 (X envios em Y horas) e registra em `notification_dispatch_log`.
 E-mails transacionais (login, redefinição, convites) **nunca** são bloqueados por limite.
+
+## v3.36.0 — Integrações e vínculo com encontros Gente HUB
+
+### Chaves de API na própria plataforma
+Em **Configurações → Integrações** (admin) é possível cadastrar, substituir e
+remover as chaves de cada provedor (pagamentos, assinatura digital e e-mail).
+Os valores são gravados cifrados no cofre do banco e nunca voltam para a tela —
+o painel mostra apenas "configurada" ou "vazia". Chaves que já existiam como
+variáveis de ambiente continuam válidas: o cofre tem prioridade, o ambiente é o
+fallback. O botão **Testar conexão** valida a credencial ativa e grava o
+resultado em `integration_settings.last_check_ok`.
+
+### Lead ↔ encontro Gente HUB
+- Tabela `meeting_lead_attendances` (única por `meeting_id + lead_id`) liga um
+  lead do CRM a um encontro, sem exigir conta na plataforma.
+- No painel do lead há o bloco **Encontros Gente HUB**, que lista apenas os
+  encontros com `event_type = 'hub_event'` de hoje em diante.
+- `submit-lead` vincula automaticamente ao próximo encontro HUB em aberto todo
+  lead com origem `lp_gentehub` e devolve `hub_meeting_id` na resposta.
+- A página de **Encontros** exibe esses leads em um bloco próprio ("Leads do
+  CRM"), junto de membros e convidados.
+- **Convites** e CRM leem os encontros pelo mesmo hook (`useHubMeetings`), então
+  as duas telas nunca divergem.
