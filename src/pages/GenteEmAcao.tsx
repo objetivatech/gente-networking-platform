@@ -24,13 +24,15 @@ import { parseLocalDate } from '@/lib/date-utils';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
 
 const formSchema = z.object({
   meeting_type: z.enum(['membro', 'convidado']),
   partner_id: z.string().optional(),
   guest_name: z.string().max(100).optional(),
   guest_company: z.string().max(100).optional(),
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(4000).optional(),
   meeting_date: z.string().min(1, 'Data é obrigatória'),
 });
 
@@ -253,7 +255,7 @@ export default function GenteEmAcao() {
                   {item.meeting_type === 'membro' ? 'Membro' : 'Externo'}
                 </span>
               </div>
-              {item.notes && <p className="text-sm text-muted-foreground mt-1">{item.notes}</p>}
+              {item.notes && <RichText value={item.notes} className="text-sm text-muted-foreground mt-1" />}
               <p className="text-xs text-muted-foreground mt-1">
                 {format(parseLocalDate(item.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
               </p>
@@ -435,12 +437,11 @@ export default function GenteEmAcao() {
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Observações (opcional)</Label>
-                <Textarea
+                <RichTextEditor
                   id="notes"
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, notes: v })}
                   placeholder="Anotações sobre a reunião..."
-                  rows={3}
                   maxLength={500}
                 />
               </div>
@@ -563,7 +564,7 @@ export default function GenteEmAcao() {
                     </p>
                   )}
                   {meeting.notes && (
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-wrap-anywhere">{meeting.notes}</p>
+                    <RichText value={meeting.notes} className="mt-2 text-sm leading-relaxed text-muted-foreground" />
                   )}
                   {meeting.image_url && (
                     <img 

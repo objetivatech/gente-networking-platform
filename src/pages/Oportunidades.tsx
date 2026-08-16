@@ -33,6 +33,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger,
 } from '@/components/ui/dialog';
 import { Megaphone, Plus, Loader2, CheckCircle2, Trash2, Building2 } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
 
 const TYPE_META: Record<OpportunityType, { label: string; className: string }> = {
   servico: { label: 'Serviço', className: 'bg-blue-500/15 text-blue-600 border-blue-500/30' },
@@ -114,7 +116,7 @@ export default function Oportunidades() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="op-desc">Descrição (opcional)</Label>
-                  <Textarea id="op-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={800} />
+                  <RichTextEditor id="op-desc" value={description} onChange={setDescription} maxLength={800} />
                 </div>
               </div>
               <DialogFooter>
@@ -153,7 +155,7 @@ export default function Oportunidades() {
                   <CardTitle className="text-base mt-2">{o.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3 flex-1">
-                  {o.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{o.description}</p>}
+                  {o.description && <RichText value={o.description} className="text-sm text-muted-foreground" />}
                   <div className="flex items-center gap-2 mt-auto pt-2">
                     <Avatar className="h-7 w-7">
                       <AvatarImage src={o.author?.avatar_url || undefined} />

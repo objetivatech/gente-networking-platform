@@ -19,6 +19,9 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { z } from 'zod';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
+import { richTextToPlain } from '@/lib/rich-text';
 
 const formSchema = z.object({
   referred_by_user_id: z.string().optional(),
@@ -141,7 +144,7 @@ export default function Negocios() {
               )}
             </div>
             {deal.description && (
-              <p className="text-sm text-muted-foreground mt-1">{deal.description}</p>
+              <RichText value={deal.description} className="text-sm text-muted-foreground mt-1" />
             )}
             <div className="flex items-center gap-4 mt-3 flex-wrap">
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -207,7 +210,7 @@ export default function Negocios() {
       tipo: 'Fechado por mim',
       cliente: d.client_name || '',
       contraparte: d.referred_by?.full_name || '',
-      descricao: d.description || '',
+      descricao: richTextToPlain(d.description) || '',
       valor: formatCurrency(Number(d.value)),
       data: format(parseLocalDate(d.deal_date), 'dd/MM/yyyy', { locale: ptBR }),
     })),
@@ -215,7 +218,7 @@ export default function Negocios() {
       tipo: 'Minha indicação',
       cliente: d.client_name || '',
       contraparte: d.closed_by?.full_name || '',
-      descricao: d.description || '',
+      descricao: richTextToPlain(d.description) || '',
       valor: formatCurrency(Number(d.value)),
       data: format(parseLocalDate(d.deal_date), 'dd/MM/yyyy', { locale: ptBR }),
     })),
@@ -308,12 +311,11 @@ export default function Negocios() {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Descrição (opcional)</Label>
-                <Textarea
+                <RichTextEditor
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, description: v })}
                   placeholder="Detalhes sobre o negócio..."
-                  rows={3}
                   maxLength={500}
                 />
               </div>

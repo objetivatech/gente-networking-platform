@@ -32,6 +32,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger,
 } from '@/components/ui/dialog';
 import { Radio, Plus, Loader2, Send, Trash2, MessageSquare, Target } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
 
 const STATUS_META: Record<ReferralRequestStatus, { label: string; className: string }> = {
   aberta: { label: 'Aberta', className: 'bg-green-500/15 text-green-600 border-green-500/30' },
@@ -107,7 +109,7 @@ export default function PedidosIndicacao() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="rr-desc">Detalhes (opcional)</Label>
-                <Textarea id="rr-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={800} />
+                <RichTextEditor id="rr-desc" value={description} onChange={setDescription} maxLength={800} />
               </div>
             </div>
             <DialogFooter>
@@ -160,7 +162,7 @@ export default function PedidosIndicacao() {
                       <Target className="h-3 w-3" /> {r.target_segment}
                     </Badge>
                   )}
-                  {r.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{r.description}</p>}
+                  {r.description && <RichText value={r.description} className="text-sm text-muted-foreground" />}
 
                   {(r.responses || []).length > 0 && (
                     <div className="space-y-2 pt-2 border-t">
@@ -172,7 +174,7 @@ export default function PedidosIndicacao() {
                           </Avatar>
                           <div className="min-w-0">
                             <span className="font-medium">{resp.author?.full_name || 'Membro'}: </span>
-                            <span className="text-muted-foreground whitespace-pre-wrap">{resp.message}</span>
+                            <RichText value={resp.message} className="inline text-muted-foreground" />
                           </div>
                         </div>
                       ))}
@@ -183,13 +185,12 @@ export default function PedidosIndicacao() {
                     {r.status !== 'fechada' && (
                       replyTo === r.id ? (
                         <div className="w-full space-y-2">
-                          <Textarea
+                          <RichTextEditor
                             value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
-                            rows={2}
+                            onChange={setReplyText}
                             maxLength={500}
+                            minHeight={80}
                             placeholder="Posso indicar alguém... (descreva o contato)"
-                            data-rd-no-capture="true"
                           />
                           <div className="flex gap-2">
                             <Button size="sm" onClick={() => sendReply(r.id)} disabled={respond.isPending || !replyText.trim()}>

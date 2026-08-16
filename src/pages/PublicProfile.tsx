@@ -17,6 +17,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import RichText from '@/components/RichText';
+import { richTextToPlain } from '@/lib/rich-text';
+import PublicProfileStats from '@/components/public/PublicProfileStats';
+import PublicProfileCases from '@/components/public/PublicProfileCases';
 import {
   Loader2, Briefcase, Target, Megaphone, Linkedin, Instagram, Globe,
   ArrowRight, UserX,
@@ -74,7 +78,7 @@ function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug
   const roleLine = [profile.position, profile.company].filter(Boolean).join(' na ');
   const title = `${name}${roleLine ? ` — ${roleLine}` : ''} | Gente Networking`;
   const description = truncate(
-    profile.bio || profile.what_i_do ||
+    richTextToPlain(profile.bio) || richTextToPlain(profile.what_i_do) ||
     `${name} é membro do Gente Networking${profile.company ? `, atuando na ${profile.company}` : ''}. Conheça o perfil e conecte-se.`,
   );
   const image = profile.avatar_url || OG_FALLBACK;
@@ -89,7 +93,7 @@ function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug
       ...(profile.position ? { jobTitle: profile.position } : {}),
       ...(profile.company ? { worksFor: { '@type': 'Organization', name: profile.company } } : {}),
       ...(profile.avatar_url ? { image: profile.avatar_url } : {}),
-      ...(profile.bio ? { description: profile.bio } : {}),
+      ...(profile.bio ? { description: richTextToPlain(profile.bio) } : {}),
       url: canonical,
       ...(sameAs.length ? { sameAs } : {}),
     },
@@ -231,7 +235,7 @@ export default function PublicProfile() {
                 </div>
 
                 {profile.bio && (
-                  <p className="mt-4 text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+                  <RichText value={profile.bio} className="mt-4 text-sm text-muted-foreground leading-relaxed" />
                 )}
 
                 {/* Redes / site */}
@@ -260,22 +264,26 @@ export default function PublicProfile() {
               {profile.what_i_do && (
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Briefcase className="h-4 w-4 text-[#F7941D]" /> O que eu faço</CardTitle></CardHeader>
-                  <CardContent><p className="text-sm text-muted-foreground">{profile.what_i_do}</p></CardContent>
+                  <CardContent><RichText value={profile.what_i_do} className="text-sm text-muted-foreground" /></CardContent>
                 </Card>
               )}
               {profile.ideal_client && (
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-[#F7941D]" /> Cliente Ideal</CardTitle></CardHeader>
-                  <CardContent><p className="text-sm text-muted-foreground">{profile.ideal_client}</p></CardContent>
+                  <CardContent><RichText value={profile.ideal_client} className="text-sm text-muted-foreground" /></CardContent>
                 </Card>
               )}
               {profile.how_to_refer_me && (
                 <Card>
                   <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Megaphone className="h-4 w-4 text-[#F7941D]" /> Como me indicar</CardTitle></CardHeader>
-                  <CardContent><p className="text-sm text-muted-foreground">{profile.how_to_refer_me}</p></CardContent>
+                  <CardContent><RichText value={profile.how_to_refer_me} className="text-sm text-muted-foreground" /></CardContent>
                 </Card>
               )}
             </div>
+
+            {/* Resultados e cases */}
+            <PublicProfileStats slug={slug || ''} />
+            <PublicProfileCases slug={slug || ''} />
 
             {/* CTA de inscrição */}
             <Card className="bg-gradient-to-r from-[#1E3A5F] to-[#2d4a6f] text-white border-0">

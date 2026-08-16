@@ -29,7 +29,10 @@ import { PitchGenerator } from '@/components/PitchGenerator';
 import { DigitalMemberCard } from '@/components/DigitalMemberCard';
 import { PublicProfilePublishControl } from '@/components/PublicProfilePublishControl';
 import { getProfileCompleteness } from '@/lib/profile-completeness';
-import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase, CalendarClock } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
+import { isRichTextEmpty } from '@/lib/rich-text';
+import { Loader2, Save, User, Building, Phone, Mail, Globe, Linkedin, Instagram, Camera, ImagePlus, Cake, Tag, Target, UserCheck, Megaphone, Plus, Trash2, Briefcase, CalendarClock, HelpCircle, Lightbulb, Trophy, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -45,7 +48,7 @@ export default function Profile() {
   const [isUploading, setIsUploading] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
   const [showNewCase, setShowNewCase] = useState(false);
-  const [newCase, setNewCase] = useState<{ title: string; description: string; client_name: string; result: string; business_deal_id: string; case_type: 'plataforma' | 'externo' }>({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
+  const [newCase, setNewCase] = useState<{ title: string; client_name: string; client_context: string; problem: string; solution: string; success_result: string; business_deal_id: string; case_type: 'plataforma' | 'externo' }>({ title: '', client_name: '', client_context: '', problem: '', solution: '', success_result: '', business_deal_id: '', case_type: 'plataforma' });
   const [tagInput, setTagInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -167,19 +170,27 @@ export default function Profile() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const caseStepsFilled =
+    !isRichTextEmpty(newCase.client_context) &&
+    !isRichTextEmpty(newCase.problem) &&
+    !isRichTextEmpty(newCase.solution) &&
+    !isRichTextEmpty(newCase.success_result);
+
   const handleCreateCase = () => {
-    if (!newCase.title.trim()) return;
+    if (!newCase.title.trim() || !caseStepsFilled) return;
     if (newCase.case_type === 'plataforma' && !newCase.business_deal_id) return;
     createCase.mutate({
       title: newCase.title,
-      description: newCase.description,
       client_name: newCase.client_name,
-      result: newCase.result,
+      client_context: newCase.client_context,
+      problem: newCase.problem,
+      solution: newCase.solution,
+      success_result: newCase.success_result,
       case_type: newCase.case_type,
       business_deal_id: newCase.case_type === 'plataforma' ? newCase.business_deal_id : null,
     });
     setShowNewCase(false);
-    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
+    setNewCase({ title: '', client_name: '', client_context: '', problem: '', solution: '', success_result: '', business_deal_id: '', case_type: 'plataforma' });
   };
 
   if (isLoading) {
@@ -248,14 +259,14 @@ export default function Profile() {
                     <div className="space-y-2"><Label>Cargo</Label><Input value={formData.position} onChange={e => setFormData({ ...formData, position: e.target.value })} /></div>
                     <div className="space-y-2"><Label>Aniversário</Label><Input type="date" value={formData.birthday} onChange={e => setFormData({ ...formData, birthday: e.target.value })} /></div>
                   </div>
-                  <div className="space-y-2"><Label>Bio</Label><Textarea value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} placeholder="Conte um pouco sobre você..." rows={3} /></div>
+                  <div className="space-y-2"><Label>Bio</Label><RichTextEditor value={formData.bio} onChange={v => setFormData({ ...formData, bio: v })} placeholder="Conte um pouco sobre você..." minHeight={100} /></div>
 
                   {/* New fields */}
                   <div className="space-y-4 border-t pt-4">
                     <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Informações Profissionais</h3>
-                    <div className="space-y-2"><Label className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> O que eu faço</Label><Textarea value={formData.what_i_do} onChange={e => setFormData({ ...formData, what_i_do: e.target.value })} placeholder="Descreva seus serviços e especialidades..." rows={2} /></div>
-                    <div className="space-y-2"><Label className="flex items-center gap-2"><Target className="h-4 w-4" /> Meu Cliente Ideal</Label><Textarea value={formData.ideal_client} onChange={e => setFormData({ ...formData, ideal_client: e.target.value })} placeholder="Qual perfil de cliente você busca?" rows={2} /></div>
-                    <div className="space-y-2"><Label className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Como me indicar</Label><Textarea value={formData.how_to_refer_me} onChange={e => setFormData({ ...formData, how_to_refer_me: e.target.value })} placeholder="Diga como os membros podem indicar você..." rows={2} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><Briefcase className="h-4 w-4" /> O que eu faço</Label><RichTextEditor value={formData.what_i_do} onChange={v => setFormData({ ...formData, what_i_do: v })} placeholder="Descreva seus serviços e especialidades..." minHeight={90} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><Target className="h-4 w-4" /> Meu Cliente Ideal</Label><RichTextEditor value={formData.ideal_client} onChange={v => setFormData({ ...formData, ideal_client: v })} placeholder="Qual perfil de cliente você busca?" minHeight={90} /></div>
+                    <div className="space-y-2"><Label className="flex items-center gap-2"><Megaphone className="h-4 w-4" /> Como me indicar</Label><RichTextEditor value={formData.how_to_refer_me} onChange={v => setFormData({ ...formData, how_to_refer_me: v })} placeholder="Diga como os membros podem indicar você..." minHeight={90} /></div>
                     <div className="space-y-2"><Label className="flex items-center gap-2"><CalendarClock className="h-4 w-4" /> Disponibilidade para 1x1</Label><Input value={formData.availability_note} onChange={e => setFormData({ ...formData, availability_note: e.target.value })} placeholder="Ex: Terças e quintas à tarde" /></div>
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2"><Tag className="h-4 w-4" /> Tags / Habilidades</Label>
@@ -294,7 +305,7 @@ export default function Profile() {
                       {(profile as any).tags.map((tag: string) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
                     </div>
                   )}
-                  {profile?.bio && <p className="text-foreground/80 text-wrap-anywhere">{profile.bio}</p>}
+                  {profile?.bio && <RichText value={profile.bio} className="text-foreground/80" />}
                   <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2">
                     {profile?.email && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Mail className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.email}</span></div>}
                     {profile?.phone && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Phone className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.phone}</span></div>}
@@ -334,19 +345,19 @@ export default function Profile() {
                 {(profile as any)?.what_i_do && (
                   <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Briefcase className="h-4 w-4 text-primary" /> O que eu faço</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground">{(profile as any).what_i_do}</p></CardContent>
+                    <CardContent><RichText value={(profile as any).what_i_do} className="text-sm text-muted-foreground" /></CardContent>
                   </Card>
                 )}
                 {(profile as any)?.ideal_client && (
                   <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-primary" /> Cliente Ideal</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground">{(profile as any).ideal_client}</p></CardContent>
+                    <CardContent><RichText value={(profile as any).ideal_client} className="text-sm text-muted-foreground" /></CardContent>
                   </Card>
                 )}
                 {(profile as any)?.how_to_refer_me && (
                   <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Megaphone className="h-4 w-4 text-primary" /> Como me indicar</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground">{(profile as any).how_to_refer_me}</p></CardContent>
+                    <CardContent><RichText value={(profile as any).how_to_refer_me} className="text-sm text-muted-foreground" /></CardContent>
                   </Card>
                 )}
               </div>
@@ -425,9 +436,29 @@ export default function Profile() {
                       </div>
                       {c.client_name && <CardDescription>{c.client_name}</CardDescription>}
                     </CardHeader>
-                    <CardContent>
-                      {c.description && <p className="text-sm text-muted-foreground mb-2">{c.description}</p>}
-                      {c.result && <p className="text-sm font-medium text-primary">{c.result}</p>}
+                    <CardContent className="space-y-3">
+                      {c.needs_review && (
+                        <p className="flex items-center gap-1.5 text-xs text-amber-600">
+                          <AlertTriangle className="h-3.5 w-3.5" /> Complete os passos Cliente e Problema
+                        </p>
+                      )}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {[
+                          { icon: User, label: 'Cliente', value: c.client_context },
+                          { icon: HelpCircle, label: 'Problema', value: c.problem },
+                          { icon: Lightbulb, label: 'Solução', value: c.solution },
+                          { icon: Trophy, label: 'Sucesso', value: c.success_result },
+                        ].map(({ icon: Icon, label, value }) => (
+                          value ? (
+                            <div key={label} className="min-w-0">
+                              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                                <Icon className="h-3.5 w-3.5" /> {label}
+                              </p>
+                              <RichText value={value} className="text-sm text-muted-foreground" />
+                            </div>
+                          ) : null
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -451,7 +482,7 @@ export default function Profile() {
 
       {/* Dialog Novo Case */}
       <Dialog open={showNewCase} onOpenChange={setShowNewCase}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Novo Case de Negócio</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -491,9 +522,24 @@ export default function Profile() {
             )}
 
             <div className="space-y-2"><Label>Título *</Label><Input value={newCase.title} onChange={e => setNewCase({ ...newCase, title: e.target.value })} placeholder="Ex: Projeto de Marketing Digital" /></div>
-            <div className="space-y-2"><Label>Cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
-            <div className="space-y-2"><Label>Descrição</Label><Textarea value={newCase.description} onChange={e => setNewCase({ ...newCase, description: e.target.value })} placeholder="Descreva o projeto..." rows={3} /></div>
-            <div className="space-y-2"><Label>Resultado</Label><Input value={newCase.result} onChange={e => setNewCase({ ...newCase, result: e.target.value })} placeholder="Ex: Aumento de 200% nas vendas" /></div>
+            <div className="space-y-2"><Label>Nome do cliente</Label><Input value={newCase.client_name} onChange={e => setNewCase({ ...newCase, client_name: e.target.value })} placeholder="Nome do cliente" /></div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><User className="h-4 w-4 text-primary" /> 1. Cliente *</Label>
+              <RichTextEditor value={newCase.client_context} onChange={v => setNewCase({ ...newCase, client_context: v })} placeholder="Quem é o cliente e qual o contexto dele?" minHeight={90} />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><HelpCircle className="h-4 w-4 text-primary" /> 2. Problema *</Label>
+              <RichTextEditor value={newCase.problem} onChange={v => setNewCase({ ...newCase, problem: v })} placeholder="Qual desafio ele precisava resolver?" minHeight={90} />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><Lightbulb className="h-4 w-4 text-primary" /> 3. Solução *</Label>
+              <RichTextEditor value={newCase.solution} onChange={v => setNewCase({ ...newCase, solution: v })} placeholder="O que você entregou?" minHeight={90} />
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2"><Trophy className="h-4 w-4 text-primary" /> 4. Sucesso *</Label>
+              <RichTextEditor value={newCase.success_result} onChange={v => setNewCase({ ...newCase, success_result: v })} placeholder="Quais resultados foram alcançados?" minHeight={90} />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewCase(false)}>Cancelar</Button>
@@ -502,6 +548,7 @@ export default function Profile() {
               disabled={
                 createCase.isPending ||
                 !newCase.title.trim() ||
+                !caseStepsFilled ||
                 (newCase.case_type === 'plataforma' && !newCase.business_deal_id)
               }
             >
