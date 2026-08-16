@@ -106,6 +106,14 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
     lead.contract_status === 'rejected' || lead.contract_status === 'expired';
   const canDownloadPdf = lead.contract_status === 'signed' && !!lead.contract_signed_pdf_path;
 
+  const linkedMeetings = (leadMeetings ?? []).filter((m) => m.lead_id === lead.id);
+  const availableMeetings = (hubMeetings ?? []).filter(
+    (m) => !linkedMeetings.some((l) => l.meeting_id === m.id),
+  );
+  const meetingLabel = (m: { title: string; meeting_date: string }) =>
+    `${m.title} — ${format(parseISO(m.meeting_date), 'dd/MM/yyyy', { locale: ptBR })}`;
+
+
   const handleDownloadPdf = async () => {
     try {
       const res = await getContractUrl.mutateAsync(lead.id);
