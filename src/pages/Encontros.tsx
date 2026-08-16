@@ -550,6 +550,7 @@ function UpcomingGuestsTab() {
 function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
   const { data: guests, isLoading: isLoadingGuests } = useMeetingGuests(meetingId);
+  const { data: leadAttendances } = useMeetingLeadAttendances(meetingId);
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -558,8 +559,11 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
   const memberAttendees = attendees?.filter(a => !guests?.some(g => g.id === a.user_id)) || [];
   const hasGuests = guests && guests.length > 0;
   const hasMembers = memberAttendees.length > 0;
+  const leads = (leadAttendances ?? []).filter((l) => l.lead);
+  const hasLeads = leads.length > 0;
 
-  if (!hasMembers && !hasGuests) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
+  if (!hasMembers && !hasGuests && !hasLeads) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
+
 
   return (
     <div className="mt-4 pt-4 border-t space-y-3">
