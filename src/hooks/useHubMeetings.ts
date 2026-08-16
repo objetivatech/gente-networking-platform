@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface HubMeeting {
   id: string;
   title: string;
+  event_type?: string | null;
   meeting_date: string;
   meeting_time: string | null;
   location: string | null;
