@@ -1,5 +1,6 @@
 /**
- * LeadDrawer - Painel lateral do lead com contrato (modelo+prévia), cobrança HUB e timeline (v3.26.0).
+ * LeadDrawer - Painel lateral do lead com contrato, cobrança HUB, vínculo com
+ * o encontro Gente HUB e timeline (v3.36.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
@@ -19,6 +20,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Crown,
   FileText,
   FilePen,
@@ -31,6 +39,8 @@ import {
   Sparkles,
   ExternalLink,
   XCircle,
+  CalendarPlus,
+  Trash2,
 } from 'lucide-react';
 import {
   CRM_SOURCE_LABEL,
@@ -40,6 +50,11 @@ import {
   useLeadHistory,
   type CrmLead,
 } from '@/hooks/useCrmLeads';
+import {
+  useHubMeetings,
+  useLinkLeadToMeeting,
+  useMeetingLeadAttendances,
+} from '@/hooks/useHubMeetings';
 import { LeadAuditTimeline } from './LeadAuditTimeline';
 import { PromoteLeadDialog } from './PromoteLeadDialog';
 import { SendContractDialog } from './SendContractDialog';
