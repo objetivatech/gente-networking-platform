@@ -436,9 +436,29 @@ export default function Profile() {
                       </div>
                       {c.client_name && <CardDescription>{c.client_name}</CardDescription>}
                     </CardHeader>
-                    <CardContent>
-                      {c.description && <p className="text-sm text-muted-foreground mb-2">{c.description}</p>}
-                      {c.result && <p className="text-sm font-medium text-primary">{c.result}</p>}
+                    <CardContent className="space-y-3">
+                      {c.needs_review && (
+                        <p className="flex items-center gap-1.5 text-xs text-amber-600">
+                          <AlertTriangle className="h-3.5 w-3.5" /> Complete os passos Cliente e Problema
+                        </p>
+                      )}
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {[
+                          { icon: User, label: 'Cliente', value: c.client_context },
+                          { icon: HelpCircle, label: 'Problema', value: c.problem },
+                          { icon: Lightbulb, label: 'Solução', value: c.solution },
+                          { icon: Trophy, label: 'Sucesso', value: c.success_result },
+                        ].map(({ icon: Icon, label, value }) => (
+                          value ? (
+                            <div key={label} className="min-w-0">
+                              <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
+                                <Icon className="h-3.5 w-3.5" /> {label}
+                              </p>
+                              <RichText value={value} className="text-sm text-muted-foreground" />
+                            </div>
+                          ) : null
+                        ))}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
