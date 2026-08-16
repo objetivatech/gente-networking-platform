@@ -5,14 +5,22 @@
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { CircleDollarSign, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { CircleDollarSign, RefreshCw, CheckCircle2, Send } from 'lucide-react';
+import {
+  SUBSCRIPTION_STATUS_LABEL,
+  formatCents,
+  useBillingPlans,
+  useLeadSubscriptions,
+  useSendCharge,
+} from '@/hooks/useBilling';
 import {
   HUB_BILLING_LABEL,
   useDispatchHubBilling,
@@ -34,6 +42,11 @@ export function HubBillingPanel({ lead }: { lead: CrmLead }) {
   const markPaid = useMarkLeadPaid();
   const [showPaidForm, setShowPaidForm] = useState(false);
   const [reason, setReason] = useState('');
+  const { data: leadSubs } = useLeadSubscriptions(lead.id);
+  const { data: plans } = useBillingPlans();
+  const sendCharge = useSendCharge();
+  const subscriptions = leadSubs ?? [];
+  const planById = useMemo(() => new Map((plans ?? []).map((p) => [p.id, p])), [plans]);
 
   if (!lead.is_hub) return null;
 
