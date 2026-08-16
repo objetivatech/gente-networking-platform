@@ -716,6 +716,30 @@ export type Database = {
           },
         ]
       }
+      integration_secret_audit: {
+        Row: {
+          action: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          secret_name: string
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          secret_name: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          secret_name?: string
+        }
+        Relationships: []
+      }
       integration_settings: {
         Row: {
           category: string
@@ -878,6 +902,45 @@ export type Database = {
             columns: ["target_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_lead_attendances: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          id: string
+          lead_id: string
+          meeting_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          lead_id: string
+          meeting_id: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string
+          meeting_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_lead_attendances_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_lead_attendances_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
         ]
@@ -1592,6 +1655,7 @@ export type Database = {
         Args: { _member_id: string; _reason?: string }
         Returns: Json
       }
+      delete_integration_secret: { Args: { _name: string }; Returns: Json }
       downgrade_member_to_guest: {
         Args: { _member_id: string; _reason?: string }
         Returns: Json
@@ -1746,6 +1810,13 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
+      list_integration_secrets: {
+        Args: never
+        Returns: {
+          name: string
+          updated_at: string
+        }[]
+      }
       move_guest_attendance: {
         Args: {
           _from_meeting_id: string
@@ -1790,6 +1861,10 @@ export type Database = {
           _title: string
         }
         Returns: string
+      }
+      set_integration_secret: {
+        Args: { _name: string; _value: string }
+        Returns: Json
       }
       transfer_guest_to_team: {
         Args: { _guest_id: string; _new_team_id: string }
