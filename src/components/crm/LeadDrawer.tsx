@@ -233,6 +233,77 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
                   </div>
                 </div>
 
+                <Separator />
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                    Encontros Gente HUB
+                  </p>
+                  {linkedMeetings.length > 0 ? (
+                    <ul className="space-y-1">
+                      {linkedMeetings.map((l) => {
+                        const m = hubMeetings?.find((h) => h.id === l.meeting_id);
+                        return (
+                          <li
+                            key={l.id}
+                            className="flex items-center justify-between gap-2 text-sm min-w-0"
+                          >
+                            <span className="text-wrap-anywhere">
+                              {m ? meetingLabel(m) : 'Encontro anterior'}
+                            </span>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              aria-label="Remover vínculo"
+                              onClick={() => unlinkMeeting.mutate(l.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Este lead ainda não está em nenhum encontro.
+                    </p>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Select value={meetingId} onValueChange={setMeetingId}>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            availableMeetings.length
+                              ? 'Selecione o encontro em aberto'
+                              : 'Nenhum encontro HUB em aberto'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableMeetings.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {meetingLabel(m)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      disabled={!meetingId || linkMeeting.isPending}
+                      onClick={() =>
+                        linkMeeting.mutate(
+                          { leadId: lead.id, meetingId },
+                          { onSuccess: () => setMeetingId('') },
+                        )
+                      }
+                    >
+                      <CalendarPlus className="h-4 w-4" /> Vincular
+                    </Button>
+                  </div>
+                </div>
+
+
                 {lead.is_hub && (
                   <>
                     <Separator />
