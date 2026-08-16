@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import RichText from '@/components/RichText';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -211,7 +212,7 @@ export default function MemberProfilePage() {
                 </div>
               )}
 
-              {member.bio && <p className="text-foreground/80">{member.bio}</p>}
+              {member.bio && <RichText value={member.bio} className="text-foreground/80" />}
 
               <div className="flex flex-wrap gap-4 pt-2">
                 {member.email && <a href={`mailto:${member.email}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors min-w-0"><Mail className="w-4 h-4 shrink-0" /><span className="break-all">{member.email}</span></a>}
@@ -292,9 +293,18 @@ export default function MemberProfilePage() {
                     <CardTitle className="text-base">{c.title}</CardTitle>
                     {c.client_name && <CardDescription>{c.client_name}</CardDescription>}
                   </CardHeader>
-                  <CardContent>
-                    {c.description && <p className="text-sm text-muted-foreground mb-2">{c.description}</p>}
-                    {c.result && <p className="text-sm font-medium text-primary">{c.result}</p>}
+                  <CardContent className="space-y-3">
+                    {[
+                      { label: 'Cliente', value: c.client_context },
+                      { label: 'Problema', value: c.problem },
+                      { label: 'Solução', value: c.solution },
+                      { label: 'Sucesso', value: c.success_result },
+                    ].map(({ label, value }) => (value ? (
+                      <div key={label} className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">{label}</p>
+                        <RichText value={value} className="text-sm text-muted-foreground" />
+                      </div>
+                    ) : null))}
                   </CardContent>
                 </Card>
               ))}

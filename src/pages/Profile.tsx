@@ -305,7 +305,7 @@ export default function Profile() {
                       {(profile as any).tags.map((tag: string) => <Badge key={tag} variant="secondary">{tag}</Badge>)}
                     </div>
                   )}
-                  {profile?.bio && <p className="text-foreground/80 text-wrap-anywhere">{profile.bio}</p>}
+                  {profile?.bio && <RichText value={profile.bio} className="text-foreground/80" />}
                   <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2">
                     {profile?.email && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Mail className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.email}</span></div>}
                     {profile?.phone && <div className="flex items-center gap-2 text-sm text-muted-foreground min-w-0 max-w-full"><Phone className="w-4 h-4 shrink-0" /><span className="text-wrap-anywhere">{profile.phone}</span></div>}
