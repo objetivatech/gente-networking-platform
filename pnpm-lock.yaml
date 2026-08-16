@@ -98,6 +98,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.83.0
         version: 5.101.2(react@18.3.1)
+      '@types/dompurify':
+        specifier: ^3.2.0
+        version: 3.2.0
       '@types/qrcode':
         specifier: ^1.5.6
         version: 1.5.6
@@ -113,6 +116,9 @@ importers:
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
+      dompurify:
+        specifier: ^3.4.13
+        version: 3.4.13
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@18.3.1)
@@ -2240,6 +2246,10 @@ packages:
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
+  '@types/dompurify@3.2.0':
+    resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}
+    deprecated: This is a stub types definition. dompurify provides its own type definitions, so you do not need this installed.
+
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
@@ -2768,8 +2778,8 @@ packages:
   dom-helpers@5.2.1:
     resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
 
-  dompurify@3.4.11:
-    resolution: {integrity: sha512-zhlUV12GsaRzMsf9q5M254YhA4+VuF0fG+QFqu6aYpoGlKtz+w8//jBcGVYBgQkR5GHjUomejY84AV+/uPbWdw==}
+  dompurify@3.4.13:
+    resolution: {integrity: sha512-2vmYIoqjze2d+kakP8S/nS5shfsl587kzwEjcGlTdiksUVgFHnFCsLYDVj/JNqJVOQZGSYBTmuycv0PodwmnMQ==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -6465,6 +6475,10 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
+  '@types/dompurify@3.2.0':
+    dependencies:
+      dompurify: 3.4.13
+
   '@types/estree@1.0.9': {}
 
   '@types/json-schema@7.0.15': {}
@@ -7036,10 +7050,9 @@ snapshots:
       '@babel/runtime': 7.29.7
       csstype: 3.2.3
 
-  dompurify@3.4.11:
+  dompurify@3.4.13:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
-    optional: true
 
   dunder-proto@1.0.1:
     dependencies:
@@ -7752,7 +7765,7 @@ snapshots:
     optionalDependencies:
       canvg: 3.0.11
       core-js: 3.49.0
-      dompurify: 3.4.11
+      dompurify: 3.4.13
       html2canvas: 1.4.1
 
   keyv@4.5.4:
