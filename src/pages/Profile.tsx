@@ -170,19 +170,27 @@ export default function Profile() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const caseStepsFilled =
+    !isRichTextEmpty(newCase.client_context) &&
+    !isRichTextEmpty(newCase.problem) &&
+    !isRichTextEmpty(newCase.solution) &&
+    !isRichTextEmpty(newCase.success_result);
+
   const handleCreateCase = () => {
-    if (!newCase.title.trim()) return;
+    if (!newCase.title.trim() || !caseStepsFilled) return;
     if (newCase.case_type === 'plataforma' && !newCase.business_deal_id) return;
     createCase.mutate({
       title: newCase.title,
-      description: newCase.description,
       client_name: newCase.client_name,
-      result: newCase.result,
+      client_context: newCase.client_context,
+      problem: newCase.problem,
+      solution: newCase.solution,
+      success_result: newCase.success_result,
       case_type: newCase.case_type,
       business_deal_id: newCase.case_type === 'plataforma' ? newCase.business_deal_id : null,
     });
     setShowNewCase(false);
-    setNewCase({ title: '', description: '', client_name: '', result: '', business_deal_id: '', case_type: 'plataforma' });
+    setNewCase({ title: '', client_name: '', client_context: '', problem: '', solution: '', success_result: '', business_deal_id: '', case_type: 'plataforma' });
   };
 
   if (isLoading) {
