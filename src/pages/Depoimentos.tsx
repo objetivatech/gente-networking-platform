@@ -15,10 +15,13 @@ import { Loader2, Plus, MessageSquare, Send, Inbox, Trash2, Quote } from 'lucide
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { z } from 'zod';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
+import { richTextToPlain } from '@/lib/rich-text';
 
 const formSchema = z.object({
   to_user_id: z.string().min(1, 'Selecione um membro'),
-  content: z.string().trim().min(10, 'Depoimento deve ter pelo menos 10 caracteres').max(1000, 'Máximo 1000 caracteres'),
+  content: z.string().trim().refine((v) => richTextToPlain(v).length >= 10, 'Depoimento deve ter pelo menos 10 caracteres').refine((v) => richTextToPlain(v).length <= 1000, 'Máximo 1000 caracteres'),
 });
 
 export default function Depoimentos() {
@@ -70,7 +73,7 @@ export default function Depoimentos() {
                 <span className="text-muted-foreground">→</span>
                 <span className="font-medium">{to?.full_name || 'Usuário'}</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1 italic line-clamp-2">"{item.content}"</p>
+              <p className="text-sm text-muted-foreground mt-1 italic line-clamp-2">"{richTextToPlain(item.content)}"</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {format(new Date(item.created_at), "dd/MM/yyyy", { locale: ptBR })}
               </p>
@@ -119,7 +122,7 @@ export default function Depoimentos() {
             </div>
             <div className="mt-2 relative">
               <Quote className="absolute -left-1 -top-1 w-4 h-4 text-primary/30" />
-              <p className="pl-4 text-foreground/80 italic">{testimonial.content}</p>
+              <RichText value={testimonial.content} className="pl-4 text-foreground/80 italic" />
             </div>
           </div>
         </div>
@@ -162,17 +165,14 @@ export default function Depoimentos() {
 
               <div className="space-y-2">
                 <Label htmlFor="content">Seu Depoimento</Label>
-                <Textarea
+                <RichTextEditor
                   id="content"
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  onChange={(v) => setFormData({ ...formData, content: v })}
                   placeholder="Escreva seu depoimento sobre este membro..."
-                  rows={5}
+                  minHeight={140}
                   maxLength={1000}
                 />
-                <p className="text-xs text-muted-foreground text-right">
-                  {formData.content.length}/1000
-                </p>
                 {errors.content && <p className="text-sm text-destructive">{errors.content}</p>}
               </div>
 

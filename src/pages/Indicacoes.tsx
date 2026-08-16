@@ -20,6 +20,8 @@ import { useAdminDelete } from '@/hooks/useAdminData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { z } from 'zod';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
 
 const STATUS_CONFIG: Record<ReferralStatus, { label: string; color: string; bgColor: string }> = {
   frio: { label: 'Frio', color: 'text-blue-700', bgColor: 'bg-blue-100 border-blue-300' },
@@ -318,7 +320,7 @@ export default function Indicacoes() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="notes">Observações (opcional)</Label>
-                <Textarea id="notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} placeholder="Informações adicionais..." rows={3} maxLength={500} />
+                <RichTextEditor id="notes" value={formData.notes} onChange={(v) => setFormData({ ...formData, notes: v })} placeholder="Informações adicionais..." maxLength={500} />
               </div>
               <Button type="submit" className="w-full" disabled={createReferral.isPending}>
                 {createReferral.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando...</> : <><Send className="mr-2 h-4 w-4" /> Enviar Indicação</>}

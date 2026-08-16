@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Plus, MessageCircle, CheckCircle2, Clock, ArrowRight, Star, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
 
 const STATUS_CONFIG = {
   aberto: { label: 'Aberto', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400', icon: Clock },
@@ -106,7 +108,7 @@ function PostDetail({ post, onClose }: { post: CouncilPost; onClose: () => void 
       </div>
 
       {post.description && (
-        <p className="text-sm text-muted-foreground whitespace-pre-wrap">{post.description}</p>
+        <RichText value={post.description} className="text-sm text-muted-foreground" />
       )}
 
       <div className="border-t pt-4">
@@ -139,7 +141,7 @@ function PostDetail({ post, onClose }: { post: CouncilPost; onClose: () => void 
                     </Button>
                   )}
                 </div>
-                <p className="text-sm mt-2 whitespace-pre-wrap">{reply.content}</p>
+                <RichText value={reply.content} className="text-sm mt-2" />
               </div>
             ))}
           </div>
@@ -147,11 +149,12 @@ function PostDetail({ post, onClose }: { post: CouncilPost; onClose: () => void 
 
         {post.status !== 'resolvido' && (
           <div className="mt-4 flex gap-2">
-            <Textarea
-              placeholder="Escreva sua resposta..."
+            <RichTextEditor
               value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              className="min-h-[60px]"
+              onChange={setReplyContent}
+              placeholder="Escreva sua resposta..."
+              minHeight={70}
+              className="flex-1"
             />
             <Button onClick={handleReply} disabled={createReply.isPending || !replyContent.trim()}>
               {createReply.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Enviar'}
@@ -209,7 +212,7 @@ export default function Conselho() {
             </DialogHeader>
             <div className="space-y-4">
               <Input placeholder="Título da dúvida" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
-              <Textarea placeholder="Descreva sua dúvida em detalhes..." value={newDescription} onChange={(e) => setNewDescription(e.target.value)} />
+              <RichTextEditor value={newDescription} onChange={setNewDescription} placeholder="Descreva sua dúvida em detalhes..." />
               <Button onClick={handleCreate} disabled={createPost.isPending || !newTitle.trim()} className="w-full">
                 {createPost.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Publicar

@@ -25,6 +25,8 @@ import { canViewGuestsDirectory } from '@/lib/access-control';
 import { exportRowsToExcel, exportRowsToPDF } from '@/lib/export-utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
+import RichTextEditor from '@/components/RichTextEditor';
+import RichText from '@/components/RichText';
 
 export default function Encontros() {
   const { meetings, isLoading, toggleAttendance, removeAttendance } = useMeetings();
@@ -72,7 +74,7 @@ export default function Encontros() {
                 {isToday(parseLocalDate(meeting.meeting_date)) && <Badge className="bg-primary">Hoje</Badge>}
                 {isSoon && <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Em breve</Badge>}
               </div>
-              {meeting.description && <p className="text-sm text-muted-foreground mb-3 text-wrap-anywhere">{meeting.description}</p>}
+              {meeting.description && <RichText value={meeting.description} className="text-sm text-muted-foreground mb-3" />}
               <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1 min-w-0">
                   <Calendar className="w-4 h-4 shrink-0" />
@@ -191,7 +193,7 @@ export default function Encontros() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description">Descrição</Label>
-                  <Textarea id="description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Detalhes do encontro..." rows={3} />
+                  <RichTextEditor id="description" value={formData.description} onChange={(v) => setFormData({ ...formData, description: v })} placeholder="Detalhes do encontro..." />
                 </div>
                 <Button type="submit" className="w-full" disabled={createMeeting.isPending}>
                   {createMeeting.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Criando...</> : 'Criar Encontro'}
