@@ -1695,6 +1695,7 @@ export type Database = {
           team_name: string
         }[]
       }
+      get_integration_secret: { Args: { _name: string }; Returns: string }
       get_invitation_by_code: {
         Args: { _code: string }
         Returns: {
