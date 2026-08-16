@@ -340,9 +340,9 @@ export function IntegrationsPanel() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        As chaves de API ficam no cofre de secrets do Supabase e nunca são gravadas no banco. Peça a
-        inclusão da chave pelo nome indicado em cada bloco; aqui você escolhe o provedor ativo e as
-        regras de uso.
+        Configure tudo por aqui: provedor ativo, regras de uso e as chaves de API. As chaves são
+        gravadas cifradas no cofre do banco, nunca aparecem de volta na tela e continuam válidas as
+        chaves que já estavam no ambiente.
       </p>
       {(['payments', 'signature', 'email'] as IntegrationCategory[]).map((c) => (
         <CategoryCard
