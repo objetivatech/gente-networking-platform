@@ -445,6 +445,7 @@ serve(async (req) => {
         invitation_code: invitationCode,
         invite_url: inviteUrl,
         team_id: teamId,
+        hub_meeting_id: linkedMeetingId,
         group_resolution: groupResolution,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
