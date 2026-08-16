@@ -166,9 +166,8 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
     });
     return { ok: false, provider: settings.provider, skipped: "rate_limited" };
   }
-
   const secretName = EMAIL_SECRET_NAME[settings.provider];
-  const apiKey = Deno.env.get(secretName) ?? Deno.env.get("RESEND_API_KEY");
+  const apiKey = (await getSecret(secretName)) ?? (await getSecret("RESEND_API_KEY"));
   const from = args.from ?? `${settings.fromName} <${settings.fromEmail}>`;
 
   if (!apiKey) {
