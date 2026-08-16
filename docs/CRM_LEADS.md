@@ -188,3 +188,29 @@ resultado em `integration_settings.last_check_ok`.
   CRM"), junto de membros e convidados.
 - **Convites** e CRM leem os encontros pelo mesmo hook (`useHubMeetings`), então
   as duas telas nunca divergem.
+
+## v3.37.0 — Planos, assinaturas e cobranças
+
+Menu **Administração → Planos e Assinaturas** (`/admin/planos`, admin-only), com
+quatro abas:
+
+1. **Planos** — recorrentes (mensal/trimestral/semestral/anual) ou pontuais,
+   com valor, público (HUB, Premium, outro) e modelo de contrato vinculado.
+   Planos inativos não podem gerar assinatura nem cobrança.
+2. **Descontos** — código, percentual ou valor fixo, validade e plano alvo.
+3. **Assinaturas** — vinculam plano + cliente (lead do CRM) + desconto. O valor
+   final é calculado no banco (`billing_apply_discount`), nunca no navegador.
+4. **Cobranças** — histórico com vencimento, situação e baixa manual.
+
+### Fluxo de cobrança
+`dispatch-billing-charge` (admin-only) cria o registro em `billing_charges`,
+envia o e-mail transacional com a identidade do Gente Networking, ativa a
+assinatura em rascunho e grava o evento em `crm_lead_history`
+(`billing_charge_sent` / `billing_charge_failed`). Há idempotência por
+`subscription_id + due_date`: uma segunda emissão do mesmo vencimento exige
+reenvio explícito.
+
+### Gate no CRM
+No painel do lead, o bloco **Cobrança HUB** só habilita o disparo quando existe
+ao menos uma assinatura vinculada; caso contrário exibe o atalho para criar o
+plano/assinatura. A baixa manual e o histórico continuam disponíveis.
