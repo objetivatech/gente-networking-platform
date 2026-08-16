@@ -225,13 +225,31 @@ export default function Convites() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de convite *</FormLabel>
-                       <Tabs value={field.value} onValueChange={field.onChange} className="w-full">
-                         <TabsList className="h-auto grid grid-cols-1 w-full sm:grid-cols-3">
-                           <TabsTrigger value="premium_group" className="gap-1 text-wrap-anywhere"><Users className="h-3.5 w-3.5" /> Grupo Premium</TabsTrigger>
-                           <TabsTrigger value="hub_event" className="gap-1 text-wrap-anywhere"><CalendarDays className="h-3.5 w-3.5" /> Evento HUB</TabsTrigger>
-                           <TabsTrigger value="whatsapp_community" className="gap-1 text-wrap-anywhere"><MessageCircle className="h-3.5 w-3.5" /> Comunidade Gente</TabsTrigger>
-                        </TabsList>
-                      </Tabs>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo de convite" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="premium_group">
+                            <span className="flex items-center gap-2">
+                              <Users className="h-3.5 w-3.5" /> Grupo Premium
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="hub_event">
+                            <span className="flex items-center gap-2">
+                              <CalendarDays className="h-3.5 w-3.5" /> Evento Gente HUB
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="whatsapp_community">
+                            <span className="flex items-center gap-2">
+                              <MessageCircle className="h-3.5 w-3.5" /> Comunidade Gente (WhatsApp)
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+
                       <FormMessage />
                     </FormItem>
                   )}
