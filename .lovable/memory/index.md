@@ -1,0 +1,1 @@
+- [Editor Rico + Cases v3.38.0](mem://features/v3380-editor-rico-cases-perfil-publico) — HTML sanitizado nos campos longos; cases Cliente/Problema/Solução/Sucesso; stats e carrossel na página pública
