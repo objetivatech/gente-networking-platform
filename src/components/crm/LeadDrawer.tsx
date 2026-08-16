@@ -88,9 +88,14 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
   const { data: history, isLoading } = useLeadHistory(lead?.id ?? null);
   const addNote = useAddLeadNote();
   const getContractUrl = useGetContractUrl();
+  const { data: hubMeetings } = useHubMeetings();
+  const { data: leadMeetings } = useMeetingLeadAttendances();
+  const { link: linkMeeting, unlink: unlinkMeeting } = useLinkLeadToMeeting();
   const [note, setNote] = useState('');
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [meetingId, setMeetingId] = useState('');
+
 
   if (!lead) return null;
 
