@@ -345,19 +345,19 @@ export default function Profile() {
                 {(profile as any)?.what_i_do && (
                   <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Briefcase className="h-4 w-4 text-primary" /> O que eu faço</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground">{(profile as any).what_i_do}</p></CardContent>
+                    <CardContent><RichText value={(profile as any).what_i_do} className="text-sm text-muted-foreground" /></CardContent>
                   </Card>
                 )}
                 {(profile as any)?.ideal_client && (
                   <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-primary" /> Cliente Ideal</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground">{(profile as any).ideal_client}</p></CardContent>
+                    <CardContent><RichText value={(profile as any).ideal_client} className="text-sm text-muted-foreground" /></CardContent>
                   </Card>
                 )}
                 {(profile as any)?.how_to_refer_me && (
                   <Card>
                     <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Megaphone className="h-4 w-4 text-primary" /> Como me indicar</CardTitle></CardHeader>
-                    <CardContent><p className="text-sm text-muted-foreground">{(profile as any).how_to_refer_me}</p></CardContent>
+                    <CardContent><RichText value={(profile as any).how_to_refer_me} className="text-sm text-muted-foreground" /></CardContent>
                   </Card>
                 )}
               </div>
@@ -482,7 +482,7 @@ export default function Profile() {
 
       {/* Dialog Novo Case */}
       <Dialog open={showNewCase} onOpenChange={setShowNewCase}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Novo Case de Negócio</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
