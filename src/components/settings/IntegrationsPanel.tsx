@@ -1,12 +1,12 @@
 /**
- * IntegrationsPanel - Central de integrações da plataforma (v3.35.0).
+ * IntegrationsPanel - Central de integrações da plataforma (v3.36.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  *
  * Admin-only. Pagamentos, assinatura digital e e-mail: escolha do provedor,
- * ambiente, remetente e limite de disparos. As chaves de API ficam no cofre de
- * secrets do Supabase — aqui só é exibido "configurado / não configurado".
+ * ambiente, remetente, limite de disparos e as próprias chaves de API, que são
+ * gravadas cifradas no cofre do banco (Vault) e nunca voltam para o navegador.
  */
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,12 +21,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CreditCard, FileSignature, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
+import {
+  CreditCard,
+  FileSignature,
+  Mail,
+  ShieldCheck,
+  ShieldAlert,
+  KeyRound,
+  Trash2,
+  PlugZap,
+} from 'lucide-react';
 import {
   INTEGRATION_PROVIDERS,
+  useDeleteSecret,
   useIntegrationSecrets,
   useIntegrationSettings,
   useSaveIntegration,
+  useSaveSecret,
+  useTestIntegration,
   type IntegrationCategory,
   type IntegrationSetting,
 } from '@/hooks/useIntegrations';
