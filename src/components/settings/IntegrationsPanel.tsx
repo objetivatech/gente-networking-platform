@@ -65,6 +65,65 @@ const CATEGORY_META: Record<
   },
 };
 
+/** Campo de chave: grava cifrado no cofre e nunca exibe o valor salvo. */
+function SecretField({
+  name,
+  label,
+  configured,
+}: {
+  name: string;
+  label: string;
+  configured?: boolean;
+}) {
+  const saveSecret = useSaveSecret();
+  const removeSecret = useDeleteSecret();
+  const [value, setValue] = useState('');
+
+  return (
+    <div className="space-y-1.5 min-w-0">
+      <Label className="flex items-center gap-2 text-xs">
+        <KeyRound className="h-3.5 w-3.5" />
+        <span className="text-wrap-anywhere">{label}</span>
+        <Badge
+          variant="outline"
+          className={configured ? 'border-emerald-400 text-emerald-700' : 'border-amber-400 text-amber-700'}
+        >
+          {configured ? 'configurada' : 'vazia'}
+        </Badge>
+      </Label>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          type="password"
+          autoComplete="new-password"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={configured ? '•••••••• (já salva — digite para substituir)' : 'Cole a chave aqui'}
+        />
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={!value.trim() || saveSecret.isPending}
+            onClick={() => saveSecret.mutate({ name, value: value.trim() }, { onSuccess: () => setValue('') })}
+          >
+            Salvar
+          </Button>
+          {configured && (
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label={`Remover ${label}`}
+              onClick={() => removeSecret.mutate(name)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CategoryCard({
   category,
   setting,
@@ -75,6 +134,7 @@ function CategoryCard({
   secrets: Record<string, boolean>;
 }) {
   const save = useSaveIntegration();
+  const testIntegration = useTestIntegration();
   const meta = CATEGORY_META[category];
   const Icon = meta.icon;
   const providers = INTEGRATION_PROVIDERS[category];
