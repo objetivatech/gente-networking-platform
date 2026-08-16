@@ -378,12 +378,17 @@ export type Database = {
         Row: {
           business_deal_id: string | null
           case_type: string
+          client_context: string | null
           client_name: string | null
           created_at: string | null
           description: string | null
           id: string
           image_url: string | null
+          needs_review: boolean
+          problem: string | null
           result: string | null
+          solution: string | null
+          success_result: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -391,12 +396,17 @@ export type Database = {
         Insert: {
           business_deal_id?: string | null
           case_type?: string
+          client_context?: string | null
           client_name?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
+          needs_review?: boolean
+          problem?: string | null
           result?: string | null
+          solution?: string | null
+          success_result?: string | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -404,12 +414,17 @@ export type Database = {
         Update: {
           business_deal_id?: string | null
           case_type?: string
+          client_context?: string | null
           client_name?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           image_url?: string | null
+          needs_review?: boolean
+          problem?: string | null
           result?: string | null
+          solution?: string | null
+          success_result?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
@@ -2058,10 +2073,35 @@ export type Database = {
           what_i_do: string
         }[]
       }
+      get_public_profile_cases: {
+        Args: { _slug: string }
+        Returns: {
+          case_type: string
+          client_context: string
+          client_name: string
+          created_at: string
+          id: string
+          image_url: string
+          problem: string
+          solution: string
+          success_result: string
+          title: string
+        }[]
+      }
       get_public_profile_slugs: {
         Args: never
         Returns: {
           slug: string
+        }[]
+      }
+      get_public_profile_stats: {
+        Args: { _slug: string }
+        Returns: {
+          attendances_count: number
+          business_total: number
+          gente_em_acao_count: number
+          referrals_count: number
+          testimonials_count: number
         }[]
       }
       get_rank_from_points: {
