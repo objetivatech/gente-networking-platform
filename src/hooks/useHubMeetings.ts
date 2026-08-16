@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface HubMeeting {
   id: string;
   title: string;
+  event_type?: string | null;
   meeting_date: string;
   meeting_time: string | null;
   location: string | null;
@@ -42,7 +43,7 @@ export function useHubMeetings() {
       const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from('meetings')
-        .select('id, title, meeting_date, meeting_time, location')
+        .select('id, title, event_type, meeting_date, meeting_time, location')
         .eq('event_type', 'hub_event')
         .gte('meeting_date', today)
         .order('meeting_date', { ascending: true });

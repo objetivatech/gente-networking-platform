@@ -22,6 +22,7 @@ import ActivityFeed from '@/components/ActivityFeed';
 import ScoringRulesCard from '@/components/ScoringRulesCard';
 import GuestWelcome from '@/pages/GuestWelcome';
 import SEO from '@/components/SEO';
+import { meetingDisplayTitle } from '@/lib/meeting-label';
 import {
   Handshake,
   MessageSquare,
@@ -150,7 +151,7 @@ export default function Index() {
                   return (
                     <div key={meeting.id} className={`p-3 rounded-lg transition-colors ${isSoon ? 'bg-primary/5 border border-primary/30 hover:bg-primary/10' : 'bg-muted/50 hover:bg-muted'}`}>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-medium text-sm">{meeting.title}</h4>
+                        <h4 className="font-medium text-sm">{meetingDisplayTitle(meeting)}</h4>
                         {isSoon && (
                           <Badge variant="default" className="text-[10px] px-1.5 py-0">Em breve</Badge>
                         )}

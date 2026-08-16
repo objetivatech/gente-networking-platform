@@ -7,6 +7,7 @@
  */
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
+import { meetingDisplayTitle } from '@/lib/meeting-label';
 import { ptBR } from 'date-fns/locale';
 import {
   Sheet,
@@ -110,8 +111,8 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
   const availableMeetings = (hubMeetings ?? []).filter(
     (m) => !linkedMeetings.some((l) => l.meeting_id === m.id),
   );
-  const meetingLabel = (m: { title: string; meeting_date: string }) =>
-    `${m.title} — ${format(parseISO(m.meeting_date), 'dd/MM/yyyy', { locale: ptBR })}`;
+  const meetingLabel = (m: { title: string; event_type?: string | null; meeting_date: string }) =>
+    `${meetingDisplayTitle(m)} — ${format(parseISO(m.meeting_date), 'dd/MM/yyyy', { locale: ptBR })}`;
 
 
   const handleDownloadPdf = async () => {

@@ -1,4 +1,5 @@
 import SEO from '@/components/SEO';
+import { meetingDisplayTitle } from '@/lib/meeting-label';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useMeetings, useMeetingAttendees, useMeetingGuests, useGuestsAttendanceHistory, type GuestAttendanceEntry } from '@/hooks/useMeetings';
@@ -64,7 +65,7 @@ export default function Encontros() {
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap mb-2">
-                <h3 className="font-semibold text-wrap-anywhere">{meeting.title}</h3>
+                <h3 className="font-semibold text-wrap-anywhere">{meetingDisplayTitle(meeting)}</h3>
                 {meeting.team && (
                   <Badge variant="outline" style={{ borderColor: meeting.team.color, color: meeting.team.color }}>
                     {meeting.team.name}
@@ -722,7 +723,7 @@ function MoveGuestButton({ guestId, guestName, fromMeetingId, teamId, allMeeting
                   {candidates.map(m => (
                     <SelectItem key={m.id} value={m.id}>
                       {format(parseLocalDate(m.meeting_date), "dd/MM/yyyy", { locale: ptBR })}
-                      {m.meeting_time ? ` · ${m.meeting_time.slice(0, 5)}` : ''} — {m.title}
+                      {m.meeting_time ? ` · ${m.meeting_time.slice(0, 5)}` : ''} — {meetingDisplayTitle(m)}
                     </SelectItem>
                   ))}
                 </SelectContent>
