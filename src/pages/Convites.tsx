@@ -84,9 +84,9 @@ export default function Convites() {
   });
 
   const purpose = form.watch('purpose');
-  const hubEvents = useMemo(() => (meetings || []).filter((meeting) =>
-    meeting.event_type === 'hub_event' && new Date(`${meeting.meeting_date}T23:59:59`) >= new Date()
-  ), [meetings]);
+  // Fonte única com o CRM: encontros Gente HUB em aberto
+  const { data: hubMeetings } = useHubMeetings();
+  const hubEvents = useMemo(() => hubMeetings ?? [], [hubMeetings]);
 
   // Pre-seleciona primeiro grupo disponível ao abrir (só para comunidade)
   useEffect(() => {
