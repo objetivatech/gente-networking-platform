@@ -1,12 +1,12 @@
 /**
- * IntegrationsPanel - Central de integrações da plataforma (v3.35.0).
+ * IntegrationsPanel - Central de integrações da plataforma (v3.36.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  *
  * Admin-only. Pagamentos, assinatura digital e e-mail: escolha do provedor,
- * ambiente, remetente e limite de disparos. As chaves de API ficam no cofre de
- * secrets do Supabase — aqui só é exibido "configurado / não configurado".
+ * ambiente, remetente, limite de disparos e as próprias chaves de API, que são
+ * gravadas cifradas no cofre do banco (Vault) e nunca voltam para o navegador.
  */
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,12 +21,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CreditCard, FileSignature, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
+import {
+  CreditCard,
+  FileSignature,
+  Mail,
+  ShieldCheck,
+  ShieldAlert,
+  KeyRound,
+  Trash2,
+  PlugZap,
+} from 'lucide-react';
 import {
   INTEGRATION_PROVIDERS,
+  useDeleteSecret,
   useIntegrationSecrets,
   useIntegrationSettings,
   useSaveIntegration,
+  useSaveSecret,
+  useTestIntegration,
   type IntegrationCategory,
   type IntegrationSetting,
 } from '@/hooks/useIntegrations';
@@ -53,6 +65,65 @@ const CATEGORY_META: Record<
   },
 };
 
+/** Campo de chave: grava cifrado no cofre e nunca exibe o valor salvo. */
+function SecretField({
+  name,
+  label,
+  configured,
+}: {
+  name: string;
+  label: string;
+  configured?: boolean;
+}) {
+  const saveSecret = useSaveSecret();
+  const removeSecret = useDeleteSecret();
+  const [value, setValue] = useState('');
+
+  return (
+    <div className="space-y-1.5 min-w-0">
+      <Label className="flex items-center gap-2 text-xs">
+        <KeyRound className="h-3.5 w-3.5" />
+        <span className="text-wrap-anywhere">{label}</span>
+        <Badge
+          variant="outline"
+          className={configured ? 'border-emerald-400 text-emerald-700' : 'border-amber-400 text-amber-700'}
+        >
+          {configured ? 'configurada' : 'vazia'}
+        </Badge>
+      </Label>
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          type="password"
+          autoComplete="new-password"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={configured ? '•••••••• (já salva — digite para substituir)' : 'Cole a chave aqui'}
+        />
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={!value.trim() || saveSecret.isPending}
+            onClick={() => saveSecret.mutate({ name, value: value.trim() }, { onSuccess: () => setValue('') })}
+          >
+            Salvar
+          </Button>
+          {configured && (
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label={`Remover ${label}`}
+              onClick={() => removeSecret.mutate(name)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CategoryCard({
   category,
   setting,
@@ -63,6 +134,7 @@ function CategoryCard({
   secrets: Record<string, boolean>;
 }) {
   const save = useSaveIntegration();
+  const testIntegration = useTestIntegration();
   const meta = CATEGORY_META[category];
   const Icon = meta.icon;
   const providers = INTEGRATION_PROVIDERS[category];
@@ -178,7 +250,42 @@ function CategoryCard({
           </>
         )}
 
+        {selected && (
+          <div className="space-y-3 pt-2 border-t">
+            <p className="text-xs text-muted-foreground">
+              Credenciais de {selected.label}. Ficam cifradas no cofre do banco e nunca são exibidas
+              novamente.
+            </p>
+            <SecretField
+              name={selected.secret}
+              label={`Chave de API (${selected.secret})`}
+              configured={secrets[selected.secret]}
+            />
+            {selected.extraSecrets?.map((extra) => (
+              <SecretField
+                key={extra.name}
+                name={extra.name}
+                label={`${extra.label} (${extra.name})`}
+                configured={secrets[extra.name]}
+              />
+            ))}
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              disabled={!secretOk || testIntegration.isPending}
+              onClick={() =>
+                testIntegration.mutate({ category, provider: selected.value, secret: selected.secret })
+              }
+            >
+              <PlugZap className="h-4 w-4" />
+              Testar conexão
+            </Button>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t">
+
           {selected ? (
             <Badge
               variant="outline"
@@ -233,9 +340,9 @@ export function IntegrationsPanel() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        As chaves de API ficam no cofre de secrets do Supabase e nunca são gravadas no banco. Peça a
-        inclusão da chave pelo nome indicado em cada bloco; aqui você escolhe o provedor ativo e as
-        regras de uso.
+        Configure tudo por aqui: provedor ativo, regras de uso e as chaves de API. As chaves são
+        gravadas cifradas no cofre do banco, nunca aparecem de volta na tela e continuam válidas as
+        chaves que já estavam no ambiente.
       </p>
       {(['payments', 'signature', 'email'] as IntegrationCategory[]).map((c) => (
         <CategoryCard

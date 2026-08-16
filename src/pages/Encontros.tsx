@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useMeetingLeadAttendances } from '@/hooks/useHubMeetings';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket, Mail, Phone, ExternalLink, Search, ArrowUpCircle, History, ArrowRightLeft } from 'lucide-react';
@@ -550,6 +551,7 @@ function UpcomingGuestsTab() {
 function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; canRemove?: boolean; onRemove?: (userId: string) => void }) {
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
   const { data: guests, isLoading: isLoadingGuests } = useMeetingGuests(meetingId);
+  const { data: leadAttendances } = useMeetingLeadAttendances(meetingId);
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -558,8 +560,11 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
   const memberAttendees = attendees?.filter(a => !guests?.some(g => g.id === a.user_id)) || [];
   const hasGuests = guests && guests.length > 0;
   const hasMembers = memberAttendees.length > 0;
+  const leads = (leadAttendances ?? []).filter((l) => l.lead);
+  const hasLeads = leads.length > 0;
 
-  if (!hasMembers && !hasGuests) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
+  if (!hasMembers && !hasGuests && !hasLeads) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
+
 
   return (
     <div className="mt-4 pt-4 border-t space-y-3">
@@ -592,6 +597,31 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {hasLeads && (
+        <div>
+          <p className="text-sm font-medium mb-2 text-sky-600">Leads do CRM ({leads.length})</p>
+          <div className="flex flex-wrap gap-2">
+            {leads.map((l) => (
+              <div
+                key={l.id}
+                className="flex items-center gap-2 px-2 py-1 rounded-full bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 text-sm min-w-0"
+              >
+                <span className="text-wrap-anywhere">{l.lead?.name}</span>
+                {l.lead?.company && (
+                  <span className="text-xs text-muted-foreground text-wrap-anywhere">({l.lead.company})</span>
+                )}
+                {(l.lead?.phone || l.lead?.email) && (
+                  <span className="text-xs text-muted-foreground ml-1 text-wrap-anywhere">
+                    {l.lead?.phone && <span title="Telefone">📱 {l.lead.phone}</span>}
+                    {l.lead?.phone && l.lead?.email && ' · '}
+                    {l.lead?.email && <span title="Email">✉️ {l.lead.email}</span>}
+                  </span>
                 )}
               </div>
             ))}

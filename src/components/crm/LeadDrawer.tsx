@@ -1,5 +1,6 @@
 /**
- * LeadDrawer - Painel lateral do lead com contrato (modelo+prévia), cobrança HUB e timeline (v3.26.0).
+ * LeadDrawer - Painel lateral do lead com contrato, cobrança HUB, vínculo com
+ * o encontro Gente HUB e timeline (v3.36.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
@@ -19,6 +20,13 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Crown,
   FileText,
   FilePen,
@@ -31,6 +39,8 @@ import {
   Sparkles,
   ExternalLink,
   XCircle,
+  CalendarPlus,
+  Trash2,
 } from 'lucide-react';
 import {
   CRM_SOURCE_LABEL,
@@ -40,6 +50,11 @@ import {
   useLeadHistory,
   type CrmLead,
 } from '@/hooks/useCrmLeads';
+import {
+  useHubMeetings,
+  useLinkLeadToMeeting,
+  useMeetingLeadAttendances,
+} from '@/hooks/useHubMeetings';
 import { LeadAuditTimeline } from './LeadAuditTimeline';
 import { PromoteLeadDialog } from './PromoteLeadDialog';
 import { SendContractDialog } from './SendContractDialog';
@@ -73,9 +88,14 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
   const { data: history, isLoading } = useLeadHistory(lead?.id ?? null);
   const addNote = useAddLeadNote();
   const getContractUrl = useGetContractUrl();
+  const { data: hubMeetings } = useHubMeetings();
+  const { data: leadMeetings } = useMeetingLeadAttendances();
+  const { link: linkMeeting, unlink: unlinkMeeting } = useLinkLeadToMeeting();
   const [note, setNote] = useState('');
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [sendOpen, setSendOpen] = useState(false);
+  const [meetingId, setMeetingId] = useState('');
+
 
   if (!lead) return null;
 
@@ -85,6 +105,14 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
   const canResend =
     lead.contract_status === 'rejected' || lead.contract_status === 'expired';
   const canDownloadPdf = lead.contract_status === 'signed' && !!lead.contract_signed_pdf_path;
+
+  const linkedMeetings = (leadMeetings ?? []).filter((m) => m.lead_id === lead.id);
+  const availableMeetings = (hubMeetings ?? []).filter(
+    (m) => !linkedMeetings.some((l) => l.meeting_id === m.id),
+  );
+  const meetingLabel = (m: { title: string; meeting_date: string }) =>
+    `${m.title} — ${format(parseISO(m.meeting_date), 'dd/MM/yyyy', { locale: ptBR })}`;
+
 
   const handleDownloadPdf = async () => {
     try {
@@ -204,6 +232,77 @@ export function LeadDrawer({ lead, teamName, onOpenChange, isAdmin }: Props) {
                     </Button>
                   </div>
                 </div>
+
+                <Separator />
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                    Encontros Gente HUB
+                  </p>
+                  {linkedMeetings.length > 0 ? (
+                    <ul className="space-y-1">
+                      {linkedMeetings.map((l) => {
+                        const m = hubMeetings?.find((h) => h.id === l.meeting_id);
+                        return (
+                          <li
+                            key={l.id}
+                            className="flex items-center justify-between gap-2 text-sm min-w-0"
+                          >
+                            <span className="text-wrap-anywhere">
+                              {m ? meetingLabel(m) : 'Encontro anterior'}
+                            </span>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              aria-label="Remover vínculo"
+                              onClick={() => unlinkMeeting.mutate(l.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Este lead ainda não está em nenhum encontro.
+                    </p>
+                  )}
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Select value={meetingId} onValueChange={setMeetingId}>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            availableMeetings.length
+                              ? 'Selecione o encontro em aberto'
+                              : 'Nenhum encontro HUB em aberto'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableMeetings.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {meetingLabel(m)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1"
+                      disabled={!meetingId || linkMeeting.isPending}
+                      onClick={() =>
+                        linkMeeting.mutate(
+                          { leadId: lead.id, meetingId },
+                          { onSuccess: () => setMeetingId('') },
+                        )
+                      }
+                    >
+                      <CalendarPlus className="h-4 w-4" /> Vincular
+                    </Button>
+                  </div>
+                </div>
+
 
                 {lead.is_hub && (
                   <>

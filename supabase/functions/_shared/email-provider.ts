@@ -10,6 +10,7 @@
  * exclusivamente nos secrets do Supabase — nunca no banco.
  */
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { getSecret } from "./secrets.ts";
 
 export type EmailProvider = "resend" | "brevo" | "sender" | "smtp";
 
@@ -166,9 +167,8 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
     });
     return { ok: false, provider: settings.provider, skipped: "rate_limited" };
   }
-
   const secretName = EMAIL_SECRET_NAME[settings.provider];
-  const apiKey = Deno.env.get(secretName) ?? Deno.env.get("RESEND_API_KEY");
+  const apiKey = (await getSecret(secretName)) ?? (await getSecret("RESEND_API_KEY"));
   const from = args.from ?? `${settings.fromName} <${settings.fromEmail}>`;
 
   if (!apiKey) {

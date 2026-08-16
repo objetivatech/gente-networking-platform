@@ -375,7 +375,32 @@ serve(async (req) => {
       leadId = newLead.id;
     }
 
+    // ---- Vínculo automático com o próximo encontro Gente HUB ----------------
+    let linkedMeetingId: string | null = null;
+    if (leadId && data.source === "lp_gentehub") {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data: nextHub } = await supabase
+        .from("meetings")
+        .select("id")
+        .eq("event_type", "hub_event")
+        .gte("meeting_date", today)
+        .order("meeting_date", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (nextHub?.id) {
+        const { error: linkErr } = await supabase
+          .from("meeting_lead_attendances")
+          .upsert(
+            { lead_id: leadId, meeting_id: nextHub.id },
+            { onConflict: "meeting_id,lead_id", ignoreDuplicates: true },
+          );
+        if (linkErr) console.error("[submit-lead] hub meeting link failed (non-blocking)", linkErr);
+        else linkedMeetingId = nextHub.id;
+      }
+    }
+
     // ---- Auto-descoberta da página de captação ------------------------------
+
     const pageKey = data.page_url
       ? data.page_url.split("?")[0].replace(/\/$/, "")
       : (data.source_detail ?? data.page_title ?? null);
@@ -420,6 +445,7 @@ serve(async (req) => {
         invitation_code: invitationCode,
         invite_url: inviteUrl,
         team_id: teamId,
+        hub_meeting_id: linkedMeetingId,
         group_resolution: groupResolution,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },

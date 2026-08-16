@@ -25,12 +25,25 @@ export interface IntegrationSetting {
   last_check_ok: boolean | null;
 }
 
-export const INTEGRATION_PROVIDERS: Record<
-  IntegrationCategory,
-  { value: string; label: string; secret: string }[]
-> = {
+export interface ProviderOption {
+  value: string;
+  label: string;
+  secret: string;
+  /** Campos extras de credencial exigidos pelo provedor. */
+  extraSecrets?: { name: string; label: string }[];
+}
+
+export const INTEGRATION_PROVIDERS: Record<IntegrationCategory, ProviderOption[]> = {
   payments: [
-    { value: 'efi', label: 'EFI (Gerencianet)', secret: 'EFI_API_KEY' },
+    {
+      value: 'efi',
+      label: 'EFI (Gerencianet)',
+      secret: 'EFI_API_KEY',
+      extraSecrets: [
+        { name: 'EFI_CLIENT_ID', label: 'Client ID' },
+        { name: 'EFI_CLIENT_SECRET', label: 'Client Secret' },
+      ],
+    },
     { value: 'mercadopago', label: 'Mercado Pago', secret: 'MERCADOPAGO_API_KEY' },
     { value: 'asaas', label: 'Asaas', secret: 'ASAAS_API_KEY' },
     { value: 'infinitypay', label: 'Infinity Pay', secret: 'INFINITYPAY_API_KEY' },
@@ -44,7 +57,15 @@ export const INTEGRATION_PROVIDERS: Record<
     { value: 'resend', label: 'Resend', secret: 'RESEND_API_KEY' },
     { value: 'brevo', label: 'Brevo', secret: 'BREVO_API_KEY' },
     { value: 'sender', label: 'Sender', secret: 'SENDER_API_KEY' },
-    { value: 'smtp', label: 'SMTP genérico', secret: 'SMTP_API_KEY' },
+    {
+      value: 'smtp',
+      label: 'SMTP genérico',
+      secret: 'SMTP_API_KEY',
+      extraSecrets: [
+        { name: 'SMTP_HOST', label: 'Servidor SMTP' },
+        { name: 'SMTP_USER', label: 'Usuário SMTP' },
+      ],
+    },
   ],
 };
 
@@ -90,7 +111,7 @@ export function useSaveIntegration() {
   });
 }
 
-/** Diz quais chaves já estão no cofre de secrets (nunca expõe o valor). */
+/** Diz quais chaves já estão disponíveis (Vault ou ambiente) — nunca expõe o valor. */
 export function useIntegrationSecrets() {
   return useQuery({
     queryKey: ['integration-secrets'],
@@ -106,3 +127,82 @@ export function useIntegrationSecrets() {
     staleTime: 60_000,
   });
 }
+
+/** Grava a chave cifrada no cofre do banco (Vault). O valor nunca volta ao navegador. */
+export function useSaveSecret() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async ({ name, value }: { name: string; value: string }) => {
+      const { data, error } = await supabase.rpc('set_integration_secret' as never, {
+        _name: name,
+        _value: value,
+      } as never);
+      if (error) throw error;
+      const res = data as unknown as { success: boolean; error?: string };
+      if (!res?.success) throw new Error(res?.error || 'Não foi possível salvar a chave.');
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['integration-secrets'] });
+      toast({ title: 'Chave salva com segurança' });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: 'Erro ao salvar a chave',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+/** Remove a chave do cofre. */
+export function useDeleteSecret() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const { error } = await supabase.rpc('delete_integration_secret' as never, {
+        _name: name,
+      } as never);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['integration-secrets'] });
+      toast({ title: 'Chave removida' });
+    },
+  });
+}
+
+/** Testa a credencial do provedor ativo sem expor o valor. */
+export function useTestIntegration() {
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (input: {
+      category: IntegrationCategory;
+      provider: string;
+      secret: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('integration-status', {
+        body: { action: 'test', ...input },
+      });
+      if (error) throw error;
+      return data as { ok: boolean; details: string };
+    },
+    onSuccess: (res) => {
+      toast({
+        title: res.ok ? 'Conexão validada' : 'Falha na conexão',
+        description: res.details,
+        variant: res.ok ? undefined : 'destructive',
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: 'Não foi possível testar',
+        description: err instanceof Error ? err.message : 'Tente novamente.',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+

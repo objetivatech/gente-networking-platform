@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
-import { useMeetings } from '@/hooks/useMeetings';
+import { useHubMeetings } from '@/hooks/useHubMeetings';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
@@ -21,7 +21,6 @@ import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
 const inviteSchema = z.object({
@@ -59,7 +58,6 @@ export default function Convites() {
   const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
   const { isAdmin } = useAdmin();
   const { teams } = useTeams();
-  const { meetings } = useMeetings();
   const { user } = useAuth();
   const adminDeleteMutation = useAdminDelete('invitations');
   const { toast } = useToast();
@@ -84,9 +82,9 @@ export default function Convites() {
   });
 
   const purpose = form.watch('purpose');
-  const hubEvents = useMemo(() => (meetings || []).filter((meeting) =>
-    meeting.event_type === 'hub_event' && new Date(`${meeting.meeting_date}T23:59:59`) >= new Date()
-  ), [meetings]);
+  // Fonte única com o CRM: encontros Gente HUB em aberto
+  const { data: hubMeetings } = useHubMeetings();
+  const hubEvents = useMemo(() => hubMeetings ?? [], [hubMeetings]);
 
   // Pre-seleciona primeiro grupo disponível ao abrir (só para comunidade)
   useEffect(() => {
@@ -225,13 +223,31 @@ export default function Convites() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de convite *</FormLabel>
-                       <Tabs value={field.value} onValueChange={field.onChange} className="w-full">
-                         <TabsList className="h-auto grid grid-cols-1 w-full sm:grid-cols-3">
-                           <TabsTrigger value="premium_group" className="gap-1 text-wrap-anywhere"><Users className="h-3.5 w-3.5" /> Grupo Premium</TabsTrigger>
-                           <TabsTrigger value="hub_event" className="gap-1 text-wrap-anywhere"><CalendarDays className="h-3.5 w-3.5" /> Evento HUB</TabsTrigger>
-                           <TabsTrigger value="whatsapp_community" className="gap-1 text-wrap-anywhere"><MessageCircle className="h-3.5 w-3.5" /> Comunidade Gente</TabsTrigger>
-                        </TabsList>
-                      </Tabs>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tipo de convite" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="premium_group">
+                            <span className="flex items-center gap-2">
+                              <Users className="h-3.5 w-3.5" /> Grupo Premium
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="hub_event">
+                            <span className="flex items-center gap-2">
+                              <CalendarDays className="h-3.5 w-3.5" /> Evento Gente HUB
+                            </span>
+                          </SelectItem>
+                          <SelectItem value="whatsapp_community">
+                            <span className="flex items-center gap-2">
+                              <MessageCircle className="h-3.5 w-3.5" /> Comunidade Gente (WhatsApp)
+                            </span>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+
                       <FormMessage />
                     </FormItem>
                   )}
