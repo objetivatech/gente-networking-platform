@@ -87,6 +87,293 @@ export type Database = {
           },
         ]
       }
+      billing_charges: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          created_by: string | null
+          due_date: string
+          external_id: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json
+          paid_at: string | null
+          payment_url: string | null
+          plan_id: string | null
+          profile_id: string | null
+          provider: string | null
+          status: string
+          subscription_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string
+          external_id?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          paid_at?: string | null
+          payment_url?: string | null
+          plan_id?: string | null
+          profile_id?: string | null
+          provider?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string
+          external_id?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          paid_at?: string | null
+          payment_url?: string | null
+          plan_id?: string | null
+          profile_id?: string | null
+          provider?: string | null
+          status?: string
+          subscription_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_charges_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_charges_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_discounts: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          id: string
+          max_uses: number | null
+          plan_id: string | null
+          updated_at: string
+          uses: number
+          valid_until: string | null
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          id?: string
+          max_uses?: number | null
+          plan_id?: string | null
+          updated_at?: string
+          uses?: number
+          valid_until?: string | null
+          value?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          id?: string
+          max_uses?: number | null
+          plan_id?: string | null
+          updated_at?: string
+          uses?: number
+          valid_until?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_discounts_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_plans: {
+        Row: {
+          active: boolean
+          amount_cents: number
+          audience: string
+          billing_interval: string | null
+          contract_template_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          id: string
+          installments: number | null
+          name: string
+          plan_type: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount_cents?: number
+          audience?: string
+          billing_interval?: string | null
+          contract_template_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          installments?: number | null
+          name: string
+          plan_type?: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount_cents?: number
+          audience?: string
+          billing_interval?: string | null
+          contract_template_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string | null
+          id?: string
+          installments?: number | null
+          name?: string
+          plan_type?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_plans_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_subscriptions: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          created_by: string | null
+          discount_id: string | null
+          external_id: string | null
+          id: string
+          lead_id: string | null
+          next_charge_date: string | null
+          notes: string | null
+          plan_id: string
+          profile_id: string | null
+          provider: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          created_by?: string | null
+          discount_id?: string | null
+          external_id?: string | null
+          id?: string
+          lead_id?: string | null
+          next_charge_date?: string | null
+          notes?: string | null
+          plan_id: string
+          profile_id?: string | null
+          provider?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          created_by?: string | null
+          discount_id?: string | null
+          external_id?: string | null
+          id?: string
+          lead_id?: string | null
+          next_charge_date?: string | null
+          notes?: string | null
+          plan_id?: string
+          profile_id?: string | null
+          provider?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_subscriptions_discount_id_fkey"
+            columns: ["discount_id"]
+            isOneToOne: false
+            referencedRelation: "billing_discounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_cases: {
         Row: {
           business_deal_id: string | null

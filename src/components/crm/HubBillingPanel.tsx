@@ -5,14 +5,22 @@
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { CircleDollarSign, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { CircleDollarSign, RefreshCw, CheckCircle2, Send } from 'lucide-react';
+import {
+  SUBSCRIPTION_STATUS_LABEL,
+  formatCents,
+  useBillingPlans,
+  useLeadSubscriptions,
+  useSendCharge,
+} from '@/hooks/useBilling';
 import {
   HUB_BILLING_LABEL,
   useDispatchHubBilling,
@@ -34,6 +42,11 @@ export function HubBillingPanel({ lead }: { lead: CrmLead }) {
   const markPaid = useMarkLeadPaid();
   const [showPaidForm, setShowPaidForm] = useState(false);
   const [reason, setReason] = useState('');
+  const { data: leadSubs } = useLeadSubscriptions(lead.id);
+  const { data: plans } = useBillingPlans();
+  const sendCharge = useSendCharge();
+  const subscriptions = leadSubs ?? [];
+  const planById = useMemo(() => new Map((plans ?? []).map((p) => [p.id, p])), [plans]);
 
   if (!lead.is_hub) return null;
 
@@ -49,15 +62,57 @@ export function HubBillingPanel({ lead }: { lead: CrmLead }) {
         )}
       </div>
 
+      {/* v3.37.0 — assinaturas do lead: a cobrança só é liberada com plano ativo vinculado */}
+      {subscriptions.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Nenhuma assinatura vinculada. Crie um plano e a assinatura deste cliente em{' '}
+          <Link to="/admin/planos" className="underline text-primary">
+            Planos e Assinaturas
+          </Link>{' '}
+          para liberar a cobrança.
+        </p>
+      ) : (
+        <div className="space-y-1">
+          {subscriptions.map((s) => (
+            <div
+              key={s.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-2"
+            >
+              <div className="min-w-0 text-xs">
+                <p className="font-medium text-wrap-anywhere">
+                  {planById.get(s.plan_id)?.name ?? 'Plano'} · {formatCents(s.amount_cents)}
+                </p>
+                <p className="text-muted-foreground">
+                  {SUBSCRIPTION_STATUS_LABEL[s.status]}
+                  {s.next_charge_date ? ` · próxima ${s.next_charge_date}` : ''}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                disabled={sendCharge.isPending || s.status === 'canceled'}
+                onClick={() => sendCharge.mutate({ subscription_id: s.id, force: true })}
+              >
+                <Send className="h-4 w-4 mr-1" /> Cobrar
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
           variant="outline"
           onClick={() => dispatch.mutate({ leadId: lead.id, force: (events?.length ?? 0) > 0 })}
-          disabled={dispatch.isPending}
+          disabled={dispatch.isPending || subscriptions.length === 0}
+          title={
+            subscriptions.length === 0
+              ? 'Vincule uma assinatura ao lead para liberar a cobrança'
+              : undefined
+          }
         >
           <RefreshCw className={`h-4 w-4 mr-1 ${dispatch.isPending ? 'animate-spin' : ''}`} />
-          {(events?.length ?? 0) > 0 ? 'Reenviar cobrança' : 'Disparar cobrança'}
+          {(events?.length ?? 0) > 0 ? 'Reenviar aviso' : 'Enviar aviso de cobrança'}
         </Button>
         {lead.payment_status !== 'paid' && (
           <Button size="sm" variant="ghost" onClick={() => setShowPaidForm((s) => !s)}>
@@ -65,6 +120,7 @@ export function HubBillingPanel({ lead }: { lead: CrmLead }) {
           </Button>
         )}
       </div>
+
 
       {showPaidForm && (
         <Card>

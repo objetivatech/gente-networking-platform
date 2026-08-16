@@ -65,6 +65,7 @@ const PedidosIndicacao = lazyWithRetry(() => import("./pages/PedidosIndicacao"))
 const AdminCrm = lazyWithRetry(() => import("./pages/AdminCrm"));
 const AdminCrmAuditoria = lazyWithRetry(() => import("./pages/AdminCrmAuditoria"));
 const AdminContractTemplates = lazyWithRetry(() => import("./pages/AdminContractTemplates"));
+const PlanosAssinaturas = lazyWithRetry(() => import("./pages/PlanosAssinaturas"));
 const TermosDeUso = lazyWithRetry(() => import("./pages/legal/TermosDeUso"));
 const PoliticaPrivacidade = lazyWithRetry(() => import("./pages/legal/PoliticaPrivacidade"));
 const PoliticaCookies = lazyWithRetry(() => import("./pages/legal/PoliticaCookies"));
@@ -151,6 +152,7 @@ const App = () => (
                 <Route path="/admin/crm" element={<AdminCrm />} />
                 <Route path="/admin/crm/auditoria" element={<AdminCrmAuditoria />} />
                 <Route path="/admin/contratos" element={<AdminContractTemplates />} />
+                <Route path="/admin/planos" element={<PlanosAssinaturas />} />
                 <Route path="/admin/registros" element={<AdminRegistros />} />
                 {/* Rotas antigas mantidas para compatibilidade */}
                 <Route path="/admin/membros" element={<GerenciarMembros />} />
