@@ -14,6 +14,7 @@ import { useInvitations, Invitation } from '@/hooks/useInvitations';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { useHubMeetings } from '@/hooks/useHubMeetings';
+import { meetingDisplayTitle } from '@/lib/meeting-label';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
@@ -325,7 +326,7 @@ export default function Convites() {
                                 <div className="p-2 text-sm text-muted-foreground">Nenhum evento HUB futuro cadastrado</div>
                               ) : hubEvents.map((meeting) => (
                                 <SelectItem key={meeting.id} value={meeting.id}>
-                                  {meeting.title} · {format(new Date(`${meeting.meeting_date}T12:00:00`), 'dd/MM/yyyy')}
+                                  {meetingDisplayTitle(meeting)} · {format(new Date(`${meeting.meeting_date}T12:00:00`), 'dd/MM/yyyy')}
                                 </SelectItem>
                               ))}
                             </SelectContent>

@@ -43,7 +43,7 @@ export function useHubMeetings() {
       const today = new Date().toISOString().slice(0, 10);
       const { data, error } = await supabase
         .from('meetings')
-        .select('id, title, meeting_date, meeting_time, location')
+        .select('id, title, event_type, meeting_date, meeting_time, location')
         .eq('event_type', 'hub_event')
         .gte('meeting_date', today)
         .order('meeting_date', { ascending: true });
