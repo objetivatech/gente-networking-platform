@@ -373,7 +373,20 @@ export function useMatchmaking() {
           .in('id', targetIds);
         profs?.forEach((p) => { targets[p.id] = p; });
       }
-      return (data || []).map((c) => ({ ...c, target: targets[c.target_id] || null }));
+      const totals: Record<string, number> = {};
+      (data || []).forEach((c) => { totals[c.target_id] = (totals[c.target_id] || 0) + 1; });
+      const nowIso = new Date().toISOString();
+
+      return (data || []).map((c) => {
+        const availableAt = addDays(c.created_at, MATCHMAKING_COOLDOWN_DAYS);
+        return {
+          ...c,
+          totalWithTarget: totals[c.target_id] || 1,
+          availableAt,
+          isInCooldown: availableAt > nowIso,
+          target: targets[c.target_id] || null,
+        };
+      });
     },
   });
 
