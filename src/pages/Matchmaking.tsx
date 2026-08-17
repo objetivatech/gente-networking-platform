@@ -17,6 +17,7 @@ import { useMatchmaking, MatchSuggestion } from '@/hooks/useMatchmaking';
 import { useAdmin } from '@/hooks/useAdmin';
 import { canUseMatchmaking } from '@/lib/access-control';
 import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
+import { MatchmakingCheckDialog } from '@/components/MatchmakingCheckDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,20 +27,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Lightbulb,
+  Repeat2, PhoneCall, Handshake,
 } from 'lucide-react';
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
 const initials = (name: string) =>
   name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
 
 export default function Matchmaking() {
   const { role, isLoading: roleLoading } = useAdmin();
-  const { myProfile, suggestions, weeklySuggestion, isLoading, connections } = useMatchmaking();
+  const { myProfile, suggestions, weeklySuggestion, isLoading, connections, createCheck, registerAttempt } = useMatchmaking();
 
   if (!roleLoading && !canUseMatchmaking(role)) {
     return <Navigate to="/" replace />;
   }
 
-  const pending = suggestions.filter((s) => !s.alreadyConnected);
+  // Sugestões visíveis: exclui apenas quem está em fila de espera (60 dias)
+  const pending = suggestions;
 
   return (
     <div className="space-y-6">
@@ -92,12 +98,21 @@ export default function Matchmaking() {
                 </div>
               </div>
             </div>
-            <ScheduleMeetingDialog
-              recipientId={weeklySuggestion.id}
-              memberName={weeklySuggestion.full_name}
-              variant="default"
-              className="shrink-0"
-            />
+            <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+              <ScheduleMeetingDialog
+                recipientId={weeklySuggestion.id}
+                memberName={weeklySuggestion.full_name}
+                variant="default"
+                onScheduled={() =>
+                  registerAttempt.mutate({ targetId: weeklySuggestion.id, attemptType: 'schedule_request' })
+                }
+              />
+              <MatchmakingCheckDialog
+                targetId={weeklySuggestion.id}
+                targetName={weeklySuggestion.full_name}
+                createCheck={createCheck}
+              />
+            </div>
           </CardContent>
         </Card>
       )}
@@ -180,12 +195,49 @@ export default function Matchmaking() {
                     {s.role === 'convidado' && (
                       <Badge variant="secondary" className="w-fit text-xs">Convidado</Badge>
                     )}
-                    <ScheduleMeetingDialog
-                      recipientId={s.id}
-                      memberName={s.full_name}
-                      variant="default"
-                      className="mt-auto w-full"
-                    />
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                      {s.attemptsCount > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <PhoneCall className="h-3.5 w-3.5" /> Tentativas: {s.attemptsCount}
+                        </span>
+                      )}
+                      {s.connectionsCount > 0 && (
+                        <span className="inline-flex items-center gap-1">
+                          <Handshake className="h-3.5 w-3.5" /> Conexões: {s.connectionsCount}
+                        </span>
+                      )}
+                    </div>
+                    {s.isReconnection && (
+                      <Badge variant="secondary" className="w-fit gap-1 text-xs">
+                        <Repeat2 className="h-3 w-3" /> Reconexão sugerida
+                      </Badge>
+                    )}
+                    <div className="mt-auto space-y-2">
+                      <ScheduleMeetingDialog
+                        recipientId={s.id}
+                        memberName={s.full_name}
+                        variant="default"
+                        className="w-full"
+                        onScheduled={() =>
+                          registerAttempt.mutate({ targetId: s.id, attemptType: 'schedule_request' })
+                        }
+                      />
+                      <MatchmakingCheckDialog
+                        targetId={s.id}
+                        targetName={s.full_name}
+                        createCheck={createCheck}
+                        className="w-full"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs text-muted-foreground"
+                        disabled={registerAttempt.isPending}
+                        onClick={() => registerAttempt.mutate({ targetId: s.id, attemptType: 'manual' })}
+                      >
+                        Registrar tentativa de contato
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -211,6 +263,12 @@ export default function Matchmaking() {
                       <p className="font-medium">{c.target?.full_name || 'Contato'}</p>
                       {c.target?.company && <p className="text-sm text-muted-foreground">{c.target.company}</p>}
                       {c.description && <p className="text-sm mt-1">{c.description}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Conexão em {formatDate(c.created_at)} · {c.totalWithTarget} encontro(s) registrado(s) ·{' '}
+                        {c.isInCooldown
+                          ? `disponível para nova sugestão em ${formatDate(c.availableAt)}`
+                          : 'disponível agora nas sugestões'}
+                      </p>
                     </div>
                     <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
                   </CardContent>
