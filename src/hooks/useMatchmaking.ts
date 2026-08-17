@@ -131,7 +131,7 @@ const getIsoWeekSeed = (d = new Date()): number => {
 const pickWeeklySuggestion = (
   suggestions: MatchSuggestion[]
 ): MatchSuggestion | null => {
-  const pool = suggestions.filter((s) => !s.alreadyConnected && s.score > 0);
+  const pool = suggestions.filter((s) => !s.isInCooldown && s.score > 0);
   if (pool.length === 0) return null;
   const topPool = pool.slice(0, Math.min(5, pool.length));
   const idx = getIsoWeekSeed() % topPool.length;
