@@ -35,6 +35,15 @@ export interface MatchSuggestion {
   reasons: string[];
   sharedTags: string[];
   alreadyConnected: boolean;
+  /** Nº de tentativas de contato registradas (agendamento ou manual). */
+  attemptsCount: number;
+  /** Nº de conexões efetivas registradas com esta pessoa. */
+  connectionsCount: number;
+  lastConnectionAt: string | null;
+  /** Data em que o contato volta a ser sugerido (fila de 60 dias). */
+  cooldownUntil: string | null;
+  isInCooldown: boolean;
+  isReconnection: boolean;
   matchType: MatchType;
   partnershipScore: number;
   opportunityTitle: string;
@@ -59,8 +68,22 @@ export interface MatchmakingConnection {
   target_id: string;
   description: string | null;
   created_at: string;
+  /** Total de conexões efetivas com este contato. */
+  totalWithTarget: number;
+  /** Data em que o contato volta às sugestões (fila de 60 dias). */
+  availableAt: string;
+  isInCooldown: boolean;
   target?: { full_name: string; company: string | null; avatar_url: string | null } | null;
 }
+
+/** Dias de fila de espera após uma conexão efetiva. */
+export const MATCHMAKING_COOLDOWN_DAYS = 60;
+
+const addDays = (iso: string, days: number): string => {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+};
 
 // Normaliza texto: minúsculas, sem acento
 const normalize = (s: string | null | undefined): string =>
@@ -108,7 +131,7 @@ const getIsoWeekSeed = (d = new Date()): number => {
 const pickWeeklySuggestion = (
   suggestions: MatchSuggestion[]
 ): MatchSuggestion | null => {
-  const pool = suggestions.filter((s) => !s.alreadyConnected && s.score > 0);
+  const pool = suggestions.filter((s) => !s.isInCooldown && s.score > 0);
   if (pool.length === 0) return null;
   const topPool = pool.slice(0, Math.min(5, pool.length));
   const idx = getIsoWeekSeed() % topPool.length;
@@ -150,13 +173,34 @@ export function useMatchmaking() {
       const roleMap: Record<string, string> = {};
       roles?.forEach((r) => { roleMap[r.user_id] = r.role; });
 
-      // 3. Conexões já realizadas pelo usuário
+      // 3. Conexões efetivas já realizadas pelo usuário (histórico completo)
       const { data: connections, error: cErr } = await supabase
         .from('matchmaking_connections')
-        .select('target_id')
+        .select('target_id, created_at')
         .eq('member_id', user.id);
       if (cErr) throw cErr;
-      const connectedSet = new Set((connections || []).map((c) => c.target_id));
+
+      const connectionsCountMap: Record<string, number> = {};
+      const lastConnectionMap: Record<string, string> = {};
+      (connections || []).forEach((c) => {
+        connectionsCountMap[c.target_id] = (connectionsCountMap[c.target_id] || 0) + 1;
+        if (!lastConnectionMap[c.target_id] || c.created_at > lastConnectionMap[c.target_id]) {
+          lastConnectionMap[c.target_id] = c.created_at;
+        }
+      });
+
+      // 4. Tentativas de contato registradas (não entram na fila de espera)
+      const { data: attempts, error: aErr } = await supabase
+        .from('matchmaking_attempts' as any)
+        .select('target_id')
+        .eq('member_id', user.id);
+      if (aErr) throw aErr;
+      const attemptsCountMap: Record<string, number> = {};
+      ((attempts as any[]) || []).forEach((a) => {
+        attemptsCountMap[a.target_id] = (attemptsCountMap[a.target_id] || 0) + 1;
+      });
+
+      const nowIso = new Date().toISOString();
 
       // Perfil do usuário logado
       const me = (profiles || []).find((p) => p.id === user.id);
@@ -260,6 +304,17 @@ export function useMatchmaking() {
         // tags em comum legíveis (formato original do outro perfil)
         const sharedTags = otherTags.filter((t) => myTagsNorm.includes(normalize(t)));
 
+        const connectionsCount = connectionsCountMap[p.id] || 0;
+        const attemptsCount = attemptsCountMap[p.id] || 0;
+        const lastConnectionAt = lastConnectionMap[p.id] || null;
+        const cooldownUntil = lastConnectionAt
+          ? addDays(lastConnectionAt, MATCHMAKING_COOLDOWN_DAYS)
+          : null;
+        const isInCooldown = !!cooldownUntil && cooldownUntil > nowIso;
+
+        // Tentativas sem retorno reduzem levemente a prioridade, sem esconder o card
+        const adjustedScore = Math.max(1, score - Math.min(15, attemptsCount * 5));
+
         suggestions.push({
           id: p.id,
           full_name: p.full_name,
@@ -271,10 +326,16 @@ export function useMatchmaking() {
           ideal_client: p.ideal_client,
           tags: otherTags,
           role: role || 'convidado',
-          score,
+          score: adjustedScore,
           reasons,
           sharedTags,
-          alreadyConnected: connectedSet.has(p.id),
+          alreadyConnected: connectionsCount > 0,
+          attemptsCount,
+          connectionsCount,
+          lastConnectionAt,
+          cooldownUntil,
+          isInCooldown,
+          isReconnection: connectionsCount > 0 && !isInCooldown,
           matchType: opportunity.matchType,
           partnershipScore: opportunity.partnershipScore,
           opportunityTitle: opportunity.opportunityTitle,
@@ -286,6 +347,7 @@ export function useMatchmaking() {
       }
 
       suggestions.sort((a, b) => b.score - a.score);
+
 
       return { myProfile, suggestions };
     },
@@ -311,7 +373,20 @@ export function useMatchmaking() {
           .in('id', targetIds);
         profs?.forEach((p) => { targets[p.id] = p; });
       }
-      return (data || []).map((c) => ({ ...c, target: targets[c.target_id] || null }));
+      const totals: Record<string, number> = {};
+      (data || []).forEach((c) => { totals[c.target_id] = (totals[c.target_id] || 0) + 1; });
+      const nowIso = new Date().toISOString();
+
+      return (data || []).map((c) => {
+        const availableAt = addDays(c.created_at, MATCHMAKING_COOLDOWN_DAYS);
+        return {
+          ...c,
+          totalWithTarget: totals[c.target_id] || 1,
+          availableAt,
+          isInCooldown: availableAt > nowIso,
+          target: targets[c.target_id] || null,
+        };
+      });
     },
   });
 
@@ -344,14 +419,43 @@ export function useMatchmaking() {
     },
   });
 
-  const suggestions = query.data?.suggestions ?? [];
+  const registerAttempt = useMutation({
+    mutationFn: async (input: { targetId: string; attemptType?: 'manual' | 'schedule_request'; notes?: string }) => {
+      const { data, error } = await supabase.rpc('register_matchmaking_attempt' as any, {
+        _target_id: input.targetId,
+        _attempt_type: input.attemptType || 'manual',
+        _notes: input.notes || null,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (result && result.success === false) {
+        throw new Error(result.error || 'Erro ao registrar tentativa');
+      }
+      return result;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['matchmaking'] });
+      if (vars.attemptType !== 'schedule_request') {
+        toast({ title: 'Tentativa registrada', description: 'Contamos essa tentativa de conexão.' });
+      }
+    },
+    onError: (e: any) => {
+      toast({ title: 'Erro', description: e?.message || 'Não foi possível registrar a tentativa', variant: 'destructive' });
+    },
+  });
+
+  const allSuggestions = query.data?.suggestions ?? [];
+  // Conexões efetivas recentes ficam em fila de espera (60 dias) fora da listagem
+  const suggestions = allSuggestions.filter((s) => !s.isInCooldown);
 
   return {
     myProfile: query.data?.myProfile ?? null,
     suggestions,
+    allSuggestions,
     weeklySuggestion: pickWeeklySuggestion(suggestions),
     isLoading: query.isLoading,
     connections: connectionsQuery.data ?? [],
     createCheck,
+    registerAttempt,
   };
 }

@@ -1156,6 +1156,51 @@ export type Database = {
           },
         ]
       }
+      matchmaking_attempts: {
+        Row: {
+          attempt_type: string
+          created_at: string
+          id: string
+          member_id: string
+          notes: string | null
+          reference_id: string | null
+          target_id: string
+        }
+        Insert: {
+          attempt_type?: string
+          created_at?: string
+          id?: string
+          member_id: string
+          notes?: string | null
+          reference_id?: string | null
+          target_id: string
+        }
+        Update: {
+          attempt_type?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          notes?: string | null
+          reference_id?: string | null
+          target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matchmaking_attempts_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matchmaking_attempts_target_id_fkey"
+            columns: ["target_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matchmaking_connections: {
         Row: {
           created_at: string
@@ -2189,6 +2234,15 @@ export type Database = {
           _title: string
         }
         Returns: string
+      }
+      register_matchmaking_attempt: {
+        Args: {
+          _attempt_type?: string
+          _notes?: string
+          _reference_id?: string
+          _target_id: string
+        }
+        Returns: Json
       }
       set_integration_secret: {
         Args: { _name: string; _value: string }
