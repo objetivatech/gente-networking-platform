@@ -304,6 +304,17 @@ export function useMatchmaking() {
         // tags em comum legíveis (formato original do outro perfil)
         const sharedTags = otherTags.filter((t) => myTagsNorm.includes(normalize(t)));
 
+        const connectionsCount = connectionsCountMap[p.id] || 0;
+        const attemptsCount = attemptsCountMap[p.id] || 0;
+        const lastConnectionAt = lastConnectionMap[p.id] || null;
+        const cooldownUntil = lastConnectionAt
+          ? addDays(lastConnectionAt, MATCHMAKING_COOLDOWN_DAYS)
+          : null;
+        const isInCooldown = !!cooldownUntil && cooldownUntil > nowIso;
+
+        // Tentativas sem retorno reduzem levemente a prioridade, sem esconder o card
+        const adjustedScore = Math.max(1, score - Math.min(15, attemptsCount * 5));
+
         suggestions.push({
           id: p.id,
           full_name: p.full_name,
@@ -315,10 +326,16 @@ export function useMatchmaking() {
           ideal_client: p.ideal_client,
           tags: otherTags,
           role: role || 'convidado',
-          score,
+          score: adjustedScore,
           reasons,
           sharedTags,
-          alreadyConnected: connectedSet.has(p.id),
+          alreadyConnected: connectionsCount > 0,
+          attemptsCount,
+          connectionsCount,
+          lastConnectionAt,
+          cooldownUntil,
+          isInCooldown,
+          isReconnection: connectionsCount > 0 && !isInCooldown,
           matchType: opportunity.matchType,
           partnershipScore: opportunity.partnershipScore,
           opportunityTitle: opportunity.opportunityTitle,
@@ -330,6 +347,7 @@ export function useMatchmaking() {
       }
 
       suggestions.sort((a, b) => b.score - a.score);
+
 
       return { myProfile, suggestions };
     },
