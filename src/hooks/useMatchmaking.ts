@@ -68,8 +68,22 @@ export interface MatchmakingConnection {
   target_id: string;
   description: string | null;
   created_at: string;
+  /** Total de conexões efetivas com este contato. */
+  totalWithTarget: number;
+  /** Data em que o contato volta às sugestões (fila de 60 dias). */
+  availableAt: string;
+  isInCooldown: boolean;
   target?: { full_name: string; company: string | null; avatar_url: string | null } | null;
 }
+
+/** Dias de fila de espera após uma conexão efetiva. */
+export const MATCHMAKING_COOLDOWN_DAYS = 60;
+
+const addDays = (iso: string, days: number): string => {
+  const d = new Date(iso);
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+};
 
 // Normaliza texto: minúsculas, sem acento
 const normalize = (s: string | null | undefined): string =>
