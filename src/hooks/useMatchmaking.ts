@@ -35,6 +35,15 @@ export interface MatchSuggestion {
   reasons: string[];
   sharedTags: string[];
   alreadyConnected: boolean;
+  /** Nº de tentativas de contato registradas (agendamento ou manual). */
+  attemptsCount: number;
+  /** Nº de conexões efetivas registradas com esta pessoa. */
+  connectionsCount: number;
+  lastConnectionAt: string | null;
+  /** Data em que o contato volta a ser sugerido (fila de 60 dias). */
+  cooldownUntil: string | null;
+  isInCooldown: boolean;
+  isReconnection: boolean;
   matchType: MatchType;
   partnershipScore: number;
   opportunityTitle: string;
