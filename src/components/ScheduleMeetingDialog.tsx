@@ -26,6 +26,8 @@ interface ScheduleMeetingDialogProps {
   availabilityNote?: string | null;
   className?: string;
   variant?: 'default' | 'outline';
+  /** Chamado após o envio da solicitação (usado pelo MatchMaking para contar tentativas). */
+  onScheduled?: () => void;
 }
 
 function defaultStart(): string {
@@ -36,7 +38,7 @@ function defaultStart(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNote, className, variant = 'outline' }: ScheduleMeetingDialogProps) {
+export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNote, className, variant = 'outline', onScheduled }: ScheduleMeetingDialogProps) {
   const [open, setOpen] = useState(false);
   const [start, setStart] = useState<string>(defaultStart());
   const [duration, setDuration] = useState<string>('60');
@@ -53,7 +55,7 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
         location,
         message,
       },
-      { onSuccess: () => setOpen(false) },
+      { onSuccess: () => { setOpen(false); onScheduled?.(); } },
     );
   };
 
