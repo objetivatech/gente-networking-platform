@@ -419,14 +419,43 @@ export function useMatchmaking() {
     },
   });
 
-  const suggestions = query.data?.suggestions ?? [];
+  const registerAttempt = useMutation({
+    mutationFn: async (input: { targetId: string; attemptType?: 'manual' | 'schedule_request'; notes?: string }) => {
+      const { data, error } = await supabase.rpc('register_matchmaking_attempt' as any, {
+        _target_id: input.targetId,
+        _attempt_type: input.attemptType || 'manual',
+        _notes: input.notes || null,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (result && result.success === false) {
+        throw new Error(result.error || 'Erro ao registrar tentativa');
+      }
+      return result;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['matchmaking'] });
+      if (vars.attemptType !== 'schedule_request') {
+        toast({ title: 'Tentativa registrada', description: 'Contamos essa tentativa de conexão.' });
+      }
+    },
+    onError: (e: any) => {
+      toast({ title: 'Erro', description: e?.message || 'Não foi possível registrar a tentativa', variant: 'destructive' });
+    },
+  });
+
+  const allSuggestions = query.data?.suggestions ?? [];
+  // Conexões efetivas recentes ficam em fila de espera (60 dias) fora da listagem
+  const suggestions = allSuggestions.filter((s) => !s.isInCooldown);
 
   return {
     myProfile: query.data?.myProfile ?? null,
     suggestions,
+    allSuggestions,
     weeklySuggestion: pickWeeklySuggestion(suggestions),
     isLoading: query.isLoading,
     connections: connectionsQuery.data ?? [],
     createCheck,
+    registerAttempt,
   };
 }
