@@ -42,3 +42,11 @@ Bônus de +10 pts somado em `calculate_monthly_points_for_team` (termo `matchmak
 
 ## Tabela `matchmaking_connections`
 RLS: membro vê/cria/remove os próprios; admin/facilitador leem. Pontos só contam para membros (admin/facilitador retornam 0 no cálculo).
+
+## v3.40.0 — Conexões, tentativas e fila de espera
+- Card tem 3 ações: Agendar Gente em Ação (conta tentativa `schedule_request`), "Já conectei" (RPC `create_matchmaking_check`) e "Registrar tentativa de contato" (RPC `register_matchmaking_attempt`, sem pontos).
+- Tabela `matchmaking_attempts` (member_id, target_id, attempt_type manual|schedule_request, notes, reference_id).
+- `matchmaking_connections` perdeu a unique (member_id, target_id): reconexões são permitidas.
+- Fila de espera de 60 dias apenas por conexão EFETIVA; depois volta com selo "Reconexão sugerida" e pontua de novo (25 + 10).
+- Tentativas não escondem o card; reduzem o score exibido em 5 por tentativa (máx. -15).
+- Doc: `docs/MATCHMAKING.md`.
