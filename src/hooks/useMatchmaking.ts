@@ -173,13 +173,34 @@ export function useMatchmaking() {
       const roleMap: Record<string, string> = {};
       roles?.forEach((r) => { roleMap[r.user_id] = r.role; });
 
-      // 3. Conexões já realizadas pelo usuário
+      // 3. Conexões efetivas já realizadas pelo usuário (histórico completo)
       const { data: connections, error: cErr } = await supabase
         .from('matchmaking_connections')
-        .select('target_id')
+        .select('target_id, created_at')
         .eq('member_id', user.id);
       if (cErr) throw cErr;
-      const connectedSet = new Set((connections || []).map((c) => c.target_id));
+
+      const connectionsCountMap: Record<string, number> = {};
+      const lastConnectionMap: Record<string, string> = {};
+      (connections || []).forEach((c) => {
+        connectionsCountMap[c.target_id] = (connectionsCountMap[c.target_id] || 0) + 1;
+        if (!lastConnectionMap[c.target_id] || c.created_at > lastConnectionMap[c.target_id]) {
+          lastConnectionMap[c.target_id] = c.created_at;
+        }
+      });
+
+      // 4. Tentativas de contato registradas (não entram na fila de espera)
+      const { data: attempts, error: aErr } = await supabase
+        .from('matchmaking_attempts' as any)
+        .select('target_id')
+        .eq('member_id', user.id);
+      if (aErr) throw aErr;
+      const attemptsCountMap: Record<string, number> = {};
+      ((attempts as any[]) || []).forEach((a) => {
+        attemptsCountMap[a.target_id] = (attemptsCountMap[a.target_id] || 0) + 1;
+      });
+
+      const nowIso = new Date().toISOString();
 
       // Perfil do usuário logado
       const me = (profiles || []).find((p) => p.id === user.id);
