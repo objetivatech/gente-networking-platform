@@ -42,6 +42,51 @@ const STEPS = [
   { key: 'success_result', label: 'Sucesso', icon: Trophy },
 ] as const;
 
+/** Card de um case, com recolhimento dos textos longos. */
+function CaseCard({ item }: { item: PublicCase }) {
+  const [open, setOpen] = useState(false);
+  const total = STEPS.reduce((acc, s) => acc + (item[s.key]?.length || 0), 0);
+  const isLong = total > 700;
+
+  return (
+    <Card className="min-w-0">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base text-[#1E3A5F] text-wrap-anywhere">{item.title}</CardTitle>
+        {item.client_name && <p className="text-sm text-muted-foreground">{item.client_name}</p>}
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {STEPS.map(({ key, label, icon: Icon }) => {
+            const value = item[key];
+            if (!value) return null;
+            return (
+              <div key={key} className="min-w-0">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#F7941D]">
+                  <Icon className="h-3.5 w-3.5" /> {label}
+                </p>
+                <RichText
+                  value={value}
+                  className={`text-sm text-muted-foreground text-wrap-anywhere ${isLong && !open ? 'line-clamp-5' : ''}`}
+                />
+              </div>
+            );
+          })}
+        </div>
+        {isLong && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="mt-3 text-sm font-semibold text-[#1E3A5F] underline underline-offset-4"
+          >
+            {open ? 'Ver menos' : 'Ver case completo'}
+          </button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+
 export default function PublicProfileCases({ slug }: { slug: string }) {
   const [cases, setCases] = useState<PublicCase[]>([]);
   const [start, setStart] = useState(0);
