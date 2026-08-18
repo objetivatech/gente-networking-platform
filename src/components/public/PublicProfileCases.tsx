@@ -109,26 +109,7 @@ export default function PublicProfileCases({ slug }: { slug: string }) {
 
       <div className="grid gap-4">
         {visible.map((c) => (
-          <Card key={c.id} className="min-w-0">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base text-[#1E3A5F] text-wrap-anywhere">{c.title}</CardTitle>
-              {c.client_name && <p className="text-sm text-muted-foreground">{c.client_name}</p>}
-            </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2">
-              {STEPS.map(({ key, label, icon: Icon }) => {
-                const value = c[key];
-                if (!value) return null;
-                return (
-                  <div key={key} className="min-w-0">
-                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#F7941D]">
-                      <Icon className="h-3.5 w-3.5" /> {label}
-                    </p>
-                    <RichText value={value} className="text-sm text-muted-foreground" />
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+          <CaseCard key={c.id} item={c} />
         ))}
       </div>
     </section>
