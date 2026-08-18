@@ -2,7 +2,7 @@
 
 > Plataforma de gestão da comunidade Gente Networking — conectando pessoas, gerando negócios.
 
-Gente Networking é um sistema de gestão de comunidade de negócios. Permite acompanhar membros, encontros quinzenais, indicações, depoimentos, negócios fechados e gamificação por grupos.
+Gente Networking é um sistema de gestão de comunidade de negócios. Permite acompanhar membros, encontros quinzenais, indicações, depoimentos, negócios fechados e gamificação por grupos. Este subdomínio (comunidade.gentenetworking.com.br) hospeda o produto "Gente Comunidade" da marca Gente Networking (gentenetworking.com.br).
 
 ## Páginas
 
@@ -14,7 +14,14 @@ Gente Networking é um sistema de gestão de comunidade de negócios. Permite ac
 - [Estatísticas](/estatisticas): Indicadores e KPIs da comunidade.
 - [Documentação](/documentacao): Guias e regras da comunidade.
 
+## Perfis públicos de membros
+
+Cada membro com perfil publicado tem uma página pública em `/m/{slug}` com cargo, empresa, segmento, bio, o que faz, cliente ideal, como indicá-lo, resultados na comunidade, cases de sucesso e atividades recentes.
+
+- Lista completa dos perfis publicados: [sitemap.xml](/sitemap.xml)
+
 ## Opcional
 
 - [Instalar PWA](/instalar): Instruções para instalar o aplicativo.
 - [Changelog](/changelog): Histórico de atualizações.
+- [Termos de Uso](/termos-de-uso), [Política de Privacidade](/politica-de-privacidade), [Política de Cookies](/politica-de-cookies)
