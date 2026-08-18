@@ -78,10 +78,16 @@ export default function PublicProfileActivity({ slug }: { slug: string }) {
                   : 'bg-slate-300'
               }`}
             />
-            <p className="mb-1 text-[11px] font-medium text-slate-400">{formatWhen(item.created_at)}</p>
-            <p className="text-sm leading-snug text-slate-700 text-wrap-anywhere">
-              {LABEL[item.activity_type] || item.title}
+            <p className="mb-1 text-[11px] font-medium text-slate-400">{formatWhen(item.occurred_at)}</p>
+            <p className="text-sm font-semibold leading-snug text-[#1E3A5F] text-wrap-anywhere">
+              {LABEL[item.activity_type] || 'Atividade na rede'}
             </p>
+            {item.description && (
+              <p className="mt-0.5 text-sm leading-snug text-slate-600 text-wrap-anywhere">
+                {item.description}
+              </p>
+            )}
+
           </div>
         ))}
       </div>
