@@ -2118,6 +2118,15 @@ export type Database = {
           what_i_do: string
         }[]
       }
+      get_public_profile_activity: {
+        Args: { _slug: string }
+        Returns: {
+          activity_type: string
+          created_at: string
+          id: string
+          title: string
+        }[]
+      }
       get_public_profile_cases: {
         Args: { _slug: string }
         Returns: {
