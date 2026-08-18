@@ -61,7 +61,7 @@ export default function PublicProfileCases({ slug }: { slug: string }) {
   }, [slug]);
 
   useEffect(() => {
-    const apply = () => setPerView(window.matchMedia('(min-width: 768px)').matches ? 2 : 1);
+    const apply = () => setPerView(1);
     apply();
     window.addEventListener('resize', apply);
     return () => window.removeEventListener('resize', apply);
