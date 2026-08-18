@@ -73,7 +73,9 @@ function ExpandableRich({
       <RichText
         value={value}
         className={`text-sm leading-relaxed text-wrap-anywhere ${
-          tone === 'dark' ? 'text-slate-200' : 'text-slate-600'
+          tone === 'dark'
+            ? 'text-slate-200 [&_a]:text-[#F7941D] [&_a]:underline'
+            : 'text-slate-600'
         } ${isLong && !open ? 'line-clamp-6' : ''}`}
       />
       {isLong && (
