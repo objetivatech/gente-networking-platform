@@ -13,28 +13,31 @@ interface PublicActivity {
   id: string;
   activity_type: string;
   title: string;
-  created_at: string;
+  description: string | null;
+  occurred_at: string;
 }
 
 const LABEL: Record<string, string> = {
-  attendance: 'Presença confirmada em encontro',
-  gente_em_acao: 'Realizou um Gente em Ação',
-  referral: 'Gerou uma indicação',
-  testimonial: 'Depoimento registrado',
-  business_deal: 'Negócio fechado na rede',
-  business_case: 'Publicou um case de sucesso',
-  matchmaking: 'Nova conexão no MatchMaking',
+  attendance: 'Presença em encontro',
+  gente_em_acao: 'Gente em Ação',
+  referral: 'Indicação gerada',
+  testimonial: 'Depoimento',
+  business_deal: 'Negócio fechado',
+  business_case: 'Case de sucesso',
+  matchmaking: 'Conexão no MatchMaking',
 };
 
 function formatWhen(iso: string) {
   const date = new Date(iso);
   const now = new Date();
   const days = Math.floor((now.getTime() - date.getTime()) / 86400000);
-  if (days <= 0) return `Hoje, ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  const full = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (days <= 0) return 'Hoje';
   if (days === 1) return 'Ontem';
-  if (days < 30) return `Há ${days} dias`;
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (days < 30) return `Há ${days} dias · ${full}`;
+  return full;
 }
+
 
 export default function PublicProfileActivity({ slug }: { slug: string }) {
   const [items, setItems] = useState<PublicActivity[]>([]);
