@@ -107,7 +107,7 @@ export default function PublicProfileCases({ slug }: { slug: string }) {
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4">
         {visible.map((c) => (
           <Card key={c.id} className="min-w-0">
             <CardHeader className="pb-2">
