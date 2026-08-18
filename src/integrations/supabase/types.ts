@@ -2122,8 +2122,9 @@ export type Database = {
         Args: { _slug: string }
         Returns: {
           activity_type: string
-          created_at: string
+          description: string
           id: string
+          occurred_at: string
           title: string
         }[]
       }
