@@ -20,3 +20,8 @@ verify_jwt = false
 
 [functions.submit-lead]
 verify_jwt = false
+[functions.rescue-optout]
+verify_jwt = false
+
+[functions.rescue-runner]
+verify_jwt = false
