@@ -10,8 +10,8 @@
 
 1. Nova RPC `deactivate_member` (v2, admin-only): remove de todos os grupos, troca a role para `convidado` (reaproveitando a lógica de `downgrade_member_to_guest`), marca `is_active=false`, `deactivated_at`, `deactivation_reason`, recalcula pontos do mês e registra em `activity_feed` + histórico CRM.
 2. Bloqueio de acesso real:
-   - Guard no `AuthContext`/`MainLayout`: se `profiles.is_active = false`, faz sign-out e mostra tela "Conta inativa" com CTA para o WhatsApp do Gente.
-   - Reforço no banco: função `is_active_user()` e ajuste das policies sensíveis para exigir perfil ativo (leitura do próprio perfil continua permitida).
+  - Guard no `AuthContext`/`MainLayout`: se `profiles.is_active = false`, faz sign-out e mostra tela "Conta inativa" com CTA para o WhatsApp do Gente.
+  - Reforço no banco: função `is_active_user()` e ajuste das policies sensíveis para exigir perfil ativo (leitura do próprio perfil continua permitida).
 3. `reactivate_member` passa a exigir escolha de grupo e role de retorno (volta a `membro`/`facilitador`), mantendo histórico.
 
 ## Parte 2 — CRM: ex-membros e convidados como leads de resgate
@@ -49,13 +49,13 @@ A Resend não expõe endpoint de quota restante. Abordagem:
 
 ## Melhorias de marketing recomendadas (sugestões, todas opcionais)
 
-1. **CTA WhatsApp com mensagem pré-preenchida e rastreável**: `https://wa.me/555121652325?text=...` com texto diferente por etapa e por público, mais parâmetro de origem para saber qual etapa gerou a conversa.
-2. **Sequência por valor, não por insistência** — ex-membros: (1) "o que você perdeu" com números reais do grupo dele; (2) prova social — um case/depoimento recente; (3) oferta de retorno com condição especial e prazo. Convidados: (1) convite para o próximo encontro com data concreta; (2) escassez/vagas do grupo + benefício de membro.
-3. **Janela de envio inteligente**: terça a quinta, 9h–11h (horário de São Paulo), evitando fim de semana — melhora abertura sem custo.
-4. **Pausa automática ("cool-off")**: se a pessoa responder no WhatsApp ou for marcada como "em conversa" no CRM, a régua pausa — evita mensagem robótica em cima de negociação.
-5. **Opt-out obrigatório (LGPD)**: link de descadastro em todos os e-mails de resgate, gravado no perfil/lead, respeitado por todas as réguas futuras.
-6. **Gatilho de reengajamento pré-desativação**: alerta ao facilitador quando o Health Score cai por 2 meses — prevenir a saída custa menos que resgatar.
-7. **Convite para evento em vez de venda**: para convidados, converter via presença tem taxa muito maior do que via oferta direta; a etapa 1 deve sempre apontar para o próximo encontro real.
+1. **CTA WhatsApp com mensagem pré-preenchida e rastreável**: `https://wa.me/555121652325?text=...` com texto diferente por etapa e por público, mais parâmetro de origem para saber qual etapa gerou a conversa. **APROVADO!**
+2. **Sequência por valor, não por insistência** — ex-membros: (1) "o que você perdeu" com números reais do grupo dele; (2) prova social — um case/depoimento recente; (3) oferta de retorno com condição especial e prazo. Convidados: (1) convite para o próximo encontro com data concreta; (2) escassez/vagas do grupo + benefício de membro. **APROVADO - NO CASO DA OFERTA ESPECIAL ELA DEVE SER CONFIGURÁVEL ANTES DO DISPARO NO ADMIN. NÃO TENHO ESSA POSSIVEL OFERTA DISPONIVEL NO MOMENTO.**
+3. **Janela de envio inteligente**: terça a quinta, 9h–11h (horário de São Paulo), evitando fim de semana — melhora abertura sem custo. **APROVADO!**
+4. **Pausa automática ("cool-off")**: se a pessoa responder no WhatsApp ou for marcada como "em conversa" no CRM, a régua pausa — evita mensagem robótica em cima de negociação. **APROVADO!**
+5. **Opt-out obrigatório (LGPD)**: link de descadastro em todos os e-mails de resgate, gravado no perfil/lead, respeitado por todas as réguas futuras. **APROVADO!**
+6. **Gatilho de reengajamento pré-desativação**: alerta ao facilitador quando o Health Score cai por 2 meses — prevenir a saída custa menos que resgatar. **APROVADO E DEVE SER DISPARADO PARA O ADMINISTRADOR TAMBÉM!**
+7. **Convite para evento em vez de venda**: para convidados, converter via presença tem taxa muito maior do que via oferta direta; a etapa 1 deve sempre apontar para o próximo encontro real. **APROVADO!**
 
 ## Detalhes técnicos
 

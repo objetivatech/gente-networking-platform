@@ -792,6 +792,8 @@ export type Database = {
           payment_status: string | null
           phone: string | null
           profile_id: string | null
+          rescue_opt_out: boolean
+          rescue_paused_until: string | null
           source: Database["public"]["Enums"]["crm_lead_source"]
           source_detail: string | null
           stage_key: string | null
@@ -827,6 +829,8 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           profile_id?: string | null
+          rescue_opt_out?: boolean
+          rescue_paused_until?: string | null
           source?: Database["public"]["Enums"]["crm_lead_source"]
           source_detail?: string | null
           stage_key?: string | null
@@ -862,6 +866,8 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           profile_id?: string | null
+          rescue_opt_out?: boolean
+          rescue_paused_until?: string | null
           source?: Database["public"]["Enums"]["crm_lead_source"]
           source_detail?: string | null
           stage_key?: string | null
@@ -1603,6 +1609,8 @@ export type Database = {
           public_profile_enabled: boolean
           rank: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at: string | null
+          rescue_opt_out: boolean
+          rescue_paused_until: string | null
           slug: string | null
           tags: string[] | null
           updated_at: string | null
@@ -1639,6 +1647,8 @@ export type Database = {
           public_profile_enabled?: boolean
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
+          rescue_opt_out?: boolean
+          rescue_paused_until?: string | null
           slug?: string | null
           tags?: string[] | null
           updated_at?: string | null
@@ -1675,6 +1685,8 @@ export type Database = {
           public_profile_enabled?: boolean
           rank?: Database["public"]["Enums"]["member_rank"] | null
           rd_station_synced_at?: string | null
+          rescue_opt_out?: boolean
+          rescue_paused_until?: string | null
           slug?: string | null
           tags?: string[] | null
           updated_at?: string | null
@@ -1793,6 +1805,133 @@ export type Database = {
           to_user_id?: string
         }
         Relationships: []
+      }
+      rescue_campaigns: {
+        Row: {
+          active: boolean
+          audience: string
+          body_html: string
+          created_at: string
+          cta_label: string
+          delay_days: number
+          id: string
+          intro: string | null
+          name: string
+          offer_html: string | null
+          step: number
+          subject: string
+          updated_at: string
+          whatsapp_message: string
+        }
+        Insert: {
+          active?: boolean
+          audience: string
+          body_html: string
+          created_at?: string
+          cta_label?: string
+          delay_days: number
+          id?: string
+          intro?: string | null
+          name: string
+          offer_html?: string | null
+          step: number
+          subject: string
+          updated_at?: string
+          whatsapp_message?: string
+        }
+        Update: {
+          active?: boolean
+          audience?: string
+          body_html?: string
+          created_at?: string
+          cta_label?: string
+          delay_days?: number
+          id?: string
+          intro?: string | null
+          name?: string
+          offer_html?: string | null
+          step?: number
+          subject?: string
+          updated_at?: string
+          whatsapp_message?: string
+        }
+        Relationships: []
+      }
+      rescue_dispatches: {
+        Row: {
+          audience: string
+          campaign_id: string | null
+          cancel_reason: string | null
+          created_at: string
+          error: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json
+          profile_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          step: number
+        }
+        Insert: {
+          audience: string
+          campaign_id?: string | null
+          cancel_reason?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          profile_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          step?: number
+        }
+        Update: {
+          audience?: string
+          campaign_id?: string | null
+          cancel_reason?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json
+          profile_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          step?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rescue_dispatches_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "rescue_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rescue_dispatches_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rescue_dispatches_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_changelog: {
         Row: {
@@ -2187,6 +2326,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_user: { Args: { _user_id?: string }; Returns: boolean }
       is_community_member: { Args: { _user_id: string }; Returns: boolean }
       is_guest: { Args: { _user_id: string }; Returns: boolean }
       is_team_facilitator: {
@@ -2226,7 +2366,16 @@ export type Database = {
         }
         Returns: Json
       }
-      reactivate_member: { Args: { _member_id: string }; Returns: Json }
+      reactivate_member:
+        | { Args: { _member_id: string }; Returns: Json }
+        | {
+            Args: {
+              _member_id: string
+              _role?: Database["public"]["Enums"]["app_role"]
+              _team_id?: string
+            }
+            Returns: Json
+          }
       reassign_contract_template: {
         Args: { _lead_ids: string[]; _template_id: string; _version: number }
         Returns: Json
