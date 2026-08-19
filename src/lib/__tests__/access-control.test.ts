@@ -18,6 +18,7 @@ import {
   canUseMatchmaking,
   canUseOpportunityBoard,
   canUseReferralRequests,
+  canManageRescue,
 } from '../access-control';
 
 describe('access-control: Fase 3 (Oportunidades e Pedidos de Indicação)', () => {
