@@ -62,3 +62,9 @@ export const canUseOpportunityBoard = (role: AppRole): boolean =>
  */
 export const canUseReferralRequests = (role: AppRole): boolean =>
   isOneOf(role, ['admin', 'facilitador', 'membro']);
+
+/**
+ * Quem pode acessar a Central de Resgate (réguas de e-mail para ex-membros e convidados).
+ * Apenas admin — é uma ferramenta de gestão/marketing, não de networking.
+ */
+export const canManageRescue = (role: AppRole): boolean => role === 'admin';
