@@ -1,2 +1,3 @@
 - [Editor Rico + Cases v3.38.0](mem://features/v3380-editor-rico-cases-perfil-publico) — HTML sanitizado nos campos longos; cases Cliente/Problema/Solução/Sucesso; stats e carrossel na página pública
 - [Perfil Público v3.41.0](mem://features/public-profile-redesign-v3410) — Layout executivo /m/:slug, KPIs, atividades públicas, CTAs; Search Console por Domínio e GA4 único
+- [Perfil do Membro v3.42.0](mem://features/member-profile-share-v3420) — Compartilhar link público /m/:slug, pedir preenchimento, redirect de visitantes, RichText na aba Sobre
