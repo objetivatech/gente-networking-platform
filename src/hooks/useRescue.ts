@@ -140,9 +140,9 @@ export function useRunRescueNow() {
   const qc = useQueryClient();
   const { toast } = useToast();
   return useMutation({
-    mutationFn: async (dryRun = false) => {
+    mutationFn: async (dryRun?: boolean) => {
       const { data, error } = await supabase.functions.invoke('rescue-runner', {
-        body: { dry_run: dryRun },
+        body: { dry_run: !!dryRun },
       });
       if (error) throw error;
       return data as Record<string, unknown>;
