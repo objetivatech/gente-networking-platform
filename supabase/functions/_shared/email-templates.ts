@@ -531,3 +531,39 @@ ${hubContext ? infoBox(`<p style="color: #9a3412; font-size: 15px; line-height: 
 ${ctaButton(isCommunityInvite ? 'Acessar Comunidade Gente' : 'Aceitar convite do evento', inviteLink)}`;
   return emailWrapper(emailContent);
 }
+
+// ---------------------------------------------------------------------------
+// v3.42.0 — Pedido entre membros para completar o perfil / publicar página pública
+// ---------------------------------------------------------------------------
+
+export function profileCompletionRequestEmailTemplate(
+  name: string,
+  fromName: string,
+  missingFields: string[] = [],
+  message?: string,
+): string {
+  const list = missingFields.length
+    ? `<ul style="color:#1e40af; font-size:15px; line-height:1.8; margin:8px 0 0; padding-left:20px;">${missingFields
+        .map((f) => `<li>${f}</li>`)
+        .join('')}</ul>`
+    : '';
+
+  const note = message
+    ? `<p style="color:#9a3412; font-size:15px; font-style:italic; line-height:1.6; margin:0;">"${message}"</p>`
+    : '';
+
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Complete seu perfil e ative sua página pública 🌐</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${name}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  <strong style="color: #1e3a5f;">${fromName}</strong> quer indicar o seu trabalho, mas a sua página pública
+  do Gente ainda não está ativa. Com ela, qualquer pessoa pode conhecer o que você faz — mesmo sem estar na comunidade.
+</p>
+${infoBox(`<p style="color:#1e40af; font-size:15px; font-weight:600; margin:0;">Informações que faltam no seu perfil:</p>${list}`, 'blue')}
+${note ? infoBox(note, 'orange') : ''}
+${ctaButton('Completar meu perfil', `${APP_URL}/perfil`)}`;
+
+  return emailWrapper(emailContent);
+}
