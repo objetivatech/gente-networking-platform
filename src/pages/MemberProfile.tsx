@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RankBadge from '@/components/RankBadge';
 import { useBusinessCases } from '@/hooks/useBusinessCases';
-import { Loader2, ArrowLeft, Building, Phone, Mail, Globe, Linkedin, Instagram, Cake, Share2, Briefcase, Target, Megaphone } from 'lucide-react';
+import { Loader2, ArrowLeft, Building, Phone, Mail, Globe, Linkedin, Instagram, Cake, Briefcase, Target, Megaphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -18,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PointsHistoryCard } from '@/components/PointsHistoryCard';
 import { DigitalMemberCard } from '@/components/DigitalMemberCard';
 import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
+import ShareOrNudgeProfile from '@/components/ShareOrNudgeProfile';
 
 interface MemberProfile {
   id: string;
@@ -43,6 +44,7 @@ interface MemberProfile {
   ideal_client: string | null;
   how_to_refer_me: string | null;
   availability_note: string | null;
+  public_profile_enabled?: boolean | null;
 }
 
 export default function MemberProfilePage() {
@@ -117,16 +119,6 @@ export default function MemberProfilePage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (navigator.share) {
-      try { await navigator.share({ title: `Perfil de ${member?.full_name}`, url }); } catch {}
-    } else {
-      await navigator.clipboard.writeText(url);
-      toast({ title: 'Link copiado!', description: 'Link do perfil copiado para a área de transferência' });
-    }
-  };
-
   const formatBirthday = (birthday: string | null) => {
     if (!birthday) return null;
     try { return format(new Date(birthday + 'T00:00:00'), "dd 'de' MMMM", { locale: ptBR }); } catch { return null; }
@@ -162,29 +154,27 @@ export default function MemberProfilePage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <Button variant="ghost" onClick={() => navigate('/membros')}><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button variant="ghost" className="self-start" onClick={() => navigate('/membros')}><ArrowLeft className="mr-2 h-4 w-4" /> Voltar</Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           {user?.id !== member.id && (
             <ScheduleMeetingDialog recipientId={member.id} memberName={member.full_name || 'membro'} availabilityNote={member.availability_note} />
           )}
-          <Button variant="outline" onClick={handleShare}><Share2 className="mr-2 h-4 w-4" /> Compartilhar</Button>
+          <ShareOrNudgeProfile member={member} currentUserId={user?.id} />
         </div>
       </div>
 
       {/* Profile Card */}
       <Card className="overflow-hidden">
         <div className="h-32 md:h-48 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20" style={member.banner_url ? { backgroundImage: `url(${member.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined} />
-        <CardContent className="relative pt-6">
-          <div className="absolute -top-16 left-6">
-            <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
-              <AvatarImage src={member.avatar_url || ''} alt={member.full_name || ''} />
-              <AvatarFallback className="bg-primary/10 text-primary text-2xl sm:text-3xl font-bold">{getInitials(member.full_name)}</AvatarFallback>
-            </Avatar>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-6 pt-20 md:pt-4">
-            <div className="hidden md:flex flex-col items-center gap-4 min-w-[140px]">
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-6 md:flex-row">
+            {/* Coluna: foto + selo + pontos (sem sobreposição) */}
+            <div className="-mt-20 flex flex-col items-center gap-3 md:-mt-24 md:min-w-[160px]">
+              <Avatar className="h-28 w-28 border-4 border-background shadow-lg md:h-32 md:w-32">
+                <AvatarImage src={member.avatar_url || ''} alt={member.full_name || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary text-2xl sm:text-3xl font-bold">{getInitials(member.full_name)}</AvatarFallback>
+              </Avatar>
               <RankBadge rank={member.rank} size="lg" />
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Pontos</p>
@@ -192,7 +182,7 @@ export default function MemberProfilePage() {
               </div>
             </div>
 
-            <div className="flex-1 space-y-4">
+            <div className="min-w-0 flex-1 space-y-4">
               <div>
                 <h1 className="text-2xl md:text-2xl sm:text-3xl font-bold">{member.full_name}</h1>
                 {member.position && member.company && <p className="text-muted-foreground">{member.position} na {member.company}</p>}
@@ -227,13 +217,6 @@ export default function MemberProfilePage() {
                 {member.website_url && <a href={member.website_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Globe className="w-5 h-5" /></a>}
               </div>
 
-              <div className="flex md:hidden justify-center gap-6 pt-4">
-                <RankBadge rank={member.rank} size="lg" />
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Pontos</p>
-                  <p className="text-2xl font-bold text-primary">{member.points || 0}</p>
-                </div>
-              </div>
             </div>
           </div>
         </CardContent>
@@ -252,13 +235,13 @@ export default function MemberProfilePage() {
           {(member.what_i_do || member.ideal_client || member.how_to_refer_me) ? (
             <div className="grid md:grid-cols-3 gap-4">
               {member.what_i_do && (
-                <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Briefcase className="h-4 w-4 text-primary" /> O que eu faço</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{member.what_i_do}</p></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Briefcase className="h-4 w-4 text-primary" /> O que eu faço</CardTitle></CardHeader><CardContent className="min-w-0"><RichText value={member.what_i_do} className="text-sm text-muted-foreground text-wrap-anywhere" /></CardContent></Card>
               )}
               {member.ideal_client && (
-                <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-primary" /> Cliente Ideal</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{member.ideal_client}</p></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Target className="h-4 w-4 text-primary" /> Cliente Ideal</CardTitle></CardHeader><CardContent className="min-w-0"><RichText value={member.ideal_client} className="text-sm text-muted-foreground text-wrap-anywhere" /></CardContent></Card>
               )}
               {member.how_to_refer_me && (
-                <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Megaphone className="h-4 w-4 text-primary" /> Como me indicar</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{member.how_to_refer_me}</p></CardContent></Card>
+                <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Megaphone className="h-4 w-4 text-primary" /> Como me indicar</CardTitle></CardHeader><CardContent className="min-w-0"><RichText value={member.how_to_refer_me} className="text-sm text-muted-foreground text-wrap-anywhere" /></CardContent></Card>
               )}
             </div>
           ) : (
