@@ -96,6 +96,9 @@ export default function GestaoPessoas() {
   const [selectedPerson, setSelectedPerson] = useState<PersonData | null>(null);
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
+  // v3.43.0: reativação exige grupo e papel de retorno
+  const [reactivateTeamId, setReactivateTeamId] = useState<string>('');
+  const [reactivateRole, setReactivateRole] = useState<'membro' | 'facilitador' | 'convidado'>('membro');
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
   const [transferTeamId, setTransferTeamId] = useState<string>('');
@@ -263,9 +266,11 @@ export default function GestaoPessoas() {
 
   // Mutation para reativar
   const activateMutation = useMutation({
-    mutationFn: async (memberId: string) => {
-      const { data, error } = await supabase.rpc('reactivate_member', {
+    mutationFn: async ({ memberId, teamId, role }: { memberId: string; teamId: string | null; role: 'membro' | 'facilitador' | 'convidado' }) => {
+      const { data, error } = await (supabase.rpc as any)('reactivate_member', {
         _member_id: memberId,
+        _team_id: teamId,
+        _role: role,
       });
 
       if (error) throw error;
@@ -768,18 +773,55 @@ export default function GestaoPessoas() {
               Reativar Pessoa
             </DialogTitle>
             <DialogDescription>
-              Deseja reativar <strong>{selectedPerson?.full_name}</strong>? 
-              A pessoa voltará a aparecer nas listagens da comunidade.
+              Escolha o grupo e o papel de retorno de <strong>{selectedPerson?.full_name}</strong>.
+              Todo o histórico é preservado.
             </DialogDescription>
           </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Papel de retorno</Label>
+              <Select value={reactivateRole} onValueChange={(v) => setReactivateRole(v as typeof reactivateRole)}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="membro">Membro</SelectItem>
+                  <SelectItem value="facilitador">Facilitador</SelectItem>
+                  <SelectItem value="convidado">Convidado (sem grupo)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {reactivateRole !== 'convidado' && (
+              <div className="space-y-1.5">
+                <Label>Grupo</Label>
+                <Select value={reactivateTeamId} onValueChange={setReactivateTeamId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o grupo" /></SelectTrigger>
+                  <SelectContent>
+                    {(teams ?? []).map((t: { id: string; name: string }) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowActivateDialog(false)}>
               Cancelar
             </Button>
             <Button 
-              onClick={() => selectedPerson && activateMutation.mutate(selectedPerson.id)}
-              disabled={activateMutation.isPending}
+              onClick={() =>
+                selectedPerson &&
+                activateMutation.mutate({
+                  memberId: selectedPerson.id,
+                  teamId: reactivateRole === 'convidado' ? null : reactivateTeamId || null,
+                  role: reactivateRole,
+                })
+              }
+              disabled={
+                activateMutation.isPending ||
+                (reactivateRole !== 'convidado' && !reactivateTeamId)
+              }
               className="bg-green-600 hover:bg-green-700"
             >
               {activateMutation.isPending ? 'Reativando...' : 'Reativar'}
