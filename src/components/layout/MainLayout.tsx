@@ -88,7 +88,7 @@ export default function MainLayout() {
           </p>
           <div className="flex flex-col gap-2">
             <Button asChild>
-              <a href="https://wa.me/5551216523255" target="_blank" rel="noreferrer">
+              <a href="https://wa.me/555121652325" target="_blank" rel="noreferrer">
                 Falar com o Gente
               </a>
             </Button>
