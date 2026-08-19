@@ -11,6 +11,7 @@ import {
   councilPostEmailTemplate,
   rankChangeEmailTemplate,
   referralRequestEmailTemplate,
+  profileCompletionRequestEmailTemplate,
 } from "../_shared/email-templates.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
@@ -23,7 +24,7 @@ const corsHeaders = {
 };
 
 interface NotificationPayload {
-  type: "testimonial" | "referral" | "welcome" | "invitation_accepted" | "guest_attended" | "invitation" | "new_meeting" | "council_post" | "rank_change" | "referral_request";
+  type: "testimonial" | "referral" | "welcome" | "invitation_accepted" | "guest_attended" | "invitation" | "new_meeting" | "council_post" | "rank_change" | "referral_request" | "profile_completion_request";
   from_user_id?: string;
   to_user_id?: string;
   to_user_ids?: string[];
@@ -46,6 +47,7 @@ interface NotificationPayload {
   new_rank?: string;
   request_title?: string;
   target_segment?: string;
+  missing_fields?: string[];
 }
 
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; data?: any; error?: any }> {
@@ -240,6 +242,16 @@ const handler = async (req: Request): Promise<Response> => {
       case "guest_attended":
         subject = `🎉 Seu convidado ${payload.guest_name} compareceu a um encontro!`;
         html = guestAttendedEmailTemplate(toUser.full_name, payload.guest_name || "Convidado", payload.meeting_title || "Encontro da comunidade");
+        break;
+
+      case "profile_completion_request":
+        subject = `🌐 ${fromUser.full_name} pediu para você completar seu perfil no Gente`;
+        html = profileCompletionRequestEmailTemplate(
+          toUser.full_name,
+          fromUser.full_name,
+          payload.missing_fields || [],
+          payload.content,
+        );
         break;
 
       case "rank_change":

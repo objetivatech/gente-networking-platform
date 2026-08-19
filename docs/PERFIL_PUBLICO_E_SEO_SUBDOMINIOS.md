@@ -61,3 +61,26 @@ Neste projeto:
 - `public/llms.txt` descreve a marca, as páginas públicas e a seção de perfis `/m/{slug}`.
 
 No projeto "LPs Gente" o mesmo trio (`sitemap.xml`, `robots.txt`, `llms.txt`) deve existir apontando para `https://lps.gentenetworking.com.br`.
+
+---
+
+## v3.42.0 — Perfil interno do membro e link público
+
+### Compartilhamento a partir de `/membro/:slug`
+- O botão do topo agora é de destaque (laranja da marca) e explicita o objetivo: **"Compartilhar perfil público"**.
+- O link compartilhado é sempre a URL pública canônica `https://comunidade.gentenetworking.com.br/m/<slug>` (antes copiava a URL interna `/membro/...`, que exige login).
+- Componente: `src/components/ShareOrNudgeProfile.tsx` (helper `getPublicProfileUrl`).
+
+### Botão condicionado à existência da página pública
+- Regras reaproveitadas: `src/lib/profile-completeness.ts` + `profiles.public_profile_enabled`.
+- Publicado → "Compartilhar perfil público".
+- Não publicado/incompleto → "Pedir para completar o perfil": diálogo com a lista de campos faltantes e mensagem opcional; envia e-mail via `send-notification` (`type: profile_completion_request`, template `profileCompletionRequestEmailTemplate`), respeitando `email_notifications_enabled`.
+- Próprio perfil sem página → "Publicar minha página" (leva a `/perfil`).
+
+### Acesso sem login a `/membro/:slug`
+- `MainLayout` redireciona visitantes de `/membro/:slug` para `/m/:slug` (página pública) em vez de `/auth`.
+- Quando o perfil não está publicado, a página pública exibe "Perfil não disponível" com CTA para `/auth?tab=signup` (aba **Cadastrar**).
+
+### Outros ajustes de exibição
+- Aba **Sobre** ("O que eu faço", "Cliente Ideal", "Como me indicar") passou a usar `RichText` — antes exibia o HTML cru.
+- Cabeçalho do perfil reorganizado: foto, selo de rank e pontos em coluna própria, sem sobreposição, com layout empilhado no mobile.
