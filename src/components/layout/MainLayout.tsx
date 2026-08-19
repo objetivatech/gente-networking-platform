@@ -40,6 +40,12 @@ export default function MainLayout() {
   }
 
   if (!user) {
+    // Visitante acessando o perfil interno de um membro (/membro/:slug):
+    // redireciona para a página pública equivalente (/m/:slug) em vez do login.
+    const memberMatch = location.pathname.match(/^\/membro\/([^/]+)\/?$/);
+    if (memberMatch) {
+      return <Navigate to={`/m/${memberMatch[1]}`} replace />;
+    }
     return <Navigate to="/auth" replace />;
   }
 
