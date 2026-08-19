@@ -708,7 +708,7 @@ export default function AdminResgate() {
                   onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
                 />
               </div>
-              <div className="space-1.5">
+              <div className="space-y-1.5">
                 <Label>Introdução</Label>
                 <Textarea
                   value={editing.intro ?? ''}
