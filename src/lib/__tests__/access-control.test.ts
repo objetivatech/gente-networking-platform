@@ -18,6 +18,7 @@ import {
   canUseMatchmaking,
   canUseOpportunityBoard,
   canUseReferralRequests,
+  canManageRescue,
 } from '../access-control';
 
 describe('access-control: Fase 3 (Oportunidades e Pedidos de Indicação)', () => {
@@ -98,5 +99,15 @@ describe('access-control: MatchMaking', () => {
   it('role nula/indefinida NÃO pode usar', () => {
     expect(canUseMatchmaking(null)).toBe(false);
     expect(canUseMatchmaking(undefined)).toBe(false);
+  });
+});
+
+describe('central de resgate (v3.43.0)', () => {
+  it('somente admin gerencia a régua de resgate', () => {
+    expect(canManageRescue('admin')).toBe(true);
+    expect(canManageRescue('facilitador')).toBe(false);
+    expect(canManageRescue('membro')).toBe(false);
+    expect(canManageRescue('convidado')).toBe(false);
+    expect(canManageRescue(null)).toBe(false);
   });
 });

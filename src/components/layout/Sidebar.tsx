@@ -11,7 +11,7 @@ import {
   Home, User, BarChart3, Handshake, MessageSquare, DollarSign, Send, Users,
   Calendar, GraduationCap, Settings, LogOut, X, Trophy, UserPlus, BookOpen,
   History, Contact, Cake, UsersRound, ClipboardList, Rss, MessageCircle, Ticket,
-  HeartHandshake, Megaphone, Radio, KanbanSquare, FileText, ScrollText,
+  HeartHandshake, LifeBuoy, Megaphone, Radio, KanbanSquare, FileText, ScrollText,
   ChevronDown, ChevronRight, CircleDollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -108,6 +108,7 @@ const adminGroup: MenuGroup = {
     { icon: UsersRound, label: 'Gestão de Pessoas', path: '/admin/pessoas', roles: ['admin', 'facilitador'] },
     { icon: KanbanSquare, label: 'CRM de Leads', path: '/admin/crm', roles: ['admin'] },
     { icon: ScrollText, label: 'Auditoria CRM', path: '/admin/crm/auditoria', roles: ['admin'] },
+    { icon: LifeBuoy, label: 'Resgate e Reativação', path: '/admin/resgate', roles: ['admin'] },
     { icon: FileText, label: 'Modelos de Contrato', path: '/admin/contratos', roles: ['admin'] },
     { icon: CircleDollarSign, label: 'Planos e Assinaturas', path: '/admin/planos', roles: ['admin'] },
     { icon: ClipboardList, label: 'Gestão de Registros', path: '/admin/registros', roles: ['admin'] },

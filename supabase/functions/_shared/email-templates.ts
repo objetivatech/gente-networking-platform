@@ -567,3 +567,79 @@ ${ctaButton('Completar meu perfil', `${APP_URL}/perfil`)}`;
 
   return emailWrapper(emailContent);
 }
+
+// ---------------------------------------------------------------------------
+// v3.43.0 — Régua de resgate (ex-membros e convidados)
+// ---------------------------------------------------------------------------
+
+export interface RescueEmailArgs {
+  name: string;
+  headline: string;
+  intro?: string;
+  bodyHtml: string;
+  offerHtml?: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  optOutUrl?: string;
+}
+
+/** E-mail de resgate na identidade Gente Networking, com CTA para o WhatsApp. */
+export function rescueEmailTemplate(args: RescueEmailArgs): string {
+  const intro = args.intro
+    ? `<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">${args.intro}</p>`
+    : '';
+  const offer = args.offerHtml
+    ? infoBox(
+        `<div style="color:#9a3412; font-size:15px; line-height:1.7;">${args.offerHtml}</div>`,
+        'orange',
+      )
+    : '';
+  const optOut = args.optOutUrl
+    ? `<p style="text-align:center; margin: 8px 0 0;">
+         <a href="${args.optOutUrl}" style="color:#94a3b8; font-size:12px; text-decoration:underline;">
+           Não quero mais receber estes e-mails
+         </a>
+       </p>`
+    : '';
+
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">${args.headline}</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${args.name}</strong>,
+</p>
+${intro}
+<div style="color: #475569; font-size: 16px; line-height: 1.7;">${args.bodyHtml}</div>
+${offer}
+${ctaButton(args.ctaLabel, args.ctaUrl)}
+${optOut}`;
+
+  return emailWrapper(emailContent);
+}
+
+/** Alerta interno (facilitador + admin) de membro em risco de saída. */
+export function memberAtRiskEmailTemplate(
+  recipientName: string,
+  memberName: string,
+  teamName: string | null,
+  lastActivityLabel: string,
+): string {
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Membro em risco de saída ⚠️</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${recipientName}</strong>,
+</p>
+${infoBox(
+  `<p style="color:#9a3412; font-size:15px; margin:0;">
+     <strong>${memberName}</strong>${teamName ? ` — ${teamName}` : ''}<br />
+     Última atividade registrada: ${lastActivityLabel}
+   </p>`,
+  'orange',
+)}
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Esse membro está sem atividade registrada há bastante tempo (encontros, indicações, Gente em Ação ou negócios).
+  Um contato agora costuma custar muito menos do que um resgate depois da saída.
+</p>
+${ctaButton('Ver Health Score dos membros', `${APP_URL}/dashboard`)}`;
+
+  return emailWrapper(emailContent);
+}
