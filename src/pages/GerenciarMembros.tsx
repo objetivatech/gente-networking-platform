@@ -18,6 +18,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useTeams } from '@/hooks/useTeams';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Users, 
@@ -60,6 +62,7 @@ interface MemberData {
 
 export default function GerenciarMembros() {
   const { isAdmin, isLoading: isLoadingRole } = useAdmin();
+  const { teams } = useTeams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -68,6 +71,9 @@ export default function GerenciarMembros() {
   const [showDeactivateDialog, setShowDeactivateDialog] = useState(false);
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [showDowngradeDialog, setShowDowngradeDialog] = useState(false);
+  // v3.43.0: reativação exige grupo e papel de retorno
+  const [reactivateTeamId, setReactivateTeamId] = useState<string>('');
+  const [reactivateRole, setReactivateRole] = useState<'membro' | 'facilitador' | 'convidado'>('membro');
   const [deactivationReason, setDeactivationReason] = useState('');
   const [downgradeReason, setDowngradeReason] = useState('');
 
@@ -153,9 +159,11 @@ export default function GerenciarMembros() {
 
   // Mutation para reativar membro usando função SECURITY DEFINER
   const activateMutation = useMutation({
-    mutationFn: async (memberId: string) => {
-      const { data, error } = await supabase.rpc('reactivate_member', {
+    mutationFn: async ({ memberId, teamId, role }: { memberId: string; teamId: string | null; role: 'membro' | 'facilitador' | 'convidado' }) => {
+      const { data, error } = await (supabase.rpc as any)('reactivate_member', {
         _member_id: memberId,
+        _team_id: teamId,
+        _role: role,
       });
 
       if (error) throw error;
@@ -267,7 +275,11 @@ export default function GerenciarMembros() {
 
   const handleActivate = () => {
     if (!selectedMember) return;
-    activateMutation.mutate(selectedMember.id);
+    activateMutation.mutate({
+      memberId: selectedMember.id,
+      teamId: reactivateRole === 'convidado' ? null : reactivateTeamId || null,
+      role: reactivateRole,
+    });
   };
 
   const handleDowngrade = () => {
@@ -537,10 +549,37 @@ export default function GerenciarMembros() {
               Reativar Membro
             </DialogTitle>
             <DialogDescription>
-              Deseja reativar <strong>{selectedMember?.full_name}</strong>? 
-              O membro voltará a aparecer nas listagens da comunidade.
+              Escolha o grupo e o papel de retorno de <strong>{selectedMember?.full_name}</strong>.
+              O histórico é preservado e o acesso é restabelecido conforme a escolha.
             </DialogDescription>
           </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Papel de retorno</Label>
+              <Select value={reactivateRole} onValueChange={(v) => setReactivateRole(v as typeof reactivateRole)}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="membro">Membro</SelectItem>
+                  <SelectItem value="facilitador">Facilitador</SelectItem>
+                  <SelectItem value="convidado">Convidado (sem grupo)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {reactivateRole !== 'convidado' && (
+              <div className="space-y-1.5">
+                <Label>Grupo</Label>
+                <Select value={reactivateTeamId} onValueChange={setReactivateTeamId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o grupo" /></SelectTrigger>
+                  <SelectContent>
+                    {(teams ?? []).map((t: { id: string; name: string }) => (
+                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowActivateDialog(false)}>
@@ -548,7 +587,10 @@ export default function GerenciarMembros() {
             </Button>
             <Button 
               onClick={handleActivate}
-              disabled={activateMutation.isPending}
+              disabled={
+                activateMutation.isPending ||
+                (reactivateRole !== 'convidado' && !reactivateTeamId)
+              }
               className="bg-green-600 hover:bg-green-700"
             >
               {activateMutation.isPending ? 'Reativando...' : 'Reativar Membro'}
