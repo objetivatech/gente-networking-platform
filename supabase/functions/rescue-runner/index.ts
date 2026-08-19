@@ -577,6 +577,36 @@ serve(async (req: Request): Promise<Response> => {
 
   try {
     const sb = admin();
+
+    // Autorização: cron/serviço (service role) ou usuário admin autenticado.
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace("Bearer ", "").trim();
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const cronKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const isService = token === serviceKey || (!!cronKey && token === cronKey);
+
+    if (!isService) {
+      const { data: userData } = await sb.auth.getUser(token);
+      const uid = userData?.user?.id;
+      if (!uid) {
+        return new Response(JSON.stringify({ error: "não autenticado" }), {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      const { data: role } = await sb
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (!role) {
+        return new Response(JSON.stringify({ error: "acesso restrito a administradores" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+    }
     const body = await req.json().catch(() => ({}));
     const dryRun = !!body.dry_run;
     const force = !!body.force;
