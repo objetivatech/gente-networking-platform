@@ -616,6 +616,76 @@ serve(async (req: Request): Promise<Response> => {
     const { data: campaignsData } = await sb.from("rescue_campaigns").select("*");
     const campaigns = (campaignsData ?? []) as Campaign[];
 
+    const action: string | undefined = body.action;
+
+    // Status do orçamento diário e da janela de envio (painel admin)
+    if (action === "status") {
+      const budget = await budgetLeft(sb, settings);
+      const { count: queuedCount } = await sb
+        .from("rescue_dispatches")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "queued");
+      const { count: dueCount } = await sb
+        .from("rescue_dispatches")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "queued")
+        .lte("scheduled_for", new Date().toISOString());
+      return new Response(
+        JSON.stringify({
+          success: true,
+          budget,
+          queued: queuedCount ?? 0,
+          due: dueCount ?? 0,
+          in_window: inWindow(settings),
+          settings,
+          sp_now: spNow(),
+        }),
+        { headers: { "Content-Type": "application/json", ...corsHeaders } },
+      );
+    }
+
+    // Envio de teste de uma campanha para um e-mail informado
+    if (action === "test") {
+      const campaign = campaigns.find((c) => c.id === body.campaign_id);
+      const to: string = body.email ?? "";
+      if (!campaign || !to) {
+        return new Response(JSON.stringify({ error: "campanha ou e-mail ausente" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+      }
+      const vars = {
+        nome: body.nome ?? "Maria",
+        dias_desde: body.dias_desde ?? String(campaign.delay_days),
+        grupo: body.grupo ?? "Grupo Exemplo",
+      };
+      const tag = `teste-${campaign.audience}-etapa${campaign.step}`;
+      const html = rescueEmailTemplate({
+        name: vars.nome,
+        headline: render(campaign.subject, vars),
+        intro: campaign.intro ? render(campaign.intro, vars) : undefined,
+        bodyHtml: render(campaign.body_html, vars),
+        offerHtml: campaign.offer_html ? render(campaign.offer_html, vars) : undefined,
+        ctaLabel: campaign.cta_label,
+        ctaUrl: whatsappUrl(settings.whatsapp_number, render(campaign.whatsapp_message, vars), tag),
+        optOutUrl: `${SUPABASE_URL}/functions/v1/rescue-optout?d=teste`,
+      });
+      const res = await sendEmail({
+        to,
+        subject: `[TESTE] ${render(campaign.subject, vars)}`,
+        html,
+        context: "rescue_teste",
+        referenceId: campaign.id,
+        bypassRateLimit: true,
+      });
+      return new Response(JSON.stringify({ success: res.ok, error: res.error ?? null }), {
+        status: res.ok ? 200 : 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+
+
     // Envio manual de um item específico (painel admin)
     if (dispatchId) {
       const { data: d } = await sb
