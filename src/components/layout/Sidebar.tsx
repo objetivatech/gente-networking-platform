@@ -108,6 +108,7 @@ const adminGroup: MenuGroup = {
     { icon: UsersRound, label: 'Gestão de Pessoas', path: '/admin/pessoas', roles: ['admin', 'facilitador'] },
     { icon: KanbanSquare, label: 'CRM de Leads', path: '/admin/crm', roles: ['admin'] },
     { icon: ScrollText, label: 'Auditoria CRM', path: '/admin/crm/auditoria', roles: ['admin'] },
+    { icon: HeartHandshake, label: 'Resgate e Reativação', path: '/admin/resgate', roles: ['admin'] },
     { icon: FileText, label: 'Modelos de Contrato', path: '/admin/contratos', roles: ['admin'] },
     { icon: CircleDollarSign, label: 'Planos e Assinaturas', path: '/admin/planos', roles: ['admin'] },
     { icon: ClipboardList, label: 'Gestão de Registros', path: '/admin/registros', roles: ['admin'] },
