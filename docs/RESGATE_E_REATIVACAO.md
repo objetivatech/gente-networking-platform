@@ -1,4 +1,4 @@
-# Resgate e Reativação (v3.43.0)
+# Resgate e Reativação (v3.43.0 · painel v3.44.0)
 
 Documento oficial do fluxo de desativação de membros, perda de acesso e da régua
 automática de resgate de ex-membros e convidados.
