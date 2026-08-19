@@ -66,16 +66,50 @@ Cadência padrão:
 "Não quero mais receber estes e-mails"; marca `rescue_opt_out = true` no perfil
 ou no lead e cancela disparos agendados (LGPD).
 
-## 4. Painel administrativo
+## 4. Painel administrativo (v3.44.0)
 
 `/admin/resgate` (`src/pages/AdminResgate.tsx`, apenas admin —
-`canManageRescue` em `src/lib/access-control.ts`):
+`canManageRescue` em `src/lib/access-control.ts`), com KPIs de fila, enviados,
+falhas e cancelados/pulados, e quatro abas:
 
-- KPIs de agendados, enviados, falhas e cancelados.
-- Campanhas: ativar/pausar e editar assunto, intro, corpo, oferta, CTA,
-  mensagem de WhatsApp e intervalo.
-- Fila: cancelamento manual de disparos agendados.
-- Botão "Executar régua agora".
+**Visão geral**
+- Orçamento diário: usados nas últimas 24h, disponível para resgate, fila,
+  vencidos e se o momento está dentro da janela de envio (via
+  `rescue-runner` com `{"action": "status"}`).
+- Configurações gravadas em `integration_settings` (categoria `rescue`):
+  `daily_budget` (padrão 300), `transactional_reserve` (padrão 100),
+  `send_days` (padrão ter/qua/qui), `send_hour_start`/`send_hour_end`
+  (padrão 9h–11h de São Paulo), `whatsapp_number` e `enabled`.
+
+**Pessoas**
+- Lista agrupada por destinatário com público, etapa atual, quantidade de
+  envios, último envio e próximo agendamento.
+- Ações: "Enviar agora" (dispara o item da fila), "Pular etapa"
+  (`status = skipped`, a régua segue para a próxima), "Pausar 30d"
+  (cool-off via `rescue_paused_until`) e "Remover" (opt-out definitivo,
+  cancelando os disparos agendados).
+
+**Campanhas**
+- Ativar/pausar por etapa e editar nome, atraso, assunto, introdução, corpo
+  (editor de texto rico), bloco de oferta especial opcional, texto do botão e
+  mensagem pré-preenchida do WhatsApp.
+- Variáveis suportadas: `{{nome}}`, `{{grupo}}`, `{{dias_desde}}`.
+- Preview do e-mail e envio de teste para qualquer endereço
+  (`rescue-runner` com `{"action": "test", "campaign_id", "email"}`).
+
+**Histórico**
+- Filtros por público e status, com exportação Excel/PDF (`ExportButton`).
+- Ações de envio imediato e cancelamento nos itens ainda na fila.
+
+Execução manual: "Simular" (`dry_run`) monta a fila sem enviar; "Executar régua
+agora" usa `force` e ignora a janela de envio.
+
+### Controle do limite Resend (300/dia)
+
+A Resend não expõe a cota restante. O contador local usa
+`notification_dispatch_log` (envios com status `sent` nas últimas 24h). O
+disponível para resgate é `daily_budget - transactional_reserve - usados`;
+quando zera, os disparos permanecem `queued` e entram na execução seguinte.
 
 ## 5. Reativação
 
