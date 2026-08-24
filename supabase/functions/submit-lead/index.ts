@@ -9,6 +9,12 @@
  * - Resolução automática de grupo por NOME (sem UUID nas LPs).
  * - Auto-descoberta de páginas de captação (crm_lead_pages).
  * - Sem grupo: HUB apenas quando source = lp_gentehub; demais ficam "sem_grupo".
+ *
+ * v3.46.0 (identidade única):
+ * - Bloqueio na origem: quem já é membro/facilitador ativo não vira lead nem convidado
+ *   (retorna 409 `already_member` para a LP exibir a mensagem e o login).
+ * - Dedupe por e-mail OU telefone normalizado (últimos 11 dígitos).
+ * - União automática de contatos duplicados via RPC `crm_merge_leads` (com histórico).
  */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -59,6 +65,13 @@ function norm(s: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+}
+
+/** Telefone normalizado: só dígitos, últimos 11 (padrão BR sem DDI). */
+function phoneKey(v?: string | null): string | null {
+  const digits = (v ?? "").replace(/\D/g, "");
+  if (digits.length < 8) return null;
+  return digits.slice(-11);
 }
 
 /**
@@ -264,16 +277,73 @@ serve(async (req) => {
       );
     }
 
-    // ---- Dedup por email ----------------------------------------------------
-    const { data: existing } = await supabase
+    const phoneDigits = phoneKey(data.phone);
+
+    // ---- Bloqueio na origem: já é membro/facilitador ativo -------------------
+    const identityFilter = phoneDigits
+      ? `email.ilike.${data.email},phone_digits.eq.${phoneDigits}`
+      : `email.ilike.${data.email}`;
+
+    const { data: matchedProfiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, is_active")
+      .or(identityFilter)
+      .limit(5);
+
+    if (matchedProfiles && matchedProfiles.length > 0) {
+      const ids = matchedProfiles.filter((p) => p.is_active).map((p) => p.id);
+      if (ids.length > 0) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", ids);
+        const isMember = (roles ?? []).some((r) =>
+          ["membro", "facilitador", "admin"].includes(r.role as string)
+        );
+        if (isMember) {
+          console.log("[submit-lead] blocked: already member", data.email);
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              already_member: true,
+              message:
+                "Você já faz parte do Gente. Acesse a plataforma com seu login para continuar.",
+              login_url: `${data.app_base_url ?? "https://comunidade.gentenetworking.com.br"}/auth`,
+            }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
+    }
+
+    // ---- Dedup por e-mail OU telefone ---------------------------------------
+    const { data: candidates } = await supabase
       .from("crm_leads")
-      .select("id, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata")
-      .eq("email", data.email)
-      .maybeSingle();
+      .select(
+        "id, email, phone_digits, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata, created_at",
+      )
+      .or(identityFilter)
+      .is("archived_at", null)
+      .order("created_at", { ascending: true });
+
+    const existing = candidates?.[0];
+
+    // União automática dos demais duplicados no contato mais antigo
+    if (existing && candidates && candidates.length > 1) {
+      for (const dup of candidates.slice(1)) {
+        const { error: mergeErr } = await supabase.rpc("crm_merge_leads", {
+          _keep_id: existing.id,
+          _dup_id: dup.id,
+          _reason: `Identidade única (${phoneDigits && dup.phone_digits === phoneDigits ? "telefone" : "e-mail"}) via ${data.source}`,
+        });
+        if (mergeErr) console.error("[submit-lead] merge failed (non-blocking)", mergeErr);
+      }
+    }
 
     let leadId = existing?.id;
     let invitationId = existing?.invitation_id;
     let invitationCode: string | null = null;
+
 
     if (!invitationId) {
       const code = genCode();
@@ -344,9 +414,14 @@ serve(async (req) => {
       // v3.35.0 — Atualização NÃO destrutiva: só sobrescreve o que veio preenchido,
       // preserva metadata anterior (merge) e nunca rebaixa o status do funil.
       const prevMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
+      // Mesma pessoa com e-mail diferente: mantém o e-mail principal e guarda o alternativo.
+      const sameEmail =
+        (existing?.email ?? "").toLowerCase() === leadPayload.email.toLowerCase();
+      const altEmails = Array.isArray(prevMeta.alt_emails) ? (prevMeta.alt_emails as string[]) : [];
+      if (!sameEmail && !altEmails.includes(leadPayload.email)) altEmails.push(leadPayload.email);
       const mergedPayload: Record<string, unknown> = {
         name: leadPayload.name,
-        email: leadPayload.email,
+        email: existing?.email ?? leadPayload.email,
         phone: leadPayload.phone ?? existing?.phone ?? null,
         company: leadPayload.company ?? existing?.company ?? null,
         business_segment: leadPayload.business_segment ?? existing?.business_segment ?? null,
@@ -356,7 +431,7 @@ serve(async (req) => {
         invitation_id: leadPayload.invitation_id,
         invited_by: leadPayload.invited_by,
         notes: leadPayload.notes ?? existing?.notes ?? null,
-        metadata: { ...prevMeta, ...leadPayload.metadata },
+        metadata: { ...prevMeta, ...leadPayload.metadata, alt_emails: altEmails },
       };
       await supabase.from("crm_leads").update(mergedPayload).eq("id", leadId);
     } else {

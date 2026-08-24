@@ -102,3 +102,26 @@ Retorno esperado: `200 OK` com `{ "ok": true, "lead_id": "uuid" }`.
   Marque um grupo como HUB em `/admin/grupos`.
 - **Contrato/cobrança não disparou** → só ocorre para `source = "lp_gentehub"` ao mover para
   `qualificado`. Veja a página `/admin/crm/auditoria`.
+
+## Identidade única e deduplicação (v3.46.0)
+
+Regras aplicadas dentro do `submit-lead`, antes de qualquer gravação:
+
+1. **Bloqueio na origem** — se o e-mail **ou** o telefone informado pertencer a um usuário
+   ativo com papel membro, facilitador ou admin, nenhum lead/convite é criado. A função
+   responde `409` com:
+   ```json
+   { "ok": false, "already_member": true, "message": "Você já faz parte do Gente...", "login_url": "..." }
+   ```
+   A LP deve exibir essa mensagem e oferecer o login (não tratar como erro de envio).
+2. **Chave de identidade** — e-mail (case-insensitive) **ou** `phone_digits` (telefone só com
+   dígitos, últimos 11). Colunas geradas em `crm_leads` e `profiles`, com índices.
+3. **União automática** — havendo mais de um contato ativo com a mesma identidade, o mais
+   antigo é mantido e os demais são unidos via `crm_merge_leads`: presenças em encontros,
+   assinaturas, cobranças, eventos de cobrança HUB, disparos de resgate e histórico são
+   transferidos; o duplicado é **arquivado** (nunca apagado) com `metadata.merged_into`.
+4. **E-mails alternativos** — quando a mesma pessoa envia um e-mail diferente, o e-mail
+   principal do card é preservado e o novo fica em `metadata.alt_emails`.
+
+Toda união gera um registro `lead_merged` em `crm_lead_history`, visível em
+`/admin/crm/auditoria`.

@@ -791,6 +791,7 @@ export type Database = {
           notes: string | null
           payment_status: string | null
           phone: string | null
+          phone_digits: string | null
           profile_id: string | null
           rescue_opt_out: boolean
           rescue_paused_until: string | null
@@ -828,6 +829,7 @@ export type Database = {
           notes?: string | null
           payment_status?: string | null
           phone?: string | null
+          phone_digits?: string | null
           profile_id?: string | null
           rescue_opt_out?: boolean
           rescue_paused_until?: string | null
@@ -865,6 +867,7 @@ export type Database = {
           notes?: string | null
           payment_status?: string | null
           phone?: string | null
+          phone_digits?: string | null
           profile_id?: string | null
           rescue_opt_out?: boolean
           rescue_paused_until?: string | null
@@ -1604,6 +1607,7 @@ export type Database = {
           notify_on_referral: boolean | null
           notify_on_testimonial: boolean | null
           phone: string | null
+          phone_digits: string | null
           points: number | null
           position: string | null
           public_profile_enabled: boolean
@@ -1642,6 +1646,7 @@ export type Database = {
           notify_on_referral?: boolean | null
           notify_on_testimonial?: boolean | null
           phone?: string | null
+          phone_digits?: string | null
           points?: number | null
           position?: string | null
           public_profile_enabled?: boolean
@@ -1680,6 +1685,7 @@ export type Database = {
           notify_on_referral?: boolean | null
           notify_on_testimonial?: boolean | null
           phone?: string | null
+          phone_digits?: string | null
           points?: number | null
           position?: string | null
           public_profile_enabled?: boolean
@@ -2137,6 +2143,10 @@ export type Database = {
             }
             Returns: Json
           }
+      crm_merge_leads: {
+        Args: { _dup_id: string; _keep_id: string; _reason?: string }
+        Returns: Json
+      }
       deactivate_member: {
         Args: { _member_id: string; _reason?: string }
         Returns: Json
