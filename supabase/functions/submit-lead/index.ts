@@ -67,6 +67,13 @@ function norm(s: string): string {
     .trim();
 }
 
+/** Telefone normalizado: só dígitos, últimos 11 (padrão BR sem DDI). */
+function phoneKey(v?: string | null): string | null {
+  const digits = (v ?? "").replace(/\D/g, "");
+  if (digits.length < 8) return null;
+  return digits.slice(-11);
+}
+
 /**
  * Converte chaves com colchetes em caminho.
  * "fields[name][value]" -> ["fields","name","value"]
