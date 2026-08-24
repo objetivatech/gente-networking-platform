@@ -431,7 +431,7 @@ serve(async (req) => {
         invitation_id: leadPayload.invitation_id,
         invited_by: leadPayload.invited_by,
         notes: leadPayload.notes ?? existing?.notes ?? null,
-        metadata: { ...prevMeta, ...leadPayload.metadata },
+        metadata: { ...prevMeta, ...leadPayload.metadata, alt_emails: altEmails },
       };
       await supabase.from("crm_leads").update(mergedPayload).eq("id", leadId);
     } else {
