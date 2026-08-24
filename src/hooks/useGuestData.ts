@@ -51,52 +51,56 @@ export function useGuestData() {
   const { data: guestData, isLoading: isLoadingGuestData } = useQuery({
     queryKey: ['guest-invitation-data', user?.id],
     queryFn: async (): Promise<GuestInvitationData> => {
-      if (!user?.id) return { invitation: null, inviter: null, inviterTeams: [], allowedTeamIds: [] };
+      const empty: GuestInvitationData = {
+        invitation: null, inviter: null, inviterTeams: [], allowedTeamIds: [], eventIds: [],
+      };
+      if (!user?.id) return empty;
 
-      const { data: invitation, error: invError } = await supabase
+      // Pode existir mais de um convite aceito (histórico). Lê todos, sem quebrar.
+      const { data: invitations, error: invError } = await supabase
         .from('invitations')
-        .select('id, code, invited_by, created_at, accepted_at, metadata')
+        .select('id, code, invited_by, created_at, accepted_at, metadata, team_id, event_id')
         .eq('accepted_by', user.id)
         .eq('status', 'accepted')
-        .maybeSingle();
+        .order('accepted_at', { ascending: true });
 
-      if (invError || !invitation) {
-        return { invitation: null, inviter: null, inviterTeams: [], allowedTeamIds: [] };
+      if (invError || !invitations || invitations.length === 0) return empty;
+
+      const primary = invitations[0];
+      const allowedSet = new Set<string>();
+      const eventIds: string[] = [];
+
+      for (const inv of invitations) {
+        const metadata = inv.metadata as Record<string, unknown> | null;
+        const snapshot = metadata?.allowed_team_ids;
+        if (Array.isArray(snapshot)) {
+          (snapshot as string[]).forEach((id) => id && allowedSet.add(id));
+        }
+        if (inv.team_id) allowedSet.add(inv.team_id);
+        if (inv.event_id) eventIds.push(inv.event_id);
       }
 
-      // Use allowed_team_ids from metadata snapshot (stable), fallback to current inviter teams
-      const metadata = invitation.metadata as Record<string, unknown> | null;
-      let allowedTeamIds: string[] = [];
-
-      if (metadata?.allowed_team_ids && Array.isArray(metadata.allowed_team_ids)) {
-        allowedTeamIds = metadata.allowed_team_ids as string[];
+      // Fallback: grupos atuais de quem convidou
+      if (allowedSet.size === 0) {
+        const inviterIds = Array.from(new Set(invitations.map((i) => i.invited_by).filter(Boolean)));
+        if (inviterIds.length > 0) {
+          const { data: teamMemberships } = await supabase
+            .from('team_members')
+            .select('team_id')
+            .in('user_id', inviterIds);
+          teamMemberships?.forEach((tm) => tm.team_id && allowedSet.add(tm.team_id));
+        }
       }
 
-      // Fallback: if no snapshot, use inviter's current teams
-      if (allowedTeamIds.length === 0) {
-        const { data: teamMemberships } = await supabase
-          .from('team_members')
-          .select('team_id')
-          .eq('user_id', invitation.invited_by);
-        allowedTeamIds = teamMemberships?.map(tm => tm.team_id) || [];
-      }
+      const allowedTeamIds = Array.from(allowedSet);
 
-      // Final fallback: if still empty, use ALL teams so guest sees something
-      if (allowedTeamIds.length === 0) {
-        const { data: allTeams } = await supabase
-          .from('teams')
-          .select('id');
-        allowedTeamIds = allTeams?.map(t => t.id) || [];
-      }
-
-      // Fetch inviter profile
+      // Fetch inviter profile (do convite principal)
       const { data: inviter } = await supabase
         .from('profiles')
         .select('id, full_name, company, avatar_url')
-        .eq('id', invitation.invited_by)
+        .eq('id', primary.invited_by)
         .maybeSingle();
 
-      // Fetch team details
       let inviterTeams: { id: string; name: string; color: string }[] = [];
       if (allowedTeamIds.length > 0) {
         const { data: teams } = await supabase
@@ -106,39 +110,57 @@ export function useGuestData() {
         inviterTeams = teams || [];
       }
 
-      return { invitation, inviter, inviterTeams, allowedTeamIds };
+      return { invitation: primary, inviter, inviterTeams, allowedTeamIds, eventIds };
     },
     enabled: !!user?.id,
   });
 
   const { data: guestMeetings, isLoading: isLoadingMeetings } = useQuery({
-    queryKey: ['guest-meetings', guestData?.allowedTeamIds?.join(',')],
+    queryKey: ['guest-meetings', guestData?.allowedTeamIds?.join(','), guestData?.eventIds?.join(',')],
     queryFn: async (): Promise<GuestMeeting[]> => {
       const teamIds = guestData?.allowedTeamIds || [];
+      const eventIds = guestData?.eventIds || [];
 
-      if (teamIds.length === 0) return [];
+      const collected = new Map<string, any>();
 
-      const { data: meetings, error } = await supabase
-        .from('meetings')
-        .select('*')
-        .in('team_id', teamIds)
-        .order('meeting_date', { ascending: true });
+      if (teamIds.length > 0) {
+        const { data, error } = await supabase
+          .from('meetings')
+          .select('*')
+          .in('team_id', teamIds);
+        if (error) throw error;
+        data?.forEach((m) => collected.set(m.id, m));
+      }
 
-      if (error) throw error;
+      // Convites HUB (sem grupo) apontam para um evento específico
+      if (eventIds.length > 0) {
+        const { data } = await supabase.from('meetings').select('*').in('id', eventIds);
+        data?.forEach((m) => collected.set(m.id, m));
+      }
 
-      // Include today AND future meetings
-      const relevantMeetings = meetings?.filter(m => {
-        const d = parseLocalDate(m.meeting_date);
-        return isToday(d) || isFuture(d);
-      }) || [];
+      // Convidado sem grupo: mostra eventos abertos do Gente HUB
+      if (teamIds.length === 0) {
+        const { data } = await supabase.from('meetings').select('*').eq('event_type', 'hub_event');
+        data?.forEach((m) => collected.set(m.id, m));
+      }
+
+      const relevantMeetings = Array.from(collected.values())
+        .filter((m) => {
+          const d = parseLocalDate(m.meeting_date);
+          return isToday(d) || isFuture(d);
+        })
+        .sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
 
       // Fetch team info
       const teams: Record<string, { name: string; color: string }> = {};
-      if (teamIds.length > 0) {
+      const teamIdsToFetch = Array.from(
+        new Set(relevantMeetings.map((m) => m.team_id).filter(Boolean) as string[]),
+      );
+      if (teamIdsToFetch.length > 0) {
         const { data: teamsData } = await supabase
           .from('teams')
           .select('id, name, color')
-          .in('id', teamIds);
+          .in('id', teamIdsToFetch);
         teamsData?.forEach(t => { teams[t.id] = t; });
       }
 
@@ -160,8 +182,9 @@ export function useGuestData() {
         is_attending: attendances.some(a => a.meeting_id === m.id && a.user_id === user?.id),
       }));
     },
-    enabled: !!guestData?.allowedTeamIds && guestData.allowedTeamIds.length > 0,
+    enabled: !!guestData,
   });
+
 
   const confirmAttendance = useMutation({
     mutationFn: async (meetingId: string) => {
