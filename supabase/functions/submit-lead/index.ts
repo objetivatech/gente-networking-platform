@@ -414,9 +414,14 @@ serve(async (req) => {
       // v3.35.0 — Atualização NÃO destrutiva: só sobrescreve o que veio preenchido,
       // preserva metadata anterior (merge) e nunca rebaixa o status do funil.
       const prevMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
+      // Mesma pessoa com e-mail diferente: mantém o e-mail principal e guarda o alternativo.
+      const sameEmail =
+        (existing?.email ?? "").toLowerCase() === leadPayload.email.toLowerCase();
+      const altEmails = Array.isArray(prevMeta.alt_emails) ? (prevMeta.alt_emails as string[]) : [];
+      if (!sameEmail && !altEmails.includes(leadPayload.email)) altEmails.push(leadPayload.email);
       const mergedPayload: Record<string, unknown> = {
         name: leadPayload.name,
-        email: leadPayload.email,
+        email: existing?.email ?? leadPayload.email,
         phone: leadPayload.phone ?? existing?.phone ?? null,
         company: leadPayload.company ?? existing?.company ?? null,
         business_segment: leadPayload.business_segment ?? existing?.business_segment ?? null,
