@@ -277,16 +277,73 @@ serve(async (req) => {
       );
     }
 
-    // ---- Dedup por email ----------------------------------------------------
-    const { data: existing } = await supabase
+    const phoneDigits = phoneKey(data.phone);
+
+    // ---- Bloqueio na origem: já é membro/facilitador ativo -------------------
+    const identityFilter = phoneDigits
+      ? `email.ilike.${data.email},phone_digits.eq.${phoneDigits}`
+      : `email.ilike.${data.email}`;
+
+    const { data: matchedProfiles } = await supabase
+      .from("profiles")
+      .select("id, full_name, is_active")
+      .or(identityFilter)
+      .limit(5);
+
+    if (matchedProfiles && matchedProfiles.length > 0) {
+      const ids = matchedProfiles.filter((p) => p.is_active).map((p) => p.id);
+      if (ids.length > 0) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("user_id, role")
+          .in("user_id", ids);
+        const isMember = (roles ?? []).some((r) =>
+          ["membro", "facilitador", "admin"].includes(r.role as string)
+        );
+        if (isMember) {
+          console.log("[submit-lead] blocked: already member", data.email);
+          return new Response(
+            JSON.stringify({
+              ok: false,
+              already_member: true,
+              message:
+                "Você já faz parte do Gente. Acesse a plataforma com seu login para continuar.",
+              login_url: `${data.app_base_url ?? "https://comunidade.gentenetworking.com.br"}/auth`,
+            }),
+            { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+          );
+        }
+      }
+    }
+
+    // ---- Dedup por e-mail OU telefone ---------------------------------------
+    const { data: candidates } = await supabase
       .from("crm_leads")
-      .select("id, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata")
-      .eq("email", data.email)
-      .maybeSingle();
+      .select(
+        "id, email, phone_digits, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata, created_at",
+      )
+      .or(identityFilter)
+      .is("archived_at", null)
+      .order("created_at", { ascending: true });
+
+    const existing = candidates?.[0];
+
+    // União automática dos demais duplicados no contato mais antigo
+    if (existing && candidates && candidates.length > 1) {
+      for (const dup of candidates.slice(1)) {
+        const { error: mergeErr } = await supabase.rpc("crm_merge_leads", {
+          _keep_id: existing.id,
+          _dup_id: dup.id,
+          _reason: `Identidade única (${phoneDigits && dup.phone_digits === phoneDigits ? "telefone" : "e-mail"}) via ${data.source}`,
+        });
+        if (mergeErr) console.error("[submit-lead] merge failed (non-blocking)", mergeErr);
+      }
+    }
 
     let leadId = existing?.id;
     let invitationId = existing?.invitation_id;
     let invitationCode: string | null = null;
+
 
     if (!invitationId) {
       const code = genCode();
