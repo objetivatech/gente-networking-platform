@@ -2,3 +2,4 @@
 - [Perfil Público v3.41.0](mem://features/public-profile-redesign-v3410) — Layout executivo /m/:slug, KPIs, atividades públicas, CTAs; Search Console por Domínio e GA4 único
 - [Perfil do Membro v3.42.0](mem://features/member-profile-share-v3420) — Compartilhar link público /m/:slug, pedir preenchimento, redirect de visitantes, RichText na aba Sobre
 - [Resgate v3.43.0](mem://features/v3430-desativacao-resgate) — Desativação remove acesso/grupo e vira convidado; régua de resgate ex-membros/convidados; /admin/resgate
+- [Convites e desativação v3.45.0](mem://features/invitation-attribution-fix-v3450) — Prioridade do código de convite, convite aceito único, convidado vendo encontros HUB, fix add_activity_feed
