@@ -3,3 +3,4 @@
 - [Perfil do Membro v3.42.0](mem://features/member-profile-share-v3420) — Compartilhar link público /m/:slug, pedir preenchimento, redirect de visitantes, RichText na aba Sobre
 - [Resgate v3.43.0](mem://features/v3430-desativacao-resgate) — Desativação remove acesso/grupo e vira convidado; régua de resgate ex-membros/convidados; /admin/resgate
 - [Convites e desativação v3.45.0](mem://features/invitation-attribution-fix-v3450) — Prioridade do código de convite, convite aceito único, convidado vendo encontros HUB, fix add_activity_feed
+- [Identidade única v3.46.0](mem://features/identidade-unica-leads-v3460) — Membro ativo bloqueado nas LPs (409 already_member); dedupe por e-mail OU telefone; união automática via crm_merge_leads com auditoria
