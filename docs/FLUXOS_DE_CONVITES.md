@@ -27,3 +27,11 @@ A LP envia o lead ao CRM com `source=lp_participe` e
 - Convites antigos `comunidade` são apresentados como Grupo Premium.
 - Convites antigos `hub` sem evento são mantidos como Gente HUB legado.
 - Nenhum histórico, aceite, presença, atividade ou pontuação foi apagado.
+## Integridade do vínculo (v3.45.0)
+
+- Um convidado tem **um único** convite aceito válido. Aceites adicionais ficam marcados como
+  `superseded` no metadata, sem apagar histórico.
+- O código usado no cadastro define o convidador. O match automático por e-mail só ocorre quando
+  existe um único convite pendente para o endereço e a pessoa ainda não tem convite aceito.
+- Convidados sem grupo (Gente HUB) visualizam o evento do convite e os encontros `hub_event`
+  abertos para confirmar presença.
