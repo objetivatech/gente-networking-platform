@@ -26,6 +26,8 @@ export interface GuestInvitationData {
     color: string;
   }[];
   allowedTeamIds: string[];
+  eventIds: string[];
+
 }
 
 export interface GuestMeeting {
