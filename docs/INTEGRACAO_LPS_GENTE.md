@@ -155,3 +155,13 @@ O salvamento local da LP e a sincronização com o CRM são operações distinta
 ocultar uma falha do CRM: registre o status HTTP e o corpo de erro, mostre o envio local como
 concluído e mantenha uma ação de reenvio para a sincronização pendente. Isso evita perda
 silenciosa sem bloquear a captação principal.
+
+## 9. Resposta `409 already_member` (v3.46.0)
+
+Se o visitante já é membro/facilitador ativo (match por e-mail **ou** telefone), o
+`submit-lead` devolve `409` com `already_member: true`. A LP deve tratar esse caso como
+**sucesso de fluxo**: mostrar "Você já faz parte do Gente" e um botão para o login
+(`login_url` vem na resposta). Não registrar como falha nem reenviar.
+
+Leads repetidos com e-mails diferentes mas mesmo telefone são unidos automaticamente no
+CRM — ver `docs/CRM_INGESTAO_LEADS.md`.
