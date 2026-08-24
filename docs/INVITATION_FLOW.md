@@ -229,3 +229,40 @@ Quando um membro pede saída do Gente, o admin pode rebaixá-lo a convidado em v
 **UI:** botão "Tornar Convidado" (cor âmbar) em `/admin/membros`, aba Ativos, visível apenas para linhas com role `membro` ou `facilitador`.
 
 **Acesso:** `canDowngradeMember(role)` em `src/lib/access-control.ts` — apenas `admin`. Coberto por testes de regressão.
+
+---
+
+## Correções de fluxo (v3.45.0)
+
+### Atribuição correta do convidador
+
+Antes, o gatilho `handle_new_user_invitation_match` aceitava automaticamente **qualquer convite
+pendente com o mesmo e-mail** (o mais recente), ignorando o código realmente usado. Isso fazia
+convites do facilitador aparecerem como sendo de outro membro (que tinha muitos convites HUB
+pendentes por e-mail).
+
+Regras atuais:
+
+1. Se o usuário já tem um convite aceito, o gatilho não altera nada (vínculo original preservado).
+2. Se o cadastro trouxe `invitation_code` nos metadados (`/convite/:code` → `signUp`), esse código
+   tem prioridade absoluta.
+3. Só há match por e-mail quando existe **exatamente um** convite pendente para aquele e-mail.
+   Havendo ambiguidade, o convite permanece pendente para o admin resolver.
+
+`accept_invitation` também virou idempotente por pessoa: aceites posteriores não sobrescrevem o
+vínculo original — o convite extra é marcado com `metadata.superseded = true` (nada é apagado).
+
+### Convidado voltando a ver os encontros
+
+`useGuestData` lia o convite aceito com `maybeSingle()`; quem tinha dois convites aceitos recebia
+erro e ficava sem nenhum encontro. Agora o hook lê **todos** os convites aceitos, une os
+`allowed_team_ids`, inclui o `event_id` do convite HUB e, para convidados sem grupo, exibe os
+eventos `hub_event` abertos. Convites aceitos sem snapshot receberam backfill do grupo.
+
+### Desativação de convidado
+
+`deactivate_member` chamava `add_activity_feed` com os argumentos fora de ordem
+(`add_activity_feed(uuid, unknown, uuid, ...) does not exist`) e revertia toda a operação.
+A ordem foi corrigida, a função de feed passou a nunca derrubar a operação principal
+(falha vira `RAISE WARNING`) e convidados agora podem ser desativados normalmente
+(`source_detail = 'ex_convidado'` no CRM).
