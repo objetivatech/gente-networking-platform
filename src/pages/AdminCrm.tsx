@@ -46,6 +46,7 @@ import { LeadDrawer } from '@/components/crm/LeadDrawer';
 import { useCrmLeadPages, leadPageKey } from '@/hooks/useCrmLeadPages';
 import { formatLeadPageLabel } from '@/lib/crm-page-label';
 import { StageManagerDialog } from '@/components/crm/StageManagerDialog';
+import { SyncLeadPagesDialog } from '@/components/crm/SyncLeadPagesDialog';
 import { useCrmPipelineStages, type CrmPipelineStage } from '@/hooks/useCrmPipelineStages';
 import {
   Accordion,
@@ -116,6 +117,7 @@ export default function AdminCrm() {
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<CrmLead | null>(null);
   const [stageManagerOpen, setStageManagerOpen] = useState(false);
+  const [syncPagesOpen, setSyncPagesOpen] = useState(false);
   const { data: stages } = useCrmPipelineStages();
   const stageMap = useMemo(
     () => new Map<string, CrmPipelineStage>((stages ?? []).map((s) => [s.key, s])),
@@ -312,16 +314,27 @@ export default function AdminCrm() {
         </CardContent>
       </Card>
 
-      {/* Páginas de captação descobertas automaticamente (v3.34.0) */}
-      {(leadPages ?? []).length > 0 && (
+      {/* Páginas de captação descobertas automaticamente (v3.34.0 + v3.47.0) */}
+      {(
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Páginas de captação</CardTitle>
-            <CardDescription>
-              Detectadas automaticamente a cada lead recebido — não é preciso cadastrar LP nenhuma.
-            </CardDescription>
+          <CardHeader className="pb-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+            <div className="min-w-0">
+              <CardTitle className="text-base">Páginas de captação</CardTitle>
+              <CardDescription>
+                Detectadas automaticamente a cada lead recebido. Use "Sincronizar páginas" para
+                incluir LPs já publicadas que ainda não converteram.
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setSyncPagesOpen(true)}>
+              <RefreshCcw className="h-4 w-4 mr-1" /> Sincronizar páginas
+            </Button>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
+            {(leadPages ?? []).length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma página registrada ainda.
+              </p>
+            )}
             {(leadPages ?? []).map((p) => {
               const formatted = formatLeadPageLabel(p.title, p.page_url);
               return (
@@ -335,7 +348,7 @@ export default function AdminCrm() {
                 >
                   <span className="block font-medium text-wrap-anywhere">{formatted.label}</span>
                   <span className="block text-muted-foreground text-wrap-anywhere">
-                    {p.leads_count} lead(s)
+                    {p.leads_count > 0 ? `${p.leads_count} lead(s)` : 'sem conversões ainda'}
                     {p.source ? ` · ${CRM_SOURCE_LABEL[p.source as CrmLeadSource] ?? p.source}` : ''}
                   </span>
                   {formatted.params.length > 0 && (
@@ -507,6 +520,7 @@ export default function AdminCrm() {
       />
 
       <StageManagerDialog open={stageManagerOpen} onOpenChange={setStageManagerOpen} />
+      <SyncLeadPagesDialog open={syncPagesOpen} onOpenChange={setSyncPagesOpen} />
 
     </div>
   );

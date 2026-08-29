@@ -302,6 +302,24 @@ serve(async (req) => {
         );
         if (isMember) {
           console.log("[submit-lead] blocked: already member", data.email);
+          // v3.47.0 — auditoria do bloqueio (nunca impede a resposta 409)
+          try {
+            const blockedPageKey = data.page_url
+              ? data.page_url.split("?")[0].replace(/\/$/, "")
+              : null;
+            const { error: logErr } = await supabase.rpc("crm_log_identity_block", {
+              _email: data.email ?? null,
+              _phone_digits: phoneDigits ?? null,
+              _matched_profile_id: ids[0] ?? null,
+              _source: data.source ?? null,
+              _page_key: blockedPageKey,
+              _page_url: data.page_url ?? null,
+              _metadata: { name: data.name ?? null },
+            });
+            if (logErr) console.error("[submit-lead] identity block log failed", logErr);
+          } catch (e) {
+            console.error("[submit-lead] identity block log threw", e);
+          }
           return new Response(
             JSON.stringify({
               ok: false,

@@ -53,6 +53,7 @@ import {
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
+import { buildDeactivateArgs } from '@/lib/identity-utils';
 
 interface PersonData {
   id: string;
@@ -227,10 +228,10 @@ export default function GestaoPessoas() {
   // Mutation para desativar usando a função do banco
   const deactivateMutation = useMutation({
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) => {
-      const { data, error } = await supabase.rpc('deactivate_member', {
-        _member_id: memberId,
-        _reason: reason || null,
-      });
+      const { data, error } = await supabase.rpc(
+        'deactivate_member',
+        buildDeactivateArgs(memberId, reason),
+      );
 
       if (error) throw error;
       

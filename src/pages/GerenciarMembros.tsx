@@ -45,6 +45,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { buildDeactivateArgs } from '@/lib/identity-utils';
 
 interface MemberData {
   id: string;
@@ -115,10 +116,10 @@ export default function GerenciarMembros() {
   // Mutation para desativar membro usando função SECURITY DEFINER
   const deactivateMutation = useMutation({
     mutationFn: async ({ memberId, reason }: { memberId: string; reason: string }) => {
-      const { data, error } = await supabase.rpc('deactivate_member', {
-        _member_id: memberId,
-        _reason: reason || null,
-      });
+      const { data, error } = await supabase.rpc(
+        'deactivate_member',
+        buildDeactivateArgs(memberId, reason),
+      );
 
       if (error) throw error;
       

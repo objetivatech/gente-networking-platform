@@ -673,6 +673,53 @@ export type Database = {
           },
         ]
       }
+      crm_identity_events: {
+        Row: {
+          created_at: string
+          email: string | null
+          event_type: string
+          id: string
+          matched_profile_id: string | null
+          metadata: Json
+          page_key: string | null
+          page_url: string | null
+          phone_digits: string | null
+          source: Database["public"]["Enums"]["crm_lead_source"] | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          event_type?: string
+          id?: string
+          matched_profile_id?: string | null
+          metadata?: Json
+          page_key?: string | null
+          page_url?: string | null
+          phone_digits?: string | null
+          source?: Database["public"]["Enums"]["crm_lead_source"] | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          event_type?: string
+          id?: string
+          matched_profile_id?: string | null
+          metadata?: Json
+          page_key?: string | null
+          page_url?: string | null
+          phone_digits?: string | null
+          source?: Database["public"]["Enums"]["crm_lead_source"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_identity_events_matched_profile_id_fkey"
+            columns: ["matched_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_lead_history: {
         Row: {
           created_at: string
@@ -2143,9 +2190,30 @@ export type Database = {
             }
             Returns: Json
           }
+      crm_log_identity_block: {
+        Args: {
+          _email: string
+          _matched_profile_id: string
+          _metadata?: Json
+          _page_key: string
+          _page_url: string
+          _phone_digits: string
+          _source: Database["public"]["Enums"]["crm_lead_source"]
+        }
+        Returns: string
+      }
       crm_merge_leads: {
         Args: { _dup_id: string; _keep_id: string; _reason?: string }
         Returns: Json
+      }
+      crm_register_known_page: {
+        Args: {
+          _page_key: string
+          _page_url?: string
+          _source?: Database["public"]["Enums"]["crm_lead_source"]
+          _title?: string
+        }
+        Returns: string
       }
       deactivate_member: {
         Args: { _member_id: string; _reason?: string }
