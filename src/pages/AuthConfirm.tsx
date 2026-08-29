@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import { resolveInviteCode } from '@/lib/identity-utils';
 const logoGente = '/logo-gente-networking-branco.png';
 
 type ConfirmState = 'processing' | 'accepting_invite' | 'success' | 'error' | 'expired';
@@ -80,9 +81,11 @@ export default function AuthConfirm() {
 
       // Check if there's an invitation code to accept
       // Priority: URL param > localStorage > user_metadata (most reliable across devices)
-      const inviteCode = searchParams.get('invite') 
-        || localStorage.getItem('invitation_code')
-        || (session.user.user_metadata?.invitation_code as string | undefined);
+      const inviteCode = resolveInviteCode({
+        urlCode: searchParams.get('invite'),
+        storedCode: localStorage.getItem('invitation_code'),
+        metadataCode: session.user.user_metadata?.invitation_code as string | undefined,
+      });
       
       console.log('[AuthConfirm] Invite code source:', {
         fromUrl: searchParams.get('invite'),

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { isFuture, isToday } from 'date-fns';
 import { parseLocalDate } from '@/lib/date-utils';
+import { resolveGuestVisibility } from '@/lib/identity-utils';
 
 export interface GuestInvitationData {
   invitation: {
@@ -66,30 +67,18 @@ export function useGuestData() {
 
       if (invError || !invitations || invitations.length === 0) return empty;
 
-      const primary = invitations[0];
-      const allowedSet = new Set<string>();
-      const eventIds: string[] = [];
-
-      for (const inv of invitations) {
-        const metadata = inv.metadata as Record<string, unknown> | null;
-        const snapshot = metadata?.allowed_team_ids;
-        if (Array.isArray(snapshot)) {
-          (snapshot as string[]).forEach((id) => id && allowedSet.add(id));
-        }
-        if (inv.team_id) allowedSet.add(inv.team_id);
-        if (inv.event_id) eventIds.push(inv.event_id);
-      }
+      const visibility = resolveGuestVisibility(invitations);
+      const primary = visibility.primary ?? invitations[0];
+      const allowedSet = new Set<string>(visibility.allowedTeamIds);
+      const eventIds = visibility.eventIds;
 
       // Fallback: grupos atuais de quem convidou
-      if (allowedSet.size === 0) {
-        const inviterIds = Array.from(new Set(invitations.map((i) => i.invited_by).filter(Boolean)));
-        if (inviterIds.length > 0) {
-          const { data: teamMemberships } = await supabase
-            .from('team_members')
-            .select('team_id')
-            .in('user_id', inviterIds);
-          teamMemberships?.forEach((tm) => tm.team_id && allowedSet.add(tm.team_id));
-        }
+      if (allowedSet.size === 0 && visibility.inviterIds.length > 0) {
+        const { data: teamMemberships } = await supabase
+          .from('team_members')
+          .select('team_id')
+          .in('user_id', visibility.inviterIds);
+        teamMemberships?.forEach((tm) => tm.team_id && allowedSet.add(tm.team_id));
       }
 
       const allowedTeamIds = Array.from(allowedSet);

@@ -7,8 +7,9 @@
  * Cada LP/página que envia leads via `submit-lead` é registrada automaticamente
  * em `crm_lead_pages`. Não há cadastro manual: novas páginas aparecem sozinhas.
  */
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface CrmLeadPage {
   id: string;
@@ -44,4 +45,53 @@ export function leadPageKey(lead: {
   const url = lead.metadata?.['page_url'];
   if (typeof url === 'string' && url.trim()) return url.split('?')[0].replace(/\/$/, '');
   return lead.source_detail?.trim() || null;
+}
+
+/** Normaliza uma URL informada manualmente para virar `page_key`. */
+export function normalizePageKey(input: string): string | null {
+  const value = input.trim();
+  if (!value) return null;
+  return value.split('?')[0].replace(/\/$/, '');
+}
+
+/**
+ * v3.47.0 — Cadastro antecipado de páginas conhecidas (LPs já publicadas que
+ * ainda não converteram). Não incrementa contador: apenas garante o filtro.
+ */
+export function useSyncKnownPages() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (urls: string[]) => {
+      const keys = Array.from(
+        new Set(urls.map(normalizePageKey).filter((k): k is string => !!k)),
+      );
+      let created = 0;
+      for (const key of keys) {
+        const isUrl = /^https?:\/\//i.test(key);
+        const { error } = await supabase.rpc('crm_register_known_page', {
+          _page_key: key,
+          ...(isUrl ? { _page_url: key } : {}),
+        });
+        if (error) throw error;
+        created += 1;
+      }
+      return created;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ['crm-lead-pages'] });
+      toast({
+        title: 'Páginas sincronizadas',
+        description: `${count} página(s) disponíveis nos filtros de origem.`,
+      });
+    },
+    onError: (err: unknown) => {
+      toast({
+        title: 'Erro ao sincronizar páginas',
+        description: err instanceof Error ? err.message : 'Falha desconhecida',
+        variant: 'destructive',
+      });
+    },
+  });
 }

@@ -98,6 +98,8 @@ export const CRM_EVENT_LABEL: Record<string, string> = {
   promoted: 'Promovido a membro',
   note_added: 'Nota adicionada',
   manual_edit: 'Edição manual',
+  lead_merged: 'Contatos unificados',
+  already_member_blocked: 'Bloqueado (já é membro)',
 };
 
 export const CRM_STATUS_ORDER: CrmLeadStatus[] = [
