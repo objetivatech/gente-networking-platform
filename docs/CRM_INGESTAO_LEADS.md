@@ -125,3 +125,23 @@ Regras aplicadas dentro do `submit-lead`, antes de qualquer gravação:
 
 Toda união gera um registro `lead_merged` em `crm_lead_history`, visível em
 `/admin/crm/auditoria`.
+
+## Observabilidade da identidade única (v3.47.0)
+
+- **Bloqueios auditados** — todo `409 already_member` grava um evento
+  `already_member_blocked` na tabela `crm_identity_events` (e-mail, telefone
+  normalizado, perfil correspondente, origem, `page_key` e `page_url`). O registro
+  é feito de forma não bloqueante: falha no log nunca impede a resposta à LP.
+- **Painel** — `/admin/crm/auditoria` passou a ter três abas:
+  - **Eventos** — trilha completa já existente, com filtros e exportação CSV/PDF;
+  - **Fusões de contatos** — cada `lead_merged` com contato principal, duplicado
+    arquivado (e-mail/telefone) e itens de histórico migrados;
+  - **Bloqueios na origem** — cadastros barrados por já serem membros, com a página
+    de captação de origem.
+- **Métricas** — cartões no topo da página com bloqueios e fusões em 7 dias, 30 dias
+  e total acumulado.
+- **Páginas de captação** — além da auto-descoberta no primeiro lead, o CRM ganhou o
+  botão **Sincronizar páginas** (`crm_register_known_page`), que cadastra LPs já
+  publicadas com `leads_count = 0` para aparecerem nos filtros de origem antes da
+  primeira conversão. Páginas sem conversão são sinalizadas como "sem conversões ainda".
+- **Snippet para as LPs** — ver `docs/LP_SNIPPET_409.md` (JavaScript puro, Elementor e React).
