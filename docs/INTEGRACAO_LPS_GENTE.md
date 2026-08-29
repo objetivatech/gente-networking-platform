@@ -165,3 +165,7 @@ Se o visitante já é membro/facilitador ativo (match por e-mail **ou** telefone
 
 Leads repetidos com e-mails diferentes mas mesmo telefone são unidos automaticamente no
 CRM — ver `docs/CRM_INGESTAO_LEADS.md`.
+
+> **Trechos prontos (v3.47.0):** os exemplos de tratamento do `409 already_member`
+> em JavaScript puro, Elementor e React estão em `docs/LP_SNIPPET_409.md`. Os
+> bloqueios e as fusões podem ser acompanhados em `/admin/crm/auditoria`.
