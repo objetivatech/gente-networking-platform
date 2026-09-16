@@ -1,6 +1,6 @@
 /**
  * Teste de regressão: o diretório de convidados precisa usar a RPC segura
- * `get_guests_directory`, e nunca voltar a ler `invitations` diretamente.
+ * `get_guest_journey_directory`, e nunca voltar a ler tabelas sensíveis diretamente.
  *
  * @author Diogo Devitte
  * @company Ranktop SEO Inteligente
@@ -37,11 +37,14 @@ describe('useGuestsDirectory', () => {
     fromMock.mockReset();
   });
 
-  it('chama a RPC get_guests_directory e mapeia o resultado', async () => {
+  it('chama a RPC unificada e mapeia pré-ativação com origem', async () => {
     rpcMock.mockResolvedValueOnce({
       data: [
         {
           id: 'u1',
+          lead_id: 'l1',
+          profile_id: null,
+          invitation_id: 'i1',
           full_name: 'Convidado Um',
           slug: 'convidado-um',
           email: 'c1@ex.com',
@@ -50,14 +53,22 @@ describe('useGuestsDirectory', () => {
           avatar_url: null,
           business_segment: null,
           role_current: 'convidado',
-          status: 'awaiting_first',
+          journey_status: 'aguardando_ativacao',
+          onboarding_category: 'impulso',
+          source: 'lp_participe',
+          source_detail: 'impulso',
           team_id: null,
           team_name: null,
           team_color: null,
           invited_by_id: null,
           invited_by_name: null,
-          invited_at: null,
+          entered_at: '2026-09-16T10:00:00Z',
+          invitation_status: 'pending',
+          invitation_expires_at: '2026-10-16T10:00:00Z',
+          email_status: 'sent',
+          email_sent_at: '2026-09-16T10:00:01Z',
           attendance_count: 0,
+          can_manage: true,
         },
       ],
       error: null,
@@ -66,12 +77,13 @@ describe('useGuestsDirectory', () => {
     const { result } = renderHook(() => useGuestsDirectory(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-    expect(rpcMock).toHaveBeenCalledWith('get_guests_directory');
+    expect(rpcMock).toHaveBeenCalledWith('get_guest_journey_directory');
     expect(result.current.data?.[0]).toMatchObject({
       id: 'u1',
       full_name: 'Convidado Um',
       current_role: 'convidado',
-      status: 'awaiting_first',
+      status: 'aguardando_ativacao',
+      onboarding_category: 'impulso',
     });
     // Regressão: não deve consultar `invitations` diretamente.
     expect(fromMock).not.toHaveBeenCalled();

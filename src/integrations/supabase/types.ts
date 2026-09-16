@@ -812,6 +812,7 @@ export type Database = {
       }
       crm_leads: {
         Row: {
+          activated_at: string | null
           archived_at: string | null
           autentique_document_id: string | null
           business_segment: string | null
@@ -836,6 +837,10 @@ export type Database = {
           metadata: Json
           name: string
           notes: string | null
+          onboarding_category: string
+          onboarding_email_sent_at: string | null
+          onboarding_email_status: string
+          onboarding_status: string
           payment_status: string | null
           phone: string | null
           phone_digits: string | null
@@ -850,6 +855,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          activated_at?: string | null
           archived_at?: string | null
           autentique_document_id?: string | null
           business_segment?: string | null
@@ -874,6 +880,10 @@ export type Database = {
           metadata?: Json
           name: string
           notes?: string | null
+          onboarding_category?: string
+          onboarding_email_sent_at?: string | null
+          onboarding_email_status?: string
+          onboarding_status?: string
           payment_status?: string | null
           phone?: string | null
           phone_digits?: string | null
@@ -888,6 +898,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          activated_at?: string | null
           archived_at?: string | null
           autentique_document_id?: string | null
           business_segment?: string | null
@@ -912,6 +923,10 @@ export type Database = {
           metadata?: Json
           name?: string
           notes?: string | null
+          onboarding_category?: string
+          onboarding_email_sent_at?: string | null
+          onboarding_email_status?: string
+          onboarding_status?: string
           payment_status?: string | null
           phone?: string | null
           phone_digits?: string | null
@@ -2235,6 +2250,39 @@ export type Database = {
           email: string
           full_name: string
           user_id: string
+        }[]
+      }
+      get_guest_journey_directory: {
+        Args: never
+        Returns: {
+          attendance_count: number
+          avatar_url: string
+          business_segment: string
+          can_manage: boolean
+          company: string
+          email: string
+          email_sent_at: string
+          email_status: string
+          entered_at: string
+          full_name: string
+          id: string
+          invitation_expires_at: string
+          invitation_id: string
+          invitation_status: string
+          invited_by_id: string
+          invited_by_name: string
+          journey_status: string
+          lead_id: string
+          onboarding_category: string
+          phone: string
+          profile_id: string
+          role_current: Database["public"]["Enums"]["app_role"]
+          slug: string
+          source: string
+          source_detail: string
+          team_color: string
+          team_id: string
+          team_name: string
         }[]
       }
       get_guests_directory: {

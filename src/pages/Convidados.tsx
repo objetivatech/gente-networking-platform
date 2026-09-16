@@ -14,7 +14,11 @@
 
 import { useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { useGuestsDirectory, GuestJourneyStatus } from '@/hooks/useGuestsDirectory';
+import {
+  useGuestsDirectory,
+  type GuestJourneyStatus,
+  type GuestOnboardingCategory,
+} from '@/hooks/useGuestsDirectory';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,16 +28,36 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Ticket, Search, Building2, Users, CalendarCheck, Clock, ArrowUpCircle, Settings, ExternalLink } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Ticket, Search, Building2, Users, CalendarCheck, Clock, ArrowUpCircle, Settings, ExternalLink, UserCheck, Inbox } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 
 const STATUS_LABELS: Record<GuestJourneyStatus, { label: string; variant: 'secondary' | 'default' | 'outline'; icon: any; color: string }> = {
-  awaiting_first: { label: 'Aguardando primeiro encontro', variant: 'outline', icon: Clock, color: 'text-muted-foreground' },
-  attended: { label: 'Já participou', variant: 'secondary', icon: CalendarCheck, color: 'text-amber-700' },
-  promoted: { label: 'Promovido a membro', variant: 'default', icon: ArrowUpCircle, color: 'text-emerald-700' },
+  cadastro_recebido: { label: 'Cadastro recebido', variant: 'outline', icon: Inbox, color: 'text-muted-foreground' },
+  aguardando_ativacao: { label: 'Aguardando ativação', variant: 'outline', icon: Clock, color: 'text-muted-foreground' },
+  convidado_ativo: { label: 'Convidado ativo', variant: 'secondary', icon: UserCheck, color: 'text-primary' },
+  ja_participou: { label: 'Já participou', variant: 'secondary', icon: CalendarCheck, color: 'text-amber-700' },
+  promovido_membro: { label: 'Promovido a membro', variant: 'default', icon: ArrowUpCircle, color: 'text-emerald-700' },
 };
+
+const CATEGORY_LABELS: Record<GuestOnboardingCategory, string> = {
+  gente_hub: 'Gente HUB',
+  impulso: 'Impulso',
+  comunidade: 'Comunidade',
+  participe: 'Participe',
+  site: 'Site',
+  outra_origem: 'Outra origem',
+};
+
+const STATUS_ORDER: GuestJourneyStatus[] = [
+  'cadastro_recebido',
+  'aguardando_ativacao',
+  'convidado_ativo',
+  'ja_participou',
+  'promovido_membro',
+];
 
 export default function Convidados() {
   const { isGuest, canManage, isLoading: roleLoading } = useAdmin();
@@ -42,13 +66,15 @@ export default function Convidados() {
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [showPromoted, setShowPromoted] = useState(false);
 
   const filtered = useMemo(() => {
     if (!guests) return [];
     return guests.filter(g => {
-      if (!showPromoted && g.status === 'promoted') return false;
+      if (!showPromoted && g.status === 'promovido_membro') return false;
       if (statusFilter !== 'all' && g.status !== statusFilter) return false;
+      if (categoryFilter !== 'all' && g.onboarding_category !== categoryFilter) return false;
       if (teamFilter !== 'all' && g.team_id !== teamFilter) return false;
       if (search) {
         const s = search.toLowerCase();
@@ -60,19 +86,27 @@ export default function Convidados() {
       }
       return true;
     });
-  }, [guests, showPromoted, statusFilter, teamFilter, search]);
+  }, [guests, showPromoted, statusFilter, categoryFilter, teamFilter, search]);
 
   const counts = useMemo(() => {
-    const c = { awaiting_first: 0, attended: 0, promoted: 0 };
+    const c: Record<GuestJourneyStatus, number> = {
+      cadastro_recebido: 0,
+      aguardando_ativacao: 0,
+      convidado_ativo: 0,
+      ja_participou: 0,
+      promovido_membro: 0,
+    };
     guests?.forEach(g => { c[g.status]++; });
     return c;
   }, [guests]);
 
   const grouped = useMemo(() => {
     const byStatus: Record<GuestJourneyStatus, typeof filtered> = {
-      awaiting_first: [],
-      attended: [],
-      promoted: [],
+      cadastro_recebido: [],
+      aguardando_ativacao: [],
+      convidado_ativo: [],
+      ja_participou: [],
+      promovido_membro: [],
     };
     filtered.forEach(g => byStatus[g.status].push(g));
     return byStatus;
@@ -93,7 +127,7 @@ export default function Convidados() {
             Convidados
           </h1>
           <p className="text-muted-foreground">
-            Base de leads que passaram pela comunidade Gente Networking
+            Jornada completa: do cadastro nas páginas até a evolução para membro
           </p>
         </div>
         {canManage && (
@@ -116,19 +150,19 @@ export default function Convidados() {
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-muted-foreground">{counts.awaiting_first}</p>
-            <p className="text-sm text-muted-foreground">Aguardando</p>
+            <p className="text-2xl sm:text-3xl font-bold text-muted-foreground">{counts.cadastro_recebido + counts.aguardando_ativacao}</p>
+            <p className="text-sm text-muted-foreground">Pré-ativação</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-amber-600">{counts.attended}</p>
-            <p className="text-sm text-muted-foreground">Já participaram</p>
+            <p className="text-2xl sm:text-3xl font-bold text-primary">{counts.convidado_ativo + counts.ja_participou}</p>
+            <p className="text-sm text-muted-foreground">Convidados ativos</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{counts.promoted}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{counts.promovido_membro}</p>
             <p className="text-sm text-muted-foreground">Promovidos</p>
           </CardContent>
         </Card>
@@ -137,7 +171,7 @@ export default function Convidados() {
       {/* Filtros */}
       <Card>
         <CardContent className="pt-4">
-          <div className="grid gap-3 md:grid-cols-4">
+          <div className="grid gap-3 md:grid-cols-5">
             <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -158,18 +192,25 @@ export default function Convidados() {
               <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="awaiting_first">Aguardando primeiro encontro</SelectItem>
-                <SelectItem value="attended">Já participou</SelectItem>
-                <SelectItem value="promoted">Promovido a membro</SelectItem>
+                {STATUS_ORDER.map(status => (
+                  <SelectItem key={status} value={status}>{STATUS_LABELS[status].label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger><SelectValue placeholder="Origem" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as origens</SelectItem>
+                {(Object.keys(CATEGORY_LABELS) as GuestOnboardingCategory[]).map(category => (
+                  <SelectItem key={category} value={category}>{CATEGORY_LABELS[category]}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <label className="flex items-center gap-2 mt-3 text-sm cursor-pointer">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={showPromoted}
-              onChange={(e) => setShowPromoted(e.target.checked)}
-              className="rounded border-input"
+              onCheckedChange={(checked) => setShowPromoted(checked === true)}
             />
             Mostrar convidados já promovidos a membros
           </label>
@@ -185,12 +226,12 @@ export default function Convidados() {
           <CardContent className="py-16 text-center text-muted-foreground">
             <Ticket className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p className="font-medium">Nenhum convidado encontrado</p>
-            <p className="text-sm">Ajuste os filtros ou aguarde novos convites serem aceitos</p>
+            <p className="text-sm">Ajuste os filtros ou aguarde novos cadastros</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-8">
-          {(['awaiting_first', 'attended', 'promoted'] as GuestJourneyStatus[]).map(status => {
+          {STATUS_ORDER.map(status => {
             const items = grouped[status];
             if (!items.length) return null;
             const meta = STATUS_LABELS[status];
@@ -235,17 +276,20 @@ export default function Convidados() {
                         {g.business_segment && (
                           <Badge variant="secondary" className="text-xs">{g.business_segment}</Badge>
                         )}
+                          <Badge variant="outline" className="text-xs">
+                            {CATEGORY_LABELS[g.onboarding_category]}
+                          </Badge>
                         <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
                           {g.invited_by_name && (
                             <p>Convidado por <span className="font-medium text-foreground">{g.invited_by_name}</span></p>
                           )}
-                          {g.invited_at && (
+                          {g.entered_at && (
                             <p>
-                              {format(parseLocalDate(g.invited_at.slice(0, 10)), "dd 'de' MMM yyyy", { locale: ptBR })}
+                              Entrada em {format(parseLocalDate(g.entered_at.slice(0, 10)), "dd 'de' MMM yyyy", { locale: ptBR })}
                             </p>
                           )}
                           <p>{g.attendance_count} {g.attendance_count === 1 ? 'encontro' : 'encontros'}</p>
-                          {g.status === 'promoted' && g.current_role && (
+                          {g.status === 'promovido_membro' && g.current_role && (
                             <Badge variant="default" className="bg-emerald-600">
                               Agora é {g.current_role}
                             </Badge>

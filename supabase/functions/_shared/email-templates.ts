@@ -1,5 +1,12 @@
-// Shared email template utilities for Gente Networking
+/**
+ * Shared email template utilities for Gente Networking.
+ *
+ * @author Diogo Devitte / Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente.
+ */
 // All emails use consistent branding: Navy Blue #1e3a5f and Orange #f7941d
+
+import type { OnboardingCategory } from "./guest-onboarding.ts";
 
 const APP_URL = "https://comunidade.gentenetworking.com.br";
 // White horizontal logo for dark email headers - better visibility
@@ -338,6 +345,64 @@ ${ctaButton('Aceitar Convite', inviteLink)}
   Este convite expira em 30 dias.
 </p>`;
 
+  return emailWrapper(emailContent);
+}
+
+export function guestActivationEmailTemplate(
+  guestName: string,
+  inviteLink: string,
+  category: OnboardingCategory,
+): string {
+  const content: Record<OnboardingCategory, { title: string; intro: string; context: string; cta: string }> = {
+    gente_hub: {
+      title: "Seu cadastro no Gente HUB foi recebido 🚀",
+      intro: "Seu interesse no Gente HUB já faz parte da nossa base de convidados.",
+      context: "Ative seu acesso para acompanhar sua jornada, manter seus dados atualizados e participar das próximas etapas do Gente HUB.",
+      cta: "Ativar acesso ao Gente HUB",
+    },
+    impulso: {
+      title: "Seu cadastro no Gente Impulso foi recebido",
+      intro: "Que bom ter você mais perto do Gente Impulso.",
+      context: "Ative seu acesso como convidado para continuar sua jornada e receber as orientações relacionadas ao Impulso.",
+      cta: "Ativar meu acesso",
+    },
+    comunidade: {
+      title: "Seu cadastro na Comunidade Gente foi recebido",
+      intro: "Seu interesse na Comunidade Gente já está registrado.",
+      context: "Ative seu acesso como convidado para completar seus dados e seguir conectado às oportunidades da comunidade.",
+      cta: "Ativar acesso à Comunidade",
+    },
+    participe: {
+      title: "Obrigado pelo interesse em participar",
+      intro: "Seu cadastro foi recebido e você já faz parte da nossa base de convidados.",
+      context: "Ative seu acesso para acompanhar os próximos passos e participar das experiências do Gente Networking.",
+      cta: "Ativar meu acesso",
+    },
+    site: {
+      title: "Recebemos seu contato",
+      intro: "Obrigado pelo interesse no Gente Networking.",
+      context: "Ative seu acesso como convidado para manter seus dados atualizados e continuar sua jornada conosco.",
+      cta: "Ativar meu acesso",
+    },
+    outra_origem: {
+      title: "Bem-vindo(a) ao Gente Networking",
+      intro: "Seu cadastro foi recebido e incluído na nossa base de convidados.",
+      context: "Ative seu acesso para continuar sua jornada no Gente Networking. Nenhuma conta é criada sem essa confirmação.",
+      cta: "Ativar meu acesso",
+    },
+  };
+  const selected = content[category] ?? content.outra_origem;
+  const emailContent = `
+<h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">${selected.title}</h1>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
+  Olá <strong style="color: #1e3a5f;">${guestName || ""}</strong>,
+</p>
+<p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">${selected.intro}</p>
+${infoBox(`<p style="color: #1e40af; font-size: 16px; line-height: 1.6; margin: 0;">${selected.context}</p>`, "blue")}
+${ctaButton(selected.cta, inviteLink)}
+<p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 16px 0 0; text-align: center;">
+  A ativação é voluntária. Você definirá sua senha antes de acessar a plataforma.
+</p>`;
   return emailWrapper(emailContent);
 }
 
