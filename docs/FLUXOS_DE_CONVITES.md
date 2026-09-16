@@ -1,6 +1,6 @@
 # Fluxos de Convites
 
-**Versão:** v3.33.0 · Agosto/2026
+**Versão:** v3.48.0 · Setembro/2026
 
 ## Destinos disponíveis
 
@@ -20,7 +20,24 @@ vincula a presença. Não concede acesso premium nem pontos pelo simples aceite.
 
 O link abre a LP Comunidade com `ref` (membro que convidou) e `convite` (código rastreável).
 A LP envia o lead ao CRM com `source=lp_participe` e
-`source_detail=comunidade_whatsapp`. Esse fluxo não cria conta ou papel na plataforma.
+`source_detail=comunidade_whatsapp`. O fluxo cria ou reutiliza um convite de ativação,
+mas não cria conta ou papel silenciosamente. A própria pessoa define a senha e confirma
+o email antes de receber o papel `convidado`.
+
+## Entrada pelas páginas e pelo site (v3.48.0)
+
+Gente HUB, Impulso, Comunidade, Participe e Site são contextos de entrada, não novos papéis.
+Cada cadastro recebe imediatamente um email adequado ao contexto e entra na base unificada
+com seu estado de jornada. Novas origens usam automaticamente o texto genérico.
+
+```text
+LP/site → CRM + convite pendente → email por origem → ativação voluntária
+→ Convidado com acesso restrito → participação → promoção para Membro
+```
+
+Repetições por email ou telefone reutilizam o contato e o convite válidos. Um identificador
+de convidador vindo diretamente de formulário público é ignorado; somente um código de
+convite válido pode estabelecer esse vínculo.
 
 ## Compatibilidade histórica
 

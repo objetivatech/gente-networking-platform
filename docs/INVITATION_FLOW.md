@@ -1,6 +1,6 @@
 # Fluxo de Convites — Gente Networking
 
-> Última atualização: 2026-06-25
+> Última atualização: 2026-09-16 · v3.48.0
 
 ## Visão Geral
 
@@ -131,6 +131,15 @@ A separação entre Convidados e Membros é **rigorosamente visual** em todas as
 | `/encontros` aba Convidados | admin, facilitador, membro | Convidados confirmados nos próximos encontros |
 | `/admin/pessoas` aba Convidados | admin, facilitador | Gestão completa: promover, transferir, desativar |
 | `/` (GuestWelcome) | convidado | Eventos do grupo do convite + perfil |
+
+### Base unificada e ativação por origem (v3.48.0)
+
+Cadastros das LPs e do site aparecem em `/convidados` antes da ativação, sem criar conta
+automaticamente. A consulta segura `get_guest_journey_directory()` apresenta cinco estados:
+`cadastro_recebido`, `aguardando_ativacao`, `convidado_ativo`, `ja_participou` e
+`promovido_membro`. Admin vê toda a base; Facilitador vê os próprios Grupos; Membro vê
+somente pessoas com acesso já ativado. Os contextos Gente HUB, Impulso, Comunidade,
+Participe, Site e Outra origem não alteram o papel de acesso.
 
 ### Hook `useTeams` — campo `member_type`
 Cada participante de um grupo expõe `member_type: 'facilitator' | 'member' | 'guest'`, derivado de `is_facilitator` + `role`. Isso garante que nenhuma tela classifique convidados como membros por engano.

@@ -1,3 +1,9 @@
+/**
+ * Promoção segura de Convidado para Membro ou Facilitador.
+ *
+ * @author Diogo Devitte / Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente.
+ */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +41,7 @@ export function usePromoteGuest() {
       queryClient.invalidateQueries({ queryKey: ['members-directory'] });
       queryClient.invalidateQueries({ queryKey: ['teams'] });
       queryClient.invalidateQueries({ queryKey: ['all-people-admin'] });
+      queryClient.invalidateQueries({ queryKey: ['guests-directory'] });
       
       const roleLabel = variables.targetRole === 'facilitador' ? 'Facilitador' : 'Membro';
       toast({

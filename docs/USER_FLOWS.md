@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-04-02
-> **Versão:** 3.4.0
+> **Última atualização:** 2026-09-16
+> **Versão:** 3.48.0
 
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
@@ -23,6 +23,18 @@ Este documento descreve todos os fluxos de ação dentro do sistema, incluindo g
 ---
 
 ## Ciclo de Vida do Usuário
+
+### 0. Cadastro pelas LPs e pelo site (v3.48.0)
+
+```text
+Cadastro público → identidade por email ou telefone → CRM + convite pendente
+→ email personalizado por origem → definição voluntária de senha e confirmação
+→ papel Convidado → participação → promoção auditável para Membro
+```
+
+O cadastro público nunca cria acesso automaticamente. Repetições reutilizam a identidade
+e o convite pendente. Os contextos Gente HUB, Impulso, Comunidade, Participe, Site e Outra
+origem servem para comunicação e análise, sem criar novos papéis.
 
 ### 1. Fluxo de Convite e Cadastro
 
