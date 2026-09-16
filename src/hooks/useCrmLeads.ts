@@ -15,7 +15,10 @@ export type CrmLeadSource =
   | 'lp_networking'
   | 'site_elementor'
   | 'convite_manual'
+  | 'convite_membro'
   | 'api';
+
+export type CrmOnboardingCategory = 'gente_hub' | 'impulso' | 'comunidade' | 'participe' | 'site' | 'outra_origem';
 
 export type CrmContractStatus = 'not_sent' | 'sent' | 'signed' | 'rejected' | 'expired' | null;
 export type CrmPaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded' | null;
@@ -49,6 +52,11 @@ export interface CrmLead {
   contract_variables: Record<string, string> | null;
   payment_status: CrmPaymentStatus;
   metadata: Record<string, unknown> | null;
+  onboarding_category: CrmOnboardingCategory;
+  onboarding_status: string;
+  onboarding_email_status: string;
+  onboarding_email_sent_at: string | null;
+  activated_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -82,6 +90,7 @@ export const CRM_SOURCE_LABEL: Record<CrmLeadSource, string> = {
   lp_networking: 'LP Networking',
   site_elementor: 'Site',
   convite_manual: 'Convite Manual',
+  convite_membro: 'Convite de Membro',
   api: 'API',
 };
 

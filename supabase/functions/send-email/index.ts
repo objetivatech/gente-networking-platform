@@ -4,6 +4,9 @@
  * v3.35.0: os templates continuam aqui, mas o TRANSPORTE passa a ser o provedor
  * ativo em Configurações → Integrações (Resend, Brevo, Sender...), com registro
  * em `notification_dispatch_log` e limite de disparos configurável.
+ *
+ * @author Diogo Devitte / Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente.
  */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import {
@@ -14,8 +17,10 @@ import {
   meetingRequestEmailTemplate,
   meetingResponseEmailTemplate,
   hubInvitationEmailTemplate,
+  guestActivationEmailTemplate,
 } from "../_shared/email-templates.ts";
 import { sendEmail } from "../_shared/email-provider.ts";
+import type { OnboardingCategory } from "../_shared/guest-onboarding.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,7 +31,7 @@ interface EmailRequest {
   to: string;
   subject: string;
   html?: string;
-  template?: "magic_link" | "password_reset" | "confirm_email" | "invitation" | "hub_invitation" | "meeting_request" | "meeting_response";
+  template?: "magic_link" | "password_reset" | "confirm_email" | "invitation" | "hub_invitation" | "guest_activation" | "meeting_request" | "meeting_response";
   template_data?: {
     name?: string;
     link?: string;
@@ -42,6 +47,7 @@ interface EmailRequest {
     location?: string;
     message?: string;
     status?: "confirmed" | "declined";
+    onboarding_category?: OnboardingCategory;
   };
   from?: string;
 }
@@ -86,6 +92,13 @@ const handler = async (req: Request): Promise<Response> => {
             template_data.hub_context || ""
           );
           break;
+        case "guest_activation":
+          html = guestActivationEmailTemplate(
+            template_data.guest_name || name,
+            template_data.invite_link || link,
+            template_data.onboarding_category || "outra_origem",
+          );
+          break;
         case "meeting_request":
           html = meetingRequestEmailTemplate(
             template_data.recipient_name || "",
@@ -121,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
     // E-mails transacionais (auth, convites) nunca são bloqueados por limite.
     const transactional =
       !template ||
-      ["magic_link", "password_reset", "confirm_email", "invitation", "hub_invitation"].includes(
+      ["magic_link", "password_reset", "confirm_email", "invitation", "hub_invitation", "guest_activation"].includes(
         template,
       );
 

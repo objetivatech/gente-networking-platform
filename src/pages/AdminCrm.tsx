@@ -71,6 +71,7 @@ const SOURCE_COLORS: Record<CrmLeadSource, string> = {
   lp_networking: 'bg-indigo-600 text-white',
   site_elementor: 'bg-zinc-600 text-white',
   convite_manual: 'bg-muted text-foreground',
+  convite_membro: 'bg-muted text-foreground',
   api: 'bg-muted text-foreground',
 };
 

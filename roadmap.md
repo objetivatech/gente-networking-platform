@@ -6,6 +6,6 @@
 - [ ] Personalizar e registrar e-mails imediatos por origem.
 - [ ] Atualizar a página Convidados com estados e filtros.
 - [ ] Migrar os 46 contatos existentes sem reenvio em massa.
-- [ ] Cobrir fluxos sensíveis com testes.
-- [ ] Atualizar documentação e changelog v3.48.0.
-- [ ] Validar banco, funções e interface autenticada.
+- [x] Cobrir fluxos sensíveis com testes.
+- [x] Atualizar documentação e changelog v3.48.0.
+- [x] Validar banco, funções e interface autenticada.

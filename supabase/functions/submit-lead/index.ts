@@ -15,10 +15,19 @@
  *   (retorna 409 `already_member` para a LP exibir a mensagem e o login).
  * - Dedupe por e-mail OU telefone normalizado (últimos 11 dígitos).
  * - União automática de contatos duplicados via RPC `crm_merge_leads` (com histórico).
+ *
+ * v3.48.0:
+ * - Todo cadastro válido entra na jornada de convidado, sem criar acesso automaticamente.
+ * - Categoria e e-mail de ativação variam conforme a origem.
+ * - Convites pendentes são reutilizados e o autor só vem de código validado no banco.
  */
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import {
+  classifyOnboardingCategory,
+  ONBOARDING_SUBJECTS,
+} from "../_shared/guest-onboarding.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -338,7 +347,7 @@ serve(async (req) => {
     const { data: candidates } = await supabase
       .from("crm_leads")
       .select(
-        "id, email, phone_digits, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata, created_at",
+        "id, email, phone_digits, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata, created_at, profile_id, onboarding_email_status",
       )
       .or(identityFilter)
       .is("archived_at", null)
@@ -361,6 +370,26 @@ serve(async (req) => {
     let leadId = existing?.id;
     let invitationId = existing?.invitation_id;
     let invitationCode: string | null = null;
+    let verifiedInviter: string | null = null;
+    let invitationStatus: string | null = null;
+
+    if (data.invitation_code) {
+      const { data: codedInvite } = await supabase
+        .from("invitations")
+        .select("id, code, invited_by, status, expires_at, team_id")
+        .eq("code", data.invitation_code)
+        .maybeSingle();
+      if (
+        codedInvite?.status === "pending" &&
+        new Date(codedInvite.expires_at).getTime() > Date.now()
+      ) {
+        invitationId = codedInvite.id;
+        invitationCode = codedInvite.code;
+        invitationStatus = codedInvite.status;
+        verifiedInviter = codedInvite.invited_by;
+        teamId = teamId ?? codedInvite.team_id;
+      }
+    }
 
 
     if (!invitationId) {
@@ -399,13 +428,21 @@ serve(async (req) => {
     } else {
       const { data: inv } = await supabase
         .from("invitations")
-        .select("code")
+        .select("code, status, invited_by")
         .eq("id", invitationId)
         .maybeSingle();
       invitationCode = inv?.code ?? null;
+      invitationStatus = inv?.status ?? null;
+      verifiedInviter = verifiedInviter ?? inv?.invited_by ?? null;
     }
 
-    const trackedInviter = data.invited_by ?? defaultInviter;
+    const onboardingCategory = classifyOnboardingCategory(
+      data.source,
+      data.source_detail,
+      data.page_url,
+      data.page_title,
+    );
+    const trackedInviter = verifiedInviter ?? existing?.invited_by ?? defaultInviter;
     const leadPayload = {
       name: data.name,
       email: data.email,
@@ -418,6 +455,8 @@ serve(async (req) => {
       invitation_id: invitationId,
       invited_by: trackedInviter,
       notes: data.notes ?? null,
+      onboarding_category: onboardingCategory,
+      onboarding_status: existing?.profile_id ? "convidado_ativo" : "cadastro_recebido",
       metadata: {
         invitation_code: data.invitation_code ?? null,
         landing_page: data.source_detail ?? null,
@@ -507,27 +546,39 @@ serve(async (req) => {
       if (pageErr) console.error("[submit-lead] page register failed (non-blocking)", pageErr);
     }
 
-    // ---- Email de boas-vindas (best-effort) ---------------------------------
+    // ---- Email imediato de ativação (best-effort e idempotente) --------------
     const baseUrl = data.app_base_url ?? "https://comunidade.gentenetworking.com.br";
     const inviteUrl = invitationCode ? `${baseUrl}/convite/${invitationCode}` : baseUrl;
 
-    try {
-      await supabase.functions.invoke("send-email", {
+    const shouldSendActivation = !existing || existing.onboarding_email_status === "pending";
+    if (shouldSendActivation && invitationStatus !== "accepted") try {
+      const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke("send-email", {
         body: {
           to: data.email,
-          subject: "Bem-vindo(a) ao Gente Networking!",
-          template: "invitation",
+          subject: ONBOARDING_SUBJECTS[onboardingCategory],
+          template: "guest_activation",
+          context: `guest_activation_${onboardingCategory}`,
           template_data: {
             name: data.name,
             guest_name: data.name,
-            inviter_name: "Equipe Gente Networking",
             invite_link: inviteUrl,
             link: inviteUrl,
+            onboarding_category: onboardingCategory,
           },
         },
       });
+      const sent = !emailInvokeError && emailResult?.ok === true;
+      await supabase.from("crm_leads").update({
+        onboarding_status: sent ? "aguardando_ativacao" : "cadastro_recebido",
+        onboarding_email_status: sent ? "sent" : "error",
+        onboarding_email_sent_at: sent ? new Date().toISOString() : null,
+      }).eq("id", leadId);
+      if (emailInvokeError || !sent) {
+        console.error("[submit-lead] activation email failed", emailInvokeError ?? emailResult);
+      }
     } catch (emailErr) {
       console.error("[submit-lead] email failed (non-blocking)", emailErr);
+      await supabase.from("crm_leads").update({ onboarding_email_status: "error" }).eq("id", leadId);
     }
 
     return new Response(
