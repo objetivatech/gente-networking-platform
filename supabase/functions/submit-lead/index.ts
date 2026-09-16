@@ -347,7 +347,7 @@ serve(async (req) => {
     const { data: candidates } = await supabase
       .from("crm_leads")
       .select(
-        "id, email, phone_digits, invitation_id, status, phone, company, business_segment, notes, target_team_id, metadata, created_at, profile_id, onboarding_email_status",
+        "id, email, phone_digits, invitation_id, invited_by, status, phone, company, business_segment, notes, target_team_id, metadata, created_at, profile_id, onboarding_email_status",
       )
       .or(identityFilter)
       .is("archived_at", null)
@@ -372,6 +372,7 @@ serve(async (req) => {
     let invitationCode: string | null = null;
     let verifiedInviter: string | null = null;
     let invitationStatus: string | null = null;
+    let createdInvitationId: string | null = null;
 
     if (data.invitation_code) {
       const { data: codedInvite } = await supabase
@@ -391,6 +392,22 @@ serve(async (req) => {
       }
     }
 
+    if (invitationId && !invitationCode) {
+      const { data: existingInvite } = await supabase
+        .from("invitations")
+        .select("id, code, invited_by, status, expires_at")
+        .eq("id", invitationId)
+        .maybeSingle();
+      const reusable = existingInvite?.status === "pending" &&
+        new Date(existingInvite.expires_at).getTime() > Date.now();
+      if (reusable) {
+        invitationCode = existingInvite.code;
+        invitationStatus = existingInvite.status;
+        verifiedInviter = existingInvite.invited_by;
+      } else {
+        invitationId = undefined;
+      }
+    }
 
     if (!invitationId) {
       const code = genCode();
@@ -424,7 +441,9 @@ serve(async (req) => {
         );
       }
       invitationId = inv.id;
+      createdInvitationId = inv.id;
       invitationCode = inv.code;
+      invitationStatus = "pending";
     } else {
       const { data: inv } = await supabase
         .from("invitations")
@@ -498,13 +517,36 @@ serve(async (req) => {
         .select("id")
         .single();
       if (leadErr) {
+        if (leadErr.code === "23505") {
+          const { data: racedLead } = await supabase
+            .from("crm_leads")
+            .select("id, invitation_id")
+            .or(identityFilter)
+            .is("archived_at", null)
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          if (createdInvitationId && racedLead?.invitation_id !== createdInvitationId) {
+            await supabase.from("invitations").delete().eq("id", createdInvitationId).eq("status", "pending");
+          }
+          if (racedLead?.id) {
+            leadId = racedLead.id;
+            invitationId = racedLead.invitation_id;
+          } else {
+            return new Response(
+              JSON.stringify({ error: "lead_conflict", details: leadErr.message }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+            );
+          }
+        } else {
         console.error("[submit-lead] lead insert failed", leadErr);
         return new Response(
           JSON.stringify({ error: "lead_create_failed", details: leadErr.message }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
+        }
       }
-      leadId = newLead.id;
+      if (newLead?.id) leadId = newLead.id;
     }
 
     // ---- Vínculo automático com o próximo encontro Gente HUB ----------------

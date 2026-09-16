@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-04-02
-> **Versão:** 3.4.0
+> **Última atualização:** 2026-09-16
+> **Versão:** 3.48.0
 
 ## Índice
 
@@ -39,6 +39,7 @@ O **Gente Networking** é uma plataforma de gestão de comunidade de networking 
 - Cases de Negócio — registro de cases vinculados a negócios fechados
 - Calendário de encontros quinzenais
 - Convites personalizados com email automático
+- Base unificada da jornada de convidados, desde a captação até a promoção
 - Dashboard de estatísticas com KPIs por grupo
 - Feed de atividades com filtros avançados
 - Notificações por email (Resend) e push (local)

@@ -1,6 +1,6 @@
 # CRM — Ingestão de Leads
 
-**Versão:** v3.34.0 · Agosto/2026
+**Versão:** v3.48.0 · Setembro/2026
 
 Este documento explica como um lead chega ao CRM da Gente Comunidade, por origem,
 e como configurar cada fonte.
@@ -19,14 +19,18 @@ POST https://<PROJETO>.functions.supabase.co/submit-lead
         ▼
 crm_leads (Supabase da Gente Comunidade)
         │
+        ├── convite de ativação voluntária + email por origem
+        │
         ▼
-AdminCrm.tsx (/admin/crm) — Kanban + Drawer + Auditoria
+CRM (/admin/crm) + Base de Convidados (/convidados)
 ```
 
 - Leads com `source = "lp_gentehub"` disparam automaticamente o roteamento HUB
   (trigger no banco) e a criação do evento de cobrança quando entram no status
   `qualificado`.
 - Todos os leads criam entrada em `crm_lead_history` para auditoria.
+- O cadastro não cria conta nem acesso silenciosamente: cria ou reutiliza um convite
+  pendente e envia um link para a própria pessoa definir senha e confirmar o email.
 
 ## Payload padrão
 
@@ -63,6 +67,23 @@ Retorno esperado: `200 OK` com `{ "ok": true, "lead_id": "uuid" }`.
 | API externa                | `api`             | CRMs próprios do usuário, planilhas automatizadas, integrações Zapier.  |
 | Convite manual             | `convite_manual`  | Criação direta por admin/facilitador dentro da plataforma.              |
 
+## Categorias de entrada e ativação (v3.48.0)
+
+O campo técnico `source` continua compatível com todas as integrações existentes. A
+plataforma também classifica cada entrada em uma categoria de onboarding:
+
+| Categoria | Como é reconhecida | Email inicial |
+|-----------|---------------------|---------------|
+| Gente HUB | `lp_gentehub` | Continuidade específica do Gente HUB |
+| Impulso | detalhe, título ou URL contendo `impulso` | Continuidade específica do Impulso |
+| Comunidade | detalhe, título ou URL contendo `comunidade`; também LP Networking | Ativação da Comunidade Gente |
+| Participe | demais entradas `lp_participe` | Próximos passos para participar |
+| Site | `site_elementor` | Retorno ao contato feito pelo site |
+| Outra origem | qualquer integração futura não classificada | Ativação genérica segura |
+
+O email sai imediatamente apenas no primeiro cadastro da jornada. Reenvios do mesmo
+contato reutilizam o registro e o convite pendente, sem produzir mensagens duplicadas.
+
 ## Como cada origem envia
 
 - **LPs Gente** → veja [`INTEGRACAO_LPS_GENTE.md`](./INTEGRACAO_LPS_GENTE.md).
@@ -93,6 +114,19 @@ Retorno esperado: `200 OK` com `{ "ok": true, "lead_id": "uuid" }`.
   proteja também no formulário/CDN.
 - Nenhuma origem grava direto na tabela; sempre pela função — assim os triggers de auditoria e
   roteamento HUB rodam corretamente.
+- `invited_by` ou `ref` enviados por uma página pública nunca são aceitos como identidade do
+  convidador. O vínculo só é atribuído quando o `invitation_code` existe, está pendente e não
+  expirou; isso impede indicação forjada.
+- Índices únicos impedem dois contatos ativos com o mesmo email ou telefone, inclusive em
+  envios simultâneos. O fluxo antigo de união continua preservando contratos, cobranças,
+  presenças, resgates e histórico.
+
+## Base unificada de convidados (v3.48.0)
+
+`/convidados` reúne cadastro recebido, aguardando ativação, convidado ativo, pessoa que já
+participou e promovido a membro. Admin vê a jornada inteira; Facilitador vê a jornada dos
+próprios Grupos; Membro vê somente pessoas que já ativaram acesso. Dados de contato de quem
+ainda não ativou nunca são expostos a Membros.
 
 ## Diagnóstico rápido
 
