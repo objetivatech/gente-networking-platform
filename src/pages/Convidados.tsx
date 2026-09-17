@@ -69,6 +69,8 @@ export default function Convidados() {
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [showPromoted, setShowPromoted] = useState(false);
 
   const filtered = useMemo(() => {
@@ -78,6 +80,9 @@ export default function Convidados() {
       if (statusFilter !== 'all' && g.status !== statusFilter) return false;
       if (categoryFilter !== 'all' && g.onboarding_category !== categoryFilter) return false;
       if (teamFilter !== 'all' && g.team_id !== teamFilter) return false;
+      const enteredDate = g.entered_at?.slice(0, 10);
+      if (dateFrom && (!enteredDate || enteredDate < dateFrom)) return false;
+      if (dateTo && (!enteredDate || enteredDate > dateTo)) return false;
       if (search) {
         const s = search.toLowerCase();
         const match =
@@ -88,7 +93,7 @@ export default function Convidados() {
       }
       return true;
     });
-  }, [guests, showPromoted, statusFilter, categoryFilter, teamFilter, search]);
+  }, [guests, showPromoted, statusFilter, categoryFilter, teamFilter, dateFrom, dateTo, search]);
 
   const counts = useMemo(() => {
     const c: Record<GuestJourneyStatus, number> = {
@@ -173,7 +178,7 @@ export default function Convidados() {
       {/* Filtros */}
       <Card>
         <CardContent className="pt-4">
-          <div className="grid gap-3 md:grid-cols-6">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
             <div className="relative md:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -208,16 +213,8 @@ export default function Convidados() {
                 ))}
               </SelectContent>
             </Select>
-            <Input
-              type="date"
-              aria-label="Filtrar a partir da data"
-              onChange={(event) => {
-                const value = event.target.value;
-                if (!value) return;
-                setSearch(search);
-              }}
-              className="hidden"
-            />
+            <Input type="date" aria-label="Data inicial" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} />
+            <Input type="date" aria-label="Data final" value={dateTo} onChange={(event) => setDateTo(event.target.value)} />
           </div>
           <label className="flex items-center gap-2 mt-3 text-sm cursor-pointer">
             <Checkbox

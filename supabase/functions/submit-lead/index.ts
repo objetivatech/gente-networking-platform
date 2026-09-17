@@ -347,7 +347,7 @@ serve(async (req) => {
     const { data: candidates } = await supabase
       .from("crm_leads")
       .select(
-        "id, email, phone_digits, invitation_id, invited_by, status, phone, company, business_segment, notes, target_team_id, metadata, created_at, profile_id, onboarding_email_status",
+        "id, email, phone_digits, invitation_id, invited_by, source, status, phone, company, business_segment, notes, target_team_id, metadata, created_at, profile_id, onboarding_email_status",
       )
       .or(identityFilter)
       .is("archived_at", null)
