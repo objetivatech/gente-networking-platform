@@ -25,3 +25,6 @@ verify_jwt = false
 
 [functions.rescue-runner]
 verify_jwt = false
+
+[functions.resend-guest-activation]
+verify_jwt = false
