@@ -461,7 +461,9 @@ serve(async (req) => {
       data.page_url,
       data.page_title,
     );
-    const trackedInviter = verifiedInviter ?? existing?.invited_by ?? defaultInviter;
+    const trackedInviter = verifiedInviter ??
+      (existing?.source === "convite_manual" ? existing.invited_by : null) ??
+      defaultInviter;
     const leadPayload = {
       name: data.name,
       email: data.email,
@@ -532,6 +534,15 @@ serve(async (req) => {
           if (racedLead?.id) {
             leadId = racedLead.id;
             invitationId = racedLead.invitation_id;
+            const { data: racedInvite } = invitationId
+              ? await supabase
+                .from("invitations")
+                .select("code, status")
+                .eq("id", invitationId)
+                .maybeSingle()
+              : { data: null };
+            invitationCode = racedInvite?.code ?? null;
+            invitationStatus = racedInvite?.status ?? null;
           } else {
             return new Response(
               JSON.stringify({ error: "lead_conflict", details: leadErr.message }),

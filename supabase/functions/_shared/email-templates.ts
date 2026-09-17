@@ -12,6 +12,16 @@ const APP_URL = "https://comunidade.gentenetworking.com.br";
 // White horizontal logo for dark email headers - better visibility
 const LOGO_URL = `${APP_URL}/logo-gente-networking.png`;
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '"': "&quot;",
+  })[character] ?? character);
+}
+
 // Base email wrapper with consistent styling
 function emailWrapper(content: string): string {
   return `
@@ -392,14 +402,16 @@ export function guestActivationEmailTemplate(
     },
   };
   const selected = content[category] ?? content.outra_origem;
+  const safeGuestName = escapeHtml(guestName || "");
+  const safeInviteLink = escapeHtml(inviteLink);
   const emailContent = `
 <h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">${selected.title}</h1>
 <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">
-  Olá <strong style="color: #1e3a5f;">${guestName || ""}</strong>,
+  Olá <strong style="color: #1e3a5f;">${safeGuestName}</strong>,
 </p>
 <p style="color: #475569; font-size: 16px; line-height: 1.6; margin: 16px 0;">${selected.intro}</p>
 ${infoBox(`<p style="color: #1e40af; font-size: 16px; line-height: 1.6; margin: 0;">${selected.context}</p>`, "blue")}
-${ctaButton(selected.cta, inviteLink)}
+${ctaButton(selected.cta, safeInviteLink)}
 <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 16px 0 0; text-align: center;">
   A ativação é voluntária. Você definirá sua senha antes de acessar a plataforma.
 </p>`;

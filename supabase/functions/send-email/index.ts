@@ -52,6 +52,20 @@ interface EmailRequest {
   from?: string;
 }
 
+function callerRole(req: Request): string | null {
+  const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return null;
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")));
+    return typeof decoded.role === "string" ? decoded.role : null;
+  } catch {
+    return null;
+  }
+}
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -59,6 +73,15 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { to, subject, html: providedHtml, template, template_data, from, context }: EmailRequest & { context?: string } = await req.json();
+
+    // Esse modelo contém um link de ativação e só pode ser chamado por outra
+    // função interna com credencial de serviço, nunca diretamente pelo navegador.
+    if (template === "guest_activation" && callerRole(req) !== "service_role") {
+      return new Response(JSON.stringify({ error: "forbidden" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     let html = providedHtml;
 
