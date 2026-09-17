@@ -603,7 +603,19 @@ serve(async (req) => {
     const baseUrl = data.app_base_url ?? "https://comunidade.gentenetworking.com.br";
     const inviteUrl = invitationCode ? `${baseUrl}/convite/${invitationCode}` : baseUrl;
 
-    const shouldSendActivation = !existing || existing.onboarding_email_status === "pending";
+    let shouldSendActivation = false;
+    if (leadId && invitationStatus !== "accepted") {
+      // A troca condicional funciona como uma trava: em duas submissões simultâneas,
+      // apenas uma consegue reservar o envio enquanto o estado ainda é `pending`.
+      const { data: claimedLead } = await supabase
+        .from("crm_leads")
+        .update({ onboarding_email_status: "sent" })
+        .eq("id", leadId)
+        .eq("onboarding_email_status", "pending")
+        .select("id")
+        .maybeSingle();
+      shouldSendActivation = Boolean(claimedLead?.id);
+    }
     if (shouldSendActivation && invitationStatus !== "accepted") try {
       const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke("send-email", {
         body: {

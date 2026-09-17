@@ -15,7 +15,16 @@ import App from "./App.tsx";
 import "./index.css";
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-createRoot(document.getElementById("root")!).render(
+if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+  void navigator.serviceWorker.getRegistrations().then((registrations) => {
+    registrations.forEach((registration) => void registration.unregister());
+  });
+}
+
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Elemento principal não encontrado");
+
+createRoot(rootElement).render(
   <ErrorBoundary fallbackMessage="Ocorreu um erro inesperado ao carregar o aplicativo. Por favor, recarregue a página.">
     <HelmetProvider>
       <App />

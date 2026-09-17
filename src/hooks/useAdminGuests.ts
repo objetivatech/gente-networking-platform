@@ -1,3 +1,9 @@
+/**
+ * Compatibilidade da gestão administrativa com a base unificada de convidados.
+ *
+ * @author Diogo Devitte / Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente.
+ */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -33,61 +39,36 @@ export function useAdminGuests() {
   const { data: guestRecords, isLoading } = useQuery({
     queryKey: ['admin-guest-records'],
     queryFn: async (): Promise<GuestRecord[]> => {
-      // Buscar todos os convites
-      const { data: invitations, error: invError } = await supabase
-        .from('invitations')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (invError) throw invError;
-
-      // Buscar perfis dos inviters
-      const inviterIds = [...new Set(invitations?.map(i => i.invited_by) || [])];
-      const acceptedByIds = invitations?.filter(i => i.accepted_by).map(i => i.accepted_by) || [];
-      const allUserIds = [...new Set([...inviterIds, ...acceptedByIds])];
-
-       let profiles: Record<string, any> = {};
-       if (allUserIds.length > 0) {
-         const { data: profilesData } = await supabase
-           .from('profiles')
-           .select('id, full_name, company, avatar_url, email, slug')
-           .in('id', allUserIds);
-         profilesData?.forEach(p => { profiles[p.id] = p; });
-       }
-
-      // Buscar roles
-      let roles: Record<string, string> = {};
-      if (acceptedByIds.length > 0) {
-        const { data: rolesData } = await supabase
-          .from('user_roles')
-          .select('user_id, role')
-          .in('user_id', acceptedByIds);
-        rolesData?.forEach(r => { roles[r.user_id] = r.role; });
-      }
-
-      return (invitations || []).map(inv => {
-        const guestRole = inv.accepted_by ? (roles[inv.accepted_by] as any) || 'convidado' : null;
-        const becameMember = guestRole === 'membro' || guestRole === 'facilitador' || guestRole === 'admin';
-
+      const { data, error } = await supabase.rpc('get_guest_journey_directory' as any);
+      if (error) throw error;
+      return ((data || []) as any[]).map(row => {
+        const guestRole = row.role_current ?? null;
         return {
           invitation: {
-            id: inv.id,
-            code: inv.code,
-            created_at: inv.created_at,
-            accepted_at: inv.accepted_at,
-            status: inv.status,
-            email: inv.email,
-            name: inv.name,
+            id: row.invitation_id ?? row.id,
+            code: '',
+            created_at: row.entered_at,
+            accepted_at: row.profile_id ? row.entered_at : null,
+            status: row.invitation_status ?? (row.profile_id ? 'accepted' : 'pending'),
+            email: row.email,
+            name: row.full_name,
           },
-          inviter: profiles[inv.invited_by] || {
-            id: inv.invited_by,
-            full_name: 'Desconhecido',
+          inviter: {
+            id: row.invited_by_id ?? '',
+            full_name: row.invited_by_name ?? 'Origem automática',
             company: null,
             avatar_url: null,
           },
-          guest: inv.accepted_by ? profiles[inv.accepted_by] || null : null,
+          guest: row.profile_id ? {
+            id: row.profile_id,
+            full_name: row.full_name,
+            company: row.company,
+            avatar_url: row.avatar_url,
+            email: row.email,
+            slug: row.slug,
+          } : null,
           guestRole,
-          becameMember,
+          becameMember: row.journey_status === 'promovido_membro',
         };
       });
     },
