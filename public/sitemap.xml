@@ -31,6 +31,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://comunidade.gentenetworking.com.br/m/rodrigo-fritz</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://comunidade.gentenetworking.com.br/m/rafael-trindade</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
