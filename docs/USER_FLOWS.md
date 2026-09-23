@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-09-16
-> **Versão:** 3.48.0
+> **Última atualização:** 2026-09-22
+> **Versão:** 3.49.0
 
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
@@ -166,6 +166,18 @@ origem servem para comunicação e análise, sem criar novos papéis.
 ## Fluxos de Atividades
 
 ### Gente em Ação (Reuniões 1-a-1)
+
+#### Solicitação entre membros
+
+```text
+MatchMaking ou perfil do membro → Agendar Gente em Ação → grava solicitação
+→ envia e-mail + notificação interna → oferece abrir WhatsApp, copiar mensagem
+ou concluir sem WhatsApp → destinatário confirma ou recusa na aba Agendamentos
+```
+
+O WhatsApp é um reforço manual: a plataforma abre a conversa com texto sugerido e editável.
+Ela registra somente a abertura, não presume envio, entrega ou leitura. Sem telefone válido no
+perfil, a opção de copiar permanece disponível. Essa etapa não cria pontos ou tentativas extras.
 
 ```
 /gente-em-acao → Novo registro

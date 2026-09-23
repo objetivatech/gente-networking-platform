@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-09-16
-> **Versão:** 3.48.0
+> **Última atualização:** 2026-09-22
+> **Versão:** 3.49.0
 
 ## Índice
 
@@ -716,6 +716,7 @@ Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equi
 
 - **Cartão Digital** (`src/components/DigitalMemberCard.tsx`): cartão de visita em canvas com QR Code (`qrcode`) para `/membro/:slug`, download PNG. Disponível na aba "Cartão" do perfil (`Profile.tsx` e `MemberProfile.tsx`).
 - **Agendar Gente em Ação** (`src/components/ScheduleMeetingDialog.tsx`, `src/components/MeetingRequestsPanel.tsx` e `src/hooks/useMeetingRequests.ts`): cria uma solicitação entre membros; o convite Google Calendar / `.ics` só é liberado após a confirmação do destinatário.
+- **WhatsApp assistido (v3.49.0)**: após criar a solicitação, o diálogo abre `wa.me` com mensagem sugerida ou permite copiá-la. O telefone vem de `profiles`, a URL de retorno usa o domínio público da Cloudflare e `meeting_requests.whatsapp_opened_at` registra somente a abertura por meio de RPC restrita ao solicitante.
 - **Campo `availability_note`** em `profiles`: disponibilidade declarada para encontros, editável em Configurações do perfil.
 - Item 10 (OAuth Google/LinkedIn) removido do escopo a pedido do cliente.
 

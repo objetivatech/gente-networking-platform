@@ -1,4 +1,4 @@
-# MatchMaking — Conexões, tentativas e fila de espera (v3.40.0)
+# MatchMaking — Conexões, tentativas e fila de espera (v3.49.0)
 
 Documento de referência da mecânica de MatchMaking do Gente Comunidade.
 
@@ -19,7 +19,8 @@ Ajuste da v3.40.0: cada tentativa de contato sem retorno reduz levemente o score
 ## Ações no card
 
 1. **Agendar Gente em Ação** — envia solicitação (`meeting_requests`) e registra uma
-   tentativa do tipo `schedule_request`.
+   tentativa do tipo `schedule_request`. Após a gravação, oferece abrir o WhatsApp com uma
+   mensagem sugerida, copiar o texto ou concluir sem WhatsApp. Essa etapa não cria nova tentativa.
 2. **Já conectei** — abre o mesmo formulário do Gente em Ação (data, notas, foto opcional) e
    chama a RPC `create_matchmaking_check`, que cria o Gente em Ação (25 pts) e registra a
    conexão efetiva (+10 pts de MatchMaking no mês).
@@ -58,6 +59,15 @@ de meses anteriores.
 - `member_id`, `target_id`, `attempt_type` (`manual` | `schedule_request`), `notes`,
   `reference_id`, `created_at`.
 - RLS: membro vê/cria/apaga as próprias; admin e facilitador leem todas.
+
+## WhatsApp assistido (v3.49.0)
+
+- O telefone é lido do perfil e normalizado com DDI `55`; não é digitado no agendamento.
+- O link abre `wa.me` somente após a solicitação ser criada e por ação explícita do membro.
+- A mensagem usa o domínio público `https://comunidade.gentenetworking.com.br`.
+- Sem telefone válido, a mensagem ainda pode ser copiada.
+- `meeting_requests.whatsapp_opened_at` registra apenas a abertura, nunca envio, entrega ou leitura.
+- E-mail e notificação interna continuam sendo enviados normalmente.
 
 RPCs
 - `create_matchmaking_check(_target_id, _description, _meeting_date, _image_url)`

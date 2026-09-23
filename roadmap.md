@@ -1,11 +1,7 @@
-# Roadmap v3.48.0 — Base unificada de convidados
+# Roadmap v3.49.0 — WhatsApp assistido no agendamento
 
-- [x] Criar classificação e jornada de onboarding no banco.
-- [x] Criar consulta unificada segura por papel e Grupo.
-- [x] Classificar entradas e tornar CRM/convite idempotentes.
-- [x] Personalizar e registrar e-mails imediatos por origem.
-- [x] Atualizar a página Convidados com estados e filtros.
-- [x] Migrar os 46 contatos existentes sem reenvio em massa.
-- [x] Cobrir fluxos sensíveis com testes.
-- [x] Atualizar documentação e changelog v3.48.0.
-- [x] Validar banco, funções e interface autenticada.
+- [x] Criar mensagem e normalização de telefone.
+- [x] Exibir as três ações após a solicitação ser gravada.
+- [x] Registrar somente a abertura do WhatsApp.
+- [x] Preservar e-mail, notificação e contagem do MatchMaking.
+- [ ] Validar testes, tipos, documentação e interface.

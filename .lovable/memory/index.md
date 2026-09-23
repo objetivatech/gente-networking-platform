@@ -5,3 +5,4 @@
 - [Convites e desativação v3.45.0](mem://features/invitation-attribution-fix-v3450) — Prioridade do código de convite, convite aceito único, convidado vendo encontros HUB, fix add_activity_feed
 - [Identidade única v3.46.0](mem://features/identidade-unica-leads-v3460) — Membro ativo bloqueado nas LPs (409 already_member); dedupe por e-mail OU telefone; união automática via crm_merge_leads com auditoria
 - [Auditoria identidade v3.47.0](mem://features/identidade-unica-auditoria-v3470) — crm_identity_events, abas Fusões/Bloqueios + métricas em /admin/crm/auditoria, sync de páginas, docs/LP_SNIPPET_409.md
+- [WhatsApp no agendamento v3.49.0](mem://features/whatsapp-agendamento-v3490) — Após solicitar Gente em Ação, abre wa.me com mensagem sugerida; registra abertura, não envio

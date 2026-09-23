@@ -26,6 +26,7 @@ export interface MeetingRequest {
   responded_at: string | null;
   created_at: string;
   updated_at: string;
+  whatsapp_opened_at: string | null;
   requester?: { id: string; full_name: string; email: string | null; avatar_url: string | null } | null;
   recipient?: { id: string; full_name: string; email: string | null; avatar_url: string | null } | null;
 }
@@ -91,13 +92,13 @@ export function useMeetingRequests() {
         .single();
       if (error) throw error;
 
+      const [{ data: requester }, { data: recipient }] = await Promise.all([
+        supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle(),
+        supabase.from('profiles').select('full_name, email, phone, phone_digits').eq('id', input.recipient_id).maybeSingle(),
+      ]);
+
       // Notifica destinatário via activity_feed + email (best effort)
       try {
-        const { data: requester } = await supabase
-          .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
-        const { data: recipient } = await supabase
-          .from('profiles').select('full_name, email').eq('id', input.recipient_id).maybeSingle();
-
         await (supabase as any).rpc('add_activity_feed', {
           _user_id: input.recipient_id,
           _type: 'meeting_request',
@@ -121,7 +122,7 @@ export function useMeetingRequests() {
                 duration_minutes: payload.duration_minutes,
                 location: payload.location || '',
                 message: payload.message || '',
-                link: `${window.location.origin}/perfil?tab=agendamentos`,
+                link: 'https://comunidade.gentenetworking.com.br/perfil?tab=agendamentos',
               },
             },
           });
@@ -130,7 +131,12 @@ export function useMeetingRequests() {
         console.warn('Notificação de solicitação falhou (não crítico):', e);
       }
 
-      return data;
+      return {
+        request: data as MeetingRequest,
+        requesterName: requester?.full_name || 'Um membro',
+        recipientName: recipient?.full_name || 'Membro',
+        recipientPhone: recipient?.phone_digits || recipient?.phone || null,
+      };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meeting-requests'] });
@@ -212,9 +218,21 @@ export function useMeetingRequests() {
     },
   });
 
+  const registerWhatsAppOpen = useMutation({
+    mutationFn: async (requestId: string) => {
+      const { data, error } = await supabase.rpc('register_meeting_request_whatsapp_open', {
+        _request_id: requestId,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['meeting-requests'] }),
+    onError: (e: Error) => console.warn('Não foi possível registrar a abertura do WhatsApp:', e),
+  });
+
   const sent = (requests || []).filter((r) => r.requester_id === user?.id);
   const received = (requests || []).filter((r) => r.recipient_id === user?.id);
   const pendingReceivedCount = received.filter((r) => r.status === 'pending').length;
 
-  return { requests: requests || [], sent, received, pendingReceivedCount, isLoading, createRequest, respond, cancel };
+  return { requests: requests || [], sent, received, pendingReceivedCount, isLoading, createRequest, respond, cancel, registerWhatsAppOpen };
 }
