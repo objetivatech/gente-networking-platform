@@ -1376,6 +1376,7 @@ export type Database = {
           responded_at: string | null
           status: Database["public"]["Enums"]["meeting_request_status"]
           updated_at: string
+          whatsapp_opened_at: string | null
         }
         Insert: {
           created_at?: string
@@ -1389,6 +1390,7 @@ export type Database = {
           responded_at?: string | null
           status?: Database["public"]["Enums"]["meeting_request_status"]
           updated_at?: string
+          whatsapp_opened_at?: string | null
         }
         Update: {
           created_at?: string
@@ -1402,6 +1404,7 @@ export type Database = {
           responded_at?: string | null
           status?: Database["public"]["Enums"]["meeting_request_status"]
           updated_at?: string
+          whatsapp_opened_at?: string | null
         }
         Relationships: [
           {
@@ -2528,6 +2531,10 @@ export type Database = {
           _target_id: string
         }
         Returns: Json
+      }
+      register_meeting_request_whatsapp_open: {
+        Args: { _request_id: string }
+        Returns: string
       }
       set_integration_secret: {
         Args: { _name: string; _value: string }
