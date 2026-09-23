@@ -4,4 +4,5 @@
 - [x] Exibir as três ações após a solicitação ser gravada.
 - [x] Registrar somente a abertura do WhatsApp.
 - [x] Preservar e-mail, notificação e contagem do MatchMaking.
-- [ ] Validar testes, tipos, documentação e interface.
+- [x] Atualizar documentação e histórico v3.49.0.
+- [ ] Validar testes, tipos e interface.

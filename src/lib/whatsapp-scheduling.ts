@@ -17,7 +17,10 @@ interface SchedulingWhatsAppMessageInput {
 
 /** Normaliza telefones brasileiros para DDI 55 e rejeita formatos incompatíveis. */
 export function normalizeBrazilianWhatsAppPhone(phone?: string | null): string | null {
-  let digits = (phone || '').replace(/\D/g, '');
+  const raw = (phone || '').trim();
+  if (/^\+(?!55)/.test(raw) || /^00(?!55)/.test(raw)) return null;
+
+  let digits = raw.replace(/\D/g, '');
   if (digits.startsWith('00')) digits = digits.slice(2);
   if (digits.startsWith('55')) digits = digits.slice(2);
 
