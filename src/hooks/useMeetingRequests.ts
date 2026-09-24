@@ -186,7 +186,7 @@ export function useMeetingRequests() {
                 proposed_start: req.proposed_start,
                 duration_minutes: req.duration_minutes,
                 location: req.location || '',
-                link: `${window.location.origin}/perfil?tab=agendamentos`,
+                link: 'https://comunidade.gentenetworking.com.br/perfil?tab=agendamentos',
               },
             },
           });
