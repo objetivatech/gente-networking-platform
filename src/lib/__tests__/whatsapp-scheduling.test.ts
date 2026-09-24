@@ -15,6 +15,7 @@ import {
 describe('WhatsApp do agendamento', () => {
   it('normaliza celular e telefone fixo brasileiros com DDI 55', () => {
     expect(normalizeBrazilianWhatsAppPhone('(51) 99999-8888')).toBe('5551999998888');
+    expect(normalizeBrazilianWhatsAppPhone('(55) 99999-8888')).toBe('5555999998888');
     expect(normalizeBrazilianWhatsAppPhone('+55 51 3216-5232')).toBe('555132165232');
     expect(normalizeBrazilianWhatsAppPhone('005551999998888')).toBe('5551999998888');
   });

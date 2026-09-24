@@ -22,7 +22,7 @@ export function normalizeBrazilianWhatsAppPhone(phone?: string | null): string |
 
   let digits = raw.replace(/\D/g, '');
   if (digits.startsWith('00')) digits = digits.slice(2);
-  if (digits.startsWith('55')) digits = digits.slice(2);
+  if ((digits.length === 12 || digits.length === 13) && digits.startsWith('55')) digits = digits.slice(2);
 
   if (!/^\d{10,11}$/.test(digits)) return null;
   return `55${digits}`;
