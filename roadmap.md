@@ -5,4 +5,4 @@
 - [x] Registrar somente a abertura do WhatsApp.
 - [x] Preservar e-mail, notificação e contagem do MatchMaking.
 - [x] Atualizar documentação e histórico v3.49.0.
-- [ ] Validar testes, tipos e interface.
+- [x] Validar testes, tipos e consistência da interface.
