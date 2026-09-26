@@ -833,6 +833,7 @@ export type Database = {
           invitation_id: string | null
           invited_by: string | null
           is_hub: boolean | null
+          last_attendance_at: string | null
           meeting_attendance_count: number
           metadata: Json
           name: string
@@ -844,6 +845,7 @@ export type Database = {
           payment_status: string | null
           phone: string | null
           phone_digits: string | null
+          previous_role: Database["public"]["Enums"]["app_role"] | null
           profile_id: string | null
           rescue_opt_out: boolean
           rescue_paused_until: string | null
@@ -876,6 +878,7 @@ export type Database = {
           invitation_id?: string | null
           invited_by?: string | null
           is_hub?: boolean | null
+          last_attendance_at?: string | null
           meeting_attendance_count?: number
           metadata?: Json
           name: string
@@ -887,6 +890,7 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           phone_digits?: string | null
+          previous_role?: Database["public"]["Enums"]["app_role"] | null
           profile_id?: string | null
           rescue_opt_out?: boolean
           rescue_paused_until?: string | null
@@ -919,6 +923,7 @@ export type Database = {
           invitation_id?: string | null
           invited_by?: string | null
           is_hub?: boolean | null
+          last_attendance_at?: string | null
           meeting_attendance_count?: number
           metadata?: Json
           name?: string
@@ -930,6 +935,7 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           phone_digits?: string | null
+          previous_role?: Database["public"]["Enums"]["app_role"] | null
           profile_id?: string | null
           rescue_opt_out?: boolean
           rescue_paused_until?: string | null
@@ -1047,6 +1053,103 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      guest_participations: {
+        Row: {
+          attended_at: string | null
+          cancelled_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          id: string
+          invitation_id: string | null
+          invited_at: string
+          invited_by: string
+          lead_id: string | null
+          meeting_id: string | null
+          metadata: Json
+          profile_id: string | null
+          status: string
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          attended_at?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          invitation_id?: string | null
+          invited_at?: string
+          invited_by: string
+          lead_id?: string | null
+          meeting_id?: string | null
+          metadata?: Json
+          profile_id?: string | null
+          status?: string
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attended_at?: string | null
+          cancelled_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          invitation_id?: string | null
+          invited_at?: string
+          invited_by?: string
+          lead_id?: string | null
+          meeting_id?: string | null
+          metadata?: Json
+          profile_id?: string | null
+          status?: string
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_participations_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_participations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_participations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_participations_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_participations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_participations_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hub_billing_events: {
         Row: {
@@ -1173,6 +1276,7 @@ export type Database = {
           invited_by: string
           metadata: Json | null
           name: string | null
+          renewal_of_id: string | null
           status: string
           team_id: string | null
         }
@@ -1190,6 +1294,7 @@ export type Database = {
           invited_by: string
           metadata?: Json | null
           name?: string | null
+          renewal_of_id?: string | null
           status?: string
           team_id?: string | null
         }
@@ -1207,6 +1312,7 @@ export type Database = {
           invited_by?: string
           metadata?: Json | null
           name?: string | null
+          renewal_of_id?: string | null
           status?: string
           team_id?: string | null
         }
@@ -1216,6 +1322,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_renewal_of_id_fkey"
+            columns: ["renewal_of_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
             referencedColumns: ["id"]
           },
           {
@@ -1934,6 +2047,7 @@ export type Database = {
           campaign_id: string | null
           cancel_reason: string | null
           created_at: string
+          cycle_started_at: string | null
           error: string | null
           id: string
           lead_id: string | null
@@ -1951,6 +2065,7 @@ export type Database = {
           campaign_id?: string | null
           cancel_reason?: string | null
           created_at?: string
+          cycle_started_at?: string | null
           error?: string | null
           id?: string
           lead_id?: string | null
@@ -1968,6 +2083,7 @@ export type Database = {
           campaign_id?: string | null
           cancel_reason?: string | null
           created_at?: string
+          cycle_started_at?: string | null
           error?: string | null
           id?: string
           lead_id?: string | null
@@ -2190,6 +2306,18 @@ export type Database = {
         Returns: number
       }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
+      create_guest_invitation: {
+        Args: {
+          _email?: string
+          _event_id?: string
+          _hub_context?: string
+          _name?: string
+          _phone?: string
+          _purpose?: string
+          _team_id?: string
+        }
+        Returns: Json
+      }
       create_matchmaking_check:
         | {
             Args: {
@@ -2514,6 +2642,10 @@ export type Database = {
         Returns: number
       }
       recalculate_all_user_points: { Args: never; Returns: number }
+      recalculate_crm_attendance: {
+        Args: { _lead_id: string }
+        Returns: undefined
+      }
       register_crm_lead_page: {
         Args: {
           _page_key: string
@@ -2535,6 +2667,10 @@ export type Database = {
       register_meeting_request_whatsapp_open: {
         Args: { _request_id: string }
         Returns: string
+      }
+      renew_guest_invitation: {
+        Args: { _invitation_id: string }
+        Returns: Json
       }
       set_integration_secret: {
         Args: { _name: string; _value: string }
