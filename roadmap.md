@@ -1,8 +1,9 @@
-# Roadmap v3.49.0 — WhatsApp assistido no agendamento
+# Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
-- [x] Criar mensagem e normalização de telefone.
-- [x] Exibir as três ações após a solicitação ser gravada.
-- [x] Registrar somente a abertura do WhatsApp.
-- [x] Preservar e-mail, notificação e contagem do MatchMaking.
-- [x] Atualizar documentação e histórico v3.49.0.
-- [x] Validar testes, tipos e consistência da interface.
+- [ ] Criar base segura de participações recorrentes e migrar vínculos existentes.
+- [ ] Centralizar convite manual, deduplicação, reutilização e renovação.
+- [ ] Integrar convites Premium e presenças ao CRM com última presença real.
+- [ ] Tornar os ciclos de Resgate reiniciáveis e separar Ex-Convidado de Ex-Membro.
+- [ ] Atualizar Convites, acesso do Convidado e Central de Resgate.
+- [ ] Atualizar documentação, memória e histórico v3.50.0.
+- [ ] Validar permissões, testes, tipos, função de Resgate e consistência final.
