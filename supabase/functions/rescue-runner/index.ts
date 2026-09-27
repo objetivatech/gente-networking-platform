@@ -122,6 +122,7 @@ interface QueueRow {
   recipient_name: string | null;
   scheduled_for: string;
   metadata: Record<string, unknown>;
+  cycle_started_at: string;
 }
 
 async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<number> {
@@ -130,31 +131,29 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
 
   const { data: dispatches } = await sb
     .from("rescue_dispatches")
-    .select("audience, step, profile_id, lead_id, status, sent_at, campaign_id");
+    .select("audience, step, profile_id, lead_id, status, sent_at, campaign_id, cycle_started_at");
   const all = dispatches ?? [];
 
-  const sentFor = (key: string, audience: string, step: number) =>
+  const sentFor = (key: string, audience: string, step: number, cycle: string) =>
     all.find(
       (d) =>
         d.status === "sent" &&
         d.audience === audience &&
         d.step === step &&
+        d.cycle_started_at === cycle &&
         (d.profile_id === key || d.lead_id === key),
     );
-  const existsFor = (key: string, audience: string, step: number) =>
+  const existsFor = (key: string, audience: string, step: number, cycle: string) =>
     all.some(
       (d) =>
         d.status !== "cancelled" &&
         d.audience === audience &&
         d.step === step &&
+        d.cycle_started_at === cycle &&
         (d.profile_id === key || d.lead_id === key),
     );
 
   // ---- Ex-membros -----------------------------------------------------------
-  const exCampaigns = campaigns
-    .filter((c) => c.audience === "ex_membro" && c.active)
-    .sort((a, b) => a.step - b.step);
-
   const { data: exMembers } = await sb
     .from("profiles")
     .select("id, full_name, email, deactivated_at, rescue_opt_out, rescue_paused_until")
@@ -165,16 +164,32 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
 
   for (const p of exMembers ?? []) {
     if (p.rescue_paused_until && new Date(p.rescue_paused_until).getTime() > now) continue;
+    const { data: lead } = await sb
+      .from("crm_leads")
+      .select("previous_role, source_detail")
+      .eq("profile_id", p.id)
+      .is("archived_at", null)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    const audience = lead?.previous_role === "convidado" || lead?.source_detail === "ex_convidado"
+      ? "ex_convidado"
+      : "ex_membro";
+    const exCampaigns = campaigns
+      .filter((c) => c.audience === audience && c.active)
+      .sort((a, b) => a.step - b.step);
+    if (!exCampaigns.length) continue;
     let base = new Date(p.deactivated_at as string).getTime();
+    const cycle = new Date(base).toISOString();
     for (const c of exCampaigns) {
-      const prevSent = c.step === 1 ? null : sentFor(p.id, "ex_membro", c.step - 1);
+      const prevSent = c.step === 1 ? null : sentFor(p.id, audience, c.step - 1, cycle);
       if (c.step > 1) {
         if (!prevSent?.sent_at) break;
         base = new Date(prevSent.sent_at as string).getTime();
       }
-      if (existsFor(p.id, "ex_membro", c.step)) continue;
+      if (existsFor(p.id, audience, c.step, cycle)) continue;
       rows.push({
-        audience: "ex_membro",
+        audience,
         campaign_id: c.id,
         step: c.step,
         profile_id: p.id,
@@ -183,6 +198,7 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
         recipient_name: p.full_name,
         scheduled_for: new Date(base + c.delay_days * DAY).toISOString(),
         metadata: { deactivated_at: p.deactivated_at },
+        cycle_started_at: cycle,
       });
       break; // uma etapa por vez
     }
@@ -222,8 +238,9 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
         if (p.rescue_paused_until && new Date(p.rescue_paused_until).getTime() > now) continue;
         const last = lastAttendance.get(p.id);
         if (!last) continue;
+        const cycle = new Date(last).toISOString();
         for (const c of guestCampaigns) {
-          const prevSent = c.step === 1 ? null : sentFor(p.id, "convidado", c.step - 1);
+          const prevSent = c.step === 1 ? null : sentFor(p.id, "convidado", c.step - 1, cycle);
           let base = last;
           if (c.step > 1) {
             if (!prevSent?.sent_at) break;
@@ -231,7 +248,7 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
             if (last > prevTs) break; // participou de novo — régua encerrada
             base = prevTs;
           }
-          if (existsFor(p.id, "convidado", c.step)) continue;
+          if (existsFor(p.id, "convidado", c.step, cycle)) continue;
           rows.push({
             audience: "convidado",
             campaign_id: c.id,
@@ -242,6 +259,7 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
             recipient_name: p.full_name,
             scheduled_for: new Date(base + c.delay_days * DAY).toISOString(),
             metadata: { last_attendance_at: new Date(last).toISOString() },
+            cycle_started_at: cycle,
           });
           break;
         }
@@ -251,24 +269,26 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
     // Leads convidados sem conta (presenças registradas no CRM)
     const { data: leads } = await sb
       .from("crm_leads")
-      .select("id, name, email, first_attendance_at, meeting_attendance_count, rescue_opt_out, rescue_paused_until, profile_id, status")
+      .select("id, name, email, first_attendance_at, last_attendance_at, meeting_attendance_count, rescue_opt_out, rescue_paused_until, profile_id, status")
       .is("profile_id", null)
       .eq("rescue_opt_out", false)
       .gt("meeting_attendance_count", 0);
 
     for (const l of leads ?? []) {
-      if (!l.email || !l.first_attendance_at) continue;
+      if (!l.email || !(l.last_attendance_at || l.first_attendance_at)) continue;
       if (["hub_ativo", "fechado"].includes(l.status as string)) continue;
       if (l.rescue_paused_until && new Date(l.rescue_paused_until).getTime() > now) continue;
-      const last = new Date(l.first_attendance_at as string).getTime();
+      const lastIso = (l.last_attendance_at ?? l.first_attendance_at) as string;
+      const last = new Date(lastIso).getTime();
+      const cycle = new Date(last).toISOString();
       for (const c of guestCampaigns) {
-        const prevSent = c.step === 1 ? null : sentFor(l.id, "convidado", c.step - 1);
+        const prevSent = c.step === 1 ? null : sentFor(l.id, "convidado", c.step - 1, cycle);
         let base = last;
         if (c.step > 1) {
           if (!prevSent?.sent_at) break;
           base = new Date(prevSent.sent_at as string).getTime();
         }
-        if (existsFor(l.id, "convidado", c.step)) continue;
+        if (existsFor(l.id, "convidado", c.step, cycle)) continue;
         rows.push({
           audience: "convidado",
           campaign_id: c.id,
@@ -278,7 +298,8 @@ async function buildQueue(sb: SupabaseClient, campaigns: Campaign[]): Promise<nu
           recipient_email: l.email as string,
           recipient_name: l.name,
           scheduled_for: new Date(base + c.delay_days * DAY).toISOString(),
-          metadata: { last_attendance_at: l.first_attendance_at },
+          metadata: { last_attendance_at: lastIso },
+          cycle_started_at: cycle,
         });
         break;
       }
@@ -305,6 +326,7 @@ interface DispatchRow {
   recipient_email: string;
   recipient_name: string | null;
   metadata: Record<string, unknown>;
+  cycle_started_at: string | null;
 }
 
 async function stillEligible(sb: SupabaseClient, d: DispatchRow): Promise<string | null> {
@@ -324,7 +346,7 @@ async function stillEligible(sb: SupabaseClient, d: DispatchRow): Promise<string
       .eq("user_id", d.profile_id)
       .maybeSingle();
 
-    if (d.audience === "ex_membro") {
+    if (d.audience === "ex_membro" || d.audience === "ex_convidado") {
       if (p.is_active || (role?.role && role.role !== "convidado")) return "convertido";
     }
     if (d.audience === "convidado") {

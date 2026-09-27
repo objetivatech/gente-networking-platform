@@ -146,11 +146,13 @@ export default function AdminResgate() {
         nextDispatch: RescueDispatch | null;
         sentCount: number;
         lastSentAt: string | null;
+        cycleStartedAt: string | null;
       }
     >();
     for (const d of rows) {
       if (d.audience === 'risco') continue;
-      const key = d.profile_id ?? d.lead_id ?? d.recipient_email;
+      const personKey = d.profile_id ?? d.lead_id ?? d.recipient_email;
+      const key = `${personKey}:${d.cycle_started_at ?? d.created_at}`;
       const entry = map.get(key) ?? {
         key,
         name: d.recipient_name ?? d.recipient_email,
@@ -162,6 +164,7 @@ export default function AdminResgate() {
         nextDispatch: null,
         sentCount: 0,
         lastSentAt: null,
+        cycleStartedAt: d.cycle_started_at,
       };
       if (d.status === 'sent') {
         entry.sentCount += 1;
@@ -425,6 +428,7 @@ export default function AdminResgate() {
                     <p className="text-xs text-muted-foreground mt-1 text-wrap-anywhere">
                       {p.email} · enviados: {p.sentCount} · último: {fmt(p.lastSentAt)}
                       {p.nextDispatch ? ` · próximo: ${fmt(p.nextDispatch.scheduled_for)}` : ''}
+                      {` · ciclo: ${fmt(p.cycleStartedAt)}`}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -525,6 +529,7 @@ export default function AdminResgate() {
               <SelectContent>
                 <SelectItem value="all">Todos os públicos</SelectItem>
                 <SelectItem value="ex_membro">Ex-membros</SelectItem>
+                <SelectItem value="ex_convidado">Ex-convidados</SelectItem>
                 <SelectItem value="convidado">Convidados</SelectItem>
                 <SelectItem value="risco">Alertas de risco</SelectItem>
               </SelectContent>
@@ -561,6 +566,7 @@ export default function AdminResgate() {
                 },
                 { header: 'Agendado para', value: (d: RescueDispatch) => fmt(d.scheduled_for) },
                 { header: 'Enviado em', value: (d: RescueDispatch) => fmt(d.sent_at) },
+                { header: 'Ciclo iniciado em', value: (d: RescueDispatch) => fmt(d.cycle_started_at) },
                 { header: 'Observação', value: (d: RescueDispatch) => d.cancel_reason ?? d.error ?? '' },
               ]}
             />
