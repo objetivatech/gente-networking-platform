@@ -22,15 +22,7 @@ export interface Invitation {
   invite_target: InviteTarget;
   invite_purpose: InvitePurpose;
   event_id: string | null;
-}
-
-function generateCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
+  renewal_of_id: string | null;
 }
 
 export function useInvitations() {
@@ -57,6 +49,33 @@ export function useInvitations() {
     enabled: !!user?.id,
   });
 
+  const sendInvitationEmail = async (invitation: Invitation, hubContext?: string) => {
+    if (!invitation.email || !user?.id) return;
+    const inviteUrl = invitation.invite_purpose === 'whatsapp_community'
+      ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(user.id)}&convite=${encodeURIComponent(invitation.code)}`
+      : `https://comunidade.gentenetworking.com.br/convite/${invitation.code}`;
+    const { data: inviterProfile } = await supabase
+      .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+    const { error } = await supabase.functions.invoke('send-email', {
+      body: {
+        to: invitation.email,
+        subject: invitation.invite_purpose === 'hub_event'
+          ? 'Convite para um evento Gente HUB 🚀'
+          : invitation.invite_purpose === 'whatsapp_community'
+            ? 'Convite para a Comunidade Gente'
+            : 'Você foi convidado para o Gente Networking! 🎉',
+        template: invitation.invite_target === 'hub' ? 'hub_invitation' : 'invitation',
+        template_data: {
+          inviter_name: inviterProfile?.full_name || 'Um membro',
+          guest_name: invitation.name,
+          invite_link: inviteUrl,
+          hub_context: hubContext || '',
+        },
+      },
+    });
+    if (error) throw error;
+  };
+
   const createInvitation = useMutation({
     mutationFn: async (input: {
       name?: string;
@@ -76,71 +95,65 @@ export function useInvitations() {
       if (purpose !== 'premium_group' && !input.email) throw new Error('Email é obrigatório para este convite.');
       if (purpose !== 'premium_group' && !input.name) throw new Error('Nome é obrigatório para este convite.');
 
-      const code = generateCode();
-      const metadata: Record<string, unknown> = {};
-      if (target === 'hub') {
-        if (input.hubContext) metadata.hub_context = input.hubContext;
-        if (input.phone) metadata.phone = input.phone;
-      }
-
-      const { data, error } = await supabase
-        .from('invitations')
-        .insert({
-          code,
-          invited_by: user.id,
-          name: input.name || null,
-          email: input.email || null,
-          team_id: target === 'comunidade' ? input.teamId! : null,
-          invite_target: target,
-          invite_purpose: purpose,
-          event_id: purpose === 'hub_event' ? input.eventId : null,
-          metadata,
-        } as any)
-        .select()
-        .single();
-
+      const { data, error } = await supabase.rpc('create_guest_invitation', {
+        _name: input.name || null,
+        _email: input.email || null,
+        _phone: input.phone || null,
+        _team_id: target === 'comunidade' ? input.teamId || null : null,
+        _event_id: purpose === 'hub_event' ? input.eventId || null : null,
+        _purpose: purpose,
+        _hub_context: input.hubContext || null,
+      });
       if (error) throw error;
-
-      if (input.email) {
-        try {
-          const inviteUrl = purpose === 'whatsapp_community'
-            ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(user.id)}&convite=${encodeURIComponent(code)}`
-            : `${window.location.origin}/convite/${code}`;
-          const { data: inviterProfile } = await supabase
-            .from('profiles').select('full_name').eq('id', user.id).maybeSingle();
-          const inviterName = inviterProfile?.full_name || 'Um membro';
-
-          await supabase.functions.invoke('send-email', {
-            body: {
-              to: input.email,
-              subject: purpose === 'hub_event'
-                ? 'Convite para um evento Gente HUB 🚀'
-                : purpose === 'whatsapp_community'
-                ? 'Convite para a Comunidade Gente'
-                : 'Você foi convidado para o Gente Networking! 🎉',
-              template: target === 'hub' ? 'hub_invitation' : 'invitation',
-              template_data: {
-                inviter_name: inviterName,
-                guest_name: input.name,
-                invite_link: inviteUrl,
-                hub_context: input.hubContext || '',
-              },
-            },
-          });
-        } catch (e) {
-          console.error('Failed to send invitation email:', e);
-        }
+      const result = data as Record<string, unknown> | null;
+      if (!result?.success) throw new Error(String(result?.message || 'Não foi possível criar o convite'));
+      if (result.action === 'created' && result.invitation_id) {
+        const { data: invitation } = await supabase
+          .from('invitations').select('*').eq('id', String(result.invitation_id)).single();
+        if (invitation) await sendInvitationEmail(invitation as Invitation, input.hubContext);
       }
-
-      return data;
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['invitations'] });
-      toast({ title: 'Sucesso!', description: 'Convite criado' });
+      const action = result?.action;
+      toast({
+        title: action === 'participation_created' ? 'Nova participação registrada' : action === 'reused' ? 'Convite já existente' : 'Convite criado',
+        description: action === 'participation_created'
+          ? 'A pessoa já era Convidada e recebeu uma nova participação, sem duplicar o acesso.'
+          : action === 'reused'
+            ? 'O convite pendente foi reutilizado. Você pode reenviá-lo pela lista.'
+            : 'O convite foi criado e conectado ao CRM.',
+      });
     },
     onError: (e: any) => {
       toast({ title: 'Erro', description: e?.message || 'Erro ao criar convite', variant: 'destructive' });
     },
+  });
+
+  const resendInvitation = useMutation({
+    mutationFn: async (invitation: Invitation) => sendInvitationEmail(invitation),
+    onSuccess: () => toast({ title: 'Convite reenviado', description: 'O mesmo código e a validade atual foram preservados.' }),
+    onError: (e: Error) => toast({ title: 'Erro ao reenviar', description: e.message, variant: 'destructive' }),
+  });
+
+  const renewInvitation = useMutation({
+    mutationFn: async (invitation: Invitation) => {
+      const { data, error } = await supabase.rpc('renew_guest_invitation', { _invitation_id: invitation.id });
+      if (error) throw error;
+      const result = data as Record<string, unknown>;
+      if (!result.success || !result.invitation_id) throw new Error('Não foi possível renovar o convite');
+      const { data: renewed, error: renewedError } = await supabase
+        .from('invitations').select('*').eq('id', String(result.invitation_id)).single();
+      if (renewedError) throw renewedError;
+      await sendInvitationEmail(renewed as Invitation);
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invitations'] });
+      toast({ title: 'Convite renovado', description: 'Um novo código foi criado e enviado, mantendo o histórico anterior.' });
+    },
+    onError: (e: Error) => toast({ title: 'Erro ao renovar', description: e.message, variant: 'destructive' }),
   });
 
   const deleteInvitation = useMutation({
@@ -166,6 +179,8 @@ export function useInvitations() {
     isLoading,
     stats,
     createInvitation,
+    resendInvitation,
+    renewInvitation,
     deleteInvitation,
   };
 }
