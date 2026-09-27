@@ -18,7 +18,7 @@ import { meetingDisplayTitle } from '@/lib/meeting-label';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminDataView from '@/components/AdminDataView';
 import { useAdminDelete } from '@/hooks/useAdminData';
-import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users, Building2, CalendarDays, MessageCircle } from 'lucide-react';
+import { Plus, Copy, Mail, UserPlus, Clock, CheckCircle, XCircle, Share2, Trash2, Users, Building2, CalendarDays, MessageCircle, RefreshCw, Send } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -56,7 +56,7 @@ function getEffectiveStatus(invitation: Invitation): string {
 }
 
 export default function Convites() {
-  const { invitations, isLoading, stats, createInvitation, deleteInvitation } = useInvitations();
+  const { invitations, isLoading, createInvitation, deleteInvitation, resendInvitation, renewInvitation } = useInvitations();
   const { isAdmin } = useAdmin();
   const { teams } = useTeams();
   const { user } = useAuth();
@@ -118,7 +118,7 @@ export default function Convites() {
     const invitation = invitations?.find((item) => item.code === code);
     const url = invitation?.invite_purpose === 'whatsapp_community'
       ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(invitation.invited_by)}&convite=${encodeURIComponent(code)}`
-      : `${window.location.origin}/convite/${code}`;
+      : `https://comunidade.gentenetworking.com.br/convite/${code}`;
     navigator.clipboard.writeText(url);
     toast({ title: 'Link copiado!', description: 'O link do convite foi copiado para a área de transferência.' });
   };
@@ -126,7 +126,7 @@ export default function Convites() {
   const shareInvite = (invitation: Invitation) => {
     const url = invitation.invite_purpose === 'whatsapp_community'
       ? `https://lps.gentenetworking.com.br/comunidade?ref=${encodeURIComponent(invitation.invited_by)}&convite=${encodeURIComponent(invitation.code)}`
-      : `${window.location.origin}/convite/${invitation.code}`;
+      : `https://comunidade.gentenetworking.com.br/convite/${invitation.code}`;
     const text = `Venha fazer parte do Gente Networking! Use o código ${invitation.code} ou acesse: ${url}`;
     
     if (navigator.share) {
@@ -483,6 +483,11 @@ export default function Convites() {
                     <div className="flex gap-2">
                       {effectiveStatus === 'pending' && (
                         <>
+                           {invitation.email && (
+                             <Button variant="outline" size="sm" onClick={() => resendInvitation.mutate(invitation)} disabled={resendInvitation.isPending} title="Reenviar convite">
+                               <Send className="h-4 w-4" />
+                             </Button>
+                           )}
                           <Button variant="outline" size="sm" onClick={() => copyLink(invitation.code)}>
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -491,6 +496,12 @@ export default function Convites() {
                           </Button>
                         </>
                       )}
+                       {effectiveStatus === 'expired' && invitation.email && (
+                         <Button variant="outline" size="sm" onClick={() => renewInvitation.mutate(invitation)} disabled={renewInvitation.isPending} title="Renovar convite">
+                           <RefreshCw className="h-4 w-4" />
+                           <span className="sr-only">Renovar convite</span>
+                         </Button>
+                       )}
                       {effectiveStatus !== 'accepted' && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

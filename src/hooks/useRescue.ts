@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export type RescueAudience = 'ex_membro' | 'convidado' | 'risco';
+export type RescueAudience = 'ex_membro' | 'ex_convidado' | 'convidado' | 'risco';
 export type RescueDispatchStatus = 'queued' | 'sent' | 'skipped' | 'cancelled' | 'error';
 
 export interface RescueCampaign {
@@ -29,6 +29,7 @@ export interface RescueCampaign {
   whatsapp_message: string;
   active: boolean;
   created_at: string;
+  cycle_started_at: string | null;
   updated_at: string;
 }
 
@@ -80,6 +81,7 @@ export interface RescueStatus {
 
 export const RESCUE_AUDIENCE_LABEL: Record<RescueAudience, string> = {
   ex_membro: 'Ex-membros',
+  ex_convidado: 'Ex-convidados',
   convidado: 'Convidados',
   risco: 'Membro em risco',
 };

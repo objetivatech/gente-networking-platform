@@ -57,6 +57,15 @@ export function useGuestData() {
       };
       if (!user?.id) return empty;
 
+      const { data: participations, error: participationError } = await supabase
+        .from('guest_participations')
+        .select('team_id, meeting_id, invited_by, invitation_id, created_at')
+        .eq('profile_id', user.id)
+        .in('status', ['invited', 'confirmed', 'attended'])
+        .order('created_at', { ascending: true });
+
+      if (participationError) throw participationError;
+
       // Pode existir mais de um convite aceito (histórico). Lê todos, sem quebrar.
       const { data: invitations, error: invError } = await supabase
         .from('invitations')
@@ -65,12 +74,22 @@ export function useGuestData() {
         .eq('status', 'accepted')
         .order('accepted_at', { ascending: true });
 
-      if (invError || !invitations || invitations.length === 0) return empty;
+      if (invError) return empty;
 
-      const visibility = resolveGuestVisibility(invitations);
-      const primary = visibility.primary ?? invitations[0];
-      const allowedSet = new Set<string>(visibility.allowedTeamIds);
-      const eventIds = visibility.eventIds;
+      const participationTeams = new Set(
+        (participations ?? []).map((item) => item.team_id).filter(Boolean) as string[],
+      );
+      const participationEvents = new Set(
+        (participations ?? []).map((item) => item.meeting_id).filter(Boolean) as string[],
+      );
+
+      if ((!invitations || invitations.length === 0) && (participations?.length ?? 0) === 0) return empty;
+
+      const visibility = resolveGuestVisibility(invitations ?? []);
+      const primary = visibility.primary ?? invitations?.[0] ?? null;
+      const allowedSet = new Set<string>([...visibility.allowedTeamIds, ...participationTeams]);
+      const eventIds = Array.from(new Set([...visibility.eventIds, ...participationEvents]));
+      const primaryInviterId = primary?.invited_by ?? participations?.[0]?.invited_by ?? null;
 
       // Fallback: grupos atuais de quem convidou
       if (allowedSet.size === 0 && visibility.inviterIds.length > 0) {
@@ -84,11 +103,13 @@ export function useGuestData() {
       const allowedTeamIds = Array.from(allowedSet);
 
       // Fetch inviter profile (do convite principal)
-      const { data: inviter } = await supabase
-        .from('profiles')
-        .select('id, full_name, company, avatar_url')
-        .eq('id', primary.invited_by)
-        .maybeSingle();
+      const { data: inviter } = primaryInviterId
+        ? await supabase
+          .from('profiles')
+          .select('id, full_name, company, avatar_url')
+          .eq('id', primaryInviterId)
+          .maybeSingle()
+        : { data: null };
 
       let inviterTeams: { id: string; name: string; color: string }[] = [];
       if (allowedTeamIds.length > 0) {
