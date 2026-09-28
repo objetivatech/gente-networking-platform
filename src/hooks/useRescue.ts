@@ -29,7 +29,6 @@ export interface RescueCampaign {
   whatsapp_message: string;
   active: boolean;
   created_at: string;
-  cycle_started_at: string | null;
   updated_at: string;
 }
 
@@ -49,6 +48,7 @@ export interface RescueDispatch {
   error: string | null;
   metadata: Record<string, unknown> | null;
   created_at: string;
+  cycle_started_at: string | null;
 }
 
 export interface RescueSettings {
