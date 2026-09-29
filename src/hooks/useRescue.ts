@@ -1,5 +1,5 @@
 /**
- * useRescue - Central de Resgate e Reativação (v3.43.0 / v3.44.0).
+ * useRescue - Central de Resgate e Reativação (v3.50.0).
  *
  * Consulta e gerencia campanhas (`rescue_campaigns`), disparos (`rescue_dispatches`),
  * configurações da régua (`integration_settings.category = 'rescue'`) e o status do

@@ -1,6 +1,6 @@
 # Fluxos de Convites
 
-**Versão:** v3.48.0 · Setembro/2026
+**Versão:** v3.50.0 · Setembro/2026
 
 ## Destinos disponíveis
 
@@ -44,6 +44,26 @@ convite válido pode estabelecer esse vínculo.
 - Convites antigos `comunidade` são apresentados como Grupo Premium.
 - Convites antigos `hub` sem evento são mantidos como Gente HUB legado.
 - Nenhum histórico, aceite, presença, atividade ou pontuação foi apagado.
+
+## Convite, renovação e nova participação (v3.50.0)
+
+Antes de criar um convite manual, a plataforma procura a pessoa por email e telefone:
+
+1. **Convite pendente e válido:** reutiliza o código; a ação **Reenviar** não altera a validade.
+2. **Convite vencido:** a ação **Renovar** encerra o anterior, cria um novo código e mantém a
+   referência entre ambos.
+3. **Convidado com acesso ativo:** não cria outra conta nem convite de ativação; registra uma
+   nova participação no Grupo ou encontro.
+4. **Admin, Facilitador ou Membro ativo:** bloqueia um novo convite de ativação.
+
+Convites manuais de Grupo Premium passam a criar ou atualizar imediatamente a ficha no CRM.
+As participações recorrentes ficam em `guest_participations`, ligadas à pessoa, ao Grupo ou
+encontro, ao convidador daquela visita e ao convite de origem. A atribuição de aquisição original
+é preservada. Participação, confirmação e presença são estados diferentes: registrar uma
+participação não concede pontos, não promove a pessoa e não confirma presença automaticamente.
+
+Durante a transição, o acesso do Convidado considera primeiro as participações e mantém os
+convites aceitos antigos como fallback. Assim, nenhum acesso histórico é retirado.
 ## Integridade do vínculo (v3.45.0)
 
 - Um convidado tem **um único** convite aceito válido. Aceites adicionais ficam marcados como
