@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-09-22
-> **Versão:** 3.49.0
+> **Última atualização:** 2026-09-27
+> **Versão:** 3.50.0
 
 ## Índice
 
@@ -327,7 +327,10 @@ docs/
 | `monthly_points` | Pontuação mensal por grupo |
 | `points_history` | Histórico de pontos (team_id, year_month) |
 | `contents` | Conteúdos educativos |
-| `invitations` | Convites (code, status, expires_at, metadata) |
+| `invitations` | Ativação inicial (code, status, expires_at, renewal_of_id, metadata) |
+| `guest_participations` | Autorizações e visitas recorrentes por pessoa, Grupo ou encontro |
+| `crm_leads` | Jornada, identidade e métricas de primeira/última presença |
+| `rescue_dispatches` | Fila e histórico de Resgate separados por ciclo |
 | `system_changelog` | Changelog do sistema |
 
 ### Funções de Privacidade e Segurança
@@ -719,6 +722,19 @@ Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equi
 - **WhatsApp assistido (v3.49.0)**: após criar a solicitação, o diálogo abre `wa.me` com mensagem sugerida ou permite copiá-la. O telefone vem de `profiles`, a URL de retorno usa o domínio público da Cloudflare e `meeting_requests.whatsapp_opened_at` registra somente a abertura por meio de RPC restrita ao solicitante.
 - **Campo `availability_note`** em `profiles`: disponibilidade declarada para encontros, editável em Configurações do perfil.
 - Item 10 (OAuth Google/LinkedIn) removido do escopo a pedido do cliente.
+
+## v3.50.0 — Convites, Participações, CRM e Resgate
+
+- Criação manual centralizada com identidade por email/telefone, bloqueio de papel ativo,
+  reaproveitamento de convite válido e renovação rastreável do vencido.
+- `guest_participations` separa novas visitas da ativação da conta e mantém fallback pelos
+  convites aceitos históricos.
+- Convites Premium alimentam o CRM imediatamente; presença é consolidada por encontro com
+  primeira e última data reais, inclusive para leads sem conta.
+- A régua passa a ter ciclos reiniciáveis, distingue Ex-Convidado de Ex-Membro e preserva todos
+  os disparos antigos.
+- A tela Convites oferece Reenviar/Renovar conforme o estado; a Central de Resgate exibe e
+  exporta público e início de ciclo.
 
 ## v3.20.0 — Rebranding de Logos, Perfil Público e Responsividade
 

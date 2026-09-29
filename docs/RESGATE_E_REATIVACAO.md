@@ -1,4 +1,4 @@
-# Resgate e Reativação (v3.43.0 · painel v3.44.0)
+# Resgate e Reativação (v3.50.0)
 
 Documento oficial do fluxo de desativação de membros, perda de acesso e da régua
 automática de resgate de ex-membros e convidados.
@@ -11,10 +11,11 @@ Ao desativar:
 
 1. `profiles.is_active = false`, `deactivated_at`, `deactivation_reason`.
 2. Remoção de **todos** os vínculos em `team_members`.
-3. Papel rebaixado para `convidado` em `user_roles`.
+3. Papel de acesso passa para `convidado` em `user_roles`, enquanto `previous_role` registra se
+   a pessoa era Convidado ou Membro antes da desativação.
 4. `public_profile_enabled = false` (perfil público sai do ar e do sitemap).
-5. Criação/atualização de um lead em `crm_leads` marcado como ex-membro, para
-   acompanhamento comercial.
+5. Criação/atualização de um lead em `crm_leads` marcado como `ex_convidado` ou `ex_membro`,
+   conforme o papel anterior, para acompanhamento comercial.
 6. Agendamento da régua de resgate (ver seção 3).
 
 Nada é apagado: pontos, presenças, indicações, depoimentos, negócios, cases,
@@ -34,8 +35,8 @@ Tabelas:
 - `rescue_campaigns` — conteúdo e cadência de cada etapa (`audience`, `step`,
   `delay_days`, `subject`, `body_html`, `offer_html`, `cta_label`,
   `whatsapp_message`, `active`).
-- `rescue_dispatches` — fila/histórico (`scheduled`, `sent`, `failed`,
-  `cancelled`, `skipped`) com unicidade por destinatário + etapa.
+- `rescue_dispatches` — fila/histórico (`queued`, `sent`, `error`, `cancelled`, `skipped`) com
+  unicidade por destinatário + campanha + ciclo.
 
 Cadência padrão:
 
@@ -44,9 +45,22 @@ Cadência padrão:
 | Ex-membro  | 1     | 60 dias após a desativação                |
 | Ex-membro  | 2     | +45 dias                                  |
 | Ex-membro  | 3     | +30 dias                                  |
-| Convidado  | 1     | 30 dias após a última participação        |
+| Ex-convidado | 1+  | Mesma cadência configurada para retorno   |
+| Convidado  | 1     | 90 dias após a última presença real*      |
 | Convidado  | 2     | +30 dias                                  |
 | Interno    | 1     | Alerta ao admin sobre membro em risco     |
+
+\* A cadência efetiva é sempre a configurada em `rescue_campaigns`; o painel é a fonte de
+verdade para alterações posteriores.
+
+### Ciclos reiniciáveis (v3.50.0)
+
+Cada ausência ou desativação usa `cycle_started_at`. Uma presença ou desativação posterior abre
+outro ciclo sem apagar mensagens antigas. Nova participação, nova presença, promoção ou
+reativação cancela somente itens ainda na fila; envios concluídos continuam auditáveis.
+
+Para contatos sem conta, a elegibilidade usa `last_attendance_at`. A contagem é consolidada por
+encontro entre `attendances` e `meeting_lead_attendances`, evitando duplicação na ativação.
 
 ### Motor
 
@@ -82,8 +96,8 @@ falhas e cancelados/pulados, e quatro abas:
   (padrão 9h–11h de São Paulo), `whatsapp_number` e `enabled`.
 
 **Pessoas**
-- Lista agrupada por destinatário com público, etapa atual, quantidade de
-  envios, último envio e próximo agendamento.
+- Lista agrupada por destinatário e ciclo, com público, etapa atual, quantidade de
+  envios, último envio, início do ciclo e próximo agendamento.
 - Ações: "Enviar agora" (dispara o item da fila), "Pular etapa"
   (`status = skipped`, a régua segue para a próxima), "Pausar 30d"
   (cool-off via `rescue_paused_until`) e "Remover" (opt-out definitivo,
@@ -98,7 +112,8 @@ falhas e cancelados/pulados, e quatro abas:
   (`rescue-runner` com `{"action": "test", "campaign_id", "email"}`).
 
 **Histórico**
-- Filtros por público e status, com exportação Excel/PDF (`ExportButton`).
+- Filtros por público — incluindo Ex-Convidados — e status, com exportação Excel/PDF
+  (`ExportButton`) e data inicial do ciclo.
 - Ações de envio imediato e cancelamento nos itens ainda na fila.
 
 Execução manual: "Simular" (`dry_run`) monta a fila sem enviar; "Executar régua

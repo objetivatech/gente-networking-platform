@@ -275,3 +275,16 @@ eventos `hub_event` abertos. Convites aceitos sem snapshot receberam backfill do
 A ordem foi corrigida, a função de feed passou a nunca derrubar a operação principal
 (falha vira `RAISE WARNING`) e convidados agora podem ser desativados normalmente
 (`source_detail = 'ex_convidado'` no CRM).
+
+---
+
+## Participações recorrentes e renovação (v3.50.0)
+
+- `create_guest_invitation` centraliza identidade, permissões, deduplicação e ligação com CRM.
+- Convite pendente válido é reutilizado; o reenvio preserva código e vencimento.
+- `renew_guest_invitation` cria novo código somente para convite vencido e grava `renewal_of_id`.
+- Um Convidado já ativo recebe uma linha em `guest_participations`, não outro acesso.
+- Admin, Facilitador e Membro ativos não podem receber convite de ativação duplicado.
+- Convites Premium passam a alimentar o CRM no momento da criação, não apenas no aceite.
+- `guest_participations` separa autorização/visita de ativação, presença e pontuação.
+- Convites aceitos legados continuam como fallback de visibilidade durante a transição.

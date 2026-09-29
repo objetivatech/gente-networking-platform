@@ -1,6 +1,6 @@
 # CRM — Ingestão de Leads
 
-**Versão:** v3.48.0 · Setembro/2026
+**Versão:** v3.50.0 · Setembro/2026
 
 Este documento explica como um lead chega ao CRM da Gente Comunidade, por origem,
 e como configurar cada fonte.
@@ -127,6 +127,17 @@ contato reutilizam o registro e o convite pendente, sem produzir mensagens dupli
 participou e promovido a membro. Admin vê a jornada inteira; Facilitador vê a jornada dos
 próprios Grupos; Membro vê somente pessoas que já ativaram acesso. Dados de contato de quem
 ainda não ativou nunca são expostos a Membros.
+
+## Convites Premium e presença real (v3.50.0)
+
+- Convites manuais de Grupo Premium criam ou atualizam a pessoa no CRM imediatamente.
+- `first_attendance_at` guarda a primeira presença real e `last_attendance_at` a mais recente.
+- `meeting_attendance_count` conta encontros distintos, unindo presença de perfil e presença de
+  lead sem duplicar o mesmo encontro após a ativação.
+- Presenças sem conta passam a alimentar as mesmas métricas; quando a conta é ligada ao lead, o
+  histórico permanece associado à identidade.
+- Renovação e participação geram continuidade da jornada sem substituir a origem ou o
+  convidador de aquisição.
 
 ## Diagnóstico rápido
 

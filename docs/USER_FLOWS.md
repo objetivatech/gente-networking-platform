@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-09-22
-> **Versão:** 3.49.0
+> **Última atualização:** 2026-09-27
+> **Versão:** 3.50.0
 
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
@@ -37,6 +37,12 @@ e o convite pendente. Os contextos Gente HUB, Impulso, Comunidade, Participe, Si
 origem servem para comunicação e análise, sem criar novos papéis.
 
 ### 1. Fluxo de Convite e Cadastro
+
+Antes de gerar um código, a plataforma resolve a identidade por email/telefone. Reutiliza um
+convite válido, renova um vencido ou, se a pessoa já for Convidada ativa, registra somente uma
+nova participação. Pessoas com papel Admin, Facilitador ou Membro ativo não recebem outro
+convite de ativação. `guest_participations` mantém visitas recorrentes separadas de conta,
+presença, promoção e pontos.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -106,8 +112,8 @@ origem servem para comunicação e análise, sem criar novos papéis.
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Tabelas:** `invitations`, `auth.users`, `profiles`, `user_roles`  
-**Funções:** `handle_new_user()`, `accept_invitation()` (idempotente, com snapshot de `allowed_team_ids`)  
+**Tabelas:** `invitations`, `guest_participations`, `auth.users`, `profiles`, `user_roles`  
+**Funções:** `create_guest_invitation()`, `renew_guest_invitation()`, `handle_new_user()`, `accept_invitation()` (idempotente, com snapshot de `allowed_team_ids`)  
 **Edge Functions:** `verify-turnstile` (anti-bot), `send-notification` (tipo: invitation)  
 **Rota:** `/auth/confirm` — callback público para confirmação de email e aceite do convite
 
@@ -160,6 +166,10 @@ origem servem para comunicação e análise, sem criar novos papéis.
     → is_active = true, limpa campos de desativação
     → Status: ATIVO (sem grupo, admin deve adicionar manualmente)
 ```
+
+Desativação registra o papel anterior e separa Ex-Convidado de Ex-Membro. Reativação, promoção,
+nova participação ou nova presença cancela itens futuros da régua; mensagens anteriores ficam
+no histórico. Cada nova ausência/desativação pode abrir outro ciclo.
 
 ---
 

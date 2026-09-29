@@ -1,11 +1,11 @@
 /**
- * rescue-runner - Motor da régua de resgate (v3.43.0).
+ * rescue-runner - Motor da régua de resgate (v3.50.0).
  *
  * @author Diogo Devitte / Ranktop SEO Inteligente
  * © 2026 Ranktop SEO Inteligente.
  *
  * Responsabilidades:
- *  1. Montar a fila de disparos (ex-membros, convidados e alerta de risco);
+ *  1. Montar ciclos de disparos (ex-membros, ex-convidados, convidados e risco);
  *  2. Respeitar o orçamento diário do provedor (Resend free = 300/dia) com
  *     reserva para e-mails transacionais;
  *  3. Enviar apenas na janela configurada (dias da semana / horário SP);
