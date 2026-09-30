@@ -6,4 +6,4 @@
 - [x] Tornar os ciclos de Resgate reiniciáveis e separar Ex-Convidado de Ex-Membro.
 - [x] Atualizar Convites, acesso do Convidado e Central de Resgate.
 - [x] Atualizar documentação, memória e histórico v3.50.0.
-- [ ] Validar permissões, testes, tipos, função de Resgate e consistência final.
+- [x] Validar permissões, testes, tipos, função de Resgate e consistência final.
