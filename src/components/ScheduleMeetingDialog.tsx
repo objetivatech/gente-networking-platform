@@ -167,7 +167,7 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
             </div>
             <div className="space-y-2">
               <Label htmlFor="whatsapp-message">Mensagem sugerida</Label>
-              <Textarea id="whatsapp-message" className="min-w-0 max-w-full resize-y whitespace-pre-wrap text-wrap-anywhere" value={completed.whatsappMessage} onChange={(e) => setCompleted({ ...completed, whatsappMessage: e.target.value })} rows={7} />
+              <Textarea id="whatsapp-message" className="w-full min-w-0 max-w-full resize-y whitespace-pre-wrap text-wrap-anywhere" value={completed.whatsappMessage} onChange={(e) => setCompleted({ ...completed, whatsappMessage: e.target.value })} rows={7} />
               {!completed.phone && (
                 <p className="text-sm text-muted-foreground">Telefone não cadastrado ou inválido. Você ainda pode copiar a mensagem.</p>
               )}

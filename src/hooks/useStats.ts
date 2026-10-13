@@ -13,7 +13,7 @@ export async function fetchStatisticsSnapshot(scope: 'personal' | 'community' | 
 }
 export function useStats(period: 'month' | 'year' = 'month') {
   const { user } = useAuth();
-  return useQuery({ queryKey: ['stats', user?.id, period], queryFn: async () => personalStatistics(await fetchStatisticsSnapshot('personal'), period), enabled: !!user?.id, refetchOnWindowFocus: true });
+  return useQuery({ queryKey: ['stats', user?.id, period, new Date().getFullYear(), new Date().getMonth()], queryFn: async () => personalStatistics(await fetchStatisticsSnapshot('personal'), period), enabled: !!user?.id, refetchOnWindowFocus: true });
 }
 export function useCommunityStats(teamId?: string) {
   const { user } = useAuth();

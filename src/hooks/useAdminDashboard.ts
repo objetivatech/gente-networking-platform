@@ -17,7 +17,7 @@ export function useAdminDashboard(teamId?: string) {
   });
   const snapshot = snapshotQuery.data;
   const community = snapshot ? communityStatistics(snapshot) : undefined;
-  const { data: stats, isLoading: loadingExtras } = useQuery({
+  const { data: stats, isLoading: loadingExtras, error: extrasError } = useQuery({
     queryKey: ['admin-dashboard-stats', user?.id, teamId || 'all', snapshot],
     enabled: !!snapshot,
     refetchOnWindowFocus: true,
@@ -143,6 +143,7 @@ export function useAdminDashboard(teamId?: string) {
 
   return {
     stats,
+    error: snapshotQuery.error || extrasError,
     loadingStats,
     rankDistribution,
     monthlyActivity,
