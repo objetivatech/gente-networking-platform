@@ -1,0 +1,11 @@
+# © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
+# HTML e arquivos de controle sempre revalidados. Não usar Clear-Site-Data.
+/*
+  Cache-Control: no-cache
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
+
+/manifest.webmanifest
+  Cache-Control: no-cache

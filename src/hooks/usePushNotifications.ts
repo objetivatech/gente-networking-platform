@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 interface PushNotificationState {
   isSupported: boolean;
@@ -33,9 +32,9 @@ export function usePushNotifications(): PushNotificationState {
 
   const checkSubscription = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
+      const registration = await navigator.serviceWorker.getRegistration();
+      const subscription = await registration?.pushManager.getSubscription();
+      setIsSubscribed(!!subscription || localStorage.getItem('push-notifications-enabled') === 'true');
     } catch (error) {
       console.error('Error checking push subscription:', error);
     }
@@ -68,11 +67,11 @@ export function usePushNotifications(): PushNotificationState {
         }
       }
 
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
       
       // For now, we'll use local notifications as push server requires additional setup
       // The subscription object would be sent to our server in a full implementation
-      const subscription = await registration.pushManager.subscribe({
+      const subscription = await registration?.pushManager.subscribe({
         userVisibleOnly: true,
         // In production, you'd use your VAPID public key here
         applicationServerKey: undefined
@@ -103,8 +102,8 @@ export function usePushNotifications(): PushNotificationState {
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
+      const registration = await navigator.serviceWorker.getRegistration();
+      const subscription = await registration?.pushManager.getSubscription();
       
       if (subscription) {
         await subscription.unsubscribe();
@@ -132,13 +131,13 @@ export function usePushNotifications(): PushNotificationState {
       });
     } catch (error) {
       // Fallback for service worker notifications
-      navigator.serviceWorker.ready.then(registration => {
-        registration.showNotification(title, {
+      void navigator.serviceWorker.getRegistration().then(registration => {
+        return registration?.showNotification(title, {
           icon: '/icons/icon-192x192.png',
           badge: '/icons/icon-96x96.png',
           ...options,
         });
-      });
+      }).catch((notificationError) => console.warn('Notificação local indisponível.', notificationError));
     }
   }, [isSupported, permission]);
 
