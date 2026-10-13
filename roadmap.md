@@ -18,3 +18,10 @@
 # Bloco 2 — Assinante da Comunidade
 
 - [ ] Executar exclusivamente em uma etapa separada, após as correções; não implementar neste bloco.
+
+# Recuperação de atualização PWA — etapa exclusiva de correção
+
+- [ ] Substituir o worker antigo no mesmo endereço por limpeza seletiva, sem apagar sessão ou caches de outros serviços.
+- [ ] Manter manifest/ícones e suspender cache offline do aplicativo durante a recuperação.
+- [ ] Remover recargas automáticas que podem repetir a falha e evitar esperas de notificações sem worker.
+- [ ] Validar limpeza, preservação de dados, instalação e ausência de registros no preview; documentar implantação Cloudflare.
