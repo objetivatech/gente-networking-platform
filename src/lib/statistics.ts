@@ -2,7 +2,7 @@ import { format, startOfMonth, startOfYear, addMonths, addYears, subMonths } fro
 import { parseLocalDate } from './date-utils';
 
 export interface StatisticsSnapshot {
-  profiles: { id: string; full_name: string; company: string | null; avatar_url: string | null; rank: string | null; points: number | null }[];
+  profiles: { id: string; full_name: string; company: string | null; avatar_url: string | null; rank: 'iniciante' | 'bronze' | 'prata' | 'ouro' | 'diamante' | null; points: number | null }[];
   teams: { id: string; name: string; color: string | null }[];
   teamMembers: { user_id: string; team_id: string }[];
   genteEmAcao: { id: string; user_id: string; meeting_date: string; meeting_type: string }[];
