@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-09-27
-> **Versão:** 3.50.0
+> **Versão:** 3.51.0
 
 ## Índice
 
@@ -756,3 +756,19 @@ Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equi
 ### Revisão de Responsividade
 - Títulos de páginas passam a usar `text-2xl sm:text-3xl` (escala no mobile).
 - Linha do Ranking (`Ranking.tsx`): gaps responsivos (`gap-2 sm:gap-4`), elementos com `shrink-0` e ocultação de metadados/RankBadge em telas estreitas para evitar corte de fotos/nomes.
+
+
+## v3.51.0 — Indicadores e agendamento WhatsApp
+
+- `get_statistics_snapshot` valida identidade ativa e escopo no servidor: Admin/Facilitador consultam comunidade; Membro consulta seus Grupos; Convidado somente dados pessoais. Sem contatos ou dados CRM na resposta.
+- `src/lib/statistics.ts` unifica denominador (Membro/Facilitador ativo, sem Admin), contagem por autoria, recebimentos separados, datas de evento e presenças únicas por pessoa/encontro.
+- Totais da Comunidade e relatório gerencial são históricos dos perfis atualmente ativos; filtros de Grupo usam vínculo atual. Grupos com vínculos sobrepostos não devem ser somados como população global.
+- Minhas Estatísticas aplica mês/ano aos totais; gráfico mantém últimos seis meses. Presença usa data do encontro, não data de lançamento.
+- Facilitador abre Comunidade e também acessa Relatório Global; Admin mantém sua aba inicial. Falhas de leitura têm mensagem de erro, não falso zero.
+- Dashboard usa a mesma fonte para atividades, membros, ranks e Grupos. Taxa de presença considera membros ativos do Grupo do encontro, exclui convidados, duplicatas e encontros futuros. É taxa operacional com vínculo atual, não reconstrução de matrícula histórica.
+- Ranking competitivo permanece distinto e exclui Facilitadores; não foram alterados pontos, convites, presenças ou regras de Resgate.
+- Designação de Facilitador sincroniza papel no banco; Admin preservado; Convidado precisa promoção prévia. Leitura de múltiplos papéis usa prioridade explícita.
+- Modal WhatsApp ajusta largura entre etapas, altura máxima de 90dvh, rolagem, quebra de texto e ações verticais no celular. Mensagem editável alimenta cópia e link wa.me; domínio Cloudflare mantido.
+- Validação visual isolada com envio simulado: 360/768/1280px sem transbordamento ou erros JavaScript. Validação autenticada Admin/Facilitador não disponível no Supabase externo.
+- Segurança: alerta 0029 da RPC revisado como acesso autenticado intencional, com limites internos; 161 alertas anteriores não foram alterados.
+- Bloco 2 — Assinante da Comunidade permanece sem implementação e reservado à execução exclusiva.

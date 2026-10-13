@@ -7,3 +7,14 @@
 - [x] Atualizar Convites, acesso do Convidado e Central de Resgate.
 - [x] Atualizar documentação, memória e histórico v3.50.0.
 - [x] Validar permissões, testes, tipos, função de Resgate e consistência final.
+
+# Bloco 1 — Precisão dos indicadores e modais
+
+- [x] Unificar contadores, períodos e escopo autorizado por Grupo; corrigir vínculo de Facilitador com segurança.
+- [x] Corrigir contenção, altura, ações e edição da mensagem no modal WhatsApp.
+- [x] Testar indicadores, permissões e modais; atualizar documentação.
+- [ ] Validar leitura autenticada como Admin e Facilitador — indisponível neste ambiente com Supabase externo; não declarar validação E2E como concluída.
+
+# Bloco 2 — Assinante da Comunidade
+
+- [ ] Executar exclusivamente em uma etapa separada, após as correções; não implementar neste bloco.

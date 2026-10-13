@@ -117,24 +117,24 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
           <CalendarClock className="mr-2 h-4 w-4" /> Agendar Gente em Ação
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className={`flex max-h-[90dvh] w-[calc(100%-2rem)] min-w-0 flex-col overflow-y-auto p-4 sm:p-6 ${completed ? 'sm:max-w-xl md:max-w-2xl' : 'max-w-lg'}`}>
+        <DialogHeader className="min-w-0 shrink-0 pr-6 text-wrap-anywhere">
           <DialogTitle>{completed ? 'Solicitação enviada' : 'Agendar Gente em Ação'}</DialogTitle>
           <DialogDescription>
             {completed
-              ? 'O e-mail e a notificação foram enviados. Você também pode reforçar o convite pelo WhatsApp.'
+              ? 'Você também pode reforçar o convite pelo WhatsApp.'
               : `Envie uma solicitação para ${memberName}. O convite de calendário será liberado após a confirmação.`}
           </DialogDescription>
         </DialogHeader>
 
         {!completed && availabilityNote && (
-          <div className="rounded-md bg-muted p-3 text-sm">
+          <div className="min-w-0 rounded-md bg-muted p-3 text-sm text-wrap-anywhere">
             <span className="font-medium">Disponibilidade de {memberName}:</span>{' '}
             <span className="text-muted-foreground">{availabilityNote}</span>
           </div>
         )}
 
-        {!completed ? <div className="space-y-4 py-2">
+        {!completed ? <div className="min-w-0 space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="meet-start">Data e hora proposta</Label>
             <Input id="meet-start" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
@@ -160,14 +160,14 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
             <Textarea id="meet-msg" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Sobre o que você gostaria de conversar?" rows={3} />
           </div>
         </div> : (
-          <div className="space-y-4 py-2">
+          <div className="min-w-0 space-y-4 py-2">
             <div className="flex items-center gap-3 rounded-md border border-primary/30 bg-primary/5 p-3">
               <Check className="h-5 w-5 shrink-0 text-primary" />
-              <p className="text-sm">A solicitação foi criada sem gerar pontuação ou outro agendamento.</p>
+              <p className="min-w-0 text-sm text-wrap-anywhere">Solicitação criada para {memberName}.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="whatsapp-message">Mensagem sugerida</Label>
-              <Textarea id="whatsapp-message" value={completed.whatsappMessage} readOnly rows={7} />
+              <Textarea id="whatsapp-message" className="w-full min-w-0 max-w-full resize-y whitespace-pre-wrap text-wrap-anywhere" value={completed.whatsappMessage} onChange={(e) => setCompleted({ ...completed, whatsappMessage: e.target.value })} rows={7} />
               {!completed.phone && (
                 <p className="text-sm text-muted-foreground">Telefone não cadastrado ou inválido. Você ainda pode copiar a mensagem.</p>
               )}
@@ -175,7 +175,7 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="min-w-0 shrink-0 gap-2 sm:flex-wrap sm:space-x-0 [&>button]:h-auto [&>button]:min-h-10 [&>button]:min-w-0 [&>button]:whitespace-normal [&>button]:text-wrap-anywhere">
           {completed ? (
             <>
               <Button variant="outline" onClick={closeDialog}>Concluir sem WhatsApp</Button>

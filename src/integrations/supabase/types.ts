@@ -2559,6 +2559,10 @@ export type Database = {
         Args: { _points: number }
         Returns: Database["public"]["Enums"]["member_rank"]
       }
+      get_statistics_snapshot: {
+        Args: { _scope?: string; _team_id?: string }
+        Returns: Json
+      }
       get_user_monthly_points: {
         Args: { _team_id?: string; _user_id: string; _year_month?: string }
         Returns: {

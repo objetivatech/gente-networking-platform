@@ -39,7 +39,8 @@ export default function AdminDashboard() {
   const teamIdParam = selectedTeamId === 'all' ? undefined : selectedTeamId;
   const { 
     stats, 
-    loadingStats, 
+    loadingStats,
+    error: statisticsError, 
     rankDistribution, 
     monthlyActivity, 
     topMembers, 
@@ -66,6 +67,9 @@ export default function AdminDashboard() {
   if (userRole !== 'admin' && userRole !== 'facilitador') {
     return <Navigate to="/" replace />;
   }
+
+  if (loadingStats) return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (statisticsError) return <p role="alert" className="text-destructive">Não foi possível carregar os indicadores. Tente novamente.</p>;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
