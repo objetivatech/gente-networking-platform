@@ -123,15 +123,17 @@ function DetailCharts({ stats }: { stats: any }) {
 // ─── Community Tab ───────────────────────────────────────────
 function CommunityTab() {
   const [teamId, setTeamId] = useState<string>('all');
-  const { data: communityStats, isLoading } = useCommunityStats(teamId === 'all' ? undefined : teamId);
+  const { data: communityStats, isLoading, error } = useCommunityStats(teamId === 'all' ? undefined : teamId);
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
+  if (error) return <p role="alert" className="text-destructive">Não foi possível carregar os indicadores. Tente novamente.</p>;
   const stats = communityStats;
   if (!stats) return null;
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">Acumulado histórico dos Membros e Facilitadores ativos. Grupos usam o vínculo atual; não some grupos com pessoas em mais de um vínculo.</p>
       {/* Filter */}
       <div className="flex items-center gap-3">
         <Select value={teamId} onValueChange={setTeamId}>
@@ -266,11 +268,12 @@ function CommunityTab() {
 
 // ─── Admin Global Report Tab ─────────────────────────────────
 function AdminGlobalTab() {
-  const { data, isLoading } = useAdminGlobalStats();
+  const { data, isLoading, error } = useAdminGlobalStats();
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
 
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  if (error) return <p role="alert" className="text-destructive">Não foi possível carregar o relatório. Tente novamente.</p>;
   if (!data) return null;
 
   let users = data.userSummaries;
@@ -367,8 +370,9 @@ function AdminGlobalTab() {
 // ─── Main Page ───────────────────────────────────────────────
 export default function Estatisticas() {
   const [period, setPeriod] = useState<'month' | 'year'>('month');
-  const { isAdmin, isLoading: loadingRole } = useAdmin();
-  const { data: stats, isLoading } = useStats(period);
+  const { isAdmin, canManage, isLoading: loadingRole } = useAdmin();
+  const { data: stats, isLoading, error } = useStats(period);
+  const [tab, setTab] = useState<string>();
 
   if (isLoading || loadingRole) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -385,7 +389,7 @@ export default function Estatisticas() {
           </h1>
           <p className="text-muted-foreground">Relatórios e métricas de performance</p>
         </div>
-        {!isAdmin && (
+        {!isAdmin && (tab || (canManage ? 'community' : 'my')) === 'my' && (
           <Select value={period} onValueChange={(v) => setPeriod(v as 'month' | 'year')}>
             <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -396,8 +400,8 @@ export default function Estatisticas() {
         )}
       </div>
 
-      <Tabs defaultValue={isAdmin ? 'global' : 'my'} className="w-full">
-        <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-2' : 'grid-cols-2'}`}>
+      <Tabs value={tab || (isAdmin ? 'global' : canManage ? 'community' : 'my')} onValueChange={setTab} className="w-full">
+        <TabsList className={`grid w-full ${!isAdmin && canManage ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {isAdmin ? (
             <>
               <TabsTrigger value="global">Relatório Global</TabsTrigger>
@@ -406,18 +410,17 @@ export default function Estatisticas() {
           ) : (
             <>
               <TabsTrigger value="my">Minhas Estatísticas</TabsTrigger>
+              {canManage && <TabsTrigger value="global">Relatório Global</TabsTrigger>}
               <TabsTrigger value="community">Comunidade</TabsTrigger>
             </>
           )}
         </TabsList>
 
-        {isAdmin ? (
-          <TabsContent value="global" className="mt-6">
-            <AdminGlobalTab />
-          </TabsContent>
-        ) : (
+        {canManage && <TabsContent value="global" className="mt-6"><AdminGlobalTab /></TabsContent>}
+        {!isAdmin && (
           <TabsContent value="my" className="mt-6 space-y-6">
-            <StatsCards stats={stats} />
+            {error ? <p role="alert" className="text-destructive">Não foi possível carregar seus indicadores. Tente novamente.</p> : <StatsCards stats={stats} />}
+            <p className="text-sm text-muted-foreground">Totais: {period === "month" ? "mês atual" : "ano atual"}. Evolução: últimos seis meses.</p>
             <MonthlyChart data={stats?.monthlyData || []} />
             <DetailCharts stats={stats} />
           </TabsContent>

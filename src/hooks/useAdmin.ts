@@ -10,9 +10,9 @@ export function useUserRole() {
     queryKey: ['user-role', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle();
+      const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
       if (error) throw error;
-      return data?.role || 'convidado';
+      return (['admin', 'facilitador', 'membro', 'convidado'] as const).find(role => data?.some(r => r.role === role)) || 'convidado';
     },
     enabled: !!user?.id,
   });
@@ -43,7 +43,7 @@ export function useAdminTeams() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Grupo criado' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); queryClient.invalidateQueries({ queryKey: ['user-role'] }); queryClient.invalidateQueries({ queryKey: ['community-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-global-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-dashboard-snapshot'] }); toast({ title: 'Sucesso!', description: 'Grupo criado' }); },
     onError: () => { toast({ title: 'Erro', description: 'Erro ao criar grupo', variant: 'destructive' }); },
   });
 
@@ -52,12 +52,12 @@ export function useAdminTeams() {
       const { error } = await supabase.from('teams').update(input).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Grupo atualizado' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); queryClient.invalidateQueries({ queryKey: ['user-role'] }); queryClient.invalidateQueries({ queryKey: ['community-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-global-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-dashboard-snapshot'] }); toast({ title: 'Sucesso!', description: 'Grupo atualizado' }); },
   });
 
   const deleteTeam = useMutation({
     mutationFn: async (id: string) => { const { error } = await supabase.from('teams').delete().eq('id', id); if (error) throw error; },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Grupo removido' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); queryClient.invalidateQueries({ queryKey: ['user-role'] }); queryClient.invalidateQueries({ queryKey: ['community-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-global-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-dashboard-snapshot'] }); toast({ title: 'Sucesso!', description: 'Grupo removido' }); },
   });
 
   const addMember = useMutation({
@@ -65,7 +65,7 @@ export function useAdminTeams() {
       const { error } = await supabase.from('team_members').insert({ team_id: teamId, user_id: userId, is_facilitator: isFacilitator });
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Membro adicionado' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); queryClient.invalidateQueries({ queryKey: ['user-role'] }); queryClient.invalidateQueries({ queryKey: ['community-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-global-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-dashboard-snapshot'] }); toast({ title: 'Sucesso!', description: 'Membro adicionado' }); },
     onError: (e: any) => { 
       const msg = e.message?.includes('duplicate') ? 'Membro já está no grupo' : 
                   e.message?.includes('policy') ? 'Você só pode adicionar convidados ao seu grupo' :
@@ -79,7 +79,7 @@ export function useAdminTeams() {
       const { error } = await supabase.from('team_members').delete().eq('team_id', teamId).eq('user_id', userId);
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Membro removido' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); queryClient.invalidateQueries({ queryKey: ['user-role'] }); queryClient.invalidateQueries({ queryKey: ['community-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-global-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-dashboard-snapshot'] }); toast({ title: 'Sucesso!', description: 'Membro removido' }); },
   });
 
   const toggleFacilitator = useMutation({
@@ -87,7 +87,7 @@ export function useAdminTeams() {
       const { error } = await supabase.from('team_members').update({ is_facilitator: isFacilitator }).eq('team_id', teamId).eq('user_id', userId);
       if (error) throw error;
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); toast({ title: 'Sucesso!', description: 'Status atualizado' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['teams'] }); queryClient.invalidateQueries({ queryKey: ['user-role'] }); queryClient.invalidateQueries({ queryKey: ['community-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-global-stats'] }); queryClient.invalidateQueries({ queryKey: ['admin-dashboard-snapshot'] }); toast({ title: 'Sucesso!', description: 'Status atualizado' }); },
   });
 
   return { createTeam, updateTeam, deleteTeam, addMember, removeMember, toggleFacilitator };
