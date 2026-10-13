@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { cleanupPreviewAppWorker } from '../pwa-cleanup';
 
-const workerSource = readFileSync(new URL('../../../public/sw.js', import.meta.url), 'utf8');
+const workerSource = readFileSync('public/sw.js', 'utf8');
 
 async function activateWorker(failListing = false, failDelete = false) {
   const handlers: Record<string, (event: { waitUntil: (promise: Promise<void>) => void }) => void> = {};
@@ -76,7 +76,7 @@ describe('Recuperação PWA', () => {
   });
 
   it('manifest mantém as URLs e os ícones da instalação', () => {
-    const manifest = JSON.parse(readFileSync(new URL('../../../public/manifest.webmanifest', import.meta.url), 'utf8'));
+    const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8'));
     expect(manifest).toMatchObject({ start_url: '/', scope: '/', display: 'standalone' });
     expect(manifest.icons.some((icon: { sizes: string }) => icon.sizes === '512x512')).toBe(true);
   });
