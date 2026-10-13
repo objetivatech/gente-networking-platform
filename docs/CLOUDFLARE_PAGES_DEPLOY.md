@@ -190,3 +190,14 @@ npm run preview
 ## Contato
 
 Para suporte técnico, consulte a [documentação do Cloudflare Pages](https://developers.cloudflare.com/pages/).
+
+
+## Recuperação PWA v3.51.1 — publicação obrigatória no Cloudflare
+
+- Publicar as alterações pelo fluxo GitHub → Cloudflare Pages. Esta edição não publica automaticamente em produção.
+- Confirmar `/sw.js` retorna JavaScript do kill-switch (200), e não HTML do fallback SPA. Manter esse endereço publicado por pelo menos um ciclo de atualização; não simplesmente apagar o arquivo.
+- Confirmar `/manifest.webmanifest` retorna JSON e preserva ícones, scope, start_url e display anteriores.
+- Confirmar Cache-Control de HTML/rotas e manifest como `no-cache`, e `/sw.js` como `no-cache, no-store, must-revalidate`. Regras externas “Cache Everything” não devem sobrepor esses cabeçalhos.
+- Testar um navegador com o worker anterior instalado: após o navegador verificar a atualização, os caches do aplicativo são removidos, a página navega novamente e o worker se desregistra. Sessão, dados locais e caches de terceiros permanecem.
+- A abertura sem internet fica suspensa; instalação por ícone mantida. Não usar Clear-Site-Data, limpeza de localStorage ou polling de versão.
+- v3.51.1: recuperação de caches legados, controles locais de notificação sem espera infinita e ausência de recargas automáticas em falhas de módulos.

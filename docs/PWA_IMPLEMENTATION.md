@@ -14,7 +14,17 @@ Esta documentação descreve a implementação completa do Progressive Web App (
 
 ---
 
-## Visão Geral
+## Estado atual — recuperação v3.51.1 (2026-10-13)
+
+- A instalação pela tela inicial permanece com `public/manifest.webmanifest`, ícones e metadados, sem alterar `start_url`, `scope` ou `display`. Prompts dependem do navegador.
+- O cache offline do aplicativo está suspenso nesta versão. O restante deste documento descreve a implementação **histórica**, não a configuração ativa.
+- `public/sw.js` substitui o worker Workbox no mesmo endereço por um ciclo de publicação: remove apenas os quatro caches legados conhecidos e caches Workbox da própria scope, reclama clientes, solicita navegação e se desregistra em `finally`. Caches de outros serviços e sessão não são apagados.
+- Nenhum worker de aplicativo é registrado pelo código atual. Preview/dev removem somente registros legados de `/sw.js`; não há polling de versão ou recarga automática por erro de chunk.
+- `public/_headers` pede revalidação do HTML e manifest; `/sw.js` não é armazenado. Publicar pelo GitHub/Cloudflare e confirmar esses cabeçalhos na origem.
+- Notificações locais consultam registro existente sem aguardar indefinidamente `serviceWorker.ready`. Não há mensageria push remota configurada nesta correção.
+- Retornantes atualizam quando o navegador verifica o worker substituto; não há garantia de atualização instantânea ou eliminação de todos os erros de execução.
+
+## Visão Geral (histórico)
 
 O Gente Networking é um PWA completo que oferece:
 

@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-09-27
-> **Versão:** 3.51.0
+> **Última atualização:** 2026-10-13
+> **Versão:** 3.51.1
 
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
@@ -551,3 +551,8 @@ Membros, facilitadores e admins têm duas superfícies de consulta para o banco 
 - Validação visual isolada com envio simulado: 360/768/1280px sem transbordamento ou erros JavaScript. Validação autenticada Admin/Facilitador não disponível no Supabase externo.
 - Segurança: alerta 0029 da RPC revisado como acesso autenticado intencional, com limites internos; 161 alertas anteriores não foram alterados.
 - Bloco 2 — Assinante da Comunidade permanece sem implementação e reservado à execução exclusiva.
+
+
+## v3.51.1 — Recuperação de atualização PWA
+
+Instalação mantida via manifest/ícones, sem alterar URLs de instalação. Cache offline do aplicativo suspenso durante recuperação. Worker antigo em `/sw.js` substituído por limpeza seletiva que se desregistra mesmo em falha e solicita nova navegação dos clientes. Sem apagar autenticação, caches de outros serviços, dados locais ou histórico da plataforma. Nenhum registro de worker de aplicativo no preview/produção, polling de versão ou recarga automática por falha de chunk. Notificações locais não aguardam worker inexistente. Publicação e validação do worker substituto no Cloudflare são necessárias; atualização depende da verificação feita pelo navegador. Assinante da Comunidade permanece fora desta etapa.
