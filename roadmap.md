@@ -10,10 +10,10 @@
 
 # Bloco 1 — Precisão dos indicadores e modais
 
-- [ ] Unificar contadores, períodos e escopo autorizado por Grupo; corrigir vínculo de Facilitador com segurança.
-- [ ] Corrigir contenção, altura, ações e edição da mensagem no modal WhatsApp.
-- [ ] Testar indicadores, permissões e modais; atualizar documentação.
-- [ ] Validar leitura autenticada como Admin e Facilitador (depende de sessão disponível no Supabase externo).
+- [x] Unificar contadores, períodos e escopo autorizado por Grupo; corrigir vínculo de Facilitador com segurança.
+- [x] Corrigir contenção, altura, ações e edição da mensagem no modal WhatsApp.
+- [x] Testar indicadores, permissões e modais; atualizar documentação.
+- [ ] Validar leitura autenticada como Admin e Facilitador — indisponível neste ambiente com Supabase externo; não declarar validação E2E como concluída.
 
 # Bloco 2 — Assinante da Comunidade
 
