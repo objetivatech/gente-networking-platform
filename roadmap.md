@@ -21,7 +21,8 @@
 
 # Recuperação de atualização PWA — etapa exclusiva de correção
 
-- [ ] Substituir o worker antigo no mesmo endereço por limpeza seletiva, sem apagar sessão ou caches de outros serviços.
-- [ ] Manter manifest/ícones e suspender cache offline do aplicativo durante a recuperação.
-- [ ] Remover recargas automáticas que podem repetir a falha e evitar esperas de notificações sem worker.
-- [ ] Validar limpeza, preservação de dados, instalação e ausência de registros no preview; documentar implantação Cloudflare.
+- [x] Substituir o worker antigo no mesmo endereço por limpeza seletiva, sem apagar sessão ou caches de outros serviços.
+- [x] Manter manifest/ícones e suspender cache offline do aplicativo durante a recuperação.
+- [x] Remover recargas automáticas que podem repetir a falha e evitar esperas de notificações sem worker.
+- [x] Validar limpeza seletiva em testes, preservação de dados locais, manifest/ícones e ausência de registros no preview; documentar implantação Cloudflare. 55 testes passaram; página de instalação sem erros de execução.
+- [ ] Publicar pelo fluxo GitHub → Cloudflare e validar retorno com worker anterior instalado, cabeçalhos efetivos e páginas autenticadas — depende de publicação externa e sessão real, indisponíveis neste ambiente.
