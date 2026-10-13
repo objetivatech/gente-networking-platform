@@ -14,12 +14,9 @@ import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { cleanupPreviewAppWorker } from '@/lib/pwa-cleanup';
 
-if (import.meta.env.DEV && 'serviceWorker' in navigator) {
-  void navigator.serviceWorker.getRegistrations().then((registrations) => {
-    registrations.forEach((registration) => void registration.unregister());
-  });
-}
+void cleanupPreviewAppWorker();
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Elemento principal não encontrado");

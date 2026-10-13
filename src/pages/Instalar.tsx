@@ -103,9 +103,9 @@ export default function Instalar() {
                   <Wifi className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-medium">Funciona Offline</h3>
+                  <h3 className="font-medium">Conexão com a Comunidade</h3>
                   <p className="text-sm text-muted-foreground">
-                    Acesse conteúdos salvos mesmo sem conexão com a internet
+                    Conexão com a internet necessária para abrir o aplicativo
                   </p>
                 </div>
               </div>

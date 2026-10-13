@@ -1,3 +1,8 @@
+/**
+ * Retentativas limitadas de importação, sem recargas automáticas ou limpeza de sessão.
+ * @company Ranktop SEO Inteligente
+ * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
+ */
 import { lazy, ComponentType } from 'react';
 
 export function lazyWithRetry<T extends ComponentType<any>>(
@@ -20,19 +25,9 @@ function retryImport<T extends ComponentType<any>>(
       error?.message?.includes('Loading CSS chunk') ||
       error?.name === 'ChunkLoadError';
 
-    // On chunk load failure, do a hard reload once
-    if (isChunkError) {
-      const reloadKey = 'chunk-reload-' + Date.now().toString(36);
-      if (!sessionStorage.getItem('chunk-retry-done')) {
-        sessionStorage.setItem('chunk-retry-done', '1');
-        window.location.reload();
-        // Return a never-resolving promise to prevent rendering stale state
-        return new Promise<{ default: T }>(() => {});
-      }
-      // Already tried reload, clear flag for next time and throw
-      sessionStorage.removeItem('chunk-retry-done');
-      throw error;
-    }
+    // A versão antiga não pode recuperar um arquivo removido repetindo recargas.
+    // O worker de recuperação trata caches legados; erros restantes vão ao ErrorBoundary.
+    if (isChunkError) throw error;
 
     if (retries <= 0) {
       throw error;
