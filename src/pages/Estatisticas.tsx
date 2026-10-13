@@ -207,14 +207,14 @@ function CommunityTab() {
         <CardContent>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.rankDistribution} layout="vertical">
+              <BarChart data={Object.entries(stats.rankDistribution).map(([name, value]) => ({ name, value }))} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis type="number" className="text-xs" />
                 <YAxis dataKey="name" type="category" className="text-xs" width={80} tickFormatter={(v) => v.charAt(0).toUpperCase() + v.slice(1)} />
                 <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                  {stats.rankDistribution?.map((entry: any, i: number) => (
-                    <Cell key={i} fill={RANK_COLORS[entry.name as keyof typeof RANK_COLORS]} />
+                  {Object.keys(stats.rankDistribution).map((name) => (
+                    <Cell key={name} fill={RANK_COLORS[name as keyof typeof RANK_COLORS]} />
                   ))}
                 </Bar>
               </BarChart>
