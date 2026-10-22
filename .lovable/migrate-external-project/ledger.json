@@ -4,7 +4,7 @@
   "capabilities": [
     {"capability":"code","source":"LPs Gente","outcome":"reuse isolated editors and renderers","status":"implemented","next_action":"Authenticated editor acceptance"},
     {"capability":"schema","source":"CSV export and existing destination schema","outcome":"existing external Supabase LP tables","status":"verified","next_action":"None"},
-    {"capability":"records","source":"4 pages, 18 blocks, 2 advanced contents","outcome":"preserve UUIDs; import inactive without changing entry","status":"validated_pending_import","next_action":"Import explicit mapped values"},
+    {"capability":"records","source":"4 pages, 18 blocks, 2 advanced contents","outcome":"imported inactive with original UUIDs; entry unchanged","status":"verified","next_action":"Activate only after media and authenticated acceptance"},
     {"capability":"historical_audit","source":"632 block audit records","outcome":"retain original authors, timestamps and snapshots","status":"validated_pending_import","next_action":"Import mapped old_values/new_values and changed_fields"},
     {"capability":"lead_reconciliation","source":"686 records / 541 normalized emails / 145 repeated rows","outcome":"reconcile with CRM without notifications, invitations, points or role changes","status":"pending","next_action":"Compare identities to existing CRM and profiles before writing"},
     {"capability":"auth_identities","source":"LP auth excluded intentionally","outcome":"preserve existing platform auth; never import LP roles or accounts","status":"not_applicable","next_action":"None"},

@@ -9,7 +9,9 @@
 - [x] Criar página de entrada editável pelo gerenciador; login sem cadastro aberto; preservar ativação por convite.
 - [x] Preservar domínio raiz canônico no código e roteamento de URLs opt-in; Meta somente via GTM.
 - [x] Receber e filtrar exportação de 22/10: 4 páginas, 18 blocos, 2 conteúdos avançados, 48 mídias, 632 auditorias e 686 leads (541 e-mails distintos).
-- [ ] Importar conteúdo e mídia históricos preservando UUIDs e entrada atual — conteúdo validado; entrega de mídia bloqueada por public_buckets_blocked.
+- [x] Importar 4 páginas inativas, 18 blocos e 2 conteúdos avançados com UUIDs e conteúdo conferidos; entrada atual preservada.
+- [ ] Importar mídia histórica e trocar links do projeto antigo — 48 arquivos validados; publicação bloqueada por public_buckets_blocked.
+- [ ] Importar 632 auditorias históricas — pendente de carga segura do arquivo completo, sem perder autores e alterações.
 - [ ] Reconciliar 686 registros históricos com CRM/perfis sem disparar convites, e-mails ou pontos; preservar 145 inscrições repetidas como histórico.
 - [ ] Liberar entrega permanente de novas imagens — bucket público recusado pela política do workspace; links temporários não são publicáveis.
 - [x] Testes unitários, entrada pública desktop/mobile, abertura login e recuperação, documentação de inventário e rollback.
