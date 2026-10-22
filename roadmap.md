@@ -1,5 +1,14 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+# Unificação LPs e entrada pública — sem Assinante
+
+- [ ] Integrar gerenciador e renderizador existentes com acesso exclusivo do Admin.
+- [ ] Centralizar novos formulários no CRM preservando identidade, convites e rastreios.
+- [ ] Criar página de entrada editável pelo gerenciador; login sem cadastro aberto; preservar ativação por convite.
+- [ ] Preservar domínio raiz canônico e URLs públicas; Meta somente via GTM.
+- [ ] Importar conteúdo e mídia históricos — exige exportação do banco do projeto LPs.
+- [ ] Validar fluxos, testes e documentação antes da virada Cloudflare.
+
 - [x] Criar base segura de participações recorrentes e migrar vínculos existentes.
 - [x] Centralizar convite manual, deduplicação, reutilização e renovação.
 - [x] Integrar convites Premium e presenças ao CRM com última presença real.
