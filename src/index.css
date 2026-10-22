@@ -157,6 +157,25 @@
 }
 
 @layer utilities {
+  .lp-platform-entry section[role="banner"] {
+    min-height: 0;
+    padding-top: 5rem;
+    padding-bottom: 5rem;
+  }
+  .lp-platform-entry section[role="banner"] h1 {
+    font-size: 3rem;
+    overflow-wrap: anywhere;
+  }
+  .lp-platform-entry section[role="banner"] p {
+    font-size: 1.25rem;
+  }
+  .lp-platform-entry section {
+    overflow-wrap: anywhere;
+  }
+  @media (max-width: 640px) {
+    .lp-platform-entry section[role="banner"] { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+    .lp-platform-entry section[role="banner"] h1 { font-size: 2rem; }
+  }
   /*
    * .text-wrap-anywhere — quebra strings longas (URLs, e-mails, tags de
    * segmento compostas) em qualquer ponto, evitando estouro horizontal.
