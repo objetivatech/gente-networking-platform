@@ -8,7 +8,7 @@ import { PlatformLogin } from './PlatformLogin';
 import { SEOHead } from './seo/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import logo from '@/assets/gente-networking-cor-cropped.png.asset.json';
+import logo from '@/assets/gente-networking-cor-cropped.png';
 import { ArrowRight, LogIn } from 'lucide-react';
 import { RDStationScript } from './landing/RDStationScript';
 export function PlatformEntry() {
@@ -18,7 +18,7 @@ export function PlatformEntry() {
   return <div className="min-w-0 bg-background">
     <RDStationScript />
     <header className="border-b bg-background"><div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-      <a href="https://gentenetworking.com.br" className="flex h-14 w-36 items-center"><img src={logo.url} alt="Gente Networking" className="h-auto max-h-14 w-full object-contain" /></a>
+      <a href="https://gentenetworking.com.br" className="flex h-14 w-36 items-center"><img src={logo} alt="Gente Networking" className="h-auto max-h-14 w-full object-contain" /></a>
       <nav className="flex items-center gap-3"><Button variant="ghost" className="hidden sm:inline-flex" asChild><a href="#ecossistema">Conheça o Gente</a></Button><Button onClick={() => setLoginOpen(true)}><LogIn className="mr-2 h-4 w-4" />Entrar</Button></nav>
     </div></header>
     {page && <SEOHead page={page} />}

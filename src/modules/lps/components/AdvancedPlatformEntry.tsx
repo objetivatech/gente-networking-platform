@@ -3,7 +3,7 @@ import type { AdvancedContent } from './landing/CommunityLandingPage';
 import { entryContent } from '../lib/entry-content';
 import { renderContent } from '../lib/markdown';
 import networking from '../assets/reuniao-online.png';
-import whiteLogo from '@/assets/gente-networking-cropped.png.asset.json';
+import whiteLogo from '@/assets/gente-networking-cropped.png';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ArrowRight } from 'lucide-react';
@@ -14,7 +14,7 @@ export function AdvancedPlatformEntry({ content, onLogin }: { content: AdvancedC
       <img src={c.hero?.imageUrl && c.hero.imageUrl !== '/lp-entry-networking.png' ? c.hero.imageUrl : networking} alt="" className="absolute inset-0 -z-20 h-full w-full object-cover" />
       <div className="absolute inset-0 -z-10 bg-primary/70" />
       <div className="mx-auto max-w-4xl px-5 text-center text-primary-foreground">
-        <img src={whiteLogo.url} alt="Gente Networking" className="mx-auto mb-6 h-16 w-auto max-w-full object-contain" />
+        <img src={whiteLogo} alt="Gente Networking" className="mx-auto mb-6 h-16 w-auto max-w-full object-contain" />
         <h1 className="text-3xl font-bold sm:text-4xl break-words">{c.hero?.title}</h1><p className="mt-5 text-lg">{c.hero?.subtitle}</p>
         <Button variant="secondary" size="lg" className="mt-8" asChild><a href="#ecossistema">{c.hero?.buttonText || 'Conheça o Gente'}<ArrowRight className="ml-2 h-4 w-4" /></a></Button>
       </div>

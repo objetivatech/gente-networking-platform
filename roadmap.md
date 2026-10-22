@@ -2,7 +2,7 @@
 
 # Unificação LPs e entrada pública — sem Assinante
 
-- [ ] Passar entrada para editor avançado e aplicar logos oficiais enviados em 22/10.
+- [x] Passar entrada para editor avançado, preservar conteúdo anterior e aplicar logos oficiais enviados em 22/10; cadastro aberto permanece ausente.
 
 - [x] Integrar código do gerenciador e renderizador existentes com acesso exclusivo do Admin.
 - [x] Centralizar novos formulários no endpoint CRM existente; sem segundo banco/fila local ou duplicação de ativação.
