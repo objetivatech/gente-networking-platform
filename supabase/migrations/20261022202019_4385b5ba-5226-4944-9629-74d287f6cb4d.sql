@@ -1,0 +1,1 @@
+ALTER FUNCTION public.lp_duplicate_page(uuid,text,text) SECURITY INVOKER;

@@ -2,12 +2,15 @@
 
 # Unificação LPs e entrada pública — sem Assinante
 
-- [ ] Integrar gerenciador e renderizador existentes com acesso exclusivo do Admin.
-- [ ] Centralizar novos formulários no CRM preservando identidade, convites e rastreios.
-- [ ] Criar página de entrada editável pelo gerenciador; login sem cadastro aberto; preservar ativação por convite.
-- [ ] Preservar domínio raiz canônico e URLs públicas; Meta somente via GTM.
+- [x] Integrar código do gerenciador e renderizador existentes com acesso exclusivo do Admin.
+- [x] Centralizar novos formulários no endpoint CRM existente; sem segundo banco/fila local ou duplicação de ativação.
+- [x] Criar página de entrada editável pelo gerenciador; login sem cadastro aberto; preservar ativação por convite.
+- [x] Preservar domínio raiz canônico no código e roteamento de URLs opt-in; Meta somente via GTM.
 - [ ] Importar conteúdo e mídia históricos — exige exportação do banco do projeto LPs.
-- [ ] Validar fluxos, testes e documentação antes da virada Cloudflare.
+- [ ] Liberar entrega permanente de novas imagens — bucket público recusado pela política do workspace; links temporários não são publicáveis.
+- [x] Testes unitários, entrada pública desktop/mobile, abertura login e recuperação, documentação de inventário e rollback.
+- [ ] Validar edição Admin, negativos de acesso e LP → CRM → e-mail → ativação autenticados — Supabase externo sem sessão disponível; requer sessão real e dados autorizados.
+- [ ] Concluir SEO servido no HTML, sitemap, rastreios e virada Cloudflare reversível — depende de exportação e testes acima.
 
 - [x] Criar base segura de participações recorrentes e migrar vínculos existentes.
 - [x] Centralizar convite manual, deduplicação, reutilização e renovação.

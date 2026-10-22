@@ -1,7 +1,7 @@
 {
   "name": "vite_react_shadcn_ts",
   "private": true,
-  "version": "3.51.1",
+  "version": "3.52.0",
   "type": "module",
   "scripts": {
     "predev": "bunx tsx scripts/generate-sitemap.ts",
@@ -47,6 +47,7 @@
     "@tanstack/react-query": "^5.83.0",
     "@types/dompurify": "^3.2.0",
     "@types/qrcode": "^1.5.6",
+    "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

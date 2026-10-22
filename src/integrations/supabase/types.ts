@@ -411,6 +411,7 @@ export type Database = {
           action: string
           block_id: string | null
           changed_by: string | null
+          changed_fields: string[] | null
           created_at: string
           id: string
           landing_page_id: string | null
@@ -422,6 +423,7 @@ export type Database = {
           action: string
           block_id?: string | null
           changed_by?: string | null
+          changed_fields?: string[] | null
           created_at?: string
           id?: string
           landing_page_id?: string | null
@@ -433,6 +435,7 @@ export type Database = {
           action?: string
           block_id?: string | null
           changed_by?: string | null
+          changed_fields?: string[] | null
           created_at?: string
           id?: string
           landing_page_id?: string | null
@@ -2874,6 +2877,10 @@ export type Database = {
           name: string
           updated_at: string
         }[]
+      }
+      lp_duplicate_page: {
+        Args: { _name: string; _slug: string; _source_id: string }
+        Returns: string
       }
       move_guest_attendance: {
         Args: {

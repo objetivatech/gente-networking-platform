@@ -70,6 +70,12 @@ const PlanosAssinaturas = lazyWithRetry(() => import("./pages/PlanosAssinaturas"
 const TermosDeUso = lazyWithRetry(() => import("./pages/legal/TermosDeUso"));
 const PoliticaPrivacidade = lazyWithRetry(() => import("./pages/legal/PoliticaPrivacidade"));
 const PoliticaCookies = lazyWithRetry(() => import("./pages/legal/PoliticaCookies"));
+const LpPages = lazyWithRetry(() => import('./modules/lps/pages/admin/Pages'));
+const LpAdvanced = lazyWithRetry(() => import('./modules/lps/pages/admin/AdvancedPages'));
+const LpMedia = lazyWithRetry(() => import('./modules/lps/pages/admin/Media'));
+const LpAudit = lazyWithRetry(() => import('./modules/lps/pages/admin/AuditLogs'));
+const PublicLandingPage = lazyWithRetry(() => import('./modules/lps/pages/DynamicLandingPage'));
+const LpThankYou = lazyWithRetry(() => import('./modules/lps/pages/ThankYou'));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -110,6 +116,12 @@ const App = () => (
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/lps/:slug" element={<ErrorBoundary><PublicLandingPage /></ErrorBoundary>} />
+              <Route path="/gentehub" element={<PublicLandingPage />} />
+              <Route path="/participe" element={<PublicLandingPage />} />
+              <Route path="/comunidade" element={<PublicLandingPage />} />
+              <Route path="/impulso" element={<PublicLandingPage />} />
+              <Route path="/obrigado" element={<LpThankYou />} />
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
               <Route path="/convite/:code" element={<ErrorBoundary fallbackMessage="Erro ao carregar o convite. Tente recarregar a página."><ConvitePublico /></ErrorBoundary>} />
               <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
@@ -155,11 +167,16 @@ const App = () => (
                 <Route path="/admin/resgate" element={<AdminResgate />} />
                 <Route path="/admin/contratos" element={<AdminContractTemplates />} />
                 <Route path="/admin/planos" element={<PlanosAssinaturas />} />
+                <Route path="/admin/lps" element={<LpPages />} />
+                <Route path="/admin/lps/avancadas" element={<LpAdvanced />} />
+                <Route path="/admin/lps/midia" element={<LpMedia />} />
+                <Route path="/admin/lps/auditoria" element={<LpAudit />} />
                 <Route path="/admin/registros" element={<AdminRegistros />} />
                 {/* Rotas antigas mantidas para compatibilidade */}
                 <Route path="/admin/membros" element={<GerenciarMembros />} />
                 <Route path="/admin/convidados" element={<GestaoConvidados />} />
               </Route>
+              <Route path="/:slug" element={<PublicLandingPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
