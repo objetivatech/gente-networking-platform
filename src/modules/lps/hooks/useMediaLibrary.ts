@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { withTimeout } from '@/modules/lps/lib/supabaseQuery';
+import { mediaStoragePath } from '@/modules/lps/lib/media-url';
 
 export interface MediaItem {
   id: string;
@@ -27,13 +28,12 @@ export function useMediaLibrary() {
       );
 
       if (result.error) throw result.error;
-      return await Promise.all((result.data ?? []).map(async row => {
-        if (!row.file_url.startsWith('lps-media:')) return row as MediaItem;
-        const path = row.file_url.slice('lps-media:'.length);
-        const { data, error } = await supabase.storage.from('lps-media').createSignedUrl(path, 3600);
-        if (error) throw error;
-        return { ...row, file_url: data.signedUrl } as MediaItem;
-      }));
+      return (result.data ?? []).map(row => {
+        const path = mediaStoragePath(row.file_url);
+        if (path === null) return row as MediaItem;
+        const { data } = supabase.storage.from('lps-media').getPublicUrl(path);
+        return { ...row, file_url: data.publicUrl } as MediaItem;
+      });
     },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
@@ -67,7 +67,7 @@ export function useUploadMedia() {
           .from('media_library')
           .insert({
             file_name: file.name,
-            file_url: `lps-media:${fileName}`,
+            file_url: supabase.storage.from('lps-media').getPublicUrl(fileName).data.publicUrl,
             file_type: file.type,
             file_size: file.size,
             alt_text: altText || file.name,

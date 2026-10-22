@@ -91,7 +91,6 @@ export function MediaLibrary({ onSelect, selectable = false }: MediaLibraryProps
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-warning">Novos arquivos estão privados. Não publique links temporários nas LPs; a liberação de imagens públicas está pendente.</p>
       {/* Upload Area */}
       <div
         className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -146,7 +145,7 @@ export function MediaLibrary({ onSelect, selectable = false }: MediaLibraryProps
             <Card
               key={item.id}
               className={`relative group overflow-hidden bg-card border-border ${
-                selectable ? 'cursor-pointer hover:ring-2 hover:ring-orange-500' : ''
+                selectable ? 'cursor-pointer hover:ring-2 hover:ring-primary' : ''
               }`}
               onClick={() => { if (selectable) { if (item.file_url.includes('/object/sign/')) { toast.error('Arquivo privado: aguarde a liberação de imagens públicas.'); return; } onSelect?.(item.file_url); } }}
             >
