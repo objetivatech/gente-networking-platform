@@ -27,7 +27,13 @@ export function useMediaLibrary() {
       );
 
       if (result.error) throw result.error;
-      return result.data as MediaItem[];
+      return await Promise.all((result.data ?? []).map(async row => {
+        if (!row.file_url.startsWith('lps-media:')) return row as MediaItem;
+        const path = row.file_url.slice('lps-media:'.length);
+        const { data, error } = await supabase.storage.from('lps-media').createSignedUrl(path, 3600);
+        if (error) throw error;
+        return { ...row, file_url: data.signedUrl } as MediaItem;
+      }));
     },
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
@@ -40,6 +46,7 @@ export function useUploadMedia() {
 
   return useMutation({
     mutationFn: async ({ file, altText }: { file: File; altText?: string }) => {
+      if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'].includes(file.type) || file.size > 10 * 1024 * 1024) throw new Error('Envie uma imagem de até 10 MB.');
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
@@ -55,17 +62,12 @@ export function useUploadMedia() {
         throw new Error(`Falha no upload: ${uploadResult.error.message}`);
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('lps-media')
-        .getPublicUrl(fileName);
-
       const insertResult = await withTimeout(
         supabase
           .from('media_library')
           .insert({
             file_name: file.name,
-            file_url: publicUrl,
+            file_url: `lps-media:${fileName}`,
             file_type: file.type,
             file_size: file.size,
             alt_text: altText || file.name,
@@ -76,6 +78,7 @@ export function useUploadMedia() {
       );
 
       if (insertResult.error) {
+        await supabase.storage.from('lps-media').remove([fileName]);
         console.error('Insert error:', insertResult.error);
         throw new Error(`Falha ao salvar: ${insertResult.error.message}`);
       }

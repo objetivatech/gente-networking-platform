@@ -91,6 +91,7 @@ export function MediaLibrary({ onSelect, selectable = false }: MediaLibraryProps
 
   return (
     <div className="space-y-6">
+      <p className="text-sm text-warning">Novos arquivos estão privados. Não publique links temporários nas LPs; a liberação de imagens públicas está pendente.</p>
       {/* Upload Area */}
       <div
         className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
