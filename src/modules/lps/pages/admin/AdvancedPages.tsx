@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Loader2, Plus, ExternalLink, Trash2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { COMMUNITY_DEFAULTS, type AdvancedContent } from '@/modules/lps/components/landing/CommunityLandingPage';
-import { previewForPage } from '../../lib/rules';
+import { previewForPage, validateSlug } from '../../lib/rules';
 import { PageSettings } from '../../components/admin/PageSettings';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -277,8 +277,8 @@ export default function AdminAdvancedPages() {
       toast.error('Nome e slug são obrigatórios');
       return;
     }
-    if (!/^[a-z0-9-]+$/.test(draft.slug)) {
-      toast.error('Slug: apenas letras minúsculas, números e hífens');
+    if (!validateSlug(draft.slug)) {
+      toast.error('Endereço reservado ou inválido');
       return;
     }
     try {
@@ -286,8 +286,6 @@ export default function AdminAdvancedPages() {
         name: draft.name,
         slug: draft.slug,
         is_active: false,
-        primary_color: '#F87512',
-        secondary_color: '#00548F',
       });
       // Mark template + create content row
       if (created?.id) {

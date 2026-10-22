@@ -176,8 +176,8 @@ const App = () => (
                 <Route path="/admin/membros" element={<GerenciarMembros />} />
                 <Route path="/admin/convidados" element={<GestaoConvidados />} />
               </Route>
-              <Route path="*" element={<NotFound />} />
               <Route path="/:slug" element={<PublicLandingPage />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </BrowserRouter>

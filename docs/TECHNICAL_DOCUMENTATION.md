@@ -1,7 +1,20 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-10-13
-> **Versão:** 3.51.1
+> **Última atualização:** 2026-10-22
+> **Versão:** 3.52.0 — integração das LPs, sem virada pública
+
+## Unificação das LPs (em implantação)
+
+O gerenciador está isolado em `src/modules/lps`, com acesso Admin em `/admin/lps`,
+editores de blocos e avançado, auditoria e mídia. `/auth` usa a entrada editável
+`entrada-plataforma`, com login/recuperação e sem formulário de cadastro aberto.
+As rotas de convite e o dashboard autenticado permanecem.
+Os formulários usam exclusivamente `submit-lead`, mantendo identidade e ativação existentes.
+
+**Pendentes:** exportação/importação do banco e mídia das LPs, permissão de armazenamento
+público, validação autenticada, SEO servido no Cloudflare e virada reversível do domínio.
+Consulte [UNIFICACAO_LPS.md](./UNIFICACAO_LPS.md) para inventário, dependências e rollback.
+Assinante da Comunidade não foi implementado.
 
 ## Índice
 

@@ -4,6 +4,8 @@
 - Route new LP submissions exclusively through `submit-lead`; never create parallel lead/account/invitation writes or browser-local retry queues.
 - Keep invitation signup and confirmation routes when simplifying `/auth`; login-only presentation must not disable invitation activation.
 - Keep public LP cutover separate from code migration until source exports, media portability, tracking and authenticated acceptance checks pass.
+- Gate Cloudflare LP-host rewriting with `LP_UNIFIED_ENABLED`; it preserves source URLs and allows rollback without replacing the authenticated dashboard.
+- Never publish temporary signed Storage URLs in LP content; private library uploads remain preview-only until public asset delivery is authorized.
 - Sanitize LP HTML and preserve reserved application routes; editable public content must not execute arbitrary scripts on the authenticated origin.
 
 - Separe ativação (`invitations`) de visitas recorrentes (`guest_participations`), pois uma nova participação nunca deve criar conta, presença, pontos ou promoção automaticamente.

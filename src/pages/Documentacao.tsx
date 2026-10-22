@@ -492,6 +492,9 @@ export default function Documentacao() {
                       membros, encontros, conteúdos e registros de atividades. O admin não pontua 
                       na gamificação e possui visão de gestão centralizada.
                     </p>
+                    <h4 className="font-semibold mt-4">Landing Pages e entrada da plataforma</h4>
+                    <p>O menu Landing Pages reúne os editores de blocos e páginas avançadas, configurações, mídia e auditoria. A página entrada-plataforma define a apresentação exibida antes do login. O cadastro por convite permanece disponível.</p>
+                    <p>A unificação ainda depende da importação das páginas antigas, da liberação de imagens públicas e dos testes finais antes da mudança no Cloudflare. Assinantes da Comunidade permanecem para uma etapa separada.</p>
                   </CardContent>
                 </Card>
 

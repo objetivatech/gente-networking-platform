@@ -1,7 +1,16 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-10-13
-> **Versão:** 3.51.1
+> **Última atualização:** 2026-10-22
+> **Versão:** 3.52.0 — integração das LPs, sem virada pública
+
+### Entrada e LPs unificadas
+
+Visitante → `/auth` → apresentação editável → Entrar → login ou recuperação.
+Não há cadastro aberto concorrente. Cadastro pelas LPs continua gerando CRM e convite
+de ativação; `/convite/:code/cadastrar` e confirmação permanecem. Após login, o dashboard
+atual continua em `/`. Admin → Landing Pages → editor de blocos/avançado e configurações.
+O conteúdo antigo só aparece após exportação/importação; os domínios atuais ainda não
+foram virados. Veja [UNIFICACAO_LPS.md](./UNIFICACAO_LPS.md).
 
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
