@@ -99,15 +99,7 @@ export function useMeetingRequests() {
 
       // Notifica destinatário via activity_feed + email (best effort)
       try {
-        await (supabase as any).rpc('add_activity_feed', {
-          _user_id: input.recipient_id,
-          _type: 'meeting_request',
-          _title: 'Nova solicitação de Gente em Ação',
-          _description: `${requester?.full_name || 'Um membro'} quer agendar um 1x1 com você.`,
-          _reference_id: data.id,
-          _metadata: { meeting_request_id: data.id },
-          _team_id: null,
-        });
+        // Aviso no Feed é gerado automaticamente pelo banco (gatilho em meeting_requests)
 
         if (recipient?.email) {
           await supabase.functions.invoke('send-email', {
@@ -162,16 +154,7 @@ export function useMeetingRequests() {
           .from('profiles').select('full_name, email').eq('id', req.requester_id).maybeSingle();
         const { data: me } = await supabase
           .from('profiles').select('full_name').eq('id', req.recipient_id).maybeSingle();
-
-        await (supabase as any).rpc('add_activity_feed', {
-          _user_id: req.requester_id,
-          _type: 'meeting_request',
-          _title: status === 'confirmed' ? 'Gente em Ação confirmado' : 'Solicitação de Gente em Ação recusada',
-          _description: `${me?.full_name || 'O membro'} ${status === 'confirmed' ? 'confirmou' : 'recusou'} a solicitação.`,
-          _reference_id: req.id,
-          _metadata: { meeting_request_id: req.id, status },
-          _team_id: null,
-        });
+        // Aviso no Feed é gerado automaticamente pelo banco (gatilho em meeting_requests)
 
         if (requester?.email) {
           await supabase.functions.invoke('send-email', {
