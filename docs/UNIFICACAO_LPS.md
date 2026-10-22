@@ -15,6 +15,8 @@
 
 ## Inventário de URLs a preservar
 
+**Exportação de 22/10 recebida.** Páginas Participe, Gente HUB, Comunidade e Impulso foram importadas inativas com UUIDs originais: 18 blocos e 2 conteúdos avançados conferidos. A origem CRM foi mapeada como `lp_gentehub` para HUB e `lp_participe` para as demais. A entrada atual não foi alterada. As 48 mídias e o manifesto estão completos, mas os links ainda apontam ao projeto antigo até a liberação de imagens públicas. Auditorias e 686 leads continuam pendentes; os leads contêm 541 e-mails distintos e devem ser reconciliados sem disparos.
+
 | URL pública existente | Tratamento |
 | --- | --- |
 | `https://lps.gentenetworking.com.br/` | Mapear para página `inicio` após importar; conteúdo atual não está no novo banco |
