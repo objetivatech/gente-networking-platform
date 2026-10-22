@@ -8,7 +8,9 @@
 - [x] Centralizar novos formulários no endpoint CRM existente; sem segundo banco/fila local ou duplicação de ativação.
 - [x] Criar página de entrada editável pelo gerenciador; login sem cadastro aberto; preservar ativação por convite.
 - [x] Preservar domínio raiz canônico no código e roteamento de URLs opt-in; Meta somente via GTM.
-- [ ] Importar conteúdo e mídia históricos — exige exportação do banco do projeto LPs.
+- [x] Receber e filtrar exportação de 22/10: 4 páginas, 18 blocos, 2 conteúdos avançados, 48 mídias, 632 auditorias e 686 leads (541 e-mails distintos).
+- [ ] Importar conteúdo e mídia históricos preservando UUIDs e entrada atual — conteúdo validado; entrega de mídia bloqueada por public_buckets_blocked.
+- [ ] Reconciliar 686 registros históricos com CRM/perfis sem disparar convites, e-mails ou pontos; preservar 145 inscrições repetidas como histórico.
 - [ ] Liberar entrega permanente de novas imagens — bucket público recusado pela política do workspace; links temporários não são publicáveis.
 - [x] Testes unitários, entrada pública desktop/mobile, abertura login e recuperação, documentação de inventário e rollback.
 - [ ] Validar edição Admin, negativos de acesso e LP → CRM → e-mail → ativação autenticados — Supabase externo sem sessão disponível; requer sessão real e dados autorizados.
