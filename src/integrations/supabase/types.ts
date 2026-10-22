@@ -58,6 +58,38 @@ export type Database = {
           },
         ]
       }
+      advanced_page_content: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          landing_page_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          id?: string
+          landing_page_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          landing_page_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advanced_page_content_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: true
+            referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendances: {
         Row: {
           id: string
@@ -373,6 +405,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      block_audit_logs: {
+        Row: {
+          action: string
+          block_id: string | null
+          changed_by: string | null
+          created_at: string
+          id: string
+          landing_page_id: string | null
+          new_data: Json | null
+          old_data: Json | null
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          block_id?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          landing_page_id?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          block_id?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          landing_page_id?: string | null
+          new_data?: Json | null
+          old_data?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       business_cases: {
         Row: {
@@ -1340,6 +1408,90 @@ export type Database = {
           },
         ]
       }
+      landing_pages: {
+        Row: {
+          canonical_url: string | null
+          capture_source: Database["public"]["Enums"]["crm_lead_source"]
+          created_at: string
+          crm_group_team_map: Json
+          crm_team_id: string | null
+          event_date: string | null
+          id: string
+          is_active: boolean
+          logo_size: string | null
+          logo_url: string | null
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          og_image_url: string | null
+          primary_color: string | null
+          redirect_to_slug: string | null
+          redirect_when_expired: boolean
+          secondary_color: string | null
+          slug: string
+          template: string
+          thank_you_message: string | null
+          thank_you_redirect_delay: number | null
+          thank_you_title: string | null
+          updated_at: string
+          whatsapp_group_link: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          capture_source?: Database["public"]["Enums"]["crm_lead_source"]
+          created_at?: string
+          crm_group_team_map?: Json
+          crm_team_id?: string | null
+          event_date?: string | null
+          id?: string
+          is_active?: boolean
+          logo_size?: string | null
+          logo_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          og_image_url?: string | null
+          primary_color?: string | null
+          redirect_to_slug?: string | null
+          redirect_when_expired?: boolean
+          secondary_color?: string | null
+          slug: string
+          template?: string
+          thank_you_message?: string | null
+          thank_you_redirect_delay?: number | null
+          thank_you_title?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          capture_source?: Database["public"]["Enums"]["crm_lead_source"]
+          created_at?: string
+          crm_group_team_map?: Json
+          crm_team_id?: string | null
+          event_date?: string | null
+          id?: string
+          is_active?: boolean
+          logo_size?: string | null
+          logo_url?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          og_image_url?: string | null
+          primary_color?: string | null
+          redirect_to_slug?: string | null
+          redirect_when_expired?: boolean
+          secondary_color?: string | null
+          slug?: string
+          template?: string
+          thank_you_message?: string | null
+          thank_you_redirect_delay?: number | null
+          thank_you_title?: string | null
+          updated_at?: string
+          whatsapp_group_link?: string | null
+        }
+        Relationships: []
+      }
       matchmaking_attempts: {
         Row: {
           attempt_type: string
@@ -1436,6 +1588,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      media_library: {
+        Row: {
+          alt_text: string | null
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
       }
       meeting_lead_attendances: {
         Row: {
@@ -1702,6 +1890,92 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      page_blocks: {
+        Row: {
+          background_color: string | null
+          block_type: string
+          button_link: string | null
+          button_text: string | null
+          content: string | null
+          content_color: string | null
+          content_font_size: string | null
+          created_at: string
+          font_size: string | null
+          id: string
+          image_url: string | null
+          is_visible: boolean
+          landing_page_id: string
+          order_index: number
+          settings: Json
+          subtitle: string | null
+          subtitle_color: string | null
+          subtitle_font_size: string | null
+          text_color: string | null
+          title: string | null
+          title_color: string | null
+          title_font_size: string | null
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string | null
+          block_type: string
+          button_link?: string | null
+          button_text?: string | null
+          content?: string | null
+          content_color?: string | null
+          content_font_size?: string | null
+          created_at?: string
+          font_size?: string | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean
+          landing_page_id: string
+          order_index?: number
+          settings?: Json
+          subtitle?: string | null
+          subtitle_color?: string | null
+          subtitle_font_size?: string | null
+          text_color?: string | null
+          title?: string | null
+          title_color?: string | null
+          title_font_size?: string | null
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string | null
+          block_type?: string
+          button_link?: string | null
+          button_text?: string | null
+          content?: string | null
+          content_color?: string | null
+          content_font_size?: string | null
+          created_at?: string
+          font_size?: string | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean
+          landing_page_id?: string
+          order_index?: number
+          settings?: Json
+          subtitle?: string | null
+          subtitle_color?: string | null
+          subtitle_font_size?: string | null
+          text_color?: string | null
+          title?: string | null
+          title_color?: string | null
+          title_font_size?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_blocks_landing_page_id_fkey"
+            columns: ["landing_page_id"]
+            isOneToOne: false
+            referencedRelation: "landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       points_history: {
         Row: {
