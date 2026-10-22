@@ -18,6 +18,7 @@ import { COMMUNITY_DEFAULTS, type AdvancedContent } from '@/modules/lps/componen
 import { previewForPage, validateSlug } from '../../lib/rules';
 import { PageSettings } from '../../components/admin/PageSettings';
 import type { Json } from '@/integrations/supabase/types';
+import { ENTRY_DEFAULTS, ENTRY_SECTIONS } from '../../lib/entry-content';
 
 const SECTIONS: { key: keyof AdvancedContent; label: string }[] = [
   { key: 'hero', label: 'Hero' },
@@ -111,6 +112,8 @@ const ARRAY_FIELDS: Record<string, { key: string; label: string; hint: string }[
 };
 
 function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string }) {
+  const defaults = pageSlug === 'entrada-plataforma' ? ENTRY_DEFAULTS : COMMUNITY_DEFAULTS;
+  const sections = pageSlug === 'entrada-plataforma' ? SECTIONS.filter(s => ENTRY_SECTIONS.some(key => key === s.key)) : SECTIONS;
   const { data, isLoading } = useAdvancedPageContent(pageId);
   const upsert = useUpsertAdvancedPageContent();
   const [content, setContent] = useState<AdvancedContent>({});
@@ -121,14 +124,14 @@ function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string
       // Merge saved content over defaults so empty fields show the briefing text
       const saved = data.content as AdvancedContent;
       const merged: AdvancedContent = { ...saved };
-      (Object.keys(COMMUNITY_DEFAULTS) as (keyof AdvancedContent)[]).forEach((k) => {
-        (merged as any)[k] = { ...((COMMUNITY_DEFAULTS as any)[k] || {}), ...((saved as any)[k] || {}) };
+      (Object.keys(defaults) as (keyof AdvancedContent)[]).forEach((k) => {
+        (merged as any)[k] = { ...((defaults as any)[k] || {}), ...((saved as any)[k] || {}) };
       });
       setContent(merged);
     } else if (!isLoading) {
-      setContent(JSON.parse(JSON.stringify(COMMUNITY_DEFAULTS)));
+      setContent(JSON.parse(JSON.stringify(defaults)));
     }
-  }, [data, isLoading]);
+  }, [data, isLoading, defaults]);
 
   // Initialize array drafts whenever content changes
   useEffect(() => {
@@ -200,12 +203,12 @@ function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string
 
       <Tabs defaultValue="hero">
         <TabsList className="flex flex-wrap h-auto">
-          {SECTIONS.map((s) => (
+          {sections.map((s) => (
             <TabsTrigger key={s.key as string} value={s.key as string}>{s.label}</TabsTrigger>
           ))}
         </TabsList>
 
-        {SECTIONS.map(({ key, label }) => {
+        {sections.map(({ key, label }) => {
           const sec = (content[key] || {}) as Record<string, string>;
           const simple = SIMPLE_FIELDS[key as string] || [];
           const arrays = ARRAY_FIELDS[key as string] || [];

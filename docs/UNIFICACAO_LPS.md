@@ -8,7 +8,7 @@
 - Código isolado; mesmo login e cliente Supabase da plataforma. Sem importar papéis ou sessões do outro projeto.
 - Tabelas compatíveis: `landing_pages`, `page_blocks`, `advanced_page_content`, `media_library`, `block_audit_logs`.
 - Leitura pública somente de páginas ativas, blocos visíveis e conteúdo de páginas ativas. Gestão exclusiva de Admin, validada pelo banco.
-- `/auth` apresenta a página `entrada-plataforma` editável no gerenciador. Login e recuperação disponíveis. Cadastro aberto removido da interface; cadastro por convite e confirmação preservados. Isso NÃO equivale a desabilitar signup no serviço Supabase.
+- `/auth` apresenta a página `entrada-plataforma` no editor **LPs Avançadas**. Texto anterior copiado para conteúdo avançado; blocos antigos preservados para histórico. A entrada usa seções de apresentação, sem formulário de captação. Logos oficiais colorido e branco/laranja enviados em 22/10 são usados sem redesenho e incluídos no pacote Cloudflare. Login e recuperação disponíveis; cadastro por convite e confirmação preservados. Isso NÃO equivale a desabilitar signup no serviço Supabase.
 - Os novos formulários usam `submit-lead` diretamente: sem banco paralelo, sem fila de dados pessoais no navegador, sem segundo disparo de e-mail. `409 already_member` não gera conversão nem reenvio. Mensagens de ativação usam o domínio Cloudflare da plataforma.
 - GTM original `GTM-WHK29D6` preservado; nenhum Pixel Meta adicional. Eventos de conversão não enviam e-mail/empresa ao dataLayer. Auditar consentimento e tags do GTM antes da virada.
 - HTML editorial sanitizado; sem importar bootstrap que promove usuários automaticamente a Admin.
