@@ -22,6 +22,7 @@ import {
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { useResendGuestActivation } from '@/hooks/useResendGuestActivation';
+import { useRenewGuestInvitation } from '@/hooks/useRenewGuestInvitation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -61,10 +62,11 @@ const STATUS_ORDER: GuestJourneyStatus[] = [
 ];
 
 export default function Convidados() {
-  const { isGuest, canManage, isLoading: roleLoading } = useAdmin();
+  const { isGuest, isAdmin, canManage, isLoading: roleLoading } = useAdmin();
   const { data: guests, isLoading } = useGuestsDirectory();
   const { teams } = useTeams();
   const { resendActivation, isResending } = useResendGuestActivation();
+  const { renewInvitation, isRenewing } = useRenewGuestInvitation();
   const [search, setSearch] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -316,6 +318,17 @@ export default function Convidados() {
                           {g.can_manage && g.email_status === 'sent' && g.email_sent_at && (
                             <p>Ativação enviada em {format(new Date(g.email_sent_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
                           )}
+                          {g.can_manage && !g.profile_id && g.invitation_expires_at && (() => {
+                            const exp = new Date(g.invitation_expires_at);
+                            const expired = g.invitation_status === 'expired' || exp <= new Date();
+                            return (
+                              <p className={`flex items-center gap-1 ${expired ? 'text-destructive' : ''}`}>
+                                <Clock className="w-3 h-3 shrink-0" />
+                                {expired ? 'Convite vencido em ' : 'Convite válido até '}
+                                {format(exp, 'dd/MM/yyyy', { locale: ptBR })}
+                              </p>
+                            );
+                          })()}
                           {g.status === 'promovido_membro' && g.current_role && (
                             <Badge variant="default" className="bg-emerald-600">
                               Agora é {g.current_role}
@@ -331,20 +344,33 @@ export default function Convidados() {
                               Ver perfil <ExternalLink className="w-3 h-3" />
                             </Link>
                           ) : <span />}
-                          {g.can_manage && g.lead_id && g.invitation_status === 'pending' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs"
-                              disabled={isResending}
-                              onClick={() => resendActivation(g.lead_id as string)}
-                            >
-                              <RefreshCcw className="w-3 h-3 mr-1" />Reenviar ativação
-                            </Button>
-                          )}
+                          {(() => {
+                            const expired = g.invitation_status === 'expired'
+                              || (g.invitation_status === 'pending' && !!g.invitation_expires_at && new Date(g.invitation_expires_at) <= new Date());
+                            if (!g.can_manage || !g.invitation_id || g.profile_id) return null;
+                            if (expired) {
+                              return (
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={isRenewing}
+                                  onClick={() => renewInvitation({ invitationId: g.invitation_id as string, leadId: g.lead_id })}>
+                                  <RefreshCcw className="w-3 h-3 mr-1" />Renovar convite
+                                </Button>
+                              );
+                            }
+                            if (g.lead_id && g.invitation_status === 'pending') {
+                              return (
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={isResending}
+                                  onClick={() => resendActivation(g.lead_id as string)}>
+                                  <RefreshCcw className="w-3 h-3 mr-1" />Reenviar ativação
+                                </Button>
+                              );
+                            }
+                            return null;
+                          })()}
                           {canManage && (
                             <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                              <Link to={g.lead_id ? '/admin/crm' : '/admin/pessoas'}>
+                              <Link to={isAdmin && g.lead_id
+                                ? '/admin/crm'
+                                : `/admin/pessoas?tab=guests&q=${encodeURIComponent(g.email || g.full_name)}`}>
                                 <Settings className="w-3 h-3 mr-1" />Gerenciar
                               </Link>
                             </Button>
