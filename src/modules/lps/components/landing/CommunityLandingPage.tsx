@@ -24,6 +24,7 @@ export interface IconCardItem { title: string; description: string; icon?: strin
 export interface StatItem { value: string; label: string; icon?: string }
 export interface AudienceItem { title: string; description: string }
 export interface EcosystemStep {
+  buttonLink?: string;
   title: string;
   subtitle: string;
   description: string;

@@ -3,6 +3,7 @@
 - Keep LP code isolated in `src/modules/lps` and reuse the platform client and UI tokens; this prevents cross-project auth and style collisions.
 - Route new LP submissions exclusively through `submit-lead`; never create parallel lead/account/invitation writes or browser-local retry queues.
 - Keep invitation signup and confirmation routes when simplifying `/auth`; login-only presentation must not disable invitation activation.
+- Render platform entry from advanced content with an explicit section allowlist excluding lead forms; shared editor must not inject community signup defaults there.
 - Keep public LP cutover separate from code migration until source exports, media portability, tracking and authenticated acceptance checks pass.
 - Gate Cloudflare LP-host rewriting with `LP_UNIFIED_ENABLED`; it preserves source URLs and allows rollback without replacing the authenticated dashboard.
 - Never publish temporary signed Storage URLs in LP content; private library uploads remain preview-only until public asset delivery is authorized.
