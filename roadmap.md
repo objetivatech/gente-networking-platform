@@ -10,10 +10,10 @@
 - [x] Preservar domínio raiz canônico no código e roteamento de URLs opt-in; Meta somente via GTM.
 - [x] Receber e filtrar exportação de 22/10: 4 páginas, 18 blocos, 2 conteúdos avançados, 48 mídias, 632 auditorias e 686 leads (541 e-mails distintos).
 - [x] Importar 4 páginas inativas, 18 blocos e 2 conteúdos avançados com UUIDs e conteúdo conferidos; entrada atual preservada.
-- [ ] Importar mídia histórica e trocar links do projeto antigo — 48 arquivos validados; publicação bloqueada por public_buckets_blocked.
+- [ ] Importar mídia histórica e trocar links do projeto antigo — bucket público confirmado em 22/10; transferir e verificar os 48 arquivos.
 - [ ] Importar 632 auditorias históricas — pendente de carga segura do arquivo completo, sem perder autores e alterações.
 - [ ] Reconciliar 686 registros históricos com CRM/perfis sem disparar convites, e-mails ou pontos; preservar 145 inscrições repetidas como histórico.
-- [ ] Liberar entrega permanente de novas imagens — bucket público recusado pela política do workspace; links temporários não são publicáveis.
+- [ ] Liberar entrega permanente de novas imagens — atualizar biblioteca para URLs públicas permanentes, sem links temporários.
 - [x] Testes unitários, entrada pública desktop/mobile, abertura login e recuperação, documentação de inventário e rollback.
 - [ ] Validar edição Admin, negativos de acesso e LP → CRM → e-mail → ativação autenticados — Supabase externo sem sessão disponível; requer sessão real e dados autorizados.
 - [ ] Concluir SEO servido no HTML, sitemap, rastreios e virada Cloudflare reversível — depende de exportação e testes acima.
