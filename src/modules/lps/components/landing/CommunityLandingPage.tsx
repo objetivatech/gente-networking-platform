@@ -261,18 +261,18 @@ function CtaButton({ label, primary, full }: { label: string; primary: string; f
 // ---------- Sections ----------
 function Hero({ data, page, primary }: { data: AdvancedContent['hero']; page: LandingPage; primary: string }) {
   const c = { ...D.hero, ...(data || {}) };
-  const highlights = c.highlights?.length ? c.highlights : D.hero!.highlights!;
+  const highlights = c.highlights?.length ? c.highlights : (D.hero?.highlights ?? []);
   const imageUrl = c.imageUrl || heroAsset.url;
 
   return (
-    <section className="relative overflow-hidden bg-[#051a3a] pb-10 pt-6 text-primary-foreground md:pt-10">
+    <section className="relative overflow-hidden bg-primary pb-10 pt-6 text-primary-foreground md:pt-10">
       <div className={container('grid items-center gap-10 lg:grid-cols-[1.05fr_1fr]')}>
         <div className="space-y-6">
           {page.logo_url ? (
             <img src={page.logo_url} alt={`Logo ${page.name}`} className="h-20 md:h-24 w-auto object-contain" />
           ) : (
             <div className="space-y-2">
-              <p className="text-sm font-semibold uppercase tracking-[0.35em] text-primary-foreground/70">GeNtE</p>
+              <p className="text-sm font-semibold uppercase tracking-normal text-primary-foreground/70">GeNtE</p>
               <p className="text-4xl font-black uppercase leading-none md:text-5xl">Comunidade</p>
             </div>
           )}
@@ -318,7 +318,7 @@ function Hero({ data, page, primary }: { data: AdvancedContent['hero']; page: La
         </div>
 
         <div className="relative">
-          <div className="overflow-hidden rounded-[28px] border border-border/10 bg-[#06122b] p-3 shadow-[0_30px_90px_rgba(0,0,0,0.45)]">
+          <div className="overflow-hidden rounded-[28px] border border-border/10 bg-primary p-3 shadow-lg">
             <img
               src={imageUrl}
               alt="Mosaico com profissionais conectados em videochamada na comunidade"
@@ -335,10 +335,10 @@ function Hero({ data, page, primary }: { data: AdvancedContent['hero']; page: La
 
 function Authority({ data, primary }: { data: AdvancedContent['authority']; primary: string }) {
   const c = { ...D.authority, ...(data || {}) };
-  const stats = data?.stats?.length ? data.stats : D.authority!.stats!;
+  const stats = data?.stats?.length ? data.stats : (D.authority?.stats ?? []);
 
   return (
-    <section className="bg-[#07214a] py-20 text-primary-foreground">
+    <section className="bg-primary py-20 text-primary-foreground">
       <div className={container()}>
         <div className="grid gap-10 lg:grid-cols-[0.94fr_1.06fr]">
           <div className="space-y-6">
@@ -377,13 +377,13 @@ function Authority({ data, primary }: { data: AdvancedContent['authority']; prim
 
 function Problem({ data, primary }: { data: AdvancedContent['problem']; primary: string }) {
   const c = { ...D.problem, ...(data || {}) };
-  const points = data?.points?.length ? data.points : D.problem!.points!;
+  const points = data?.points?.length ? data.points : (D.problem?.points ?? []);
   const imageUrl = data?.imageUrl || problemImage;
 
   return (
     <section className="bg-background py-20 text-foreground">
       <div className={container()}>
-        <div className="overflow-hidden rounded-[30px] bg-[#06182f] text-primary-foreground shadow-2xl">
+        <div className="overflow-hidden rounded-[30px] bg-primary text-primary-foreground shadow-2xl">
           <div className="grid lg:grid-cols-[0.95fr_1.05fr]">
             <div className="space-y-6 p-8 md:p-12">
               <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] md:text-4xl">
@@ -404,7 +404,7 @@ function Problem({ data, primary }: { data: AdvancedContent['problem']; primary:
                 ))}
               </div>
             </div>
-            <div className="relative min-h-[420px] bg-[#071e3a]">
+            <div className="relative min-h-[420px] bg-primary">
               <img
                 src={imageUrl}
                 alt="Profissional refletindo diante do notebook"
@@ -415,11 +415,11 @@ function Problem({ data, primary }: { data: AdvancedContent['problem']; primary:
           </div>
         </div>
 
-        <div className="mt-6 rounded-[30px] border border-orange-200 bg-background px-8 py-7 shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+        <div className="mt-6 rounded-[30px] border border-border bg-background px-8 py-7 shadow-lg">
           <HText
             as="p"
             color={primary}
-            className="text-center text-2xl font-black leading-tight text-[#08234a] md:text-4xl"
+            className="text-center text-2xl font-black leading-tight text-primary md:text-4xl"
           >
             {c.callout}
           </HText>
@@ -432,22 +432,22 @@ function Problem({ data, primary }: { data: AdvancedContent['problem']; primary:
 
 function Benefits({ data, primary }: { data: AdvancedContent['benefits']; primary: string }) {
   const c = { ...D.benefits, ...(data || {}) };
-  const cards = data?.cards?.length ? data.cards : D.benefits!.cards!;
+  const cards = data?.cards?.length ? data.cards : (D.benefits?.cards ?? []);
   const imageUrl = data?.imageUrl || benefitsImage;
 
   return (
-    <section className="bg-[#f8fafc] py-20 text-foreground">
+    <section className="bg-muted py-20 text-foreground">
       <div className={container()}>
-        <div className="grid items-stretch gap-0 overflow-hidden rounded-[30px] bg-background shadow-[0_25px_70px_rgba(15,23,42,0.08)] lg:grid-cols-[0.92fr_1.08fr]">
+        <div className="grid items-stretch gap-0 overflow-hidden rounded-[30px] bg-background shadow-lg lg:grid-cols-[0.92fr_1.08fr]">
           <div className="space-y-6 px-8 py-10 md:px-12 md:py-14">
-            <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] text-[#08234a] md:text-4xl">
+            <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] text-primary md:text-4xl">
               {c.title}
             </HText>
             <div className="h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />
             <HText as="p" color={primary} className="max-w-xl text-base leading-7 text-muted-foreground md:text-lg">
               {c.subtitle}
             </HText>
-            <HText as="p" color={primary} className="max-w-xl text-xl font-black leading-tight text-[#08234a] md:text-2xl">
+            <HText as="p" color={primary} className="max-w-xl text-xl font-black leading-tight text-primary md:text-2xl">
               {c.highlight}
             </HText>
           </div>
@@ -456,16 +456,16 @@ function Benefits({ data, primary }: { data: AdvancedContent['benefits']; primar
           </div>
         </div>
 
-        <div className="mt-8 rounded-[30px] bg-[#08234a] p-5 md:p-7">
+        <div className="mt-8 rounded-[30px] bg-primary p-5 md:p-7">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {cards.map((card) => {
               const Icon = iconFor(card.icon);
               return (
                 <div key={card.title} className="rounded-[24px] bg-background p-6 text-center shadow-lg">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#0c2d62]">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary">
                     <Icon className="h-8 w-8" style={{ color: primary }} />
                   </div>
-                  <h3 className="mt-5 text-lg font-black uppercase leading-tight text-[#08234a]">{card.title}</h3>
+                  <h3 className="mt-5 text-lg font-black uppercase leading-tight text-primary">{card.title}</h3>
                   <div className="mx-auto mt-4 h-1 w-10 rounded-full" style={{ backgroundColor: primary }} />
                   <p className="mt-4 text-sm leading-7 text-muted-foreground">{card.description}</p>
                 </div>
@@ -487,14 +487,14 @@ function Benefits({ data, primary }: { data: AdvancedContent['benefits']; primar
 
 function Ecosystem({ data, primary, page }: { data: AdvancedContent['ecosystem']; primary: string; page: LandingPage }) {
   const c = { ...D.ecosystem, ...(data || {}) };
-  const steps = data?.steps?.length ? data.steps : D.ecosystem!.steps!;
-  const benefits = data?.benefits?.length ? data.benefits : D.ecosystem!.benefits!;
-  const ctaTitle = c.ctaTitle ?? D.ecosystem!.ctaTitle;
-  const ctaSubtitle = c.ctaSubtitle ?? D.ecosystem!.ctaSubtitle;
-  const ctaButton = c.ctaButton ?? D.ecosystem!.ctaButton;
+  const steps = data?.steps?.length ? data.steps : (D.ecosystem?.steps ?? []);
+  const benefits = data?.benefits?.length ? data.benefits : (D.ecosystem?.benefits ?? []);
+  const ctaTitle = c.ctaTitle ?? D.ecosystem?.ctaTitle;
+  const ctaSubtitle = c.ctaSubtitle ?? D.ecosystem?.ctaSubtitle;
+  const ctaButton = c.ctaButton ?? D.ecosystem?.ctaButton;
 
   return (
-    <section className="bg-[#051a3a] py-20 text-primary-foreground">
+    <section className="bg-primary py-20 text-primary-foreground">
       <div className={container()}>
         <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
@@ -534,7 +534,7 @@ function Ecosystem({ data, primary, page }: { data: AdvancedContent['ecosystem']
             return (
               <div
                 key={step.title}
-                className="relative overflow-hidden rounded-[28px] border border-border/10 bg-[#0a2a58] p-7 shadow-2xl"
+                className="relative overflow-hidden rounded-[28px] border border-border/10 bg-primary p-7 shadow-2xl"
               >
                 <div className="flex items-start justify-between">
                   <div
@@ -556,7 +556,7 @@ function Ecosystem({ data, primary, page }: { data: AdvancedContent['ecosystem']
                 </p>
                 <p className="mt-4 text-sm leading-7 text-primary-foreground/78">{step.description}</p>
                 <div
-                  className="mt-6 inline-flex rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-primary-foreground"
+                  className="mt-6 inline-flex rounded-full px-4 py-2 text-xs font-black uppercase tracking-normal text-primary-foreground"
                   style={{ backgroundColor: badgeBg }}
                 >
                   {step.badge}
@@ -566,7 +566,7 @@ function Ecosystem({ data, primary, page }: { data: AdvancedContent['ecosystem']
           })}
         </div>
 
-        <div className="mt-8 grid gap-4 rounded-[26px] border border-border/10 bg-[#08234a] p-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-4 rounded-[26px] border border-border/10 bg-primary p-6 md:grid-cols-2 xl:grid-cols-4">
           {benefits.map((b) => {
             const Icon = iconFor(b.icon);
             return (
@@ -600,7 +600,7 @@ function Ecosystem({ data, primary, page }: { data: AdvancedContent['ecosystem']
           <a
             href="#form"
             onClick={(e) => handleSmoothScroll(e, '#form')}
-            className="inline-flex min-h-14 items-center justify-center gap-3 rounded-[18px] bg-background px-6 py-4 text-sm font-black uppercase tracking-[0.1em] text-[#08234a] shadow-xl transition-transform hover:scale-[1.01]"
+            className="inline-flex min-h-14 items-center justify-center gap-3 rounded-[18px] bg-background px-6 py-4 text-sm font-black uppercase tracking-normal text-primary shadow-xl transition-transform hover:scale-[1.01]"
           >
             <ArrowRight className="h-5 w-5" />
             {ctaButton}
@@ -624,14 +624,14 @@ function audienceIconFor(title: string) {
 
 function Audience({ data, primary, page }: { data: AdvancedContent['audience']; primary: string; page: LandingPage }) {
   const c = { ...D.audience, ...(data || {}) };
-  const items = data?.audiences?.length ? data.audiences : D.audience!.audiences!;
+  const items = data?.audiences?.length ? data.audiences : (D.audience?.audiences ?? []);
 
   return (
     <section className="bg-background py-20 text-foreground">
       <div className={container()}>
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
-            <HText as="h2" color={primary} className="max-w-[16ch] text-3xl font-black leading-[1.05] text-[#08234a] md:text-4xl">
+            <HText as="h2" color={primary} className="max-w-[16ch] text-3xl font-black leading-[1.05] text-primary md:text-4xl">
               {c.title}
             </HText>
             <div className="mt-6 h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />
@@ -644,11 +644,11 @@ function Audience({ data, primary, page }: { data: AdvancedContent['audience']; 
               <img src={page.logo_url} alt={`Logo ${page.name}`} className="h-20 md:h-28 w-auto object-contain" />
             ) : (
               <div className="text-right">
-                <p className="text-3xl font-black leading-none text-[#08234a] md:text-4xl">GeNtE</p>
-                <p className="mt-2 text-base uppercase tracking-[0.25em]" style={{ color: primary }}>Comunidade</p>
+                <p className="text-3xl font-black leading-none text-primary md:text-4xl">GeNtE</p>
+                <p className="mt-2 text-base uppercase tracking-normal" style={{ color: primary }}>Comunidade</p>
               </div>
             )}
-            <p className="text-right text-lg font-light italic text-[#08234a]">Diversas áreas. Um mesmo propósito: <span style={{ color: primary }}>conectar e prosperar.</span></p>
+            <p className="text-right text-lg font-light italic text-primary">Diversas áreas. Um mesmo propósito: <span style={{ color: primary }}>conectar e prosperar.</span></p>
           </div>
         </div>
 
@@ -656,11 +656,11 @@ function Audience({ data, primary, page }: { data: AdvancedContent['audience']; 
           {items.map((item) => {
             const Icon = audienceIconFor(item.title);
             return (
-            <div key={item.title} className="rounded-[24px] border border-border bg-background p-6 text-center shadow-[0_18px_40px_rgba(15,23,42,0.08)]">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#0c2d62]">
-                <Icon className="h-8 w-8 text-[#0c2d62]" />
+            <div key={item.title} className="rounded-[24px] border border-border bg-background p-6 text-center shadow-lg">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary">
+                <Icon className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="mt-5 text-xl font-black uppercase leading-tight text-[#08234a]">{item.title}</h3>
+              <h3 className="mt-5 text-xl font-black uppercase leading-tight text-primary">{item.title}</h3>
               <div className="mx-auto mt-4 h-1 w-10 rounded-full" style={{ backgroundColor: primary }} />
               <p className="mt-4 text-base leading-7 text-muted-foreground">{item.description}</p>
             </div>
@@ -668,7 +668,7 @@ function Audience({ data, primary, page }: { data: AdvancedContent['audience']; 
           })}
         </div>
 
-        <div className="mt-8 grid items-center gap-6 rounded-[28px] bg-[#08234a] px-6 py-6 text-primary-foreground md:grid-cols-[1fr_auto] md:px-10">
+        <div className="mt-8 grid items-center gap-6 rounded-[28px] bg-primary px-6 py-6 text-primary-foreground md:grid-cols-[1fr_auto] md:px-10">
           <div>
             <p className="text-2xl font-black leading-none md:text-3xl">Você faz parte de algo maior.</p>
             <p className="mt-3 text-lg font-semibold" style={{ color: primary }}>Conecte-se, compartilhe e prospere junto.</p>
@@ -682,11 +682,11 @@ function Audience({ data, primary, page }: { data: AdvancedContent['audience']; 
 
 function Testimonials({ data, primary }: { data: AdvancedContent['testimonials']; primary: string }) {
   const c = { ...D.testimonials, ...(data || {}) };
-  const items = data?.testimonials?.length ? data.testimonials : D.testimonials!.testimonials!;
-  const stats = data?.stats?.length ? data.stats : D.testimonials!.stats!;
+  const items = data?.testimonials?.length ? data.testimonials : (D.testimonials?.testimonials ?? []);
+  const stats = data?.stats?.length ? data.stats : (D.testimonials?.stats ?? []);
 
   return (
-    <section className="bg-[#051a3a] py-20 text-primary-foreground">
+    <section className="bg-primary py-20 text-primary-foreground">
       <div className={container()}>
         <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
           <div>
@@ -708,7 +708,7 @@ function Testimonials({ data, primary }: { data: AdvancedContent['testimonials']
               </div>
               <p className="mt-4 min-h-[160px] text-base leading-7 text-muted-foreground">{item.text}</p>
               <div className="mt-6 border-t border-border pt-5">
-                <p className="text-lg font-black text-[#08234a]">{item.name}</p>
+                <p className="text-lg font-black text-primary">{item.name}</p>
                 <p className="mt-1 text-sm font-semibold" style={{ color: primary }}>{item.role}</p>
                 {item.city ? <p className="mt-1 text-xs text-muted-foreground">{item.city}</p> : null}
                 <div className="mt-3 flex gap-1">
@@ -721,7 +721,7 @@ function Testimonials({ data, primary }: { data: AdvancedContent['testimonials']
           ))}
         </div>
 
-        <div className="mt-8 grid gap-4 rounded-[26px] border border-border/10 bg-[#08234a] p-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-4 rounded-[26px] border border-border/10 bg-primary p-6 md:grid-cols-2 xl:grid-cols-4">
           {stats.map((s) => (
             <div key={s.value + s.label} className="px-2">
               <p className="text-xl font-black leading-none" style={{ color: primary }}>{s.value}</p>
@@ -736,14 +736,14 @@ function Testimonials({ data, primary }: { data: AdvancedContent['testimonials']
 
 function Reasons({ data, primary }: { data: AdvancedContent['reasons']; primary: string }) {
   const c = { ...D.reasons, ...(data || {}) };
-  const items = data?.reasons?.length ? data.reasons : D.reasons!.reasons!;
+  const items = data?.reasons?.length ? data.reasons : (D.reasons?.reasons ?? []);
 
   return (
     <section className="bg-background py-20 text-foreground">
       <div className={container()}>
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <HText as="h2" color={primary} className="max-w-[18ch] text-3xl font-black leading-[1.05] text-[#08234a] md:text-4xl">
+            <HText as="h2" color={primary} className="max-w-[18ch] text-3xl font-black leading-[1.05] text-primary md:text-4xl">
               {c.title}
             </HText>
             <div className="mt-6 h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />
@@ -751,7 +751,7 @@ function Reasons({ data, primary }: { data: AdvancedContent['reasons']; primary:
               {c.subtitle}
             </HText>
           </div>
-          <div className="text-right text-sm font-semibold leading-relaxed text-[#08234a]">
+          <div className="text-right text-sm font-semibold leading-relaxed text-primary">
             <HeartHandshake className="ml-auto h-12 w-12" style={{ color: primary }} />
             Relacionamentos verdadeiros.<br />Oportunidades reais.<br /><span style={{ color: primary }}>Juntos, vamos mais longe.</span>
           </div>
@@ -761,11 +761,11 @@ function Reasons({ data, primary }: { data: AdvancedContent['reasons']; primary:
           {items.map((r) => {
             const Icon = iconFor(r.icon);
             return (
-              <div key={r.title} className="rounded-[24px] border border-border bg-background p-6 text-center shadow-[0_18px_40px_rgba(15,23,42,0.07)]">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#0c2d62]">
-                  <Icon className="h-8 w-8 text-[#0c2d62]" />
+              <div key={r.title} className="rounded-[24px] border border-border bg-background p-6 text-center shadow-lg">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary">
+                  <Icon className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="mt-5 text-lg font-black uppercase leading-tight text-[#08234a]">{r.title}</h3>
+                <h3 className="mt-5 text-lg font-black uppercase leading-tight text-primary">{r.title}</h3>
                 <div className="mx-auto mt-4 h-1 w-10 rounded-full" style={{ backgroundColor: primary }} />
                 <p className="mt-4 text-sm leading-7 text-muted-foreground">{r.description}</p>
               </div>
@@ -779,14 +779,14 @@ function Reasons({ data, primary }: { data: AdvancedContent['reasons']; primary:
 
 function FormSection({ data, page, primary, onSuccess }: { data: AdvancedContent['form']; page: LandingPage; primary: string; onSuccess: () => void }) {
   const c = { ...D.form, ...(data || {}) };
-  const benefits = data?.benefits?.length ? data.benefits : D.form!.benefits!;
+  const benefits = data?.benefits?.length ? data.benefits : (D.form?.benefits ?? []);
 
   return (
     <section id="form" className="bg-background py-20 text-foreground">
       <div className={container()}>
         <div className="grid min-w-0 gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
           <div className="min-w-0 space-y-6">
-            <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] text-[#08234a] md:text-4xl">
+            <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] text-primary md:text-4xl">
               {c.title}
             </HText>
             <div className="h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />
@@ -799,11 +799,11 @@ function FormSection({ data, page, primary, onSuccess }: { data: AdvancedContent
                 const Icon = iconFor(item.icon);
                 return (
                   <div key={item.title} className="flex min-w-0 gap-3 border-b border-border pb-5 last:border-b-0 sm:gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#08234a]">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-primary">
                       <Icon className="h-6 w-6" style={{ color: primary }} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-lg font-black uppercase leading-tight text-[#08234a]">{item.title}</p>
+                      <p className="text-lg font-black uppercase leading-tight text-primary">{item.title}</p>
                       <p className="mt-2 break-words text-base leading-7 text-muted-foreground">{item.description}</p>
                     </div>
                   </div>
@@ -812,7 +812,7 @@ function FormSection({ data, page, primary, onSuccess }: { data: AdvancedContent
             </div>
           </div>
 
-          <div className="w-full min-w-0 max-w-full rounded-[24px] bg-[#061c3d] p-4 text-primary-foreground shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:rounded-[30px] sm:p-6 md:p-8">
+          <div className="w-full min-w-0 max-w-full rounded-[24px] bg-primary p-4 text-primary-foreground shadow-lg sm:rounded-[30px] sm:p-6 md:p-8">
             <div className="mx-auto w-full max-w-2xl min-w-0">
               <h3 className="break-words text-center text-lg font-black leading-tight sm:text-2xl md:text-3xl">
                 Faça parte da GeNtE Comunidade e <span style={{ color: primary }}>transforme conexões em oportunidades.</span>
@@ -834,10 +834,10 @@ function FormSection({ data, page, primary, onSuccess }: { data: AdvancedContent
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 rounded-[28px] bg-[#f8fafc] p-6 md:grid-cols-3">
-          <div className="flex items-center gap-4 rounded-[20px] bg-background p-4 shadow-sm"><Users className="h-8 w-8 text-[#08234a]" /><p className="text-sm font-semibold text-muted-foreground">Centenas de profissionais já estão conectados e crescendo juntos.</p></div>
-          <div className="flex items-center gap-4 rounded-[20px] bg-background p-4 shadow-sm"><MapPin className="h-8 w-8 text-[#08234a]" /><p className="text-sm font-semibold text-muted-foreground">De todas as regiões do Brasil, conectando talentos, experiências e oportunidades.</p></div>
-          <div className="flex items-center gap-4 rounded-[20px] bg-background p-4 shadow-sm"><Star className="h-8 w-8 text-[#08234a]" /><p className="text-sm font-semibold text-muted-foreground">Comunidade bem avaliada por quem já participa.</p></div>
+        <div className="mt-8 grid gap-4 rounded-[28px] bg-muted p-6 md:grid-cols-3">
+          <div className="flex items-center gap-4 rounded-[20px] bg-background p-4 shadow-sm"><Users className="h-8 w-8 text-primary" /><p className="text-sm font-semibold text-muted-foreground">Centenas de profissionais já estão conectados e crescendo juntos.</p></div>
+          <div className="flex items-center gap-4 rounded-[20px] bg-background p-4 shadow-sm"><MapPin className="h-8 w-8 text-primary" /><p className="text-sm font-semibold text-muted-foreground">De todas as regiões do Brasil, conectando talentos, experiências e oportunidades.</p></div>
+          <div className="flex items-center gap-4 rounded-[20px] bg-background p-4 shadow-sm"><Star className="h-8 w-8 text-primary" /><p className="text-sm font-semibold text-muted-foreground">Comunidade bem avaliada por quem já participa.</p></div>
         </div>
       </div>
     </section>
@@ -846,15 +846,15 @@ function FormSection({ data, page, primary, onSuccess }: { data: AdvancedContent
 
 function FaqSection({ data, primary }: { data: AdvancedContent['faq']; primary: string }) {
   const c = { ...D.faq, ...(data || {}) };
-  const faqs = data?.faqs?.length ? data.faqs : D.faq!.faqs!;
-  const contacts = data?.contacts?.length ? data.contacts : D.faq!.contacts!;
+  const faqs = data?.faqs?.length ? data.faqs : (D.faq?.faqs ?? []);
+  const contacts = data?.contacts?.length ? data.contacts : (D.faq?.contacts ?? []);
 
   return (
     <section className="bg-background py-20 text-foreground">
       <div className={container()}>
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div className="space-y-6">
-            <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] text-[#08234a] md:text-4xl">
+            <HText as="h2" color={primary} className="max-w-[14ch] text-3xl font-black leading-[1.05] text-primary md:text-4xl">
               {c.title}
             </HText>
             <div className="h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />
@@ -862,13 +862,13 @@ function FaqSection({ data, primary }: { data: AdvancedContent['faq']; primary: 
               {c.subtitle}
             </HText>
 
-            <div className="rounded-[28px] bg-[#f8fafc] p-5 shadow-sm sm:p-7">
-              <p className="text-xl font-black text-[#08234a]">Ainda tem dúvidas?</p>
+            <div className="rounded-[28px] bg-muted p-5 shadow-sm sm:p-7">
+              <p className="text-xl font-black text-primary">Ainda tem dúvidas?</p>
               <div className="mt-4 h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />
               <div className="mt-6 space-y-5">
                 {contacts.map((ct) => (
                   <div key={ct.label} className="border-b border-border pb-4 last:border-b-0">
-                    <p className="text-base font-black text-[#08234a]">{ct.label}</p>
+                    <p className="text-base font-black text-primary">{ct.label}</p>
                     <p className="mt-1 text-sm text-muted-foreground md:text-base">{ct.value}</p>
                   </div>
                 ))}
@@ -880,7 +880,7 @@ function FaqSection({ data, primary }: { data: AdvancedContent['faq']; primary: 
             <Accordion type="single" collapsible className="min-w-0 space-y-4">
               {faqs.map((f, i) => (
                 <AccordionItem key={f.question} value={`faq-${i}`} className="min-w-0 rounded-[22px] border border-border bg-background px-3 shadow-sm sm:px-6">
-                  <AccordionTrigger className="min-w-0 gap-3 text-left text-base font-black leading-tight text-[#08234a] hover:no-underline md:text-lg">
+                  <AccordionTrigger className="min-w-0 gap-3 text-left text-base font-black leading-tight text-primary hover:no-underline md:text-lg">
                     <span className="min-w-0 whitespace-normal break-words">{f.question}</span>
                   </AccordionTrigger>
                   <AccordionContent className="break-words text-sm leading-7 text-muted-foreground md:text-base md:leading-8">{f.answer}</AccordionContent>
@@ -890,7 +890,7 @@ function FaqSection({ data, primary }: { data: AdvancedContent['faq']; primary: 
           </div>
         </div>
 
-        <div className="mt-10 grid items-center gap-6 overflow-hidden rounded-[30px] bg-[#08234a] text-primary-foreground lg:grid-cols-[1fr_auto]">
+        <div className="mt-10 grid items-center gap-6 overflow-hidden rounded-[30px] bg-primary text-primary-foreground lg:grid-cols-[1fr_auto]">
           <div className="space-y-4 px-5 py-7 sm:px-8 sm:py-8 md:px-10">
             <p className="text-xl font-black leading-tight sm:text-2xl md:text-3xl">Pronto para transformar conexões em oportunidades reais?</p>
             <div className="h-1 w-20 rounded-full" style={{ backgroundColor: primary }} />

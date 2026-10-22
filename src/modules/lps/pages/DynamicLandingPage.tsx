@@ -1,5 +1,5 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { useLandingPage } from '../hooks/useLandingPage';
 import { useBlocks } from '../hooks/useBlocks';
 import { useAdvancedPageContent } from '../hooks/useAdvancedPageContent';
@@ -20,7 +20,9 @@ function DynamicContent({ slug }: { slug: string }) {
   return <><SEOHead page={page} blocks={blocks} /><main className="min-h-screen"><BlockRenderer blocks={blocks ?? []} landingPageId={page.id} source={page.slug} primaryColor={page.primary_color || undefined} logoUrl={page.logo_url || undefined} logoSize={page.logo_size || 'md'} pageName={page.name} eventDate={page.event_date || undefined} onFormSuccess={() => window.location.assign(`/obrigado?source=${encodeURIComponent(page.slug)}`)} /></main></>;
 }
 export default function DynamicLandingPage() {
-  const { slug = 'inicio' } = useParams();
+  const { slug: parameter } = useParams();
+  const { pathname } = useLocation();
+  const slug = parameter || pathname.split('/').filter(Boolean)[0] || 'inicio';
   if (slug === 'gentehub') return <GenteHub />;
   if (slug === 'participe') return <GenteNetworking />;
   return <DynamicContent slug={slug} />;

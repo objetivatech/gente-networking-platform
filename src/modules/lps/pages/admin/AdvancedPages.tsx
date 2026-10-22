@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Loader2, Plus, ExternalLink, Trash2, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { COMMUNITY_DEFAULTS, type AdvancedContent } from '@/modules/lps/components/landing/CommunityLandingPage';
+import { previewForPage } from '../../lib/rules';
+import { PageSettings } from '../../components/admin/PageSettings';
 import type { Json } from '@/integrations/supabase/types';
 
 const SECTIONS: { key: keyof AdvancedContent; label: string }[] = [
@@ -118,7 +120,7 @@ function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string
     if (data?.content && Object.keys(data.content as object).length > 0) {
       // Merge saved content over defaults so empty fields show the briefing text
       const saved = data.content as AdvancedContent;
-      const merged: AdvancedContent = {};
+      const merged: AdvancedContent = { ...saved };
       (Object.keys(COMMUNITY_DEFAULTS) as (keyof AdvancedContent)[]).forEach((k) => {
         (merged as any)[k] = { ...((COMMUNITY_DEFAULTS as any)[k] || {}), ...((saved as any)[k] || {}) };
       });
@@ -187,7 +189,7 @@ function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string
         </p>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
-            <a href={`/${pageSlug}`} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" /> Ver página</a>
+            <a href={previewForPage(pageSlug)} target="_blank" rel="noreferrer"><ExternalLink className="mr-2 h-4 w-4" /> Ver página</a>
           </Button>
           <Button size="sm" onClick={handleSave} disabled={upsert.isPending}>
             {upsert.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
@@ -289,8 +291,10 @@ export default function AdminAdvancedPages() {
       });
       // Mark template + create content row
       if (created?.id) {
-        await supabase.from('landing_pages').update({ template: 'community' }).eq('id', created.id);
-        await supabase.from('advanced_page_content').insert({ landing_page_id: created.id, content: COMMUNITY_DEFAULTS as any });
+        const { error: templateError } = await supabase.from('landing_pages').update({ template: 'community' }).eq('id', created.id);
+        if (templateError) throw templateError;
+        const { error: contentError } = await supabase.from('advanced_page_content').insert({ landing_page_id: created.id, content: COMMUNITY_DEFAULTS as any });
+        if (contentError) throw contentError;
       }
       toast.success('LP avançada criada!');
       setShowCreate(false);
@@ -343,7 +347,7 @@ export default function AdminAdvancedPages() {
             <Card>
               <CardContent className="p-6">
                 {selectedPage ? (
-                  <AdvancedEditor pageId={selectedPage.id} pageSlug={selectedPage.slug} />
+                  <div className="space-y-8"><PageSettings slug={selectedPage.slug} /><AdvancedEditor pageId={selectedPage.id} pageSlug={selectedPage.slug} /></div>
                 ) : (
                   <p className="text-center text-muted-foreground py-10">Selecione uma LP à esquerda para editar.</p>
                 )}
