@@ -148,7 +148,7 @@ export function MediaLibrary({ onSelect, selectable = false }: MediaLibraryProps
               className={`relative group overflow-hidden bg-card border-border ${
                 selectable ? 'cursor-pointer hover:ring-2 hover:ring-orange-500' : ''
               }`}
-              onClick={() => selectable && onSelect?.(item.file_url)}
+              onClick={() => { if (selectable) { if (item.file_url.includes('/object/sign/')) { toast.error('Arquivo privado: aguarde a liberação de imagens públicas.'); return; } onSelect?.(item.file_url); } }}
             >
               <div className="aspect-square">
                 <img
@@ -165,7 +165,8 @@ export function MediaLibrary({ onSelect, selectable = false }: MediaLibraryProps
                       variant="secondary"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleCopyUrl(item.file_url);
+                        if (item.file_url.includes('/object/sign/')) toast.error('Arquivo privado: links temporários não devem ser publicados.');
+                        else handleCopyUrl(item.file_url);
                       }}
                     >
                       <Copy className="h-4 w-4" />

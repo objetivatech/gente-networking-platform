@@ -18,7 +18,7 @@ export default function GenteNetworking() {
     );
   }
 
-  if (!page) {
+  if (!page?.is_active) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <p>Página não encontrada</p>
