@@ -15,7 +15,8 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useGuestsDirectory } from '@/hooks/useGuestsDirectory';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
@@ -89,7 +90,9 @@ export default function GestaoPessoas() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   
-  const [search, setSearch] = useState('');
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('q') || '');
+  const { data: guestDirectory } = useGuestsDirectory();
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   
@@ -354,6 +357,16 @@ export default function GestaoPessoas() {
   // Separar por status
   const activeMembers = filteredPeople.filter(p => p.is_active && p.role && p.role !== 'convidado');
   const activeGuests = filteredPeople.filter(p => p.is_active && (!p.role || p.role === 'convidado'));
+  // Cadastros ainda sem conta (pré-ativação), vindos da mesma base da página Convidados
+  const pendingActivation = (guestDirectory || []).filter(g => {
+    if (g.profile_id || g.status === 'promovido_membro') return false;
+    if (teamFilter !== 'all' && g.team_id !== teamFilter) return false;
+    if (search) {
+      const s = search.toLowerCase();
+      if (!(g.full_name.toLowerCase().includes(s) || g.email?.toLowerCase().includes(s) || g.company?.toLowerCase().includes(s))) return false;
+    }
+    return true;
+  });
   const inactiveMembers = filteredPeople.filter(p => !p.is_active);
 
   // Stats
@@ -636,7 +649,7 @@ export default function GestaoPessoas() {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="members" className="space-y-4">
+      <Tabs defaultValue={searchParams.get('tab') || 'members'} className="space-y-4">
         <TabsList>
           <TabsTrigger value="members" className="gap-2">
             <UserCheck className="h-4 w-4" />
@@ -644,7 +657,7 @@ export default function GestaoPessoas() {
           </TabsTrigger>
           <TabsTrigger value="guests" className="gap-2">
             <UserPlus className="h-4 w-4" />
-            Convidados ({activeGuests.length})
+            Convidados ({activeGuests.length + pendingActivation.length})
           </TabsTrigger>
           <TabsTrigger value="inactive" className="gap-2">
             <UserX className="h-4 w-4" />
@@ -679,7 +692,7 @@ export default function GestaoPessoas() {
             <div className="space-y-3">
               {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full" />)}
             </div>
-          ) : activeGuests.length === 0 ? (
+          ) : activeGuests.length === 0 && pendingActivation.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
                 <UserPlus className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -692,6 +705,38 @@ export default function GestaoPessoas() {
               {activeGuests.map(person => (
                 <PersonRow key={person.id} person={person} showActions="guest" />
               ))}
+              {pendingActivation.length > 0 && (
+                <>
+                  <h3 className="text-sm font-semibold text-muted-foreground pt-4 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Aguardando ativação da conta ({pendingActivation.length})
+                  </h3>
+                  {pendingActivation.map(g => {
+                    const exp = g.invitation_expires_at ? new Date(g.invitation_expires_at) : null;
+                    const expired = g.invitation_status === 'expired' || (!!exp && exp <= new Date());
+                    return (
+                      <Card key={g.id}>
+                        <CardContent className="py-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                          <div className="min-w-0">
+                            <p className="font-medium text-wrap-anywhere">{g.full_name}</p>
+                            <p className="text-xs text-muted-foreground text-wrap-anywhere">
+                              {[g.email, g.team_name, g.invited_by_name && `Convidado por ${g.invited_by_name}`].filter(Boolean).join(' · ')}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2 shrink-0">
+                            <Badge variant="outline">Sem conta ativada</Badge>
+                            {exp && (
+                              <Badge variant={expired ? 'destructive' : 'secondary'}>
+                                {expired ? 'Vencido em ' : 'Válido até '}{format(exp, 'dd/MM/yyyy', { locale: ptBR })}
+                              </Badge>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </>
+              )}
             </div>
           )}
         </TabsContent>
