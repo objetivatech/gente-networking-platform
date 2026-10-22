@@ -33,12 +33,26 @@ Domínio canônico das LPs: `https://gentenetworking.com.br`. Canonical da entra
 
 1. **Exportação do projeto LPs:** esta conversa não tem acesso ao banco do outro projeto. Abrir o chat de LPs Gente e solicitar exportação de TODAS as linhas de `landing_pages`, `page_blocks`, `advanced_page_content`, `media_library` e `block_audit_logs` em CSV, mantendo UUIDs e JSON; exportar `leads` separadamente para reconciliação. Enviar os arquivos aqui. Não exportar credenciais ou auth.users.
 2. **Objetos de mídia:** exportar arquivos efetivos do Storage e seus caminhos. Reescrever URLs dentro de HTML, JSON, logos e OG. As duas imagens apontadas do código foram transferidas para este projeto; isso não transfere a biblioteca do banco. Imagens reais do snapshot foram copiadas, preservando conteúdo.
-3. **Armazenamento público:** criação de bucket público recusada por `public_buckets_blocked`. `lps-media` é privado; Admin pode armazenar/visualizar imagens, mas o seletor impede publicar links temporários. Autorizar buckets públicos nas configurações de privacidade do workspace para concluir esse caminho. Não contornar usando buckets de perfis ou outro serviço.
+3. **Armazenamento público:** `lps-media` confirmado público em 22/10 às 22:57 UTC, com limite de 10 MB por arquivo. A biblioteca agora resolve os apontadores antigos e salva novos arquivos com URLs públicas permanentes; links temporários continuam proibidos. O bucket ainda contém zero objetos: a transferência das 48 imagens NÃO foi executada. O restabelecimento da conexão foi confirmado pela ferramenta, mas a credencial não ficou disponível no ambiente de transferência e não existe sessão Admin utilizável. Não abrir permissões de escrita nem usar buckets de perfis para contornar essa limitação.
 4. **Cloudflare:** associar subdomínio ao projeto unificado SOMENTE depois dos testes e da importação. A função de roteamento é opt-in via `LP_UNIFIED_ENABLED=true`; mantém o caminho visto pelo visitante e separa tráfego público do domínio autenticado. Até lá, não alterar DNS nem desativar projeto LPs.
 5. **SEO servido no HTML:** validar canonical, OG, schema e sitemap para todas as LPs, incluindo compartilhadores que não executam JavaScript. O SEO cliente foi integrado; a adaptação do HTML no Cloudflare depende do inventário importado. `/m/:slug` da plataforma permanece inalterado.
 6. **Validação autenticada:** Supabase externo não fornece sessão de teste neste ambiente. Edição, duplicação, upload, negativas de permissão, inscrição → CRM → convite → e-mail → ativação precisam ser conferidos em sessão real. Não usar inscrições fictícias em produção para forçar essa validação.
 
 ## Procedimento e rollback
+
+## Pareamento de leitura — 22/10/2026
+
+Comparação realizada sem modificar o CRM, perfis, convites, pagamentos ou pontos. Identificadores derivados de e-mail/telefone foram usados apenas em arquivos temporários; dados pessoais não foram adicionados ao código.
+
+- Origem: 686 inscrições e 541 e-mails distintos; 145 são registros excedentes em relação aos e-mails, não 145 pessoas duplicadas.
+- Destino: 235 registros CRM, 177 perfis, 290 convites, 25 auditorias de blocos existentes e nenhuma mídia na biblioteca.
+- Por e-mail: 146 identidades presentes no CRM; 13 perfis sem correspondência no CRM (2 com papel Membro/Facilitador/Admin e 11 ainda sem classificação definitiva neste agrupamento inicial); 20 identidades encontradas somente por telefone; 362 sem correspondência pelos critérios usados.
+- Conferência específica dos papéis, incluindo pessoas já presentes no CRM: 56 Convidados ativos, 19 Membros/Facilitadores/Admins ativos, 7 desses papéis inativos e 13 perfis ativos sem papel definido. Esses totais não são somáveis ao agrupamento anterior. Não atribuir papel Convidado automaticamente a um perfil sem papel.
+- Correspondências exclusivamente por telefone são candidatas à revisão, não autorização de fusão. Nomes, conflitos de identidade, registros arquivados e convites precisam de conferência individual antes da carga.
+- Importação de novos registros permanece pendente: além de preservar os estados atuais, revisar elegibilidade futura ao Resgate para que a carga não produza mensagens posteriormente. Não executar `submit-lead`, aceite de convites, promoção ou fusão operacional para importar históricos.
+- Auditorias históricas: 632 linhas no arquivo, ainda não importadas. Preservar autores, datas e snapshots; não substituir as 25 auditorias existentes.
+
+## Sequência operacional
 
 1. Importar páginas primeiro, depois blocos/conteúdos; preservar IDs ou manter mapa explícito. Nunca importar roles do LPs.
 2. Reconciliar leads por identidade com CRM antes de importar históricos; não disparar novamente e-mails/presenças/pontos de cadastros antigos.
