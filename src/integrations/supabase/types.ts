@@ -2646,6 +2646,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _matchmaking_draw_state: { Args: { _user_id: string }; Returns: Json }
       accept_invitation: {
         Args: { _code: string; _user_id: string }
         Returns: Json
@@ -2751,10 +2752,29 @@ export type Database = {
         Args: { _member_id: string; _reason?: string }
         Returns: Json
       }
+      draw_matchmaking_suggestion: {
+        Args: { _target_id: string }
+        Returns: Json
+      }
       generate_slug: { Args: { name: string }; Returns: string }
       generate_unique_slug:
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
+      get_community_showcase: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          business_segment: string
+          company: string
+          full_name: string
+          id: string
+          ideal_client: string
+          position: string
+          role: string
+          tags: string[]
+          what_i_do: string
+        }[]
+      }
       get_current_year_month: { Args: never; Returns: string }
       get_feature_usage: {
         Args: { _feature_key: string; _user_id: string; _year_month?: string }
@@ -2840,6 +2860,22 @@ export type Database = {
           name: string
           status: string
           team_id: string
+        }[]
+      }
+      get_matchmaking_draw_state: { Args: never; Returns: Json }
+      get_matchmaking_profiles: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          business_segment: string
+          company: string
+          full_name: string
+          id: string
+          ideal_client: string
+          position: string
+          role: string
+          tags: string[]
+          what_i_do: string
         }[]
       }
       get_members_health_scores: {
