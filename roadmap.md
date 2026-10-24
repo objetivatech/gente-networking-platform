@@ -37,7 +37,7 @@
 # Bloco 2 — Assinante da Comunidade
 
 - [x] Fase 1 — Banco: papel `assinante`, `billing_plans.features` validado, `usage_quota_events`, `get_user_entitlements`/`get_feature_usage`, isolamento RLS do Assinante (pessoas e módulos de membros).
-- [ ] Fase 2 — Catraca no frontend (access-control, menu, rotas) e auditoria das RPCs SECURITY DEFINER para o papel Assinante.
+- [x] Fase 2 — Catraca no frontend (menu, rotas, início próprio) e bloqueio do Assinante em ranking, pontos, estatísticas e MatchMaking no banco.
 - [ ] Fase 3 — Vitrine da Comunidade e franquia do MatchMaking.
 - [ ] Fase 4 — Painel de planos e atribuição.
 - [ ] Fase 5 — Testes e homologação com conta real.
