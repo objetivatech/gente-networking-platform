@@ -29,12 +29,13 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useContractTemplates } from '@/hooks/useContractTemplates';
 import { useCrmLeads } from '@/hooks/useCrmLeads';
 import {
-  CHARGE_STATUS_LABEL, INTERVAL_LABEL, PLAN_TYPE_LABEL, SUBSCRIPTION_STATUS_LABEL,
+  AUDIENCE_LABEL, CHARGE_STATUS_LABEL, INTERVAL_LABEL, PLAN_FEATURE_LABEL,
+  PLAN_TYPE_LABEL, SUBSCRIPTION_STATUS_LABEL,
   formatCents, parseCurrencyToCents,
   useBillingCharges, useBillingDiscounts, useBillingPlans, useBillingSubscriptions,
   useDeleteBillingDiscount, useMarkChargePaid, useSaveBillingDiscount, useSaveBillingPlan,
   useSaveSubscription, useSendCharge, useTogglePlanActive,
-  type BillingInterval, type BillingPlan, type PlanType,
+  type BillingInterval, type BillingPlan, type PlanFeatures, type PlanType,
 } from '@/hooks/useBilling';
 
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
@@ -48,6 +49,14 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const [interval, setInterval] = useState<BillingInterval>(plan?.billing_interval ?? 'monthly');
   const [audience, setAudience] = useState(plan?.audience ?? 'hub');
   const [templateId, setTemplateId] = useState(plan?.contract_template_id ?? 'none');
+  // Recursos e limites do plano (Fase 4 — v3.54.0)
+  const [quota, setQuota] = useState(
+    plan?.features?.matchmaking_monthly_quota != null ? String(plan.features.matchmaking_monthly_quota) : '',
+  );
+  const [flagOpportunities, setFlagOpportunities] = useState(plan?.features?.can_access_opportunities === true);
+  const [flagGenteEmAcao, setFlagGenteEmAcao] = useState(plan?.features?.can_create_gente_em_acao === true);
+  const [flagPublicProfile, setFlagPublicProfile] = useState(plan?.features?.public_profile_enabled === true);
+  const [flagAiPitch, setFlagAiPitch] = useState(plan?.features?.ai_pitch_enabled === true);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
