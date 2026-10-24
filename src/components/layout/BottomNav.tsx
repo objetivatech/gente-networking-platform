@@ -32,6 +32,13 @@ const memberItems: NavItem[] = [
   { icon: User, label: 'Perfil', path: '/perfil' },
 ];
 
+const subscriberItems: NavItem[] = [
+  { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao' },
+  { icon: DollarSign, label: 'Negócios', path: '/negocios' },
+  { icon: Send, label: 'Indicações', path: '/indicacoes' },
+  { icon: User, label: 'Perfil', path: '/perfil' },
+];
+
 const adminItems: NavItem[] = [
   { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
   { icon: UsersRound, label: 'Pessoas', path: '/admin/pessoas' },
@@ -52,7 +59,7 @@ export default function BottomNav({ hidden = false }: BottomNavProps) {
 
   if (isLoading || hidden) return null;
 
-  const items = role === 'admin' ? adminItems : role === 'facilitador' ? facilitadorItems : memberItems;
+  const items = role === 'admin' ? adminItems : role === 'facilitador' ? facilitadorItems : role === 'assinante' ? subscriberItems : memberItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border lg:hidden pb-[env(safe-area-inset-bottom)]">

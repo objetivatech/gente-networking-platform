@@ -51,7 +51,7 @@ const menuGroups: MenuGroup[] = [
     defaultOpen: true,
     items: [
       { icon: Home, label: 'Início', path: '/' },
-      { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: Rss, label: 'Feed', path: '/feed', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: User, label: 'Meu Perfil', path: '/perfil' },
     ],
   },
@@ -72,10 +72,10 @@ const menuGroups: MenuGroup[] = [
     id: 'networking',
     label: 'Networking',
     items: [
-      { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
-      { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
-      { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
-      { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: DollarSign, label: 'Negócios', path: '/negocios', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: MessageSquare, label: 'Depoimentos', path: '/depoimentos', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Megaphone, label: 'Oportunidades', path: '/oportunidades', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Radio, label: 'Pedidos de Indicação', path: '/pedidos-indicacao', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: UserPlus, label: 'Convites', path: '/convites', roles: ['admin', 'facilitador', 'membro'] },
@@ -93,7 +93,7 @@ const menuGroups: MenuGroup[] = [
     id: 'conhecimento',
     label: 'Conhecimento',
     items: [
-      { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos', roles: ['admin', 'facilitador', 'membro'] },
+      { icon: GraduationCap, label: 'Conteúdos', path: '/conteudos', roles: ['admin', 'facilitador', 'membro', 'assinante'] },
       { icon: BookOpen, label: 'Documentação', path: '/documentacao', roles: ['admin', 'facilitador', 'membro'] },
       { icon: History, label: 'Changelog', path: '/changelog', roles: ['admin', 'facilitador', 'membro'] },
     ],

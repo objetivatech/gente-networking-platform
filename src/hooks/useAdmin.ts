@@ -12,7 +12,7 @@ export function useUserRole() {
       if (!user?.id) return null;
       const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
       if (error) throw error;
-      return (['admin', 'facilitador', 'membro', 'convidado'] as const).find(role => data?.some(r => r.role === role)) || 'convidado';
+      return (['admin', 'facilitador', 'membro', 'assinante', 'convidado'] as const).find(role => data?.some(r => r.role === role)) || 'convidado';
     },
     enabled: !!user?.id,
   });
@@ -24,9 +24,10 @@ export function useAdmin() {
   const isFacilitator = role === 'facilitador';
   const isMember = role === 'membro';
   const isGuest = role === 'convidado';
+  const isSubscriber = role === 'assinante';
   const canManage = isAdmin || isFacilitator;
   
-  return { role, isLoading, isAdmin, isFacilitator, isMember, isGuest, canManage };
+  return { role, isLoading, isAdmin, isFacilitator, isMember, isGuest, isSubscriber, canManage };
 }
 
 export function useAdminTeams() {
