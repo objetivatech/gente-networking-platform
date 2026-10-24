@@ -10,10 +10,10 @@
 - [x] Preservar domínio raiz canônico no código e roteamento de URLs opt-in; Meta somente via GTM.
 - [x] Receber e filtrar exportação de 22/10: 4 páginas, 18 blocos, 2 conteúdos avançados, 48 mídias, 632 auditorias e 686 leads (541 e-mails distintos).
 - [x] Importar 4 páginas inativas, 18 blocos e 2 conteúdos avançados com UUIDs e conteúdo conferidos; entrada atual preservada.
-- [ ] Registrar as 48 imagens enviadas ao bucket pelo Admin na biblioteca e trocar links do projeto antigo; verificar caminhos e conteúdo público.
+- [x] Registrar as 48 imagens enviadas ao bucket pelo Admin na biblioteca e trocar links do projeto antigo; 48 arquivos públicos conferidos byte a byte, nenhum link antigo em blocos/conteúdo avançado.
 - [ ] Importar 632 auditorias históricas — pendente de carga segura do arquivo completo, sem perder autores e alterações.
 - [x] Pareamento somente-leitura das 541 identidades com CRM, perfis/papéis e convites; 146 CRM, 13 perfis sem CRM, 20 candidatos por telefone, 362 sem correspondência. Conferir papéis separadamente (incluindo 13 perfis sem papel).
-- [ ] Executar carga CRM autorizada em 24/10: preservar capturas repetidas e estados atuais; separar conflitos para revisão; impedir convites, e-mails, pontos e Resgate automático dos históricos.
+- [ ] Executar carga CRM autorizada em 24/10: tabela protegida e arquivo transacional preparados; envio integral excede o canal disponível (sem acesso SQL por arquivo/exec neste Supabase externo). 360 e-mails sem correspondência atual, 181 existentes ou em revisão; excluir telefones compartilhados antes da carga. Nenhum lead importado nesta etapa.
 - [x] Liberar entrega permanente de novas imagens — biblioteca salva URLs públicas e resolve apontadores antigos; 12 testes passaram. Upload/seleção Admin ainda dependem de sessão real.
 - [x] Testes unitários, entrada pública desktop/mobile, abertura login e recuperação, documentação de inventário e rollback.
 - [ ] Validar edição Admin, negativos de acesso e LP → CRM → e-mail → ativação autenticados — Supabase externo sem sessão disponível; requer sessão real e dados autorizados.

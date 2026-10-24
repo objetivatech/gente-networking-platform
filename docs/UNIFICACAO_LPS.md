@@ -2,6 +2,16 @@
 
 **Estado: integração de código iniciada; virada pública NÃO realizada.**
 
+## Atualização de 24/10/2026
+
+- Admin enviou os 48 objetos ao `lps-media`; conteúdo público conferido byte a byte com a exportação. Biblioteca cadastrada com 48 URLs permanentes. Os nomes visíveis nesta carga são os caminhos do Storage; nomes editoriais originais e UUIDs de mídia ainda não foram reconciliados.
+- Links antigos substituídos nos blocos, conteúdos avançados, logos e OG das quatro páginas importadas. Páginas continuam inativas. Auditorias operacionais geradas pela troca de links são preservadas.
+- Nova tabela `crm_historical_captures`, somente leitura para Admin autenticado e escrita pelo serviço: preserva payload original, datas, decisão e vínculos sem modificar identidades existentes.
+- Pareamento atualizado: 541 e-mails, 360 sem correspondência e 181 existentes/candidatos à revisão. Esses números NÃO são autorização para fusão; telefones compartilhados na exportação também ficam em revisão.
+- Carga ainda NÃO executada: arquivo SQL transacional preparado por `scripts/prepare-lp-crm-import.py`; arquivo completo excede o canal disponível e este Supabase externo não oferece acesso SQL por arquivo/exec. Executar o arquivo privado pelo SQL Editor do projeto e conferir o resultado antes de marcar a carga concluída.
+- O arquivo valida 686 capturas/541 e-mails, mantém repetidos na tabela histórica, preserva todos os campos dos leads existentes, só cria novos sem correspondência/conflito e impede Resgate automático (`rescue_opt_out=true`, motivo técnico registrado), ativação e presença. Segurança de execução ainda depende da conferência do resultado no banco.
+- Acesso administrativo autenticado não foi testado neste ambiente externo; não declarar a carga ou o fluxo Admin como verificados. Os 58 alertas anteriores permanecem, sem novos alertas nesta migração.
+
 ## Entregue nesta etapa
 
 - Gerenciador Admin em `/admin/lps`, com editor de blocos original, configurações, duplicação completa transacional, LPs avançadas, mídia e auditoria.
