@@ -60,8 +60,9 @@ const menuGroups: MenuGroup[] = [
     label: 'Comunidade',
     defaultOpen: true,
     items: [
+      { icon: Users, label: 'Vitrine da Comunidade', path: '/vitrine', roles: ['assinante', 'convidado'] },
       { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
-      { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
+      { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] },
       { icon: Cake, label: 'Aniversários', path: '/aniversarios', roles: ['admin', 'facilitador', 'membro'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Calendar, label: 'Encontros', path: '/encontros', roles: ['admin', 'facilitador', 'membro'] },
