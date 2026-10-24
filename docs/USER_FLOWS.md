@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-10-22
-> **Versão:** 3.52.0 — integração das LPs, sem virada pública
+> **Última atualização:** 2026-10-24
+> **Versão:** 3.53.0 — Vitrine da Comunidade e franquia do MatchMaking
 
 ### Entrada e LPs unificadas
 
