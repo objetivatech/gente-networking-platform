@@ -744,6 +744,59 @@ export type Database = {
           },
         ]
       }
+      crm_historical_captures: {
+        Row: {
+          captured_at: string
+          created_at: string
+          decision: string
+          invitation_ids: string[]
+          lead_id: string | null
+          match_details: Json
+          payload: Json
+          profile_ids: string[]
+          source_page_id: string | null
+          source_project: string
+          source_record_id: string
+          updated_at: string
+        }
+        Insert: {
+          captured_at: string
+          created_at?: string
+          decision?: string
+          invitation_ids?: string[]
+          lead_id?: string | null
+          match_details?: Json
+          payload: Json
+          profile_ids?: string[]
+          source_page_id?: string | null
+          source_project: string
+          source_record_id: string
+          updated_at?: string
+        }
+        Update: {
+          captured_at?: string
+          created_at?: string
+          decision?: string
+          invitation_ids?: string[]
+          lead_id?: string | null
+          match_details?: Json
+          payload?: Json
+          profile_ids?: string[]
+          source_page_id?: string | null
+          source_project?: string
+          source_record_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_historical_captures_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "crm_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       crm_identity_events: {
         Row: {
           created_at: string
