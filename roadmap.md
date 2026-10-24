@@ -10,10 +10,10 @@
 - [x] Preservar domínio raiz canônico no código e roteamento de URLs opt-in; Meta somente via GTM.
 - [x] Receber e filtrar exportação de 22/10: 4 páginas, 18 blocos, 2 conteúdos avançados, 48 mídias, 632 auditorias e 686 leads (541 e-mails distintos).
 - [x] Importar 4 páginas inativas, 18 blocos e 2 conteúdos avançados com UUIDs e conteúdo conferidos; entrada atual preservada.
-- [ ] Importar mídia histórica e trocar links do projeto antigo — bucket público confirmado; 48 arquivos disponíveis, mas falta acesso autenticado de transferência (credencial não disponível após rebind).
+- [ ] Registrar as 48 imagens enviadas ao bucket pelo Admin na biblioteca e trocar links do projeto antigo; verificar caminhos e conteúdo público.
 - [ ] Importar 632 auditorias históricas — pendente de carga segura do arquivo completo, sem perder autores e alterações.
 - [x] Pareamento somente-leitura das 541 identidades com CRM, perfis/papéis e convites; 146 CRM, 13 perfis sem CRM, 20 candidatos por telefone, 362 sem correspondência. Conferir papéis separadamente (incluindo 13 perfis sem papel).
-- [ ] Importar 686 capturas históricas preservando 145 registros excedentes — revisar conflitos individuais, arquivados e elegibilidade ao Resgate antes da carga; não disparar convites, e-mails ou pontos.
+- [ ] Executar carga CRM autorizada em 24/10: preservar capturas repetidas e estados atuais; separar conflitos para revisão; impedir convites, e-mails, pontos e Resgate automático dos históricos.
 - [x] Liberar entrega permanente de novas imagens — biblioteca salva URLs públicas e resolve apontadores antigos; 12 testes passaram. Upload/seleção Admin ainda dependem de sessão real.
 - [x] Testes unitários, entrada pública desktop/mobile, abertura login e recuperação, documentação de inventário e rollback.
 - [ ] Validar edição Admin, negativos de acesso e LP → CRM → e-mail → ativação autenticados — Supabase externo sem sessão disponível; requer sessão real e dados autorizados.
