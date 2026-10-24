@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeMatchOpportunity, type MatchType } from '@/lib/matchmaking-rules';
+import { normalizeDrawState, type MatchmakingDrawState } from '@/lib/matchmaking-draw';
 
 export interface MatchSuggestion {
   id: string;
@@ -75,6 +76,8 @@ export interface MatchmakingConnection {
   isInCooldown: boolean;
   target?: { full_name: string; company: string | null; avatar_url: string | null } | null;
 }
+
+export type { MatchmakingDrawState };
 
 /** Dias de fila de espera após uma conexão efetiva. */
 export const MATCHMAKING_COOLDOWN_DAYS = 60;
@@ -160,18 +163,17 @@ export function useMatchmaking() {
         return { myProfile: null as MyProfileForMatch | null, suggestions: [] as MatchSuggestion[] };
       }
 
-      // 1. Perfis ativos
-      const { data: profiles, error: pErr } = await supabase
-        .from('profiles')
-        .select('id, full_name, company, position, avatar_url, business_segment, what_i_do, ideal_client, tags')
-        .eq('is_active', true);
+      // 1. Perfis elegíveis: o banco aplica o universo correto por papel.
+      const [{ data: profiles, error: pErr }, { data: me, error: meErr }] = await Promise.all([
+        supabase.rpc('get_matchmaking_profiles'),
+        supabase
+          .from('profiles')
+          .select('id, what_i_do, ideal_client, business_segment, tags')
+          .eq('id', user.id)
+          .maybeSingle(),
+      ]);
       if (pErr) throw pErr;
-
-      // 2. Roles (para excluir admins e classificar)
-      const { data: roles, error: rErr } = await supabase.from('user_roles').select('user_id, role');
-      if (rErr) throw rErr;
-      const roleMap: Record<string, string> = {};
-      roles?.forEach((r) => { roleMap[r.user_id] = r.role; });
+      if (meErr) throw meErr;
 
       // 3. Conexões efetivas já realizadas pelo usuário (histórico completo)
       const { data: connections, error: cErr } = await supabase
@@ -203,7 +205,6 @@ export function useMatchmaking() {
       const nowIso = new Date().toISOString();
 
       // Perfil do usuário logado
-      const me = (profiles || []).find((p) => p.id === user.id);
       const myTags: string[] = (me?.tags as string[] | null) || [];
       const myProfile: MyProfileForMatch | null = me
         ? {
@@ -235,8 +236,9 @@ export function useMatchmaking() {
 
       for (const p of profiles || []) {
         if (p.id === user.id) continue;
-        const role = roleMap[p.id];
+        const role = p.role;
         if (role === 'admin') continue; // admins não entram no matchmaking
+
 
         const otherTags: string[] = ((p.tags as string[] | null) || []);
         const otherTagsNorm = otherTags.map((t) => normalize(t)).filter(Boolean);
@@ -353,6 +355,17 @@ export function useMatchmaking() {
     },
   });
 
+  const drawStateQuery = useQuery({
+    queryKey: ['matchmaking-draw-state', user?.id],
+    enabled: !!user?.id,
+    staleTime: 60 * 1000,
+    queryFn: async (): Promise<MatchmakingDrawState | null> => {
+      const { data, error } = await supabase.rpc('get_matchmaking_draw_state');
+      if (error) throw error;
+      return normalizeDrawState(data);
+    },
+  });
+
   const connectionsQuery = useQuery({
     queryKey: ['matchmaking-connections', user?.id],
     enabled: !!user?.id,
@@ -387,6 +400,27 @@ export function useMatchmaking() {
           target: targets[c.target_id] || null,
         };
       });
+    },
+  });
+
+  const drawSuggestion = useMutation({
+    mutationFn: async (targetId: string) => {
+      const { data, error } = await supabase.rpc('draw_matchmaking_suggestion', { _target_id: targetId });
+      if (error) throw error;
+      const result = data as any;
+      if (result && result.success === false) throw new Error(result.error || 'Franquia de MatchMaking indisponível');
+      return result;
+    },
+    onSuccess: (result: any) => {
+      queryClient.invalidateQueries({ queryKey: ['matchmaking-draw-state', user?.id] });
+      if (result?.already_drawn) {
+        toast({ title: 'Contato já sorteado', description: 'Este perfil já estava na sua lista deste mês.' });
+      } else {
+        toast({ title: 'Nova conexão sorteada!', description: 'O perfil foi adicionado às suas sugestões deste mês.' });
+      }
+    },
+    onError: (e: any) => {
+      toast({ title: 'Franquia indisponível', description: e?.message || 'Não foi possível sortear uma nova conexão', variant: 'destructive' });
     },
   });
 
@@ -455,6 +489,9 @@ export function useMatchmaking() {
     weeklySuggestion: pickWeeklySuggestion(suggestions),
     isLoading: query.isLoading,
     connections: connectionsQuery.data ?? [],
+    drawState: drawStateQuery.data ?? null,
+    isDrawStateLoading: drawStateQuery.isLoading,
+    drawSuggestion,
     createCheck,
     registerAttempt,
   };

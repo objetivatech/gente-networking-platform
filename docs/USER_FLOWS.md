@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-10-22
-> **Versão:** 3.52.0 — integração das LPs, sem virada pública
+> **Última atualização:** 2026-10-24
+> **Versão:** 3.53.0 — Vitrine da Comunidade e franquia do MatchMaking
 
 ### Entrada e LPs unificadas
 
@@ -564,4 +564,12 @@ Membros, facilitadores e admins têm duas superfícies de consulta para o banco 
 
 ## v3.51.1 — Recuperação de atualização PWA
 
-Instalação mantida via manifest/ícones, sem alterar URLs de instalação. Cache offline do aplicativo suspenso durante recuperação. Worker antigo em `/sw.js` substituído por limpeza seletiva que se desregistra mesmo em falha e solicita nova navegação dos clientes. Sem apagar autenticação, caches de outros serviços, dados locais ou histórico da plataforma. Nenhum registro de worker de aplicativo no preview/produção, polling de versão ou recarga automática por falha de chunk. Notificações locais não aguardam worker inexistente. Publicação e validação do worker substituto no Cloudflare são necessárias; atualização depende da verificação feita pelo navegador. Assinante da Comunidade permanece fora desta etapa.
+Instalação mantida via manifest/ícones, sem alterar URLs de instalação. Cache offline do aplicativo suspenso durante recuperação. Worker antigo em `/sw.js` substituído por limpeza seletiva que se desregistra mesmo em falha e solicita nova navegação dos clientes. Sem apagar autenticação, caches de outros serviços, dados locais ou histórico da plataforma. Nenhum registro de worker de aplicativo no preview/produção, polling de versão ou recarga automática por falha de chunk. Notificações locais não aguardam worker inexistente. Publicação e validação do worker substituto no Cloudflare são necessárias; atualização depende da verificação feita pelo navegador.
+
+## v3.53.0 — Vitrine da Comunidade e franquia do MatchMaking
+
+- `/vitrine` é exclusiva para Assinantes e Convidados ativos e lista apenas esses dois públicos, sem leads, pré-ativação, Membros, Facilitadores ou Admins.
+- O MatchMaking do Assinante usa somente perfis da vitrine; o de Membros preserva o universo anterior sem Admins.
+- A sugestão semanal é orgânica e não consome franquia. O botão "Sortear nova conexão" registra `matchmaking_draw` em `usage_quota_events`, sem duplicar o mesmo contato no mês.
+- Planos ativos com `matchmaking_monthly_quota` limitam os sorteios; Assinante sem assinatura ativa ou sem franquia não sorteia. Membros ainda sem plano mantêm o comportamento atual até a Fase 4.
+- Assinante pode agendar e registrar tentativa de contato, mas não usa o botão "Já conectei" nem entra na gamificação de Membros.

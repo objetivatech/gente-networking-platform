@@ -19,6 +19,7 @@ import {
   canUseOpportunityBoard,
   canUseReferralRequests,
   canManageRescue,
+  canAccessCommunityShowcase,
 } from '../access-control';
 
 describe('access-control: Fase 3 (Oportunidades e Pedidos de Indicação)', () => {
@@ -114,14 +115,14 @@ describe('central de resgate (v3.43.0)', () => {
 
 import { canAccessAppPath, isSubscriberRole } from '../access-control';
 
-describe('access-control: Assinante da Comunidade (Bloco 2 · Fase 2)', () => {
+describe('access-control: Assinante da Comunidade (Bloco 2)', () => {
   it('Assinante não acessa áreas de Membros', () => {
-    for (const p of ['/membros', '/convidados', '/matchmaking', '/encontros', '/conselho', '/estatisticas', '/ranking', '/convites', '/oportunidades', '/pedidos-indicacao', '/membro/joao', '/admin', '/dashboard', '/documentacao']) {
+    for (const p of ['/membros', '/convidados', '/encontros', '/conselho', '/estatisticas', '/ranking', '/convites', '/oportunidades', '/pedidos-indicacao', '/membro/joao', '/admin', '/dashboard', '/documentacao']) {
       expect(canAccessAppPath('assinante', p)).toBe(false);
     }
   });
-  it('Assinante acessa Início, Perfil e movimentos permitidos', () => {
-    for (const p of ['/', '/perfil', '/feed', '/gente-em-acao', '/indicacoes', '/negocios', '/depoimentos', '/conteudos', '/configuracoes', '/perfil/']) {
+  it('Assinante acessa Início, Vitrine, MatchMaking e movimentos permitidos', () => {
+    for (const p of ['/', '/perfil', '/feed', '/vitrine', '/matchmaking', '/gente-em-acao', '/indicacoes', '/negocios', '/depoimentos', '/conteudos', '/configuracoes', '/perfil/']) {
       expect(canAccessAppPath('assinante', p)).toBe(true);
     }
   });
@@ -131,11 +132,19 @@ describe('access-control: Assinante da Comunidade (Bloco 2 · Fase 2)', () => {
       expect(isSubscriberRole(r)).toBe(false);
     }
   });
-  it('Assinante não usa MatchMaking, Mural nem Pedidos', () => {
-    expect(canUseMatchmaking('assinante')).toBe(false);
+  it('Assinante usa MatchMaking com franquia, mas não Mural nem Pedidos', () => {
+    expect(canUseMatchmaking('assinante')).toBe(true);
     expect(canUseOpportunityBoard('assinante')).toBe(false);
     expect(canUseReferralRequests('assinante')).toBe(false);
     expect(canViewMembersDirectory('assinante')).toBe(false);
     expect(canViewGuestsDirectory('assinante')).toBe(false);
+  });
+  it('Vitrine é exclusiva de Assinante e Convidado', () => {
+    expect(canAccessCommunityShowcase('assinante')).toBe(true);
+    expect(canAccessCommunityShowcase('convidado')).toBe(true);
+    expect(canAccessCommunityShowcase('membro')).toBe(false);
+    expect(canAccessCommunityShowcase('facilitador')).toBe(false);
+    expect(canAccessCommunityShowcase('admin')).toBe(false);
+    expect(canAccessCommunityShowcase(null)).toBe(false);
   });
 });

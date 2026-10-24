@@ -60,6 +60,7 @@ const Feed = lazyWithRetry(() => import("./pages/Feed"));
 const Conselho = lazyWithRetry(() => import("./pages/Conselho"));
 const AuthConfirm = lazyWithRetry(() => import("./pages/AuthConfirm"));
 const Matchmaking = lazyWithRetry(() => import("./pages/Matchmaking"));
+const VitrineComunidade = lazyWithRetry(() => import("./pages/VitrineComunidade"));
 const Oportunidades = lazyWithRetry(() => import("./pages/Oportunidades"));
 const PedidosIndicacao = lazyWithRetry(() => import("./pages/PedidosIndicacao"));
 const AdminCrm = lazyWithRetry(() => import("./pages/AdminCrm"));
@@ -136,8 +137,9 @@ const App = () => (
                 <Route path="/feed" element={<Feed />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/membros" element={<Membros />} />
+                <Route path="/vitrine" element={<VitrineComunidade />} />
                 <Route path="/matchmaking" element={<Matchmaking />} />
-                <Route path="/oportunidades" element={<Oportunidades />} />
+                 <Route path="/oportunidades" element={<Oportunidades />} />
                 <Route path="/pedidos-indicacao" element={<PedidosIndicacao />} />
                 <Route path="/convidados" element={<Convidados />} />
                 <Route path="/membro/:slug" element={<MemberProfile />} />
