@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-10-22
-> **Versão:** 3.52.0 — integração das LPs, sem virada pública
+> **Última atualização:** 2026-10-24
+> **Versão:** 3.53.0 — Vitrine da Comunidade e franquia do MatchMaking
 
 ## Unificação das LPs (em implantação)
 
@@ -11,10 +11,16 @@ editores de blocos e avançado, auditoria e mídia. `/auth` usa a entrada editá
 As rotas de convite e o dashboard autenticado permanecem.
 Os formulários usam exclusivamente `submit-lead`, mantendo identidade e ativação existentes.
 
-**Pendentes:** exportação/importação do banco e mídia das LPs, permissão de armazenamento
-público, validação autenticada, SEO servido no Cloudflare e virada reversível do domínio.
+**Pendentes:** validação autenticada, SEO servido no Cloudflare e virada reversível do domínio.
 Consulte [UNIFICACAO_LPS.md](./UNIFICACAO_LPS.md) para inventário, dependências e rollback.
-Assinante da Comunidade não foi implementado.
+
+## Assinante da Comunidade (Bloco 2)
+
+O papel `assinante` possui rotas e dados isolados. A vitrine interna (`/vitrine`) lista somente
+Assinantes e Convidados ativos via `get_community_showcase`; leads, pré-ativação, Membros,
+Facilitadores e Admins ficam fora. O MatchMaking usa `get_matchmaking_profiles` e registra
+sorteios extras em `usage_quota_events` (`matchmaking_draw`). A sugestão semanal não consome
+franquia; planos ativos definem `matchmaking_monthly_quota`.
 
 ## Índice
 

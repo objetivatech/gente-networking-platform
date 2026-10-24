@@ -1,74 +1,75 @@
-# MatchMaking — Conexões, tentativas e fila de espera (v3.49.0)
+# MatchMaking — Conexões, tentativas, fila e franquia (v3.53.0)
 
 Documento de referência da mecânica de MatchMaking do Gente Comunidade.
 
 ## Quem acessa
 
-Membros, facilitadores e administradores (`canUseMatchmaking` em `src/lib/access-control.ts`).
-Convidados não acessam. Admins não entram como sugestão e não pontuam.
+Membros, facilitadores, administradores e Assinantes da Comunidade (`canUseMatchmaking` em `src/lib/access-control.ts`). Convidados não acessam. Admins não entram como sugestão e não pontuam.
 
-## Sugestões
+## Universo de perfis
 
-O score de afinidade continua sendo calculado no cliente (`src/hooks/useMatchmaking.ts`) a partir
-de `what_i_do`, `ideal_client`, `business_segment` e `tags`, somado ao motor de oportunidades
-determinístico em `src/lib/matchmaking-rules.ts`. Não há IA externa.
+A lista de perfis vem da RPC `get_matchmaking_profiles`, nunca de uma consulta ampla no cliente:
 
-Ajuste da v3.40.0: cada tentativa de contato sem retorno reduz levemente o score exibido
-(-5 por tentativa, no máximo -15), para que a listagem não fique travada nos mesmos perfis.
+- Membro/Facilitador/Admin: perfis ativos, exceto Admins e o próprio usuário.
+- Assinante: somente Assinantes e Convidados ativos (`is_showcase_profile`).
+- Leads, cadastros pré-ativação e contatos do CRM nunca entram.
+
+## Sugestão semanal e franquia mensal
+
+A sugestão da semana é orgânica, determinística e **não consome franquia**.
+
+Para Membros e Assinantes, as demais conexões são reveladas pelo botão **Sortear nova conexão**:
+
+- Cada sorteio chama `draw_matchmaking_suggestion(_target_id)` e grava `usage_quota_events` com `feature_key = 'matchmaking_draw'`, mês corrente e `reference_id` do perfil.
+- O mesmo contato não consome franquia duas vezes no mesmo mês.
+- Planos ativos usam `billing_plans.features.matchmaking_monthly_quota`.
+- Assinante sem assinatura ativa ou sem franquia configurada não sorteia.
+- Membros ainda sem plano configurado mantêm o comportamento atual até a atribuição de planos da Fase 4.
+- Admin/Facilitador mantêm visão gerencial completa e não consomem franquia.
+
+## Sugestões e score
+
+O score de afinidade continua no cliente (`src/hooks/useMatchmaking.ts`) a partir de `what_i_do`, `ideal_client`, `business_segment` e `tags`, somado ao motor determinístico em `src/lib/matchmaking-rules.ts`. Não há IA externa.
+
+Cada tentativa sem retorno reduz o score exibido em 5 pontos, no máximo -15.
 
 ## Ações no card
 
-1. **Agendar Gente em Ação** — envia solicitação (`meeting_requests`) e registra uma
-   tentativa do tipo `schedule_request`. Após a gravação, oferece abrir o WhatsApp com uma
-   mensagem sugerida, copiar o texto ou concluir sem WhatsApp. Essa etapa não cria nova tentativa.
-2. **Já conectei** — abre o mesmo formulário do Gente em Ação (data, notas, foto opcional) e
-   chama a RPC `create_matchmaking_check`, que cria o Gente em Ação (25 pts) e registra a
-   conexão efetiva (+10 pts de MatchMaking no mês).
-3. **Registrar tentativa de contato** — grava uma tentativa `manual` (contato fora da
-   plataforma), sem pontuação.
+1. **Agendar Gente em Ação** — envia solicitação (`meeting_requests`) e registra tentativa `schedule_request`. Após gravar, oferece WhatsApp, cópia da mensagem ou conclusão sem WhatsApp.
+2. **Já conectei** — exclusivo de Membros/Facilitadores/Admins; chama `create_matchmaking_check`, cria Gente em Ação e registra conexão efetiva com pontos da mecânica.
+3. **Registrar tentativa de contato** — grava tentativa `manual`, sem pontuação. Assinantes só podem registrar tentativas com perfis da vitrine.
 
 ## Contadores
 
-Cada sugestão exibe:
-- `Tentativas: N` — total de registros em `matchmaking_attempts` para aquela dupla.
-- `Conexões: N` — total de registros em `matchmaking_connections` para aquela dupla.
+Cada sugestão exibe `Tentativas: N` e `Conexões: N` para aquela dupla.
 
 ## Fila de espera (60 dias)
 
-- Apenas **conexões efetivas** colocam o contato em fila de espera.
-- Durante 60 dias após a última conexão, o perfil sai da listagem e da "sugestão da semana".
-- Vencido o prazo, o perfil volta às sugestões com o selo **Reconexão sugerida**.
+- Apenas conexões efetivas colocam o contato em fila de espera.
+- Durante 60 dias, o perfil sai da listagem e da sugestão semanal.
+- Vencido o prazo, volta com o selo **Reconexão sugerida**.
 - Tentativas nunca escondem o perfil.
-- A RPC `create_matchmaking_check` valida a fila no banco e retorna a data de liberação caso
-  o membro tente registrar antes do prazo.
 
 ## Pontuação nas reconexões
 
-Uma nova conexão efetiva após os 60 dias pontua normalmente: 25 pts do Gente em Ação e
-+10 pts de MatchMaking. O termo `matchmaking_count * 10` em `calculate_monthly_points_for_team`
-conta as conexões do mês corrente, então reconexões em meses diferentes não duplicam pontos
-de meses anteriores.
+Uma nova conexão efetiva após 60 dias pontua normalmente para Membros: 25 pts de Gente em Ação e +10 pts de MatchMaking. Assinantes não entram na gamificação de Membros.
 
 ## Modelo de dados
 
-`matchmaking_connections` (conexões efetivas)
-- Restrição única `(member_id, target_id)` **removida** na v3.40.0 para permitir reconexões.
-- Índice `(member_id, target_id, created_at DESC)`.
+- `matchmaking_connections`: conexões efetivas; reconexões permitidas.
+- `matchmaking_attempts`: tentativas sem pontos.
+- `usage_quota_events`: consumo mensal dos sorteios extras.
 
-`matchmaking_attempts` (tentativas, sem pontos)
-- `member_id`, `target_id`, `attempt_type` (`manual` | `schedule_request`), `notes`,
-  `reference_id`, `created_at`.
-- RLS: membro vê/cria/apaga as próprias; admin e facilitador leem todas.
+## WhatsApp assistido
 
-## WhatsApp assistido (v3.49.0)
+- Telefone lido do perfil e normalizado com DDI 55.
+- Link `wa.me` abre somente após a solicitação e por ação explícita.
+- `meeting_requests.whatsapp_opened_at` registra abertura, nunca envio, entrega ou leitura.
 
-- O telefone é lido do perfil e normalizado com DDI `55`; não é digitado no agendamento.
-- O link abre `wa.me` somente após a solicitação ser criada e por ação explícita do membro.
-- A mensagem usa o domínio público `https://comunidade.gentenetworking.com.br`.
-- Sem telefone válido, a mensagem ainda pode ser copiada.
-- `meeting_requests.whatsapp_opened_at` registra apenas a abertura, nunca envio, entrega ou leitura.
-- E-mail e notificação interna continuam sendo enviados normalmente.
+RPCs:
 
-RPCs
+- `get_matchmaking_profiles()`
+- `get_matchmaking_draw_state()`
+- `draw_matchmaking_suggestion(_target_id)`
 - `create_matchmaking_check(_target_id, _description, _meeting_date, _image_url)`
 - `register_matchmaking_attempt(_target_id, _attempt_type, _notes, _reference_id)`
