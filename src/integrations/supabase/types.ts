@@ -272,6 +272,7 @@ export type Database = {
           created_by: string | null
           currency: string
           description: string | null
+          features: Json
           id: string
           installments: number | null
           name: string
@@ -289,6 +290,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string | null
+          features?: Json
           id?: string
           installments?: number | null
           name: string
@@ -306,6 +308,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string | null
+          features?: Json
           id?: string
           installments?: number | null
           name?: string
@@ -2569,6 +2572,54 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_quota_events: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          metadata: Json
+          reference_id: string | null
+          subscription_id: string | null
+          user_id: string
+          year_month: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          metadata?: Json
+          reference_id?: string | null
+          subscription_id?: string | null
+          user_id: string
+          year_month: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          metadata?: Json
+          reference_id?: string | null
+          subscription_id?: string | null
+          user_id?: string
+          year_month?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_quota_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "usage_quota_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2705,6 +2756,10 @@ export type Database = {
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
       get_current_year_month: { Args: never; Returns: string }
+      get_feature_usage: {
+        Args: { _feature_key: string; _user_id: string; _year_month?: string }
+        Returns: number
+      }
       get_group_members_for_notification: {
         Args: { _user_id: string }
         Returns: {
@@ -2893,6 +2948,7 @@ export type Database = {
         Args: { _scope?: string; _team_id?: string }
         Returns: Json
       }
+      get_user_entitlements: { Args: { _user_id: string }; Returns: Json }
       get_user_monthly_points: {
         Args: { _team_id?: string; _user_id: string; _year_month?: string }
         Returns: {
@@ -2920,6 +2976,8 @@ export type Database = {
       is_active_user: { Args: { _user_id?: string }; Returns: boolean }
       is_community_member: { Args: { _user_id: string }; Returns: boolean }
       is_guest: { Args: { _user_id: string }; Returns: boolean }
+      is_showcase_profile: { Args: { _profile_id: string }; Returns: boolean }
+      is_subscriber: { Args: { _user_id: string }; Returns: boolean }
       is_team_facilitator: {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
@@ -3014,6 +3072,10 @@ export type Database = {
         Args: { _name: string; _value: string }
         Returns: Json
       }
+      subscriber_can_see: {
+        Args: { _target: string; _viewer: string }
+        Returns: boolean
+      }
       transfer_guest_to_team: {
         Args: { _guest_id: string; _new_team_id: string }
         Returns: Json
@@ -3032,7 +3094,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "facilitador" | "membro" | "convidado"
+      app_role: "admin" | "facilitador" | "membro" | "convidado" | "assinante"
       crm_lead_source:
         | "lp_gentehub"
         | "lp_participe"
@@ -3177,7 +3239,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "facilitador", "membro", "convidado"],
+      app_role: ["admin", "facilitador", "membro", "convidado", "assinante"],
       crm_lead_source: [
         "lp_gentehub",
         "lp_participe",
