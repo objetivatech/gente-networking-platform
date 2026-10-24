@@ -29,12 +29,13 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useContractTemplates } from '@/hooks/useContractTemplates';
 import { useCrmLeads } from '@/hooks/useCrmLeads';
 import {
-  CHARGE_STATUS_LABEL, INTERVAL_LABEL, PLAN_TYPE_LABEL, SUBSCRIPTION_STATUS_LABEL,
+  AUDIENCE_LABEL, CHARGE_STATUS_LABEL, INTERVAL_LABEL, PLAN_FEATURE_LABEL,
+  PLAN_TYPE_LABEL, SUBSCRIPTION_STATUS_LABEL,
   formatCents, parseCurrencyToCents,
   useBillingCharges, useBillingDiscounts, useBillingPlans, useBillingSubscriptions,
   useDeleteBillingDiscount, useMarkChargePaid, useSaveBillingDiscount, useSaveBillingPlan,
   useSaveSubscription, useSendCharge, useTogglePlanActive,
-  type BillingInterval, type BillingPlan, type PlanType,
+  type BillingInterval, type BillingPlan, type PlanFeatures, type PlanType,
 } from '@/hooks/useBilling';
 
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
@@ -48,6 +49,14 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const [interval, setInterval] = useState<BillingInterval>(plan?.billing_interval ?? 'monthly');
   const [audience, setAudience] = useState(plan?.audience ?? 'hub');
   const [templateId, setTemplateId] = useState(plan?.contract_template_id ?? 'none');
+  // Recursos e limites do plano (Fase 4 — v3.54.0)
+  const [quota, setQuota] = useState(
+    plan?.features?.matchmaking_monthly_quota != null ? String(plan.features.matchmaking_monthly_quota) : '',
+  );
+  const [flagOpportunities, setFlagOpportunities] = useState(plan?.features?.can_access_opportunities === true);
+  const [flagGenteEmAcao, setFlagGenteEmAcao] = useState(plan?.features?.can_create_gente_em_acao === true);
+  const [flagPublicProfile, setFlagPublicProfile] = useState(plan?.features?.public_profile_enabled === true);
+  const [flagAiPitch, setFlagAiPitch] = useState(plan?.features?.ai_pitch_enabled === true);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -106,6 +115,8 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                 <SelectContent>
                   <SelectItem value="hub">Gente HUB</SelectItem>
                   <SelectItem value="premium">Grupo Premium</SelectItem>
+                  <SelectItem value="membro">Membro Premium</SelectItem>
+                  <SelectItem value="assinante">Assinante da Comunidade</SelectItem>
                   <SelectItem value="outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
@@ -123,11 +134,50 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Recursos e limites liberados pelo plano */}
+          <div className="space-y-2 rounded-md border p-3">
+            <p className="text-sm font-medium">Acessos e limites do plano</p>
+            <div className="space-y-1.5">
+              <Label>{PLAN_FEATURE_LABEL.matchmaking_monthly_quota}</Label>
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={quota}
+                onChange={(e) => setQuota(e.target.value)}
+                placeholder="Vazio = sem franquia definida"
+              />
+              <p className="text-xs text-muted-foreground">
+                A indicação semanal do MatchMaking nunca consome esta franquia.
+              </p>
+            </div>
+            {([
+              [flagOpportunities, setFlagOpportunities, PLAN_FEATURE_LABEL.can_access_opportunities],
+              [flagGenteEmAcao, setFlagGenteEmAcao, PLAN_FEATURE_LABEL.can_create_gente_em_acao],
+              [flagPublicProfile, setFlagPublicProfile, PLAN_FEATURE_LABEL.public_profile_enabled],
+              [flagAiPitch, setFlagAiPitch, PLAN_FEATURE_LABEL.ai_pitch_enabled],
+            ] as const).map(([checked, setter, label]) => (
+              <div key={label} className="flex items-center justify-between gap-3">
+                <Label className="font-normal">{label}</Label>
+                <Switch checked={checked} onCheckedChange={setter} />
+              </div>
+            ))}
+          </div>
         </div>
         <DialogFooter>
           <Button
             disabled={!name.trim() || save.isPending}
-            onClick={() =>
+            onClick={() => {
+              const features: PlanFeatures = {};
+              const quotaNum = quota.trim() === '' ? null : Number.parseInt(quota, 10);
+              if (quotaNum != null && Number.isFinite(quotaNum) && quotaNum >= 0) {
+                features.matchmaking_monthly_quota = quotaNum;
+              }
+              if (flagOpportunities) features.can_access_opportunities = true;
+              if (flagGenteEmAcao) features.can_create_gente_em_acao = true;
+              if (flagPublicProfile) features.public_profile_enabled = true;
+              if (flagAiPitch) features.ai_pitch_enabled = true;
               save.mutate(
                 {
                   id: plan?.id,
@@ -138,10 +188,11 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                   amount_cents: parseCurrencyToCents(amount),
                   billing_interval: planType === 'recorrente' ? interval : null,
                   contract_template_id: templateId === 'none' ? null : templateId,
+                  features,
                 },
                 { onSuccess: () => setOpen(false) },
-              )
-            }
+              );
+            }}
           >
             Salvar
           </Button>
@@ -415,6 +466,7 @@ export default function PlanosAssinaturas() {
                       {p.billing_interval ? ` · ${INTERVAL_LABEL[p.billing_interval]}` : ''}
                     </Badge>
                     <Badge variant="outline">{formatCents(p.amount_cents)}</Badge>
+                    <Badge variant="outline">{AUDIENCE_LABEL[p.audience] ?? p.audience}</Badge>
                     {p.contract_template_id && (
                       <Badge variant="outline" className="gap-1">
                         <FileText className="h-3 w-3" /> Contrato vinculado
@@ -422,6 +474,21 @@ export default function PlanosAssinaturas() {
                     )}
                     {!p.active && <Badge variant="outline">Inativo</Badge>}
                   </div>
+                  {(Object.entries(p.features ?? {}) as [keyof PlanFeatures, unknown][])
+                    .filter(([, v]) => v !== false && v != null)
+                    .length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {(Object.entries(p.features ?? {}) as [keyof PlanFeatures, unknown][])
+                        .filter(([, v]) => v !== false && v != null)
+                        .map(([k, v]) => (
+                          <Badge key={k} variant="secondary" className="text-[11px]">
+                            {k === 'matchmaking_monthly_quota'
+                              ? `${PLAN_FEATURE_LABEL[k]}: ${String(v)}`
+                              : PLAN_FEATURE_LABEL[k]}
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
                   <PlanDialog plan={p} />
                 </CardContent>
               </Card>

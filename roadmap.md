@@ -39,7 +39,7 @@
 - [x] Fase 1 — Banco: papel `assinante`, `billing_plans.features` validado, `usage_quota_events`, `get_user_entitlements`/`get_feature_usage`, isolamento RLS do Assinante (pessoas e módulos de membros).
 - [x] Fase 2 — Catraca no frontend (menu, rotas, início próprio) e bloqueio do Assinante em ranking, pontos e estatísticas no banco.
 - [x] Fase 3 — Vitrine exclusiva de Assinantes/Convidados ativos e franquia mensal do MatchMaking; sugestão semanal não consome cota.
-- [ ] Fase 4 — Painel de planos e atribuição.
+- [x] Fase 4 — Painel de planos e atribuição: recursos/limites editáveis no plano (franquia MatchMaking + 4 acessos), públicos Membro Premium e Assinante, atribuição/cancelamento de assinatura por perfil na Gestão de Pessoas (somente Admin).
 - [ ] Fase 5 — Testes e homologação com conta real.
 
 # Recuperação de atualização PWA — etapa exclusiva de correção
