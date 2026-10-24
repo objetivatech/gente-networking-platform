@@ -299,6 +299,22 @@ export function useLeadSubscriptions(leadId: string | null) {
   });
 }
 
+/** Assinaturas de uma pessoa com conta (usado na Gestão de Pessoas). */
+export function useProfileSubscriptions(profileId: string | null) {
+  return useQuery({
+    queryKey: ['billing-subscriptions', 'profile', profileId],
+    enabled: !!profileId,
+    queryFn: async () => {
+      const { data, error } = await from('billing_subscriptions')
+        .select('*')
+        .eq('profile_id', profileId as string)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as BillingSubscription[];
+    },
+  });
+}
+
 export function useSaveSubscription() {
   const qc = useQueryClient();
   const { toast } = useToast();
