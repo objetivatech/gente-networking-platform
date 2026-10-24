@@ -115,6 +115,8 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                 <SelectContent>
                   <SelectItem value="hub">Gente HUB</SelectItem>
                   <SelectItem value="premium">Grupo Premium</SelectItem>
+                  <SelectItem value="membro">Membro Premium</SelectItem>
+                  <SelectItem value="assinante">Assinante da Comunidade</SelectItem>
                   <SelectItem value="outro">Outro</SelectItem>
                 </SelectContent>
               </Select>
