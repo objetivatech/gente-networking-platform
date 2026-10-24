@@ -3032,7 +3032,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "facilitador" | "membro" | "convidado"
+      app_role: "admin" | "facilitador" | "membro" | "convidado" | "assinante"
       crm_lead_source:
         | "lp_gentehub"
         | "lp_participe"
@@ -3177,7 +3177,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "facilitador", "membro", "convidado"],
+      app_role: ["admin", "facilitador", "membro", "convidado", "assinante"],
       crm_lead_source: [
         "lp_gentehub",
         "lp_participe",
