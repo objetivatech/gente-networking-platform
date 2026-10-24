@@ -223,6 +223,7 @@ export default function GestaoPessoas() {
   const [reactivateRole, setReactivateRole] = useState<'membro' | 'facilitador' | 'convidado'>('membro');
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
   const [transferTeamId, setTransferTeamId] = useState<string>('');
   const [deactivationReason, setDeactivationReason] = useState('');
   const [selectedRole, setSelectedRole] = useState<'membro' | 'facilitador'>('membro');
@@ -648,6 +649,21 @@ export default function GestaoPessoas() {
           >
             <UserCheck className="h-4 w-4 mr-1" />
             Reativar
+          </Button>
+        )}
+
+        {isAdmin && (showActions === 'active' || showActions === 'guest') && (
+          <Button
+            variant="outline"
+            size="sm"
+            title="Plano e assinatura"
+            onClick={() => {
+              setSelectedPerson(person);
+              setShowPlanDialog(true);
+            }}
+          >
+            <CircleDollarSign className="h-4 w-4 mr-1" />
+            Plano
           </Button>
         )}
 
@@ -1113,6 +1129,28 @@ export default function GestaoPessoas() {
               disabled={isTransferring || !transferTeamId}
             >
               {isTransferring ? 'Transferindo...' : 'Transferir'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Plano e Assinatura (somente Admin) */}
+      <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CircleDollarSign className="h-5 w-5 text-primary" />
+              Plano e Assinatura
+            </DialogTitle>
+            <DialogDescription>
+              Gerencie o plano de <strong>{selectedPerson?.full_name}</strong>. O plano define os
+              acessos e limites de uso de cada módulo; o histórico da pessoa é preservado.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedPerson && <PersonPlanPanel personId={selectedPerson.id} />}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPlanDialog(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
