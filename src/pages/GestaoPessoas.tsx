@@ -34,11 +34,11 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Users, 
-  UserX, 
-  UserCheck, 
-  Search, 
+import {
+  Users,
+  UserX,
+  UserCheck,
+  Search,
   Mail,
   Building,
   AlertTriangle,
@@ -49,12 +49,130 @@ import {
   ArrowRightLeft,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  CircleDollarSign
 } from 'lucide-react';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseLocalDate } from '@/lib/date-utils';
 import { buildDeactivateArgs } from '@/lib/identity-utils';
+import {
+  SUBSCRIPTION_STATUS_LABEL,
+  formatCents,
+  useBillingPlans,
+  useProfileSubscriptions,
+  useSaveSubscription,
+} from '@/hooks/useBilling';
+
+/**
+ * Painel de plano/assinatura da pessoa (v3.54.0 — Fase 4 do Assinante).
+ * Somente Admin: a RLS de billing já restringe a escrita a administradores.
+ * A assinatura é vinculada ao perfil (profile_id), sem mexer no funil do CRM.
+ */
+function PersonPlanPanel({ personId }: { personId: string }) {
+  const { data: plans } = useBillingPlans();
+  const { data: subscriptions, isLoading } = useProfileSubscriptions(personId);
+  const save = useSaveSubscription();
+  const [planId, setPlanId] = useState('');
+  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+
+  const activePlans = (plans ?? []).filter((p) => p.active);
+  const planById = new Map((plans ?? []).map((p) => [p.id, p]));
+  const hasActive = (subscriptions ?? []).some((s) => s.status === 'active' || s.status === 'draft');
+
+  if (isLoading) {
+    return <Skeleton className="h-24 w-full" />;
+  }
+
+  return (
+    <div className="space-y-4">
+      {(subscriptions ?? []).length > 0 ? (
+        <div className="space-y-2">
+          {(subscriptions ?? []).map((s) => (
+            <div
+              key={s.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-3"
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-wrap-anywhere">
+                  {planById.get(s.plan_id)?.name ?? 'Plano'} · {formatCents(s.amount_cents)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  início {s.start_date}
+                  {s.next_charge_date ? ` · próxima cobrança ${s.next_charge_date}` : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{SUBSCRIPTION_STATUS_LABEL[s.status]}</Badge>
+                {(s.status === 'active' || s.status === 'draft') && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    disabled={save.isPending}
+                    onClick={() => save.mutate({ id: s.id, plan_id: s.plan_id, status: 'canceled' })}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Nenhuma assinatura vinculada a esta pessoa.</p>
+      )}
+
+      <div className="space-y-3 rounded-md border p-3">
+        <p className="text-sm font-medium">Atribuir novo plano</p>
+        {hasActive && (
+          <p className="text-xs text-muted-foreground">
+            Já existe uma assinatura em aberto. Cancele-a antes de atribuir outro plano, para não
+            duplicar cobranças e acessos.
+          </p>
+        )}
+        <div className="space-y-1.5">
+          <Label>Plano</Label>
+          <Select value={planId} onValueChange={setPlanId}>
+            <SelectTrigger><SelectValue placeholder="Selecione o plano" /></SelectTrigger>
+            <SelectContent>
+              {activePlans.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} — {formatCents(p.amount_cents)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label>Início / primeira cobrança</Label>
+          <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </div>
+        <Button
+          size="sm"
+          disabled={!planId || hasActive || save.isPending || activePlans.length === 0}
+          onClick={() =>
+            save.mutate({
+              plan_id: planId,
+              profile_id: personId,
+              status: 'active',
+              start_date: startDate,
+              next_charge_date: startDate,
+            })
+          }
+        >
+          <CircleDollarSign className="h-4 w-4 mr-1" />
+          Atribuir plano
+        </Button>
+        {activePlans.length === 0 && (
+          <p className="text-xs text-muted-foreground">
+            Nenhum plano ativo. Crie e ative um plano em Administração → Planos.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface PersonData {
   id: string;
