@@ -43,11 +43,15 @@ export const isAdminOnly = (role: AppRole): boolean => role === 'admin';
 export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';
 
 /**
- * Quem pode acessar o MatchMaking (sugestões de conexão entre perfis).
- * Membros, facilitadores e admins. Convidados NÃO acessam.
+ * Quem pode acessar o MatchMaking. Assinantes entram pela franquia do plano;
+ * convidados NÃO acessam.
  */
 export const canUseMatchmaking = (role: AppRole): boolean =>
-  isOneOf(role, ['admin', 'facilitador', 'membro']);
+  isOneOf(role, ['admin', 'facilitador', 'membro', 'assinante']);
+
+/** Vitrine exclusiva: somente Assinantes e Convidados ativos. */
+export const canAccessCommunityShowcase = (role: AppRole): boolean =>
+  isOneOf(role, ['assinante', 'convidado']);
 
 /**
  * Quem pode acessar o Mural de Oportunidades (publicar/ver oportunidades).
@@ -83,7 +87,7 @@ export const isSubscriberRole = (role: AppRole): boolean => role === 'assinante'
  * O banco filtra os dados exibidos nestas rotas para Assinantes/Convidados.
  */
 export const SUBSCRIBER_ALLOWED_PATHS: ReadonlyArray<string> = [
-  '/', '/feed', '/perfil', '/gente-em-acao', '/indicacoes', '/negocios',
+  '/', '/feed', '/perfil', '/vitrine', '/matchmaking', '/gente-em-acao', '/indicacoes', '/negocios',
   '/depoimentos', '/conteudos', '/configuracoes',
   '/termos-de-uso', '/politica-de-privacidade', '/politica-de-cookies',
 ];
