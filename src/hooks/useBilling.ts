@@ -14,6 +14,27 @@ import { useToast } from '@/hooks/use-toast';
 export type PlanType = 'recorrente' | 'pontual';
 export type BillingInterval = 'monthly' | 'quarterly' | 'semiannual' | 'yearly';
 
+/**
+ * Recursos/limites liberados pelo plano (v3.54.0 — Fase 4 do Assinante).
+ * As chaves são validadas por trigger no banco; chave ausente = recurso não
+ * concedido (ou sem franquia, no caso da cota de MatchMaking).
+ */
+export interface PlanFeatures {
+  matchmaking_monthly_quota?: number;
+  can_access_opportunities?: boolean;
+  can_create_gente_em_acao?: boolean;
+  public_profile_enabled?: boolean;
+  ai_pitch_enabled?: boolean;
+}
+
+export const PLAN_FEATURE_LABEL: Record<keyof PlanFeatures, string> = {
+  matchmaking_monthly_quota: 'Sorteios de MatchMaking/mês',
+  can_access_opportunities: 'Mural de Oportunidades',
+  can_create_gente_em_acao: 'Criar Gente em Ação',
+  public_profile_enabled: 'Página pública do membro',
+  ai_pitch_enabled: 'Pitch por IA',
+};
+
 export interface BillingPlan {
   id: string;
   name: string;
@@ -27,6 +48,7 @@ export interface BillingPlan {
   contract_template_id: string | null;
   active: boolean;
   position: number;
+  features: PlanFeatures;
   created_at: string;
   updated_at: string;
 }
@@ -86,6 +108,14 @@ export const INTERVAL_LABEL: Record<BillingInterval, string> = {
   quarterly: 'Trimestral',
   semiannual: 'Semestral',
   yearly: 'Anual',
+};
+
+export const AUDIENCE_LABEL: Record<string, string> = {
+  hub: 'Gente HUB',
+  premium: 'Grupo Premium',
+  membro: 'Membro Premium',
+  assinante: 'Assinante da Comunidade',
+  outro: 'Outro',
 };
 
 export const SUBSCRIPTION_STATUS_LABEL: Record<BillingSubscription['status'], string> = {
