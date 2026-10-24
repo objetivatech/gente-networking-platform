@@ -21,6 +21,7 @@ import RankBadge from '@/components/RankBadge';
 import ActivityFeed from '@/components/ActivityFeed';
 import ScoringRulesCard from '@/components/ScoringRulesCard';
 import GuestWelcome from '@/pages/GuestWelcome';
+import SubscriberHome from '@/pages/SubscriberHome';
 import SEO from '@/components/SEO';
 import { meetingDisplayTitle } from '@/lib/meeting-label';
 import {
@@ -45,7 +46,7 @@ export default function Index() {
   const { profile, isLoading: profileLoading } = useProfile();
   const { data: stats, isLoading: statsLoading } = useStats();
   const { meetings, isLoading: meetingsLoading } = useMeetings();
-  const { isGuest, isLoading: roleLoading } = useAdmin();
+  const { isGuest, isSubscriber, isLoading: roleLoading } = useAdmin();
 
   // Safe defaults
   const meetingsList = meetings ?? [];
@@ -66,6 +67,11 @@ export default function Index() {
   // Convidados veem página especial
   if (isGuest) {
     return <GuestWelcome />;
+  }
+
+  // Assinante da Comunidade: início próprio, sem números de Membros
+  if (isSubscriber) {
+    return <SubscriberHome firstName={firstName} />;
   }
 
   const statsCards = [

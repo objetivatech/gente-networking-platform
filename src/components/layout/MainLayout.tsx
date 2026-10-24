@@ -22,11 +22,14 @@ import BottomNav from './BottomNav';
 import { Loader2, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { useAdmin } from '@/hooks/useAdmin';
+import { canAccessAppPath } from '@/lib/access-control';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { role, isLoading: loadingRole } = useAdmin();
   
   // Scroll to top on route change
   useScrollToTop();
@@ -68,7 +71,7 @@ export default function MainLayout() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (loadingAccount) {
+  if (loadingAccount || loadingRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -99,6 +102,11 @@ export default function MainLayout() {
         </div>
       </div>
     );
+  }
+
+  // Bloco 2 · Fase 2: Assinante só abre as rotas liberadas ao seu papel.
+  if (!canAccessAppPath(role, location.pathname)) {
+    return <Navigate to="/" replace />;
   }
 
   return (

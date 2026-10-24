@@ -12,7 +12,7 @@
  * Toda nova permissão crítica deve ser registrada aqui e coberta por teste.
  */
 
-export type AppRole = 'admin' | 'facilitador' | 'membro' | 'convidado' | null | undefined;
+export type AppRole = 'admin' | 'facilitador' | 'membro' | 'convidado' | 'assinante' | null | undefined;
 
 const isOneOf = (role: AppRole, allowed: ReadonlyArray<Exclude<AppRole, null | undefined>>) =>
   !!role && (allowed as readonly string[]).includes(role);
@@ -68,3 +68,29 @@ export const canUseReferralRequests = (role: AppRole): boolean =>
  * Apenas admin — é uma ferramenta de gestão/marketing, não de networking.
  */
 export const canManageRescue = (role: AppRole): boolean => role === 'admin';
+
+/* ------------------------------------------------------------------ */
+/* Bloco 2 · Fase 2 — Catraca do Assinante da Comunidade              */
+/* ------------------------------------------------------------------ */
+
+/** Assinante da Comunidade: acesso por assinatura, sem mecânicas de Membros. */
+export const isSubscriberRole = (role: AppRole): boolean => role === 'assinante';
+
+/**
+ * Rotas internas liberadas ao Assinante. Tudo o que não estiver aqui
+ * (Membros, Convidados, MatchMaking, Encontros, Conselho, Estatísticas,
+ * Ranking, Convites, Oportunidades, Pedidos, Documentação, Admin…) é bloqueado.
+ * O banco filtra os dados exibidos nestas rotas para Assinantes/Convidados.
+ */
+export const SUBSCRIBER_ALLOWED_PATHS: ReadonlyArray<string> = [
+  '/', '/feed', '/perfil', '/gente-em-acao', '/indicacoes', '/negocios',
+  '/depoimentos', '/conteudos', '/configuracoes',
+  '/termos-de-uso', '/politica-de-privacidade', '/politica-de-cookies',
+];
+
+/** Decide se o papel pode abrir a rota interna informada. */
+export const canAccessAppPath = (role: AppRole, pathname: string): boolean => {
+  if (!isSubscriberRole(role)) return true; // demais papéis mantêm as regras atuais
+  const path = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  return SUBSCRIBER_ALLOWED_PATHS.includes(path);
+};

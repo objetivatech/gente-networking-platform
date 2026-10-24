@@ -111,3 +111,31 @@ describe('central de resgate (v3.43.0)', () => {
     expect(canManageRescue(null)).toBe(false);
   });
 });
+
+import { canAccessAppPath, isSubscriberRole } from '../access-control';
+
+describe('access-control: Assinante da Comunidade (Bloco 2 · Fase 2)', () => {
+  it('Assinante não acessa áreas de Membros', () => {
+    for (const p of ['/membros', '/convidados', '/matchmaking', '/encontros', '/conselho', '/estatisticas', '/ranking', '/convites', '/oportunidades', '/pedidos-indicacao', '/membro/joao', '/admin', '/dashboard', '/documentacao']) {
+      expect(canAccessAppPath('assinante', p)).toBe(false);
+    }
+  });
+  it('Assinante acessa Início, Perfil e movimentos permitidos', () => {
+    for (const p of ['/', '/perfil', '/feed', '/gente-em-acao', '/indicacoes', '/negocios', '/depoimentos', '/conteudos', '/configuracoes', '/perfil/']) {
+      expect(canAccessAppPath('assinante', p)).toBe(true);
+    }
+  });
+  it('demais papéis não são afetados', () => {
+    for (const r of ['admin', 'facilitador', 'membro', 'convidado'] as const) {
+      expect(canAccessAppPath(r, '/membros')).toBe(true);
+      expect(isSubscriberRole(r)).toBe(false);
+    }
+  });
+  it('Assinante não usa MatchMaking, Mural nem Pedidos', () => {
+    expect(canUseMatchmaking('assinante')).toBe(false);
+    expect(canUseOpportunityBoard('assinante')).toBe(false);
+    expect(canUseReferralRequests('assinante')).toBe(false);
+    expect(canViewMembersDirectory('assinante')).toBe(false);
+    expect(canViewGuestsDirectory('assinante')).toBe(false);
+  });
+});
