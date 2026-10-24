@@ -9,6 +9,7 @@
 - Gate Cloudflare LP-host rewriting with `LP_UNIFIED_ENABLED`; it preserves source URLs and allows rollback without replacing the authenticated dashboard.
 - Use permanent public URLs for the authorized `lps-media` bucket, resolving legacy pointers on read; never publish temporary signed Storage URLs in LP content.
 - Sanitize LP HTML and preserve reserved application routes; editable public content must not execute arbitrary scripts on the authenticated origin.
+- Preserve historical LP submissions in the Admin-only crm_historical_captures ledger; import only conflict-free new identities transactionally with rescue suppression and never replay live intake, because capture history must not change existing accounts, invitations or operational state.
 
 - Separe ativação (`invitations`) de visitas recorrentes (`guest_participations`), pois uma nova participação nunca deve criar conta, presença, pontos ou promoção automaticamente.
 - Consolide métricas de presença no CRM por encontro entre `attendances` e `meeting_lead_attendances`, pois a ativação pode ligar as duas fontes à mesma identidade.

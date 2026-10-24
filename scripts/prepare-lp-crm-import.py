@@ -131,7 +131,7 @@ DO $$ BEGIN
   AND (NOT rescue_opt_out OR onboarding_email_status<>'not_applicable' OR invitation_id IS NOT NULL
     OR profile_id IS NOT NULL OR meeting_attendance_count<>0 OR first_attendance_at IS NOT NULL OR last_attendance_at IS NOT NULL))
  THEN RAISE EXCEPTION 'Historical safety invariant failed'; END IF;
- IF EXISTS(SELECT kind,n FROM lp_before EXCEPT
+ IF EXISTS(SELECT kind,n FROM lp_before EXCEPT (
  SELECT 'invitations',count(*) FROM public.invitations
  UNION ALL SELECT 'profiles',count(*) FROM public.profiles
  UNION ALL SELECT 'roles',count(*) FROM public.user_roles
@@ -139,7 +139,7 @@ DO $$ BEGIN
  UNION ALL SELECT 'lead_attendances',count(*) FROM public.meeting_lead_attendances
  UNION ALL SELECT 'rescue',count(*) FROM public.rescue_dispatches
  UNION ALL SELECT 'notifications',count(*) FROM public.notification_dispatch_log
- UNION ALL SELECT 'billing',count(*) FROM public.billing_charges)
+ UNION ALL SELECT 'billing',count(*) FROM public.billing_charges))
  THEN RAISE EXCEPTION 'Unintended side effect'; END IF;
 END $$;
 SELECT decision,count(*) captures,count(DISTINCT lower(btrim(payload->>'email'))) emails
