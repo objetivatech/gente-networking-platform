@@ -25,7 +25,7 @@ const shortcuts = [
 export default function SubscriberHome({ firstName }: { firstName: string }) {
   return (
     <div className="space-y-6 animate-fade-in">
-      <SEO title="Início" />
+      <SEO title="Início" description="Início do Assinante da Comunidade Gente" />
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-wrap-anywhere">Olá, {firstName}!</h1>
         <p className="text-muted-foreground">Bem-vindo à Comunidade Gente como Assinante.</p>
