@@ -466,6 +466,7 @@ export default function PlanosAssinaturas() {
                       {p.billing_interval ? ` · ${INTERVAL_LABEL[p.billing_interval]}` : ''}
                     </Badge>
                     <Badge variant="outline">{formatCents(p.amount_cents)}</Badge>
+                    <Badge variant="outline">{AUDIENCE_LABEL[p.audience] ?? p.audience}</Badge>
                     {p.contract_template_id && (
                       <Badge variant="outline" className="gap-1">
                         <FileText className="h-3 w-3" /> Contrato vinculado
@@ -473,6 +474,21 @@ export default function PlanosAssinaturas() {
                     )}
                     {!p.active && <Badge variant="outline">Inativo</Badge>}
                   </div>
+                  {(Object.entries(p.features ?? {}) as [keyof PlanFeatures, unknown][])
+                    .filter(([, v]) => v !== false && v != null)
+                    .length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {(Object.entries(p.features ?? {}) as [keyof PlanFeatures, unknown][])
+                        .filter(([, v]) => v !== false && v != null)
+                        .map(([k, v]) => (
+                          <Badge key={k} variant="secondary" className="text-[11px]">
+                            {k === 'matchmaking_monthly_quota'
+                              ? `${PLAN_FEATURE_LABEL[k]}: ${String(v)}`
+                              : PLAN_FEATURE_LABEL[k]}
+                          </Badge>
+                        ))}
+                    </div>
+                  )}
                   <PlanDialog plan={p} />
                 </CardContent>
               </Card>
