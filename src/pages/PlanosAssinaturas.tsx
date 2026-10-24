@@ -134,11 +134,50 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Recursos e limites liberados pelo plano */}
+          <div className="space-y-2 rounded-md border p-3">
+            <p className="text-sm font-medium">Acessos e limites do plano</p>
+            <div className="space-y-1.5">
+              <Label>{PLAN_FEATURE_LABEL.matchmaking_monthly_quota}</Label>
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                value={quota}
+                onChange={(e) => setQuota(e.target.value)}
+                placeholder="Vazio = sem franquia definida"
+              />
+              <p className="text-xs text-muted-foreground">
+                A indicação semanal do MatchMaking nunca consome esta franquia.
+              </p>
+            </div>
+            {([
+              [flagOpportunities, setFlagOpportunities, PLAN_FEATURE_LABEL.can_access_opportunities],
+              [flagGenteEmAcao, setFlagGenteEmAcao, PLAN_FEATURE_LABEL.can_create_gente_em_acao],
+              [flagPublicProfile, setFlagPublicProfile, PLAN_FEATURE_LABEL.public_profile_enabled],
+              [flagAiPitch, setFlagAiPitch, PLAN_FEATURE_LABEL.ai_pitch_enabled],
+            ] as const).map(([checked, setter, label]) => (
+              <div key={label} className="flex items-center justify-between gap-3">
+                <Label className="font-normal">{label}</Label>
+                <Switch checked={checked} onCheckedChange={setter} />
+              </div>
+            ))}
+          </div>
         </div>
         <DialogFooter>
           <Button
             disabled={!name.trim() || save.isPending}
-            onClick={() =>
+            onClick={() => {
+              const features: PlanFeatures = {};
+              const quotaNum = quota.trim() === '' ? null : Number.parseInt(quota, 10);
+              if (quotaNum != null && Number.isFinite(quotaNum) && quotaNum >= 0) {
+                features.matchmaking_monthly_quota = quotaNum;
+              }
+              if (flagOpportunities) features.can_access_opportunities = true;
+              if (flagGenteEmAcao) features.can_create_gente_em_acao = true;
+              if (flagPublicProfile) features.public_profile_enabled = true;
+              if (flagAiPitch) features.ai_pitch_enabled = true;
               save.mutate(
                 {
                   id: plan?.id,
@@ -149,10 +188,11 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                   amount_cents: parseCurrencyToCents(amount),
                   billing_interval: planType === 'recorrente' ? interval : null,
                   contract_template_id: templateId === 'none' ? null : templateId,
+                  features,
                 },
                 { onSuccess: () => setOpen(false) },
-              )
-            }
+              );
+            }}
           >
             Salvar
           </Button>
