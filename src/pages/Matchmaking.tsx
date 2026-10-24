@@ -16,6 +16,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { useMatchmaking, MatchSuggestion } from '@/hooks/useMatchmaking';
 import { useAdmin } from '@/hooks/useAdmin';
 import { canUseMatchmaking } from '@/lib/access-control';
+import { resolveMatchmakingDraws } from '@/lib/matchmaking-draw';
 import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
 import { MatchmakingCheckDialog } from '@/components/MatchmakingCheckDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   HeartHandshake, Sparkles, CheckCircle2, AlertTriangle, Building2, Briefcase, Star, Lightbulb,
-  Repeat2, PhoneCall, Handshake,
+  Repeat2, PhoneCall, Handshake, Shuffle,
 } from 'lucide-react';
 
 const formatDate = (iso: string) =>
@@ -38,14 +39,24 @@ const initials = (name: string) =>
 
 export default function Matchmaking() {
   const { role, isLoading: roleLoading } = useAdmin();
-  const { myProfile, suggestions, weeklySuggestion, isLoading, connections, createCheck, registerAttempt } = useMatchmaking();
+  const {
+    myProfile, suggestions, weeklySuggestion, isLoading, connections,
+    drawState, isDrawStateLoading, drawSuggestion, createCheck, registerAttempt,
+  } = useMatchmaking();
 
   if (!roleLoading && !canUseMatchmaking(role)) {
     return <Navigate to="/" replace />;
   }
 
-  // Sugestões visíveis: exclui apenas quem está em fila de espera (60 dias)
-  const pending = suggestions;
+  // Admin/Facilitador mantêm visão gerencial completa; Membro/Assinante usam sorteios mensais.
+  const showAllSuggestions = role === 'admin' || role === 'facilitador';
+  const { visible: pending, nextCandidate } = resolveMatchmakingDraws(
+    suggestions,
+    weeklySuggestion?.id,
+    drawState?.target_ids ?? [],
+    showAllSuggestions,
+  );
+  const canDraw = !!nextCandidate && drawState?.can_draw === true && !drawSuggestion.isPending;
 
   return (
     <div className="space-y-6">
@@ -107,16 +118,46 @@ export default function Matchmaking() {
                   registerAttempt.mutate({ targetId: weeklySuggestion.id, attemptType: 'schedule_request' })
                 }
               />
-              <MatchmakingCheckDialog
-                targetId={weeklySuggestion.id}
-                targetName={weeklySuggestion.full_name}
-                createCheck={createCheck}
-              />
+              {role !== 'assinante' && (
+                <MatchmakingCheckDialog
+                  targetId={weeklySuggestion.id}
+                  targetName={weeklySuggestion.full_name}
+                  createCheck={createCheck}
+                />
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
+      {!showAllSuggestions && (
+        <Card>
+          <CardContent className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Franquia de sorteios do mês</p>
+              <p className="text-sm text-muted-foreground">
+                {drawState?.metered
+                  ? `${drawState.used} de ${drawState.quota} sorteios utilizados${drawState.plan_name ? ` · Plano ${drawState.plan_name}` : ''}`
+                  : 'Sorteios extras disponíveis enquanto seu plano não define um limite.'}
+              </p>
+              {drawState?.reason && (
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {drawState.reason}
+                  {drawState.renewal_date && drawState.metered && ` Renova em ${formatDate(drawState.renewal_date)}.`}
+                </p>
+              )}
+            </div>
+            <Button
+              className="shrink-0"
+              disabled={!canDraw || isDrawStateLoading}
+              onClick={() => nextCandidate && drawSuggestion.mutate(nextCandidate.id)}
+            >
+              <Shuffle className="mr-2 h-4 w-4" />
+              {drawSuggestion.isPending ? 'Sorteando...' : 'Sortear nova conexão'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="suggestions" className="w-full">
         <TabsList>
@@ -135,7 +176,9 @@ export default function Matchmaking() {
             </div>
           ) : pending.length === 0 ? (
             <Card><CardContent className="py-10 text-center text-muted-foreground">
-              Nenhuma sugestão de conexão no momento. Complete seu perfil e volte em breve.
+              {showAllSuggestions
+                ? 'Nenhuma sugestão de conexão no momento. Complete seu perfil e volte em breve.'
+                : 'Nenhuma conexão extra sorteada ainda. Use a franquia do mês para revelar um novo contato.'}
             </CardContent></Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -222,12 +265,14 @@ export default function Matchmaking() {
                           registerAttempt.mutate({ targetId: s.id, attemptType: 'schedule_request' })
                         }
                       />
-                      <MatchmakingCheckDialog
-                        targetId={s.id}
-                        targetName={s.full_name}
-                        createCheck={createCheck}
-                        className="w-full"
-                      />
+                      {role !== 'assinante' && (
+                        <MatchmakingCheckDialog
+                          targetId={s.id}
+                          targetName={s.full_name}
+                          createCheck={createCheck}
+                          className="w-full"
+                        />
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
