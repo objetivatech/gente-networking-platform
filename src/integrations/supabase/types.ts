@@ -2691,6 +2691,14 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_change_community_role: {
+        Args: {
+          _profile_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _team_id?: string
+        }
+        Returns: undefined
+      }
       are_same_team: {
         Args: { p_user_id1: string; p_user_id2: string }
         Returns: boolean
