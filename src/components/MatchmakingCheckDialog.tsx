@@ -25,6 +25,7 @@ import { CheckCircle2, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { uploadGenteEmAcaoImage } from '@/lib/image-upload';
+import { todayLocalISODate } from '@/lib/date-utils';
 import type { useMatchmaking } from '@/hooks/useMatchmaking';
 
 interface MatchmakingCheckDialogProps {
@@ -42,7 +43,7 @@ export function MatchmakingCheckDialog({
   const { user } = useAuth();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [meetingDate, setMeetingDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [meetingDate, setMeetingDate] = useState(() => todayLocalISODate());
   const [notes, setNotes] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);

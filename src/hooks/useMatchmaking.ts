@@ -22,6 +22,7 @@ import { isEligibleCommunityTarget } from '@/lib/plan-access';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeMatchOpportunity, type MatchType } from '@/lib/matchmaking-rules';
 import { normalizeDrawState, type MatchmakingDrawState } from '@/lib/matchmaking-draw';
+import { todayLocalISODate } from '@/lib/date-utils';
 
 export interface MatchSuggestion {
   id: string;
@@ -433,7 +434,7 @@ export function useMatchmaking() {
       const { data, error } = await supabase.rpc('create_matchmaking_check' as any, {
         _target_id: input.targetId,
         _description: input.description || null,
-        _meeting_date: input.meetingDate || new Date().toISOString().slice(0, 10),
+        _meeting_date: input.meetingDate || todayLocalISODate(),
         _image_url: input.imageUrl || null,
       });
       if (error) throw error;
