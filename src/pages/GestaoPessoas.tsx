@@ -14,6 +14,7 @@
  */
 
 import { fetchAllRows } from '@/lib/paginated-query';
+import { useMeetings } from '@/hooks/useMeetings';
 import { countPeople, primaryRole, PEOPLE_ROLES } from '@/lib/people-counts';
 import type { AppRole } from '@/lib/access-control';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -238,6 +239,16 @@ export default function GestaoPessoas() {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'members');
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const { meetings: premiumMeetings } = useMeetings(isAdmin || isFacilitator);
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+  const [premiumMeetingId, setPremiumMeetingId] = useState('');
+  const invitePremium = useMutation({ mutationFn: async () => {
+    if (!selectedPerson) throw new Error('Selecione a pessoa');
+    const { data, error } = await supabase.rpc('invite_subscriber_premium', { _profile_id: selectedPerson.id, _meeting_id: premiumMeetingId });
+    if (error) throw error;
+    const { error: emailError } = await supabase.functions.invoke('community-notification', { body: { kind: 'premium', reference_id: data } });
+    if (emailError) toast({ title: 'Convite salvo', description: 'Não foi possível enviar o aviso por e-mail.', variant: 'destructive' });
+  }, onSuccess: () => { setShowPremiumDialog(false); toast({ title: 'Participação convidada', description: 'O papel Assinante foi preservado.' }); }, onError: (error: Error) => toast({ title: 'Erro ao convidar', description: error.message, variant: 'destructive' }) });
   const [showPlanDialog, setShowPlanDialog] = useState(false);
   const [transferTeamId, setTransferTeamId] = useState<string>('');
   const [deactivationReason, setDeactivationReason] = useState('');
@@ -672,6 +683,7 @@ export default function GestaoPessoas() {
           </Button>
         )}
 
+        {person.role === 'assinante' && person.is_active && (isAdmin || isFacilitator) && <Button size="sm" variant="outline" onClick={() => { setSelectedPerson(person); setPremiumMeetingId(''); setShowPremiumDialog(true); }}><UserPlus className="h-4 w-4 mr-1" />Convidar para encontro</Button>}
         {person.slug && (
           <Button
             variant="ghost"
@@ -1119,6 +1131,10 @@ export default function GestaoPessoas() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>Convidar para encontro Premium</DialogTitle><DialogDescription>{selectedPerson?.full_name} permanece Assinante da Comunidade.</DialogDescription></DialogHeader>
+        <Label>Encontro</Label><Select value={premiumMeetingId} onValueChange={setPremiumMeetingId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{(premiumMeetings ?? []).filter(m => m.event_type === 'premium_group' && m.meeting_date >= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })).map(m => <SelectItem key={m.id} value={m.id}>{m.title} · {m.meeting_date.split('-').reverse().join('/')}</SelectItem>)}</SelectContent></Select>
+        <DialogFooter><Button variant="outline" onClick={() => setShowPremiumDialog(false)}>Cancelar</Button><Button disabled={!premiumMeetingId || invitePremium.isPending} onClick={() => invitePremium.mutate()}>Enviar convite</Button></DialogFooter>
+      </DialogContent></Dialog>
       {/* Dialog de Plano e Assinatura (somente Admin) */}
       <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
         <DialogContent className="max-w-lg">

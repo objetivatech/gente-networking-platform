@@ -420,6 +420,14 @@ export function useAssignPersonPlan() {
       if (error) throw error;
       const result = data as { success?: boolean; subscription_id?: string };
       if (!result?.success) throw new Error('Não foi possível atribuir o plano');
+      if (result.subscription_id) {
+        const { error: notificationError } = await supabase.functions.invoke('community-notification', { body: { kind: 'plan', reference_id: result.subscription_id } });
+        if (notificationError) toast({ title: 'Plano salvo', description: 'O aviso por e-mail não foi enviado.', variant: 'destructive' });
+        if (input.reactivate) {
+          const { data: charge, error: chargeError } = await supabase.functions.invoke('dispatch-billing-charge', { body: { subscription_id: result.subscription_id } });
+          if (chargeError || charge?.success === false) toast({ title: 'Reativação salva', description: 'A cobrança não foi enviada. Revise pelo botão Cobrar.', variant: 'destructive' });
+        }
+      }
       return result;
     },
     onSuccess: () => {
