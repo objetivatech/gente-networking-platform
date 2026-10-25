@@ -2679,6 +2679,18 @@ export type Database = {
         Args: { _lead_id: string; _note: string }
         Returns: Json
       }
+      admin_assign_person_plan: {
+        Args: {
+          _as_subscriber?: boolean
+          _plan_id: string
+          _profile_id: string
+          _reactivate?: boolean
+          _role?: Database["public"]["Enums"]["app_role"]
+          _start_date?: string
+          _team_id?: string
+        }
+        Returns: Json
+      }
       are_same_team: {
         Args: { p_user_id1: string; p_user_id2: string }
         Returns: boolean
@@ -2760,6 +2772,7 @@ export type Database = {
       generate_unique_slug:
         | { Args: { name: string; user_id: string }; Returns: string }
         | { Args: { name: string; user_id: string }; Returns: string }
+      get_community_profile: { Args: { _profile_id: string }; Returns: Json }
       get_community_showcase: {
         Args: never
         Returns: {
@@ -2913,6 +2926,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_my_premium_invitations: { Args: never; Returns: Json }
       get_public_profile: {
         Args: { _slug: string }
         Returns: {
@@ -3002,6 +3016,10 @@ export type Database = {
         }[]
       }
       get_year_month_from_date: { Args: { d: string }; Returns: string }
+      has_module_access: {
+        Args: { _feature: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3103,6 +3121,10 @@ export type Database = {
       renew_guest_invitation: {
         Args: { _invitation_id: string }
         Returns: Json
+      }
+      respond_premium_invitation: {
+        Args: { _accept: boolean; _participation_id: string }
+        Returns: undefined
       }
       set_integration_secret: {
         Args: { _name: string; _value: string }
