@@ -40,9 +40,9 @@ import { ptBR } from 'date-fns/locale';
 
 export default function Profile() {
   const { user } = useAuth();
-  const { isSubscriber, isGuest } = useAdmin();
+  const { isSubscriber, isGuest, isLoading: loadingRole } = useAdmin();
   const { can } = useEntitlements();
-  const memberMetrics = !isSubscriber && !isGuest;
+  const memberMetrics = !loadingRole && !isSubscriber && !isGuest;
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
   const { data: stats } = useStats('month', memberMetrics);
   const { cases, createCase, deleteCase } = useBusinessCases();

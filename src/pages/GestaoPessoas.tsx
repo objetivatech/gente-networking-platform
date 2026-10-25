@@ -13,6 +13,7 @@
  * @since 2025-02-08
  */
 
+import { PersonRoleDialog } from '@/components/PersonRoleDialog';
 import { fetchAllRows } from '@/lib/paginated-query';
 import { useMeetings } from '@/hooks/useMeetings';
 import { countPeople, primaryRole, PEOPLE_ROLES } from '@/lib/people-counts';
@@ -583,6 +584,7 @@ export default function GestaoPessoas() {
 
       {/* Ações */}
       <div className="flex flex-wrap items-center gap-2 shrink-0">
+        {isAdmin && person.is_active && ['convidado', 'assinante', 'membro'].includes(person.role ?? '') && <PersonRoleDialog profileId={person.id} name={person.full_name} teams={teams ?? []} />}
         {showActions === 'active' && isAdmin && (
           <Button
             variant="outline"
