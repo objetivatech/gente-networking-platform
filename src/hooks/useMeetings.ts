@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, supabaseReadOnly } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { todayLocalISODate } from '@/lib/date-utils';
 
 export interface Meeting {
   id: string;
@@ -227,7 +228,7 @@ export function useGuestsAttendanceHistory() {
     queryKey: ['guests-attendance-history'],
     staleTime: 60 * 1000,
     queryFn: async (): Promise<GuestAttendanceEntry[]> => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayLocalISODate();
 
       // 1) Encontros (passados + futuros)
       const { data: meetings } = await supabaseReadOnly

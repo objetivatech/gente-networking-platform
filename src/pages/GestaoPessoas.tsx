@@ -60,7 +60,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO, isWithinInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { parseLocalDate } from '@/lib/date-utils';
+import { formatDateBR, parseLocalDate, todayLocalISODate } from '@/lib/date-utils';
 import { buildDeactivateArgs } from '@/lib/identity-utils';
 import {
   SUBSCRIPTION_STATUS_LABEL,
@@ -85,7 +85,7 @@ function PersonPlanPanel({ personId }: { personId: string }) {
   const sendCharge = useSendCharge();
   const [confirmSubscriber, setConfirmSubscriber] = useState(false);
   const [planId, setPlanId] = useState('');
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(todayLocalISODate());
 
   const activePlans = (plans ?? []).filter((p) => p.active);
   const planById = new Map((plans ?? []).map((p) => [p.id, p]));
@@ -111,8 +111,8 @@ function PersonPlanPanel({ personId }: { personId: string }) {
                   {planById.get(s.plan_id)?.name ?? 'Plano'} · {formatCents(s.amount_cents)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  início {s.start_date}
-                  {s.next_charge_date ? ` · próxima cobrança ${s.next_charge_date}` : ''}
+                  início {formatDateBR(s.start_date)}
+                  {s.next_charge_date ? ` · próxima cobrança ${formatDateBR(s.next_charge_date)}` : ''}
                 </p>
               </div>
               <div className="flex items-center gap-2">

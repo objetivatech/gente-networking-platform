@@ -1,0 +1,1 @@
+DO $$ DECLARE def text; BEGIN def:=pg_get_functiondef('public.admin_assign_person_plan(uuid,uuid,date,boolean,boolean,uuid,app_role)'::regprocedure); def:=replace(def,'_start_date date DEFAULT CURRENT_DATE','_start_date date DEFAULT ((now() AT TIME ZONE ''America/Sao_Paulo'')::date)'); EXECUTE def; END $$;

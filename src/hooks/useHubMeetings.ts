@@ -10,6 +10,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { todayLocalISODate } from '@/lib/date-utils';
 
 export interface HubMeeting {
   id: string;
@@ -40,7 +41,7 @@ export function useHubMeetings() {
   return useQuery({
     queryKey: ['hub-meetings-open'],
     queryFn: async () => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayLocalISODate();
       const { data, error } = await supabase
         .from('meetings')
         .select('id, title, event_type, meeting_date, meeting_time, location')

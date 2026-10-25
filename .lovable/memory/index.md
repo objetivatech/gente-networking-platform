@@ -8,3 +8,4 @@
 - [WhatsApp no agendamento v3.49.0](mem://features/whatsapp-agendamento-v3490) — Após solicitar Gente em Ação, abre wa.me com mensagem sugerida; registra abertura, não envio
 - [Convites e ciclos v3.50.0](mem://features/convites-participacoes-resgate-v350) — Reutilização/renovação segura; participações recorrentes separadas; última presença no CRM; Resgate por ciclos e Ex-Convidado
 - [Isolamento do Assinante](mem://features/subscriber-isolation) — Vitrine exclusiva, RPCs de perfis e franquia mensal do MatchMaking
+- [Datas em DD/MM/AAAA v3.55.1](mem://infrastructure/date-timezone-v3551) — todayLocalISODate() (fuso SP) em vez de toISOString UTC; formatDateBR() para exibição

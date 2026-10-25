@@ -44,6 +44,7 @@
 - [x] Fase 4 — Painel de planos e atribuição: recursos/limites editáveis no plano (franquia MatchMaking + 4 acessos), públicos Membro Premium e Assinante, atribuição/cancelamento de assinatura por perfil na Gestão de Pessoas (somente Admin).
 - [x] Fase 5 — 98 testes da plataforma e 3 testes de cobrança; matriz, contadores, paginação, franquia e entrada pública sem erros.
 - [ ] Fase 5 — Homologação de atribuição, cobrança, agendamento, convite Premium e consumo de cota com conta real — Supabase externo sem sessão autenticada disponível. Não criar/alterar conta de teste arbitrária.
+- [x] v3.55.1 — Data inicial da assinatura e dos encontros no fuso de Brasília (era UTC e nascia "no dia seguinte" à noite, deixando o plano inativo); exibição de datas de assinatura/cobrança em DD/MM/AAAA; 104 testes passaram.
 
 # Recuperação de atualização PWA — etapa exclusiva de correção
 

@@ -39,6 +39,7 @@ import {
 } from '@/hooks/useBilling';
 
 import { MODULE_FEATURES, MEMBER_ONLY, PREMIUM_ONLY, hasPlanFeature, type ModuleFeature } from '@/lib/plan-access';
+import { formatDateBR, todayLocalISODate } from '@/lib/date-utils';
 
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const save = useSaveBillingPlan();
@@ -296,7 +297,7 @@ function SubscriptionDialog() {
   const [planId, setPlanId] = useState('');
   const [leadId, setLeadId] = useState('');
   const [discountId, setDiscountId] = useState('none');
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(todayLocalISODate());
   const [notes, setNotes] = useState('');
 
   const activePlans = (plans ?? []).filter((p) => p.active);
@@ -542,8 +543,8 @@ export default function PlanosAssinaturas() {
                     {planById.get(s.plan_id)?.name ?? 'Plano'}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatCents(s.amount_cents)} · início {s.start_date}
-                    {s.next_charge_date ? ` · próxima ${s.next_charge_date}` : ''}
+                    {formatCents(s.amount_cents)} · início {formatDateBR(s.start_date)}
+                    {s.next_charge_date ? ` · próxima ${formatDateBR(s.next_charge_date)}` : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -577,7 +578,7 @@ export default function PlanosAssinaturas() {
                     {c.plan_id ? planById.get(c.plan_id)?.name ?? 'Plano' : 'Plano'}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {formatCents(c.amount_cents)} · vencimento {c.due_date}
+                    {formatCents(c.amount_cents)} · vencimento {formatDateBR(c.due_date)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
