@@ -546,6 +546,33 @@ export type Database = {
         }
         Relationships: []
       }
+      community_message_claims: {
+        Row: {
+          claimed_at: string
+          context: string
+          created_at: string
+          reference_id: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          claimed_at?: string
+          context: string
+          created_at?: string
+          reference_id: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          claimed_at?: string
+          context?: string
+          created_at?: string
+          reference_id?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contents: {
         Row: {
           content_type: string
@@ -2708,6 +2735,10 @@ export type Database = {
         Returns: number
       }
       calculate_user_points: { Args: { _user_id: string }; Returns: number }
+      claim_community_message: {
+        Args: { _context: string; _reference_id: string }
+        Returns: boolean
+      }
       create_guest_invitation: {
         Args: {
           _email?: string
