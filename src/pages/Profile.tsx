@@ -2,6 +2,8 @@
  * Profile - Meu Perfil (com abas, novos campos e cases)
  */
 
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useState, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useStats } from '@/hooks/useStats';
@@ -38,8 +40,11 @@ import { ptBR } from 'date-fns/locale';
 
 export default function Profile() {
   const { user } = useAuth();
+  const { isSubscriber, isGuest } = useAdmin();
+  const { can } = useEntitlements();
+  const memberMetrics = !isSubscriber && !isGuest;
   const { profile, isLoading, updateProfile, isUpdating } = useProfile();
-  const { data: stats } = useStats();
+  const { data: stats } = useStats('month', memberMetrics);
   const { cases, createCase, deleteCase } = useBusinessCases();
   const { myDeals } = useBusinessDeals();
   const { toast } = useToast();
@@ -244,7 +249,7 @@ export default function Profile() {
 
           <div className="flex flex-col md:flex-row gap-6 pt-24 md:pt-6 md:pl-40">
             <div className="hidden md:block min-w-[180px]">
-              {user?.id && <MonthlyPointsSummary userId={user.id} compact />}
+              {memberMetrics && user?.id && <MonthlyPointsSummary userId={user.id} compact />}
             </div>
 
             <div className="flex-1 space-y-4">
@@ -316,7 +321,7 @@ export default function Profile() {
                     {profile?.instagram_url && <a href={`https://instagram.com/${profile.instagram_url.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Instagram className="w-5 h-5" /></a>}
                     {profile?.website_url && <a href={profile.website_url} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-colors"><Globe className="w-5 h-5" /></a>}
                   </div>
-                  <div className="md:hidden pt-4">{user?.id && <MonthlyPointsSummary userId={user.id} compact />}</div>
+                  <div className="md:hidden pt-4">{memberMetrics && user?.id && <MonthlyPointsSummary userId={user.id} compact />}</div>
                 </>
               )}
             </div>
@@ -330,7 +335,7 @@ export default function Profile() {
           <div className="hscroll -mx-1 px-1">
             <TabsList className="w-max">
               <TabsTrigger value="about">Sobre</TabsTrigger>
-              <TabsTrigger value="stats">Estatísticas</TabsTrigger>
+              {memberMetrics && <TabsTrigger value="stats">Estatísticas</TabsTrigger>}
               <TabsTrigger value="cases">Cases ({cases?.length || 0})</TabsTrigger>
               <TabsTrigger value="agendamentos">
                 Agendamentos{pendingReceivedCount > 0 && <span className="ml-1 rounded-full bg-primary text-primary-foreground text-xs px-1.5">{pendingReceivedCount}</span>}
@@ -372,17 +377,17 @@ export default function Profile() {
             )}
 
             {/* Gerador de Pitch via IA */}
-            <PitchGenerator profile={profile} />
+            {can('ai_pitch_enabled') && <PitchGenerator profile={profile} />}
 
             {/* Controle de publicação da página pública */}
-            <PublicProfilePublishControl
+            {can('public_profile_enabled') && <PublicProfilePublishControl
               profile={profile as any}
               isUpdating={isUpdating}
               onTogglePublish={(enabled) => updateProfile({ public_profile_enabled: enabled } as any)}
-            />
+            />}
 
             {/* Cartão Digital com QR Code (só é gerado com o perfil completo) */}
-            {profile && (
+            {profile && can('public_profile_enabled') && (
               <DigitalMemberCard
                 member={profile as any}
                 canGenerate={profileCompleteness.isComplete}
@@ -405,8 +410,8 @@ export default function Profile() {
                 </div>
               </CardContent>
             </Card>
-            {user?.id && <MonthlyPointsSummary userId={user.id} />}
-            {user?.id && <MonthlyPointsEvolutionChart userId={user.id} />}
+            {memberMetrics && user?.id && <MonthlyPointsSummary userId={user.id} />}
+            {memberMetrics && user?.id && <MonthlyPointsEvolutionChart userId={user.id} />}
           </TabsContent>
 
           <TabsContent value="cases" className="space-y-4">

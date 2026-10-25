@@ -404,3 +404,28 @@ export function useMarkChargePaid() {
     },
   });
 }
+
+/** Explicit, atomic admin assignment; assigning a plan alone never silently promotes a person. */
+export function useAssignPersonPlan() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (input: { profileId: string; planId: string; startDate?: string; asSubscriber?: boolean; reactivate?: boolean; teamId?: string | null; role?: 'membro' | 'facilitador' | 'convidado' | 'assinante' }) => {
+      const { data, error } = await supabase.rpc('admin_assign_person_plan', {
+        _profile_id: input.profileId, _plan_id: input.planId,
+        _start_date: input.startDate ?? new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }),
+        _as_subscriber: input.asSubscriber ?? false, _reactivate: input.reactivate ?? false,
+        _team_id: input.teamId ?? null, _role: input.role ?? null,
+      });
+      if (error) throw error;
+      const result = data as { success?: boolean; subscription_id?: string };
+      if (!result?.success) throw new Error('Não foi possível atribuir o plano');
+      return result;
+    },
+    onSuccess: () => {
+      for (const key of ['billing-subscriptions', 'user-role', 'user-entitlements', 'all-people-admin', 'guests-directory', 'community-showcase', 'matchmaking', 'matchmaking-draw-state', 'account-active', 'teams']) qc.invalidateQueries({ queryKey: [key] });
+      toast({ title: 'Plano e acesso atualizados', description: 'Histórico preservado. A cobrança pode ser enviada pelo botão Cobrar.' });
+    },
+    onError: (error: Error) => toast({ title: 'Não foi possível atualizar', description: error.message, variant: 'destructive' }),
+  });
+}
