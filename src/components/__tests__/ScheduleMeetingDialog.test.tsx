@@ -2,6 +2,7 @@ import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 vi.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: vi.fn() }) }));
+vi.mock('@/hooks/useEntitlements', () => ({ useEntitlements: () => ({ can: () => true }) }));
 vi.mock('@/hooks/useMeetingRequests', () => ({ useMeetingRequests: () => ({
  createRequest: { isPending: false, mutate: (input: any, options: any) => options.onSuccess({ request: { id: 'r', proposed_start: input.proposed_start, duration_minutes: 60, location: input.location }, recipientName: 'Destinatário', requesterName: 'Convidador', recipientPhone: '51999999999' }) },
  registerWhatsAppOpen: { mutate: vi.fn() },

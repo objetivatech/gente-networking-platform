@@ -26,11 +26,11 @@ export default function MemberSelect({
   excludeSelf = true,
 }: MemberSelectProps) {
   const { user } = useAuth();
-  const { isSubscriber } = useAdmin();
-  const { members, isLoading: loadingMembers } = useMembers(false, !isSubscriber);
+  const { isSubscriber, isLoading: loadingRole } = useAdmin();
+  const { members, isLoading: loadingMembers } = useMembers(false, !loadingRole && !isSubscriber);
   const { data: community, isLoading: loadingCommunity } = useCommunityShowcase(isSubscriber);
   const isLoading = isSubscriber ? loadingCommunity : loadingMembers;
-  const choices = isSubscriber ? community : choices;
+  const choices = isSubscriber ? community : members;
 
   // Exclude self if needed — admins are already excluded by useMembers
   const filteredMembers = excludeSelf
