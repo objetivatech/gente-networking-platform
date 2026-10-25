@@ -38,6 +38,8 @@ import {
   type BillingInterval, type BillingPlan, type PlanFeatures, type PlanType,
 } from '@/hooks/useBilling';
 
+import { MODULE_FEATURES, MEMBER_ONLY, PREMIUM_ONLY, type ModuleFeature } from '@/lib/plan-access';
+
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const save = useSaveBillingPlan();
   const { data: templates } = useContractTemplates();
@@ -53,10 +55,7 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const [quota, setQuota] = useState(
     plan?.features?.matchmaking_monthly_quota != null ? String(plan.features.matchmaking_monthly_quota) : '',
   );
-  const [flagOpportunities, setFlagOpportunities] = useState(plan?.features?.can_access_opportunities === true);
-  const [flagGenteEmAcao, setFlagGenteEmAcao] = useState(plan?.features?.can_create_gente_em_acao === true);
-  const [flagPublicProfile, setFlagPublicProfile] = useState(plan?.features?.public_profile_enabled === true);
-  const [flagAiPitch, setFlagAiPitch] = useState(plan?.features?.ai_pitch_enabled === true);
+  const [flags, setFlags] = useState<PlanFeatures>(plan?.features ?? {});
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -67,7 +66,7 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
           <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Novo plano</Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader><DialogTitle>{plan ? 'Editar plano' : 'Novo plano'}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
@@ -152,32 +151,29 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                 A indicação semanal do MatchMaking nunca consome esta franquia.
               </p>
             </div>
-            {([
-              [flagOpportunities, setFlagOpportunities, PLAN_FEATURE_LABEL.can_access_opportunities],
-              [flagGenteEmAcao, setFlagGenteEmAcao, PLAN_FEATURE_LABEL.can_create_gente_em_acao],
-              [flagPublicProfile, setFlagPublicProfile, PLAN_FEATURE_LABEL.public_profile_enabled],
-              [flagAiPitch, setFlagAiPitch, PLAN_FEATURE_LABEL.ai_pitch_enabled],
-            ] as const).map(([checked, setter, label]) => (
-              <div key={label} className="flex items-center justify-between gap-3">
-                <Label className="font-normal">{label}</Label>
-                <Switch checked={checked} onCheckedChange={setter} />
-              </div>
-            ))}
+            {Object.entries(MODULE_FEATURES).map(([key, label]) => {
+              const feature = key as ModuleFeature;
+              const blocked = audience === 'assinante' && [...MEMBER_ONLY, ...PREMIUM_ONLY].includes(feature);
+              return <div key={key} className="flex min-w-0 items-center justify-between gap-3">
+                <Label htmlFor={`feature-${key}`} className="font-normal text-wrap-anywhere">{label}{blocked ? ' · exclusivo de Membros' : ''}</Label>
+                <Switch id={`feature-${key}`} disabled={blocked} checked={!blocked && flags[feature] === true}
+                  onCheckedChange={value => setFlags(prev => ({ ...prev, [feature]: value }))} />
+              </div>;
+            })}
           </div>
         </div>
         <DialogFooter>
           <Button
-            disabled={!name.trim() || save.isPending}
+            disabled={!name.trim() || save.isPending || (quota !== "" && (!Number.isSafeInteger(Number(quota)) || Number(quota) < 0))}
             onClick={() => {
-              const features: PlanFeatures = {};
-              const quotaNum = quota.trim() === '' ? null : Number.parseInt(quota, 10);
-              if (quotaNum != null && Number.isFinite(quotaNum) && quotaNum >= 0) {
-                features.matchmaking_monthly_quota = quotaNum;
+              const features: PlanFeatures = { ...flags };
+              for (const key of Object.keys(MODULE_FEATURES) as ModuleFeature[]) {
+                features[key] = flags[key] === true;
+                if (audience === 'assinante' && [...MEMBER_ONLY, ...PREMIUM_ONLY].includes(key)) features[key] = false;
               }
-              if (flagOpportunities) features.can_access_opportunities = true;
-              if (flagGenteEmAcao) features.can_create_gente_em_acao = true;
-              if (flagPublicProfile) features.public_profile_enabled = true;
-              if (flagAiPitch) features.ai_pitch_enabled = true;
+              const quotaNum = quota.trim() === '' ? null : Number(quota);
+              if (quotaNum != null && Number.isSafeInteger(quotaNum) && quotaNum >= 0) features.matchmaking_monthly_quota = quotaNum;
+              else delete features.matchmaking_monthly_quota;
               save.mutate(
                 {
                   id: plan?.id,

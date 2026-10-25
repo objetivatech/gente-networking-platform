@@ -13,6 +13,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAdmin } from '@/hooks/useAdmin';
 
 interface NavItem {
@@ -63,6 +64,7 @@ const facilitadorItems: NavItem[] = [
 export default function BottomNav({ hidden = false }: BottomNavProps) {
   const { role, isLoading } = useAdmin();
   const location = useLocation();
+  const { canPath } = useEntitlements();
 
   if (isLoading || hidden) return null;
 
@@ -71,7 +73,7 @@ export default function BottomNav({ hidden = false }: BottomNavProps) {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border lg:hidden pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-around h-16">
-        {items.map((item) => {
+        {items.filter(item => canPath(item.path)).map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <NavLink

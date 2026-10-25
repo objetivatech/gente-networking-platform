@@ -11,14 +11,14 @@ export async function fetchStatisticsSnapshot(scope: 'personal' | 'community' | 
   if (!data) throw new Error('Indicadores indisponíveis');
   return data as unknown as StatisticsSnapshot;
 }
-export function useStats(period: 'month' | 'year' = 'month') {
+export function useStats(period: 'month' | 'year' = 'month', enabled = true) {
   const { user } = useAuth();
-  return useQuery({ queryKey: ['stats', user?.id, period, new Date().getFullYear(), new Date().getMonth()], queryFn: async () => personalStatistics(await fetchStatisticsSnapshot('personal'), period), enabled: !!user?.id, refetchOnWindowFocus: true });
+  return useQuery({ queryKey: ['stats', user?.id, period, new Date().getFullYear(), new Date().getMonth()], queryFn: async () => personalStatistics(await fetchStatisticsSnapshot('personal'), period), enabled: !!user?.id && enabled, refetchOnWindowFocus: true });
 }
 export function useCommunityStats(teamId?: string) {
   const { user } = useAuth();
-  const { isGuest, isLoading } = useAdmin();
-  return useQuery({ queryKey: ['community-stats', user?.id, teamId || 'all'], queryFn: async () => communityStatistics(await fetchStatisticsSnapshot('community', teamId)), enabled: !!user?.id && !isLoading && !isGuest, refetchOnWindowFocus: true });
+  const { isGuest, isSubscriber, isLoading } = useAdmin();
+  return useQuery({ queryKey: ['community-stats', user?.id, teamId || 'all'], queryFn: async () => communityStatistics(await fetchStatisticsSnapshot('community', teamId)), enabled: !!user?.id && !isLoading && !isGuest && !isSubscriber, refetchOnWindowFocus: true });
 }
 export function useAdminGlobalStats() {
   const { user } = useAuth();

@@ -19,21 +19,9 @@ export type BillingInterval = 'monthly' | 'quarterly' | 'semiannual' | 'yearly';
  * As chaves são validadas por trigger no banco; chave ausente = recurso não
  * concedido (ou sem franquia, no caso da cota de MatchMaking).
  */
-export interface PlanFeatures {
-  matchmaking_monthly_quota?: number;
-  can_access_opportunities?: boolean;
-  can_create_gente_em_acao?: boolean;
-  public_profile_enabled?: boolean;
-  ai_pitch_enabled?: boolean;
-}
-
-export const PLAN_FEATURE_LABEL: Record<keyof PlanFeatures, string> = {
-  matchmaking_monthly_quota: 'Sorteios de MatchMaking/mês',
-  can_access_opportunities: 'Mural de Oportunidades',
-  can_create_gente_em_acao: 'Criar Gente em Ação',
-  public_profile_enabled: 'Página pública do membro',
-  ai_pitch_enabled: 'Pitch por IA',
-};
+export type { PlanFeatures } from '@/lib/plan-access';
+import { MODULE_FEATURES, type PlanFeatures } from '@/lib/plan-access';
+export const PLAN_FEATURE_LABEL = { ...MODULE_FEATURES, matchmaking_monthly_quota: 'Sorteios de MatchMaking/mês' };
 
 export interface BillingPlan {
   id: string;
@@ -185,6 +173,8 @@ export function useSaveBillingPlan() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-plans'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       toast({ title: 'Plano salvo' });
     },
     onError: (err: unknown) =>
@@ -206,6 +196,8 @@ export function useTogglePlanActive() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-plans'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       toast({ title: 'Plano atualizado' });
     },
   });
@@ -336,6 +328,10 @@ export function useSaveSubscription() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-subscriptions'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['user-role'] });
+      qc.invalidateQueries({ queryKey: ['all-people-admin'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       qc.invalidateQueries({ queryKey: ['billing-charges'] });
       toast({ title: 'Assinatura salva' });
     },
@@ -376,6 +372,10 @@ export function useSendCharge() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-charges'] });
       qc.invalidateQueries({ queryKey: ['billing-subscriptions'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['user-role'] });
+      qc.invalidateQueries({ queryKey: ['all-people-admin'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       qc.invalidateQueries({ queryKey: ['crm-leads'] });
       toast({ title: 'Cobrança enviada', description: 'E-mail disparado e registro criado.' });
     },
