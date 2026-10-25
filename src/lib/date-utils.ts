@@ -22,3 +22,25 @@ export function formatLocalDate(dateString: string, formatFn: (date: Date) => st
   const date = parseLocalDate(dateString);
   return formatFn(date);
 }
+
+/**
+ * Today's date as YYYY-MM-DD in the America/Sao_Paulo timezone.
+ * Use this instead of `new Date().toISOString().slice(0, 10)`, which returns
+ * the UTC date and drifts one day ahead after 21h (BRT) — making records
+ * created at night appear to start "tomorrow".
+ */
+export function todayLocalISODate(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+}
+
+/**
+ * Format an ISO date string (YYYY-MM-DD or full timestamp) as DD/MM/AAAA.
+ * Returns the original value when it cannot be parsed as a date.
+ */
+export function formatDateBR(dateString: string | null | undefined): string {
+  if (!dateString) return '';
+  const isoDate = dateString.slice(0, 10);
+  const [year, month, day] = isoDate.split('-');
+  if (!year || !month || !day || year.length !== 4) return dateString;
+  return `${day}/${month}/${year}`;
+}
