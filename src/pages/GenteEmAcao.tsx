@@ -1,3 +1,4 @@
+import { MeetingRequestsPanel } from '@/components/MeetingRequestsPanel';
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useGenteEmAcao } from '@/hooks/useGenteEmAcao';
@@ -40,7 +41,7 @@ const formSchema = z.object({
 
 export default function GenteEmAcao() {
   const { user } = useAuth();
-  const { isAdmin } = useAdmin();
+  const { isAdmin, isSubscriber } = useAdmin();
   const { toast } = useToast();
   const { meetings, isLoading, createMeeting, deleteMeeting } = useGenteEmAcao();
   const [open, setOpen] = useState(false);
@@ -105,7 +106,7 @@ export default function GenteEmAcao() {
       if (pError) return [];
       return profiles || [];
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !isSubscriber,
   });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,6 +232,11 @@ export default function GenteEmAcao() {
     name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   const adminDeleteMutation = useAdminDelete('gente_em_acao');
+
+  if (isSubscriber) return <div className="space-y-6">
+    <div className="flex flex-wrap justify-between gap-3"><h1 className="text-2xl font-bold">Gente em Ação</h1><Button asChild variant="outline"><a href="/vitrine">Encontrar pessoas na Vitrine</a></Button></div>
+    <MeetingRequestsPanel />
+  </div>;
 
   // Admin vê painel de gestão
   if (isAdmin) {

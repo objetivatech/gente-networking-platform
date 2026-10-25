@@ -10,6 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEntitlements } from './useEntitlements';
 import { useToast } from '@/hooks/use-toast';
 
 export type MeetingRequestStatus = 'pending' | 'confirmed' | 'declined' | 'cancelled';
@@ -41,6 +42,7 @@ interface CreateMeetingRequestInput {
 
 export function useMeetingRequests() {
   const { user } = useAuth();
+  const { can, role } = useEntitlements();
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -71,12 +73,13 @@ export function useMeetingRequests() {
         recipient: map[r.recipient_id] || null,
       }));
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && (role === 'convidado' || can('can_create_gente_em_acao')),
   });
 
   const createRequest = useMutation({
     mutationFn: async (input: CreateMeetingRequestInput) => {
       if (!user?.id) throw new Error('Não autenticado');
+      if (!can('can_create_gente_em_acao')) throw new Error('Agendamento não incluído no plano');
       const payload = {
         requester_id: user.id,
         recipient_id: input.recipient_id,
@@ -132,7 +135,7 @@ export function useMeetingRequests() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meeting-requests'] });
-      toast({ title: 'Solicitação enviada!', description: 'O membro receberá um aviso para confirmar.' });
+      toast({ title: 'Solicitação enviada!', description: 'Solicitação registrada para a pessoa confirmar.' });
     },
     onError: (e: any) => toast({ title: 'Erro', description: e?.message || 'Erro ao enviar solicitação', variant: 'destructive' }),
   });

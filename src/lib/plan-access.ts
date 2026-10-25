@@ -52,6 +52,7 @@ export function hasPlanFeature(role: AppRole, feature: ModuleFeature, rights?: E
   if (plan.features[feature] !== undefined) return plan.features[feature] === true;
   // Existing plans retain their pre-matrix modules; explicit switches always win.
   if (feature === 'matchmaking_enabled') return (plan.features.matchmaking_monthly_quota ?? 0) > 0 || role !== 'assinante';
+  if (role !== 'assinante') return true;
   return ['can_access_referrals', 'can_access_business_deals', 'can_access_testimonials', 'can_access_feed', 'can_access_contents', 'can_access_community_showcase'].includes(feature);
 }
 

@@ -13,6 +13,7 @@
  * @since 2025-02-08
  */
 
+import { fetchAllRows } from '@/lib/paginated-query';
 import { countPeople, primaryRole, PEOPLE_ROLES } from '@/lib/people-counts';
 import type { AppRole } from '@/lib/access-control';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -246,21 +247,13 @@ export default function GestaoPessoas() {
   // Buscar todas as pessoas
   const { data: allPeople, isLoading } = useQuery({
     queryKey: ['all-people-admin'],
+    enabled: !isLoadingRole && (isAdmin || isFacilitator),
     queryFn: async () => {
       // 1. Buscar profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, phone, company, avatar_url, is_active, deactivated_at, deactivation_reason, created_at, slug')
-        .order('full_name');
-
-      if (profilesError) throw profilesError;
+      const profiles = await fetchAllRows((from, to) => supabase.from('profiles').select('id, full_name, email, phone, company, avatar_url, is_active, deactivated_at, deactivation_reason, created_at, slug').order('id').range(from, to));
 
       // 2. Buscar roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      if (rolesError) throw rolesError;
+      const roles = await fetchAllRows((from, to) => supabase.from('user_roles').select('user_id, role').order('id').range(from, to));
 
       const rolesMap: Record<string, string> = {};
       roles?.forEach(r => {
@@ -268,11 +261,7 @@ export default function GestaoPessoas() {
       });
 
       // 3. Buscar team_members
-      const { data: teamMembers, error: teamError } = await supabase
-        .from('team_members')
-        .select('user_id, team_id');
-
-      if (teamError) throw teamError;
+      const teamMembers = await fetchAllRows((from, to) => supabase.from('team_members').select('user_id, team_id').order('id').range(from, to));
 
       const teamMap: Record<string, string> = {};
       teamMembers?.forEach(tm => {
@@ -493,7 +482,7 @@ export default function GestaoPessoas() {
   const activeMembers = filteredPeople.filter(p => p.is_active && p.role === 'membro');
   const activeGuests = filteredPeople.filter(p => p.is_active && (!p.role || p.role === 'convidado'));
   // Cadastros ainda sem conta (pré-ativação), vindos da mesma base da página Convidados
-  const pendingActivation = (guestDirectory || []).filter(g => {
+  const pendingActivation = [...new Map((guestDirectory || []).map(g => [g.lead_id ?? g.id, g])).values()].filter(g => {
     if (g.profile_id || g.status === 'promovido_membro') return false;
     if (roleFilter !== 'all' && roleFilter !== 'convidado') return false;
     if (teamFilter !== 'all' && (teamFilter === 'sem_grupo' ? !!g.team_id : g.team_id !== teamFilter)) return false;
@@ -950,7 +939,7 @@ export default function GestaoPessoas() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Papel de retorno</Label>
-              <Select value={reactivateRole} onValueChange={(v) => setReactivateRole(v as typeof reactivateRole)}>
+              <Select value={reactivateRole} onValueChange={(v) => { setReactivateRole(v as typeof reactivateRole); setReactivatePlanId('none'); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="membro">Membro</SelectItem>
