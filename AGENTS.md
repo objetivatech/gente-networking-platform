@@ -20,3 +20,9 @@
 - Universo operacional: perfis ativos Membro/Facilitador sem Admin; ranking competitivo mantém sua exclusão própria de Facilitadores.
 - PWA recovery keeps manifest-only installation and the same-path `/sw.js` kill-switch for one release cycle; never register app-shell workers or add reload/version-polling loops, because stale navigation caches can strand users after deployment.
 - Cache recovery deletes only known legacy app caches, preserves auth storage and messaging workers, and never waits on `serviceWorker.ready` without a registered worker, because sessions and notification controls must remain usable.
+
+- Resolve module access through `has_module_access` and `useEntitlements`/`plan-access`; roles remain a data-universe ceiling and plan flags are enforced server-side as well as in navigation.
+- Change subscription and subscriber identity only through explicit admin RPCs with a locked profile; never infer role changes from generic subscription writes or payment status.
+- Read showcase detail through `get_community_profile` and invite subscribers through `guest_participations`; these flows must not query member directories or record attendance automatically.
+- Use the authorized community-notification endpoint for plan, Premium invitation and scheduling messages, deriving recipients from persisted records instead of caller-provided addresses.
+- Compute management cards and tabs from the same deduplicated filtered population, with paginated profile/role reads to prevent silent row-limit truncation.

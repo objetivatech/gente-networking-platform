@@ -53,6 +53,13 @@ export default function Documentacao() {
         </div>
       </div>
 
+      {isAdmin && <Card><CardHeader><CardTitle>Planos e Assinantes da Comunidade</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>Gestão de Pessoas separa os papéis nos contadores e nas abas. Convidados incluem contas ativas e cadastros aguardando ativação.</p>
+        <p>Plano → selecione um plano mensal para Assinantes → confirme a mudança de papel. Para um plano já vinculado, use Definir como Assinante. Reativação permite escolher papel e plano juntos, preserva histórico e registra falhas de e-mail ou cobrança.</p>
+        <p>Planos e Assinaturas controla os módulos e a franquia mensal de MatchMaking. A sugestão semanal não consome sorteios. Página pública, cartão e pitch exigem plano Membro Premium.</p>
+        <p>Admin acessa a Vitrine por padrão; Membros e Facilitadores precisam da liberação no plano. A Vitrine lista somente Assinantes e Convidados ativos e oferece perfil, WhatsApp e agendamento autorizado.</p>
+        <p>Na ficha do Assinante, Convidar para encontro registra uma visita Premium; confirmar participação não registra presença nem pontuação.</p>
+      </CardContent></Card>}
       <Tabs defaultValue="member" className="space-y-4">
         <TabsList className={`grid w-full ${showAdminDocs ? (showDevDocs ? 'grid-cols-3' : 'grid-cols-2') : 'grid-cols-1'}`}>
           {showMemberDocs && <TabsTrigger value="member">Uso do Sistema</TabsTrigger>}

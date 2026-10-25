@@ -36,13 +36,14 @@
 
 # Bloco 2 — Assinante da Comunidade
 
-- [ ] Ajustes aprovados: contadores por papel, atribuição explícita/reativação com plano, vitrine interativa e acesso administrativo, painel do Assinante, matriz de módulos e convites Premium preservando papel.
+- [x] Ajustes aprovados: contadores por papel, atribuição explícita/reativação com plano, vitrine interativa e acesso administrativo, painel do Assinante, matriz de módulos e convites Premium preservando papel.
 
 - [x] Fase 1 — Banco: papel `assinante`, `billing_plans.features` validado, `usage_quota_events`, `get_user_entitlements`/`get_feature_usage`, isolamento RLS do Assinante (pessoas e módulos de membros).
 - [x] Fase 2 — Catraca no frontend (menu, rotas, início próprio) e bloqueio do Assinante em ranking, pontos e estatísticas no banco.
 - [x] Fase 3 — Vitrine exclusiva de Assinantes/Convidados ativos e franquia mensal do MatchMaking; sugestão semanal não consome cota.
 - [x] Fase 4 — Painel de planos e atribuição: recursos/limites editáveis no plano (franquia MatchMaking + 4 acessos), públicos Membro Premium e Assinante, atribuição/cancelamento de assinatura por perfil na Gestão de Pessoas (somente Admin).
-- [ ] Fase 5 — Testes e homologação com conta real.
+- [x] Fase 5 — Testes unitários da matriz, contadores, paginação e franquia.
+- [ ] Fase 5 — Homologação de atribuição, cobrança, agendamento, convite Premium e consumo de cota com conta real — Supabase externo sem sessão autenticada disponível. Não criar/alterar conta de teste arbitrária.
 
 # Recuperação de atualização PWA — etapa exclusiva de correção
 

@@ -38,7 +38,7 @@ import {
   type BillingInterval, type BillingPlan, type PlanFeatures, type PlanType,
 } from '@/hooks/useBilling';
 
-import { MODULE_FEATURES, MEMBER_ONLY, PREMIUM_ONLY, type ModuleFeature } from '@/lib/plan-access';
+import { MODULE_FEATURES, MEMBER_ONLY, PREMIUM_ONLY, hasPlanFeature, type ModuleFeature } from '@/lib/plan-access';
 
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const save = useSaveBillingPlan();
@@ -55,7 +55,11 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const [quota, setQuota] = useState(
     plan?.features?.matchmaking_monthly_quota != null ? String(plan.features.matchmaking_monthly_quota) : '',
   );
-  const [flags, setFlags] = useState<PlanFeatures>(plan?.features ?? {});
+  const [flags, setFlags] = useState<PlanFeatures>(() => {
+    if (!plan) return {};
+    const rights = { subscription: { subscription_id: 'preview', plan_name: plan.name, audience: plan.audience, features: plan.features ?? {} } };
+    return Object.fromEntries(Object.keys(MODULE_FEATURES).map(key => [key, hasPlanFeature(plan.audience === 'assinante' ? 'assinante' : 'membro', key as ModuleFeature, rights)]));
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

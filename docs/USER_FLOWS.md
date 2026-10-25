@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-10-24
-> **Versão:** 3.53.0 — Vitrine da Comunidade e franquia do MatchMaking
+> **Última atualização:** 2026-10-25
+> **Versão:** 3.55.0 — Planos, papéis e conexões da Comunidade
 
 ### Entrada e LPs unificadas
 
@@ -15,6 +15,19 @@ foram virados. Veja [UNIFICACAO_LPS.md](./UNIFICACAO_LPS.md).
 Este documento descreve todos os fluxos de ação dentro do sistema, incluindo gestão de usuários, atividades de networking, sistema de pontuação mensal por grupo, feed de atividades, dashboard administrativo, Conselho 24/7 e Cases de Negócio.
 
 ---
+
+## Planos e papéis (v3.55.0)
+
+- `admin_assign_person_plan`: Admin ativo, perfil bloqueado na transação, plano ativo, conversão para Assinante explícita; mensalidade de público Assinante obrigatória. Reutiliza assinatura ativa do mesmo plano e rejeita outras assinaturas em aberto. Não registra pagamento fictício.
+- Gestão de Pessoas: contadores e abas por Admin, Facilitador, Membro, Assinante, Convidado e Inativo. Total inclui pré-ativação deduplicada. Filtros aplicam-se aos dois; assinante não conta como membro.
+- Reativação com plano cancela apenas Resgate futuro, preserva histórico, envia aviso e solicita primeira cobrança pelo fluxo existente. Falhas não desfazem o acesso já salvo e são exibidas para revisão. Não há nova automação recorrente do provedor nesta rodada.
+- `has_module_access` e `useEntitlements` controlam módulos. Planos antigos preservam acessos legados quando a chave não existe; ao editar, o Admin vê os valores efetivos e salva chaves explícitas. Sem plano ativo, Assinante perde módulos pagos, sem perder perfil e histórico.
+- Vitrine: Admin por padrão; Membro/Facilitador via `can_access_community_showcase`. Conteúdo sempre Assinante/Convidado ativo. Detalhe e WhatsApp usam RPC restrita; agendar depende do plano.
+- Assinante inicia em dashboard próprio com plano, saldo MatchMaking e atalhos liberados. `Gente em Ação` mostra agendamentos, sem check gamificado.
+- Convite Premium na ficha usa `invite_subscriber_premium`, Admin ou Facilitador do Grupo. Assinante confirma/recusa sua própria visita no início; nenhuma presença, conta, promoção ou ponto automático.
+- `community-notification`: autenticação validada, destinatário derivado de assinatura/participação/agendamento. Mensagens registradas no histórico de envio; reenvios já concluídos são ignorados.
+- Página pública, sitemap, cases públicos e pitch exigem plano Premium e recurso liberado. Assinantes não recebem esses recursos, Conselho, ranking ou estatísticas de Membros.
+- Validação autenticada real permanece pendente: Supabase externo sem sessão disponível neste ambiente. Não foram criadas pessoas ou assinaturas de teste no ambiente real.
 
 ## Índice
 
