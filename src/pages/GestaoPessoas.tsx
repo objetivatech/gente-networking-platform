@@ -584,7 +584,7 @@ export default function GestaoPessoas() {
 
       {/* Ações */}
       <div className="flex flex-wrap items-center gap-2 shrink-0">
-        {isAdmin && person.is_active && ['convidado', 'assinante', 'membro'].includes(person.role ?? '') && <PersonRoleDialog profileId={person.id} name={person.full_name} teams={teams ?? []} />}
+        {isAdmin && person.is_active && (person.role === 'convidado' || person.role === 'assinante' || person.role === 'membro') && <PersonRoleDialog profileId={person.id} name={person.full_name} currentRole={person.role} teams={teams ?? []} />}
         {showActions === 'active' && isAdmin && (
           <Button
             variant="outline"

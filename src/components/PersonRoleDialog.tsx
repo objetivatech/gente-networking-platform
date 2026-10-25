@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowRightLeft } from 'lucide-react';
-export function PersonRoleDialog({ profileId, name, teams }: { profileId: string; name: string; teams: { id: string; name: string }[] }) {
+export function PersonRoleDialog({ profileId, name, currentRole, teams }: { profileId: string; name: string; currentRole: 'convidado' | 'assinante' | 'membro'; teams: { id: string; name: string }[] }) {
   const [open, setOpen] = useState(false);
-  const [role, setRole] = useState<'convidado' | 'assinante' | 'membro'>('convidado');
+  const [role, setRole] = useState<'convidado' | 'assinante' | 'membro'>(currentRole);
   const [teamId, setTeamId] = useState('');
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -20,10 +20,10 @@ export function PersonRoleDialog({ profileId, name, teams }: { profileId: string
   }, onSuccess: () => { for (const key of ['all-people-admin','user-role','user-entitlements','members-directory','guests-directory','community-showcase','teams']) qc.invalidateQueries({ queryKey: [key] }); setOpen(false); toast({ title: 'Papel atualizado' }); },
     onError: (error: Error) => toast({ title: 'Não foi possível mudar o papel', description: error.message, variant: 'destructive' }),
   });
-  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button variant="outline" size="sm"><ArrowRightLeft className="h-4 w-4 mr-1" />Papel</Button></DialogTrigger>
+  return <Dialog open={open} onOpenChange={value => { setOpen(value); if (value) setRole(currentRole); }}><DialogTrigger asChild><Button variant="outline" size="sm"><ArrowRightLeft className="h-4 w-4 mr-1" />Papel</Button></DialogTrigger>
     <DialogContent><DialogHeader><DialogTitle>Alterar papel</DialogTitle><DialogDescription>Confirme o novo papel de {name}. Assinaturas e histórico são preservados; planos incompatíveis precisam ser revisados antes.</DialogDescription></DialogHeader>
       <Label>Papel</Label><Select value={role} onValueChange={value => setRole(value as typeof role)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="convidado">Convidado</SelectItem><SelectItem value="assinante">Assinante da Comunidade</SelectItem><SelectItem value="membro">Membro</SelectItem></SelectContent></Select>
       {role === 'membro' && <><Label>Grupo</Label><Select value={teamId} onValueChange={setTeamId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{teams.map(team => <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>)}</SelectContent></Select></>}
-      <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button disabled={change.isPending || (role === 'membro' && !teamId)} onClick={() => change.mutate()}>Confirmar alteração</Button></DialogFooter>
+      <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button disabled={change.isPending || role === currentRole || (role === 'membro' && !teamId)} onClick={() => change.mutate()}>Confirmar alteração</Button></DialogFooter>
     </DialogContent></Dialog>;
 }

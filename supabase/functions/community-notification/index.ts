@@ -18,6 +18,8 @@ Deno.serve(async req => {
     const { data: { user }, error: authError } = await viewer.auth.getUser();
     if (authError || !user) return json({ error: 'Não autenticado' }, 401);
     const db = createClient(url, service);
+    const { data: activeCaller } = await db.from('profiles').select('is_active').eq('id', user.id).maybeSingle();
+    if (!activeCaller?.is_active) return json({ error: 'Acesso desativado' }, 403);
     const { kind, reference_id: referenceId } = await req.json();
     let to = '', subject = '', html = '';
     if (kind === 'plan') {
@@ -62,7 +64,10 @@ Deno.serve(async req => {
     const context = `community_${kind}`;
     const { data: previous } = await db.from('notification_dispatch_log').select('id').eq('context', context).eq('reference_id', referenceId).eq('status', 'sent').limit(1);
     if (previous?.length) return json({ success: true, already_sent: true });
+    const { data: claimed, error: claimError } = await db.rpc('claim_community_message', { _context: context, _reference_id: referenceId });
+    if (claimError || !claimed) return json({ success: false, error: 'Mensagem já enviada ou em processamento' }, 409);
     const result = await sendEmail({ to, subject, html, context, referenceId, bypassRateLimit: false });
+    await db.from('community_message_claims').update({ state: result.ok ? 'sent' : 'failed', updated_at: new Date().toISOString() }).eq('context', context).eq('reference_id', referenceId);
     return json({ success: result.ok, error: result.error }, result.ok ? 200 : 502);
   } catch { return json({ error: 'Não foi possível enviar a mensagem' }, 500); }
 });
