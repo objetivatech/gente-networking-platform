@@ -3027,6 +3027,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_subscriber_premium: {
+        Args: { _meeting_id: string; _profile_id: string }
+        Returns: string
+      }
       is_active_user: { Args: { _user_id?: string }; Returns: boolean }
       is_community_member: { Args: { _user_id: string }; Returns: boolean }
       is_guest: { Args: { _user_id: string }; Returns: boolean }
