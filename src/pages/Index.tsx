@@ -44,9 +44,10 @@ import { Loader2 } from 'lucide-react';
 export default function Index() {
   const { user } = useAuth();
   const { profile, isLoading: profileLoading } = useProfile();
-  const { data: stats, isLoading: statsLoading } = useStats();
-  const { meetings, isLoading: meetingsLoading } = useMeetings();
   const { isGuest, isSubscriber, isLoading: roleLoading } = useAdmin();
+  const memberView = !roleLoading && !isGuest && !isSubscriber;
+  const { data: stats, isLoading: statsLoading } = useStats('month', memberView);
+  const { meetings, isLoading: meetingsLoading } = useMeetings(memberView);
 
   // Safe defaults
   const meetingsList = meetings ?? [];

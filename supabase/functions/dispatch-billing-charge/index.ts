@@ -9,6 +9,8 @@
  * destinatário é um lead.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { canDispatchCharge, reuseCharge } from '../_shared/billing-dispatch-rules.ts';
+import { sendEmail } from '../_shared/email-provider.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -90,9 +92,10 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) return json({ error: 'Unauthorized' }, 401);
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !anonKey || !serviceKey) return json({ error: 'Serviço indisponível' }, 500);
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -132,6 +135,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!plan) return json({ error: 'Plano não encontrado' }, 404);
     if (!plan.active) return json({ error: 'Plano inativo — ative-o antes de cobrar' }, 400);
+    if (!canDispatchCharge(sub.status, plan.active)) return json({ error: 'Assinatura não pode ser cobrada neste estado' }, 409);
 
     // Destinatário: lead do CRM ou membro da plataforma
     let name = '';
@@ -164,9 +168,11 @@ Deno.serve(async (req) => {
       .select('id, status')
       .eq('subscription_id', subscriptionId)
       .eq('due_date', dueDate)
-      .in('status', ['pending', 'sent'])
+      .in('status', ['pending', 'sent', 'paid'])
       .maybeSingle();
-    if (existing && !force) {
+    const reuse = reuseCharge(existing?.status ?? null, force);
+    if (reuse === 'paid') return json({ success: true, already_paid: true, charge_id: existing?.id });
+    if (reuse === 'open') {
       return json(
         { error: 'Já existe cobrança em aberto para este vencimento. Use reenviar.' },
         409,
@@ -194,6 +200,7 @@ Deno.serve(async (req) => {
       if (cErr) return json({ error: cErr.message }, 400);
       charge = created;
     }
+    if (!charge?.id) return json({ error: 'Não foi possível criar a cobrança' }, 500);
 
     const html = chargeEmail({
       name: name || 'tudo bem?',
@@ -207,10 +214,8 @@ Deno.serve(async (req) => {
     let emailOk = true;
     let emailError: string | null = null;
     try {
-      const { error: sendErr } = await admin.functions.invoke('send-email', {
-        body: { to: email, subject: `Cobrança ${plan.name} — Gente Networking`, html },
-      });
-      if (sendErr) throw sendErr;
+      const result = await sendEmail({ to: email, subject: `Cobrança ${plan.name} — Gente Networking`, html, context: 'billing_charge', referenceId: charge.id, bypassRateLimit: false });
+      if (!result.ok) throw new Error(result.error ?? 'Falha no envio');
     } catch (e) {
       emailOk = false;
       emailError = e instanceof Error ? e.message : String(e);
@@ -224,7 +229,7 @@ Deno.serve(async (req) => {
         payment_url: (body?.payment_url as string) ?? null,
         metadata: { email_to: email, error: emailError },
       })
-      .eq('id', charge!.id);
+      .eq('id', charge.id);
 
     if (sub.status === 'draft' && emailOk) {
       await admin
@@ -255,11 +260,11 @@ Deno.serve(async (req) => {
         reason: `Cobrança ${plan.name} (${brl(sub.amount_cents)}) — venc. ${dueDate}`,
         source_snapshot: lead?.source ?? null,
         event_type: emailOk ? 'billing_charge_sent' : 'billing_charge_failed',
-        metadata: { subscription_id: subscriptionId, charge_id: charge!.id },
+        metadata: { subscription_id: subscriptionId, charge_id: charge.id },
       });
     }
 
-    return json({ success: emailOk, charge_id: charge!.id, error: emailError }, emailOk ? 200 : 502);
+    return json({ success: emailOk, charge_id: charge.id, error: emailError }, emailOk ? 200 : 502);
   } catch (e) {
     console.error('dispatch-billing-charge', e);
     return json({ error: e instanceof Error ? e.message : 'Erro inesperado' }, 500);

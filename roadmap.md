@@ -11,7 +11,7 @@
 - [x] Receber e filtrar exportação de 22/10: 4 páginas, 18 blocos, 2 conteúdos avançados, 48 mídias, 632 auditorias e 686 leads (541 e-mails distintos).
 - [x] Importar 4 páginas inativas, 18 blocos e 2 conteúdos avançados com UUIDs e conteúdo conferidos; entrada atual preservada.
 - [x] Registrar as 48 imagens enviadas ao bucket pelo Admin na biblioteca e trocar links do projeto antigo; 48 arquivos públicos conferidos byte a byte, nenhum link antigo em blocos/conteúdo avançado.
-- [ ] Importar 632 auditorias históricas — pendente de carga segura do arquivo completo, sem perder autores e alterações.
+- [x] Auditorias históricas excluídas do escopo a pedido do usuário.
 - [x] Pareamento somente-leitura das 541 identidades com CRM, perfis/papéis e convites; 146 CRM, 13 perfis sem CRM, 20 candidatos por telefone, 362 sem correspondência. Conferir papéis separadamente (incluindo 13 perfis sem papel).
 - [ ] Executar carga CRM autorizada em 24/10: tabela protegida e arquivo transacional preparados; envio integral excede o canal disponível (sem acesso SQL por arquivo/exec neste Supabase externo). 360 e-mails sem correspondência atual, 181 existentes ou em revisão; excluir telefones compartilhados antes da carga. Nenhum lead importado nesta etapa.
 - [x] Liberar entrega permanente de novas imagens — biblioteca salva URLs públicas e resolve apontadores antigos; 12 testes passaram. Upload/seleção Admin ainda dependem de sessão real.
@@ -36,11 +36,14 @@
 
 # Bloco 2 — Assinante da Comunidade
 
+- [x] Ajustes aprovados: contadores por papel, atribuição explícita/reativação com plano, vitrine interativa e acesso administrativo, painel do Assinante, matriz de módulos e convites Premium preservando papel.
+
 - [x] Fase 1 — Banco: papel `assinante`, `billing_plans.features` validado, `usage_quota_events`, `get_user_entitlements`/`get_feature_usage`, isolamento RLS do Assinante (pessoas e módulos de membros).
 - [x] Fase 2 — Catraca no frontend (menu, rotas, início próprio) e bloqueio do Assinante em ranking, pontos e estatísticas no banco.
 - [x] Fase 3 — Vitrine exclusiva de Assinantes/Convidados ativos e franquia mensal do MatchMaking; sugestão semanal não consome cota.
 - [x] Fase 4 — Painel de planos e atribuição: recursos/limites editáveis no plano (franquia MatchMaking + 4 acessos), públicos Membro Premium e Assinante, atribuição/cancelamento de assinatura por perfil na Gestão de Pessoas (somente Admin).
-- [ ] Fase 5 — Testes e homologação com conta real.
+- [x] Fase 5 — 98 testes da plataforma e 3 testes de cobrança; matriz, contadores, paginação, franquia e entrada pública sem erros.
+- [ ] Fase 5 — Homologação de atribuição, cobrança, agendamento, convite Premium e consumo de cota com conta real — Supabase externo sem sessão autenticada disponível. Não criar/alterar conta de teste arbitrária.
 
 # Recuperação de atualização PWA — etapa exclusiva de correção
 

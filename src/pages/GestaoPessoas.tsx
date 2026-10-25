@@ -13,6 +13,12 @@
  * @since 2025-02-08
  */
 
+import { PersonRoleDialog } from '@/components/PersonRoleDialog';
+import { fetchAllRows } from '@/lib/paginated-query';
+import { useMeetings } from '@/hooks/useMeetings';
+import { countPeople, primaryRole, PEOPLE_ROLES } from '@/lib/people-counts';
+import type { AppRole } from '@/lib/access-control';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
@@ -62,6 +68,8 @@ import {
   useBillingPlans,
   useProfileSubscriptions,
   useSaveSubscription,
+  useAssignPersonPlan,
+  useSendCharge,
 } from '@/hooks/useBilling';
 
 /**
@@ -73,12 +81,17 @@ function PersonPlanPanel({ personId }: { personId: string }) {
   const { data: plans } = useBillingPlans();
   const { data: subscriptions, isLoading } = useProfileSubscriptions(personId);
   const save = useSaveSubscription();
+  const assign = useAssignPersonPlan();
+  const sendCharge = useSendCharge();
+  const [confirmSubscriber, setConfirmSubscriber] = useState(false);
   const [planId, setPlanId] = useState('');
   const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
 
   const activePlans = (plans ?? []).filter((p) => p.active);
   const planById = new Map((plans ?? []).map((p) => [p.id, p]));
-  const hasActive = (subscriptions ?? []).some((s) => s.status === 'active' || s.status === 'draft');
+  const hasActive = (subscriptions ?? []).some((s) => s.status === 'active' || s.status === 'draft' || s.status === 'past_due');
+
+  const subscriberPlan = activePlans.find(p => p.id === planId)?.audience === 'assinante';
 
   if (isLoading) {
     return <Skeleton className="h-24 w-full" />;
@@ -104,7 +117,11 @@ function PersonPlanPanel({ personId }: { personId: string }) {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline">{SUBSCRIPTION_STATUS_LABEL[s.status]}</Badge>
-                {(s.status === 'active' || s.status === 'draft') && (
+                {s.status === 'active' && <Button size="sm" variant="outline" disabled={sendCharge.isPending} onClick={() => sendCharge.mutate({ subscription_id: s.id })}>Cobrar</Button>}
+                {planById.get(s.plan_id)?.audience === 'assinante' && s.status === 'active' && <Button size="sm" variant="outline" disabled={assign.isPending} onClick={() => {
+                  if (window.confirm('Confirmar a alteração desta pessoa para Assinante da Comunidade?')) assign.mutate({ profileId: personId, planId: s.plan_id, startDate: s.start_date, asSubscriber: true });
+                }}>Definir como Assinante</Button>}
+                {(s.status === 'active' || s.status === 'draft' || s.status === 'past_due') && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -148,18 +165,14 @@ function PersonPlanPanel({ personId }: { personId: string }) {
           <Label>Início / primeira cobrança</Label>
           <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </div>
+        {subscriberPlan && <Label className="flex items-start gap-2 text-sm">
+          <Checkbox checked={confirmSubscriber} onCheckedChange={v => setConfirmSubscriber(v === true)} />
+          Confirmo a mudança de Convidado para Assinante da Comunidade
+        </Label>}
         <Button
           size="sm"
-          disabled={!planId || hasActive || save.isPending || activePlans.length === 0}
-          onClick={() =>
-            save.mutate({
-              plan_id: planId,
-              profile_id: personId,
-              status: 'active',
-              start_date: startDate,
-              next_charge_date: startDate,
-            })
-          }
+          disabled={!planId || hasActive || assign.isPending || (subscriberPlan && !confirmSubscriber) || activePlans.length === 0}
+          onClick={() => assign.mutate({ profileId: personId, planId, startDate, asSubscriber: subscriberPlan })}
         >
           <CircleDollarSign className="h-4 w-4 mr-1" />
           Atribuir plano
@@ -185,7 +198,7 @@ interface PersonData {
   deactivated_at: string | null;
   deactivation_reason: string | null;
   created_at: string | null;
-  role: 'admin' | 'facilitador' | 'membro' | 'convidado' | null;
+  role: AppRole;
   slug: string | null;
   team_id: string | null;
   team_name: string | null;
@@ -210,7 +223,7 @@ export default function GestaoPessoas() {
   
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('q') || '');
-  const { data: guestDirectory } = useGuestsDirectory();
+  const { data: guestDirectory, isLoading: loadingGuests } = useGuestsDirectory();
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [teamFilter, setTeamFilter] = useState<string>('all');
   
@@ -220,9 +233,23 @@ export default function GestaoPessoas() {
   const [showActivateDialog, setShowActivateDialog] = useState(false);
   // v3.43.0: reativação exige grupo e papel de retorno
   const [reactivateTeamId, setReactivateTeamId] = useState<string>('');
-  const [reactivateRole, setReactivateRole] = useState<'membro' | 'facilitador' | 'convidado'>('membro');
+  const [reactivateRole, setReactivateRole] = useState<'membro' | 'facilitador' | 'convidado' | 'assinante'>('membro');
+  const [reactivatePlanId, setReactivatePlanId] = useState('none');
+  const { data: billingPlans } = useBillingPlans();
+  const assignPlan = useAssignPersonPlan();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'members');
   const [showPromoteDialog, setShowPromoteDialog] = useState(false);
   const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const { meetings: premiumMeetings } = useMeetings(isAdmin || isFacilitator);
+  const [showPremiumDialog, setShowPremiumDialog] = useState(false);
+  const [premiumMeetingId, setPremiumMeetingId] = useState('');
+  const invitePremium = useMutation({ mutationFn: async () => {
+    if (!selectedPerson) throw new Error('Selecione a pessoa');
+    const { data, error } = await supabase.rpc('invite_subscriber_premium', { _profile_id: selectedPerson.id, _meeting_id: premiumMeetingId });
+    if (error) throw error;
+    const { error: emailError } = await supabase.functions.invoke('community-notification', { body: { kind: 'premium', reference_id: data } });
+    if (emailError) toast({ title: 'Convite salvo', description: 'Não foi possível enviar o aviso por e-mail.', variant: 'destructive' });
+  }, onSuccess: () => { setShowPremiumDialog(false); toast({ title: 'Participação convidada', description: 'O papel Assinante foi preservado.' }); }, onError: (error: Error) => toast({ title: 'Erro ao convidar', description: error.message, variant: 'destructive' }) });
   const [showPlanDialog, setShowPlanDialog] = useState(false);
   const [transferTeamId, setTransferTeamId] = useState<string>('');
   const [deactivationReason, setDeactivationReason] = useState('');
@@ -232,33 +259,21 @@ export default function GestaoPessoas() {
   // Buscar todas as pessoas
   const { data: allPeople, isLoading } = useQuery({
     queryKey: ['all-people-admin'],
+    enabled: !isLoadingRole && (isAdmin || isFacilitator),
     queryFn: async () => {
       // 1. Buscar profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, phone, company, avatar_url, is_active, deactivated_at, deactivation_reason, created_at, slug')
-        .order('full_name');
-
-      if (profilesError) throw profilesError;
+      const profiles = await fetchAllRows((from, to) => supabase.from('profiles').select('id, full_name, email, phone, company, avatar_url, is_active, deactivated_at, deactivation_reason, created_at, slug').order('id').range(from, to));
 
       // 2. Buscar roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-
-      if (rolesError) throw rolesError;
+      const roles = await fetchAllRows((from, to) => supabase.from('user_roles').select('user_id, role').order('id').range(from, to));
 
       const rolesMap: Record<string, string> = {};
       roles?.forEach(r => {
-        rolesMap[r.user_id] = r.role;
+        rolesMap[r.user_id] = primaryRole([rolesMap[r.user_id], r.role]) || '';
       });
 
       // 3. Buscar team_members
-      const { data: teamMembers, error: teamError } = await supabase
-        .from('team_members')
-        .select('user_id, team_id');
-
-      if (teamError) throw teamError;
+      const teamMembers = await fetchAllRows((from, to) => supabase.from('team_members').select('user_id, team_id').order('id').range(from, to));
 
       const teamMap: Record<string, string> = {};
       teamMembers?.forEach(tm => {
@@ -439,6 +454,8 @@ export default function GestaoPessoas() {
         return <Badge className="bg-blue-600">Facilitador</Badge>;
       case 'membro':
         return <Badge className="bg-green-600">Membro</Badge>;
+      case 'assinante':
+        return <Badge>Assinante da Comunidade</Badge>;
       case 'convidado':
         return <Badge variant="secondary">Convidado</Badge>;
       default:
@@ -474,12 +491,13 @@ export default function GestaoPessoas() {
   }) || [];
 
   // Separar por status
-  const activeMembers = filteredPeople.filter(p => p.is_active && p.role && p.role !== 'convidado');
+  const activeMembers = filteredPeople.filter(p => p.is_active && p.role === 'membro');
   const activeGuests = filteredPeople.filter(p => p.is_active && (!p.role || p.role === 'convidado'));
   // Cadastros ainda sem conta (pré-ativação), vindos da mesma base da página Convidados
-  const pendingActivation = (guestDirectory || []).filter(g => {
+  const pendingActivation = [...new Map((guestDirectory || []).map(g => [g.lead_id ?? g.id, g])).values()].filter(g => {
     if (g.profile_id || g.status === 'promovido_membro') return false;
-    if (teamFilter !== 'all' && g.team_id !== teamFilter) return false;
+    if (roleFilter !== 'all' && roleFilter !== 'convidado') return false;
+    if (teamFilter !== 'all' && (teamFilter === 'sem_grupo' ? !!g.team_id : g.team_id !== teamFilter)) return false;
     if (search) {
       const s = search.toLowerCase();
       if (!(g.full_name.toLowerCase().includes(s) || g.email?.toLowerCase().includes(s) || g.company?.toLowerCase().includes(s))) return false;
@@ -488,12 +506,8 @@ export default function GestaoPessoas() {
   });
   const inactiveMembers = filteredPeople.filter(p => !p.is_active);
 
-  // Stats
-  const stats = {
-    membrosAtivos: allPeople?.filter(p => p.is_active && p.role && p.role !== 'convidado').length || 0,
-    convidados: allPeople?.filter(p => p.is_active && (!p.role || p.role === 'convidado')).length || 0,
-    inativos: allPeople?.filter(p => !p.is_active).length || 0,
-  };
+  const stats = countPeople(filteredPeople, pendingActivation.length);
+  const roleLabels = { admin: 'Administradores', facilitador: 'Facilitadores', membro: 'Membros', assinante: 'Assinantes', convidado: 'Convidados' };
 
   const handlePromote = () => {
     if (!selectedPerson) return;
@@ -569,7 +583,8 @@ export default function GestaoPessoas() {
       </div>
 
       {/* Ações */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex flex-wrap items-center gap-2 shrink-0">
+        {isAdmin && person.is_active && (person.role === 'convidado' || person.role === 'assinante' || person.role === 'membro') && <PersonRoleDialog profileId={person.id} name={person.full_name} currentRole={person.role} teams={teams ?? []} />}
         {showActions === 'active' && isAdmin && (
           <Button
             variant="outline"
@@ -644,6 +659,9 @@ export default function GestaoPessoas() {
             className="text-green-600 hover:text-green-600"
             onClick={() => {
               setSelectedPerson(person);
+              setReactivatePlanId('none');
+              setReactivateRole(person.role === 'assinante' ? 'assinante' : 'membro');
+              setReactivateTeamId('');
               setShowActivateDialog(true);
             }}
           >
@@ -667,6 +685,7 @@ export default function GestaoPessoas() {
           </Button>
         )}
 
+        {person.role === 'assinante' && person.is_active && (isAdmin || isFacilitator) && <Button size="sm" variant="outline" onClick={() => { setSelectedPerson(person); setPremiumMeetingId(''); setShowPremiumDialog(true); }}><UserPlus className="h-4 w-4 mr-1" />Convidar para encontro</Button>}
         {person.slug && (
           <Button
             variant="ghost"
@@ -691,47 +710,14 @@ export default function GestaoPessoas() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30">
-                <UserCheck className="h-5 w-5 text-green-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.membrosAtivos}</p>
-                <p className="text-sm text-muted-foreground">Membros Ativos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
-                <UserPlus className="h-5 w-5 text-yellow-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.convidados}</p>
-                <p className="text-sm text-muted-foreground">Convidados</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/30">
-                <UserX className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.inativos}</p>
-                <p className="text-sm text-muted-foreground">Inativos</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-7 gap-3">
+        {[['total', 'Total de Pessoas'], ...PEOPLE_ROLES.map(r => [r, roleLabels[r]]), ['inactive', 'Inativos']].map(([key, label]) => (
+          <Card key={key}><CardContent className="p-4 min-w-0">
+            <p className="text-2xl font-bold tabular-nums">{isLoading || loadingGuests ? '—' : stats[key as keyof typeof stats]}</p>
+            <p className="text-sm text-muted-foreground text-wrap-anywhere">{label}</p>
+            {key === 'convidado' && <p className="mt-1 text-xs text-muted-foreground">{activeGuests.length} com conta · {pendingActivation.length} aguardando ativação</p>}
+          </CardContent></Card>
+        ))}
       </div>
 
       {/* Filtros */}
@@ -762,6 +748,7 @@ export default function GestaoPessoas() {
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="facilitador">Facilitador</SelectItem>
                 <SelectItem value="membro">Membro</SelectItem>
+                <SelectItem value="assinante">Assinante da Comunidade</SelectItem>
                 <SelectItem value="convidado">Convidado</SelectItem>
                 <SelectItem value="sem_perfil">Sem perfil</SelectItem>
               </SelectContent>
@@ -783,12 +770,13 @@ export default function GestaoPessoas() {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue={searchParams.get('tab') || 'members'} className="space-y-4">
-        <TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="hscroll">
           <TabsTrigger value="members" className="gap-2">
             <UserCheck className="h-4 w-4" />
             Membros ({activeMembers.length})
           </TabsTrigger>
+          {(['admin', 'facilitador', 'assinante'] as const).map(r => <TabsTrigger key={r} value={r}>{roleLabels[r]} ({filteredPeople.filter(p => p.is_active && p.role === r).length})</TabsTrigger>)}
           <TabsTrigger value="guests" className="gap-2">
             <UserPlus className="h-4 w-4" />
             Convidados ({activeGuests.length + pendingActivation.length})
@@ -820,6 +808,10 @@ export default function GestaoPessoas() {
           )}
         </TabsContent>
 
+        {(['admin', 'facilitador', 'assinante'] as const).map(r => <TabsContent key={r} value={r} className="space-y-3">
+          {filteredPeople.filter(p => p.is_active && p.role === r).map(person => <PersonRow key={person.id} person={person} showActions="active" />)}
+          {!isLoading && filteredPeople.filter(p => p.is_active && p.role === r).length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhuma pessoa encontrada.</p>}
+        </TabsContent>)}
         {/* Tab Convidados */}
         <TabsContent value="guests">
           {isLoading ? (
@@ -961,16 +953,17 @@ export default function GestaoPessoas() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Papel de retorno</Label>
-              <Select value={reactivateRole} onValueChange={(v) => setReactivateRole(v as typeof reactivateRole)}>
+              <Select value={reactivateRole} onValueChange={(v) => { setReactivateRole(v as typeof reactivateRole); setReactivatePlanId('none'); }}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="membro">Membro</SelectItem>
                   <SelectItem value="facilitador">Facilitador</SelectItem>
                   <SelectItem value="convidado">Convidado (sem grupo)</SelectItem>
+                  <SelectItem value="assinante">Assinante da Comunidade (sem grupo)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {reactivateRole !== 'convidado' && (
+            {reactivateRole !== 'convidado' && reactivateRole !== 'assinante' && (
               <div className="space-y-1.5">
                 <Label>Grupo</Label>
                 <Select value={reactivateTeamId} onValueChange={setReactivateTeamId}>
@@ -985,24 +978,30 @@ export default function GestaoPessoas() {
             )}
           </div>
 
+          <div className="space-y-1.5">
+            <Label>Plano {reactivateRole === 'assinante' ? '(obrigatório)' : '(opcional)'}</Label>
+            <Select value={reactivatePlanId} onValueChange={setReactivatePlanId}>
+              <SelectTrigger><SelectValue /></SelectTrigger><SelectContent>
+                {reactivateRole !== 'assinante' && <SelectItem value="none">Sem novo plano</SelectItem>}
+                {(billingPlans ?? []).filter(p => p.active && (reactivateRole === 'assinante' ? p.audience === 'assinante' : p.audience !== 'assinante')).map(p => <SelectItem key={p.id} value={p.id}>{p.name} · {formatCents(p.amount_cents)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowActivateDialog(false)}>
               Cancelar
             </Button>
             <Button 
-              onClick={() =>
-                selectedPerson &&
-                activateMutation.mutate({
-                  memberId: selectedPerson.id,
-                  teamId: reactivateRole === 'convidado' ? null : reactivateTeamId || null,
-                  role: reactivateRole,
-                })
-              }
-              disabled={
-                activateMutation.isPending ||
-                (reactivateRole !== 'convidado' && !reactivateTeamId)
-              }
-              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                if (!selectedPerson) return;
+                if (reactivatePlanId !== 'none') {
+                  assignPlan.mutate({ profileId: selectedPerson.id, planId: reactivatePlanId, asSubscriber: reactivateRole === 'assinante', reactivate: true, role: reactivateRole, teamId: reactivateTeamId || null }, { onSuccess: () => { setShowActivateDialog(false); setSelectedPerson(null); } });
+                } else {
+                  activateMutation.mutate({ memberId: selectedPerson.id, teamId: reactivateRole === 'convidado' ? null : reactivateTeamId || null, role: reactivateRole === 'assinante' ? 'convidado' : reactivateRole });
+                }
+              }}
+              disabled={activateMutation.isPending || assignPlan.isPending || (reactivateRole === 'assinante' && reactivatePlanId === 'none') || (['membro', 'facilitador'].includes(reactivateRole) && !reactivateTeamId)}
             >
               {activateMutation.isPending ? 'Reativando...' : 'Reativar'}
             </Button>
@@ -1134,6 +1133,10 @@ export default function GestaoPessoas() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>Convidar para encontro Premium</DialogTitle><DialogDescription>{selectedPerson?.full_name} permanece Assinante da Comunidade.</DialogDescription></DialogHeader>
+        <Label>Encontro</Label><Select value={premiumMeetingId} onValueChange={setPremiumMeetingId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{(premiumMeetings ?? []).filter(m => m.event_type === 'premium_group' && m.meeting_date >= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })).map(m => <SelectItem key={m.id} value={m.id}>{m.title} · {m.meeting_date.split('-').reverse().join('/')}</SelectItem>)}</SelectContent></Select>
+        <DialogFooter><Button variant="outline" onClick={() => setShowPremiumDialog(false)}>Cancelar</Button><Button disabled={!premiumMeetingId || invitePremium.isPending} onClick={() => invitePremium.mutate()}>Enviar convite</Button></DialogFooter>
+      </DialogContent></Dialog>
       {/* Dialog de Plano e Assinatura (somente Admin) */}
       <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
         <DialogContent className="max-w-lg">

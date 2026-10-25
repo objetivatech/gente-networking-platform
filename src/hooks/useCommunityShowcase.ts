@@ -9,6 +9,7 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,8 +27,9 @@ export interface CommunityShowcaseProfile {
 }
 
 export function useCommunityShowcase(enabled = true) {
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['community-showcase'],
+    queryKey: ['community-showcase', user?.id],
     enabled,
     staleTime: 2 * 60 * 1000,
     queryFn: async (): Promise<CommunityShowcaseProfile[]> => {

@@ -9,6 +9,7 @@
  * @author Diogo Devitte / Ranktop
  */
 
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,6 +47,7 @@ function defaultStart(): string {
 }
 
 export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNote, className, variant = 'outline', onScheduled }: ScheduleMeetingDialogProps) {
+  const { can } = useEntitlements();
   const [open, setOpen] = useState(false);
   const [start, setStart] = useState<string>(defaultStart());
   const [duration, setDuration] = useState<string>('60');
@@ -66,6 +68,7 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
   };
 
   const handleSubmit = () => {
+    if (!can('can_create_gente_em_acao')) return;
     createRequest.mutate(
       {
         recipient_id: recipientId,
@@ -110,6 +113,7 @@ export function ScheduleMeetingDialog({ recipientId, memberName, availabilityNot
     }
   };
 
+  if (!can('can_create_gente_em_acao')) return null;
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>

@@ -1,3 +1,5 @@
+import { useAdmin } from '@/hooks/useAdmin';
+import { useCommunityShowcase } from '@/hooks/useCommunityShowcase';
 import { useMembers } from '@/hooks/useMembers';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -24,12 +26,16 @@ export default function MemberSelect({
   excludeSelf = true,
 }: MemberSelectProps) {
   const { user } = useAuth();
-  const { members, isLoading } = useMembers();
+  const { isSubscriber, isLoading: loadingRole } = useAdmin();
+  const { members, isLoading: loadingMembers } = useMembers(false, !loadingRole && !isSubscriber);
+  const { data: community, isLoading: loadingCommunity } = useCommunityShowcase(isSubscriber);
+  const isLoading = isSubscriber ? loadingCommunity : loadingMembers;
+  const choices = isSubscriber ? community : members;
 
   // Exclude self if needed — admins are already excluded by useMembers
   const filteredMembers = excludeSelf
-    ? members?.filter((m) => m.id !== user?.id)
-    : members;
+    ? choices?.filter((m) => m.id !== user?.id)
+    : choices;
 
   const getInitials = (name: string) =>
     name

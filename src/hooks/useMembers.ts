@@ -44,9 +44,10 @@ export interface MembersByTeam {
   members: Member[];
 }
 
-export function useMembers(includeInactive = false) {
+export function useMembers(includeInactive = false, enabled = true) {
   const query = useQuery({
     queryKey: ['members-directory', includeInactive],
+    enabled,
     staleTime: 5 * 60 * 1000, // 5 min - member list changes rarely
     queryFn: async () => {
       // 1. Get all profiles
@@ -113,7 +114,7 @@ export function useMembers(includeInactive = false) {
       (profiles || []).forEach(profile => {
         const role = rolesMap[profile.id];
         // Exclude guests and admins from listing
-        if (!role || role === 'convidado' || role === 'admin') return;
+        if (role !== 'membro' && role !== 'facilitador') return;
         
         const userTeamEntries = teamMembershipMap[profile.id] || [];
         

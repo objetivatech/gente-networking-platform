@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { Button } from '@/components/ui/button';
 const logoGente = '/logo-gente-comunidade-branco.png';
 
@@ -60,7 +61,7 @@ const menuGroups: MenuGroup[] = [
     label: 'Comunidade',
     defaultOpen: true,
     items: [
-      { icon: Users, label: 'Vitrine da Comunidade', path: '/vitrine', roles: ['assinante', 'convidado'] },
+      { icon: Users, label: 'Vitrine da Comunidade', path: '/vitrine', roles: ['admin', 'facilitador', 'membro', 'assinante', 'convidado'] },
       { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
       { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] },
@@ -72,6 +73,7 @@ const menuGroups: MenuGroup[] = [
   {
     id: 'networking',
     label: 'Networking',
+    defaultOpen: true,
     items: [
       { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Send, label: 'Indicações', path: '/indicacoes', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
@@ -131,6 +133,7 @@ function readStored(): Record<string, boolean> {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const location = useLocation();
+  const { canPath } = useEntitlements();
   const { signOut } = useAuth();
   const { role, isLoading } = useAdmin();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
@@ -163,7 +166,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     if (isLoading || !role) return items.filter((i) => !i.roles);
     return items.filter(
       (i) =>
-        (!i.roles || i.roles.includes(role)) &&
+        (!i.roles || i.roles.includes(role)) && canPath(i.path) &&
         !(i.hiddenForRoles && i.hiddenForRoles.includes(role)),
     );
   };

@@ -17,6 +17,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEntitlements } from './useEntitlements';
+import { isEligibleCommunityTarget } from '@/lib/plan-access';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeMatchOpportunity, type MatchType } from '@/lib/matchmaking-rules';
 import { normalizeDrawState, type MatchmakingDrawState } from '@/lib/matchmaking-draw';
@@ -134,7 +136,7 @@ const getIsoWeekSeed = (d = new Date()): number => {
 const pickWeeklySuggestion = (
   suggestions: MatchSuggestion[]
 ): MatchSuggestion | null => {
-  const pool = suggestions.filter((s) => !s.isInCooldown && s.score > 0);
+  const pool = suggestions.filter((s) => !s.isInCooldown);
   if (pool.length === 0) return null;
   const topPool = pool.slice(0, Math.min(5, pool.length));
   const idx = getIsoWeekSeed() % topPool.length;
@@ -151,12 +153,14 @@ const REQUIRED_FIELDS: { key: keyof MyProfileForMatch; label: string }[] = [
 
 export function useMatchmaking() {
   const { user } = useAuth();
+  const { role, can, isLoading: loadingRights } = useEntitlements();
+  const enabled = !loadingRights && can('matchmaking_enabled');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['matchmaking', user?.id],
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
       if (!user?.id) {
@@ -234,10 +238,11 @@ export function useMatchmaking() {
 
       const suggestions: MatchSuggestion[] = [];
 
+      const queryRole = role;
       for (const p of profiles || []) {
         if (p.id === user.id) continue;
         const role = p.role;
-        if (role === 'admin') continue; // admins não entram no matchmaking
+        if (role === 'admin' || !isEligibleCommunityTarget(queryRole, role)) continue; // admins não entram no matchmaking
 
 
         const otherTags: string[] = ((p.tags as string[] | null) || []);
@@ -301,7 +306,7 @@ export function useMatchmaking() {
           reasons.unshift(opportunity.opportunityTitle);
         }
 
-        if (score <= 0) continue;
+        if (score <= 0) reasons.push('Nova conexão na comunidade');
 
         // tags em comum legíveis (formato original do outro perfil)
         const sharedTags = otherTags.filter((t) => myTagsNorm.includes(normalize(t)));
@@ -315,7 +320,7 @@ export function useMatchmaking() {
         const isInCooldown = !!cooldownUntil && cooldownUntil > nowIso;
 
         // Tentativas sem retorno reduzem levemente a prioridade, sem esconder o card
-        const adjustedScore = Math.max(1, score - Math.min(15, attemptsCount * 5));
+        const adjustedScore = Math.max(0, score - Math.min(15, attemptsCount * 5));
 
         suggestions.push({
           id: p.id,
@@ -357,7 +362,7 @@ export function useMatchmaking() {
 
   const drawStateQuery = useQuery({
     queryKey: ['matchmaking-draw-state', user?.id],
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     staleTime: 60 * 1000,
     queryFn: async (): Promise<MatchmakingDrawState | null> => {
       const { data, error } = await supabase.rpc('get_matchmaking_draw_state');
@@ -368,22 +373,20 @@ export function useMatchmaking() {
 
   const connectionsQuery = useQuery({
     queryKey: ['matchmaking-connections', user?.id],
-    enabled: !!user?.id,
+    enabled: !!user?.id && enabled,
     queryFn: async (): Promise<MatchmakingConnection[]> => {
+      if (!user?.id || role === 'assinante') return [];
       const { data, error } = await supabase
         .from('matchmaking_connections')
         .select('id, target_id, description, created_at')
-        .eq('member_id', user!.id)
+        .eq('member_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
 
       const targetIds = (data || []).map((c) => c.target_id);
       let targets: Record<string, any> = {};
       if (targetIds.length > 0) {
-        const { data: profs } = await supabase
-          .from('profiles')
-          .select('id, full_name, company, avatar_url')
-          .in('id', targetIds);
+        const { data: profs } = await supabase.rpc('get_matchmaking_profiles');
         profs?.forEach((p) => { targets[p.id] = p; });
       }
       const totals: Record<string, number> = {};
@@ -426,6 +429,7 @@ export function useMatchmaking() {
 
   const createCheck = useMutation({
     mutationFn: async (input: { targetId: string; description?: string; meetingDate?: string; imageUrl?: string }) => {
+      if (role === 'assinante' || !can('can_create_gente_em_acao')) throw new Error('Ação indisponível para este papel ou plano');
       const { data, error } = await supabase.rpc('create_matchmaking_check' as any, {
         _target_id: input.targetId,
         _description: input.description || null,

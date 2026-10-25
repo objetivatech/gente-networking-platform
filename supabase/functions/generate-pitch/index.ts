@@ -14,6 +14,7 @@
  * LOVABLE_API_KEY mantida no servidor.
  */
 
+import { createClient } from 'npm:@supabase/supabase-js@2';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -41,6 +42,15 @@ serve(async (req) => {
   }
 
   try {
+    const url = Deno.env.get('SUPABASE_URL');
+    const key = Deno.env.get('SUPABASE_ANON_KEY');
+    const authorization = req.headers.get('Authorization');
+    if (!url || !key || !authorization) return new Response(JSON.stringify({ error: 'Não autenticado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const viewer = createClient(url, key, { global: { headers: { Authorization: authorization } } });
+    const { data: { user }, error: userError } = await viewer.auth.getUser();
+    if (userError || !user) return new Response(JSON.stringify({ error: 'Não autenticado' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { data: allowed, error: permissionError } = await viewer.rpc('has_module_access', { _user_id: user.id, _feature: 'ai_pitch_enabled' });
+    if (permissionError || allowed !== true) return new Response(JSON.stringify({ error: 'Pitch exige plano Membro Premium com recurso ativo.' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     if (!LOVABLE_API_KEY) {
       return new Response(
         JSON.stringify({ error: "Serviço de IA não configurado." }),

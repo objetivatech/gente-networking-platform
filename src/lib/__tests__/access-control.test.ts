@@ -144,7 +144,9 @@ describe('access-control: Assinante da Comunidade (Bloco 2)', () => {
     expect(canAccessCommunityShowcase('convidado')).toBe(true);
     expect(canAccessCommunityShowcase('membro')).toBe(false);
     expect(canAccessCommunityShowcase('facilitador')).toBe(false);
-    expect(canAccessCommunityShowcase('admin')).toBe(false);
+    expect(canAccessCommunityShowcase('admin')).toBe(true);
     expect(canAccessCommunityShowcase(null)).toBe(false);
+    expect(canAccessCommunityShowcase('membro', true)).toBe(true);
+    expect(canAccessCommunityShowcase('facilitador', true)).toBe(true);
   });
 });

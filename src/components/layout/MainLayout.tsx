@@ -23,12 +23,14 @@ import { Loader2, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAdmin } from '@/hooks/useAdmin';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { canAccessAppPath } from '@/lib/access-control';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const location = useLocation();
+  const { canPath, isLoading: loadingRights } = useEntitlements();
   const { role, isLoading: loadingRole } = useAdmin();
   
   // Scroll to top on route change
@@ -40,10 +42,11 @@ export default function MainLayout() {
     enabled: !!user?.id,
     staleTime: 60_000,
     queryFn: async () => {
+      if (!user?.id) return false;
       const { data, error } = await supabase
         .from('profiles')
         .select('is_active')
-        .eq('id', user!.id)
+        .eq('id', user.id)
         .maybeSingle();
       if (error) return true; // falha de rede não deve derrubar o usuário
       return data?.is_active !== false;
@@ -71,7 +74,7 @@ export default function MainLayout() {
     return <Navigate to="/auth" replace />;
   }
 
-  if (loadingAccount || loadingRole) {
+  if (loadingAccount || loadingRole || loadingRights) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -105,7 +108,7 @@ export default function MainLayout() {
   }
 
   // Bloco 2 · Fase 2: Assinante só abre as rotas liberadas ao seu papel.
-  if (!canAccessAppPath(role, location.pathname)) {
+  if (!canAccessAppPath(role, location.pathname) || !canPath(location.pathname)) {
     return <Navigate to="/" replace />;
   }
 

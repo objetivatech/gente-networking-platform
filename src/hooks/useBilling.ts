@@ -19,21 +19,9 @@ export type BillingInterval = 'monthly' | 'quarterly' | 'semiannual' | 'yearly';
  * As chaves são validadas por trigger no banco; chave ausente = recurso não
  * concedido (ou sem franquia, no caso da cota de MatchMaking).
  */
-export interface PlanFeatures {
-  matchmaking_monthly_quota?: number;
-  can_access_opportunities?: boolean;
-  can_create_gente_em_acao?: boolean;
-  public_profile_enabled?: boolean;
-  ai_pitch_enabled?: boolean;
-}
-
-export const PLAN_FEATURE_LABEL: Record<keyof PlanFeatures, string> = {
-  matchmaking_monthly_quota: 'Sorteios de MatchMaking/mês',
-  can_access_opportunities: 'Mural de Oportunidades',
-  can_create_gente_em_acao: 'Criar Gente em Ação',
-  public_profile_enabled: 'Página pública do membro',
-  ai_pitch_enabled: 'Pitch por IA',
-};
+export type { PlanFeatures } from '@/lib/plan-access';
+import { MODULE_FEATURES, type PlanFeatures } from '@/lib/plan-access';
+export const PLAN_FEATURE_LABEL = { ...MODULE_FEATURES, matchmaking_monthly_quota: 'Sorteios de MatchMaking/mês' };
 
 export interface BillingPlan {
   id: string;
@@ -185,6 +173,8 @@ export function useSaveBillingPlan() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-plans'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       toast({ title: 'Plano salvo' });
     },
     onError: (err: unknown) =>
@@ -206,6 +196,8 @@ export function useTogglePlanActive() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-plans'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       toast({ title: 'Plano atualizado' });
     },
   });
@@ -336,6 +328,10 @@ export function useSaveSubscription() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-subscriptions'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['user-role'] });
+      qc.invalidateQueries({ queryKey: ['all-people-admin'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       qc.invalidateQueries({ queryKey: ['billing-charges'] });
       toast({ title: 'Assinatura salva' });
     },
@@ -376,6 +372,10 @@ export function useSendCharge() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['billing-charges'] });
       qc.invalidateQueries({ queryKey: ['billing-subscriptions'] });
+      qc.invalidateQueries({ queryKey: ['user-entitlements'] });
+      qc.invalidateQueries({ queryKey: ['user-role'] });
+      qc.invalidateQueries({ queryKey: ['all-people-admin'] });
+      qc.invalidateQueries({ queryKey: ['matchmaking-draw-state'] });
       qc.invalidateQueries({ queryKey: ['crm-leads'] });
       toast({ title: 'Cobrança enviada', description: 'E-mail disparado e registro criado.' });
     },
@@ -402,5 +402,38 @@ export function useMarkChargePaid() {
       qc.invalidateQueries({ queryKey: ['billing-charges'] });
       toast({ title: 'Cobrança marcada como paga' });
     },
+  });
+}
+
+/** Explicit, atomic admin assignment; assigning a plan alone never silently promotes a person. */
+export function useAssignPersonPlan() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: async (input: { profileId: string; planId: string; startDate?: string; asSubscriber?: boolean; reactivate?: boolean; teamId?: string | null; role?: 'membro' | 'facilitador' | 'convidado' | 'assinante' }) => {
+      const { data, error } = await supabase.rpc('admin_assign_person_plan', {
+        _profile_id: input.profileId, _plan_id: input.planId,
+        _start_date: input.startDate ?? new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }),
+        _as_subscriber: input.asSubscriber ?? false, _reactivate: input.reactivate ?? false,
+        _team_id: input.teamId ?? null, _role: input.role ?? null,
+      });
+      if (error) throw error;
+      const result = data as { success?: boolean; subscription_id?: string };
+      if (!result?.success) throw new Error('Não foi possível atribuir o plano');
+      if (result.subscription_id) {
+        const { error: notificationError } = await supabase.functions.invoke('community-notification', { body: { kind: 'plan', reference_id: result.subscription_id } });
+        if (notificationError) toast({ title: 'Plano salvo', description: 'O aviso por e-mail não foi enviado.', variant: 'destructive' });
+        if (input.reactivate) {
+          const { data: charge, error: chargeError } = await supabase.functions.invoke('dispatch-billing-charge', { body: { subscription_id: result.subscription_id } });
+          if (chargeError || charge?.success === false) toast({ title: 'Reativação salva', description: 'A cobrança não foi enviada. Revise pelo botão Cobrar.', variant: 'destructive' });
+        }
+      }
+      return result;
+    },
+    onSuccess: () => {
+      for (const key of ['billing-subscriptions', 'user-role', 'user-entitlements', 'all-people-admin', 'guests-directory', 'community-showcase', 'matchmaking', 'matchmaking-draw-state', 'account-active', 'teams']) qc.invalidateQueries({ queryKey: [key] });
+      toast({ title: 'Plano e acesso atualizados', description: 'Histórico preservado. A cobrança pode ser enviada pelo botão Cobrar.' });
+    },
+    onError: (error: Error) => toast({ title: 'Não foi possível atualizar', description: error.message, variant: 'destructive' }),
   });
 }

@@ -50,8 +50,8 @@ export const canUseMatchmaking = (role: AppRole): boolean =>
   isOneOf(role, ['admin', 'facilitador', 'membro', 'assinante']);
 
 /** Vitrine exclusiva: somente Assinantes e Convidados ativos. */
-export const canAccessCommunityShowcase = (role: AppRole): boolean =>
-  isOneOf(role, ['assinante', 'convidado']);
+export const canAccessCommunityShowcase = (role: AppRole, planAllowed = false): boolean =>
+  isOneOf(role, ['admin', 'assinante', 'convidado']) || (planAllowed && isOneOf(role, ['membro', 'facilitador']));
 
 /**
  * Quem pode acessar o Mural de Oportunidades (publicar/ver oportunidades).

@@ -73,3 +73,7 @@ RPCs:
 - `draw_matchmaking_suggestion(_target_id)`
 - `create_matchmaking_check(_target_id, _description, _meeting_date, _image_url)`
 - `register_matchmaking_attempt(_target_id, _attempt_type, _notes, _reference_id)`
+
+## v3.55.0 — Catraca e painel
+
+`matchmaking_enabled` permite desligar o módulo independentemente de `matchmaking_monthly_quota`. Menu, rota e RPC aplicam o mesmo direito. Perfis elegíveis de score neutro permanecem candidatos (sem afirmar afinidade inexistente). Dashboard Assinante mostra saldo e atalho. Agendamento depende de `can_create_gente_em_acao`; Assinante não usa check nem histórico gamificado. A defesa no cliente rejeita candidatos Membro/Facilitador/Admin, além do isolamento no banco.

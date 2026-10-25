@@ -9,6 +9,9 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
+import { CommunityProfileDialog } from '@/components/CommunityProfileDialog';
+import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Building2, HeartHandshake, Search, Sparkles, Users } from 'lucide-react';
@@ -27,7 +30,9 @@ const initials = (name: string) => name.split(' ').map((n) => n[0]).slice(0, 2).
 
 export default function VitrineComunidade() {
   const { role, isLoading: roleLoading } = useAdmin();
-  const allowed = canAccessCommunityShowcase(role);
+  const { can, isLoading: rightsLoading } = useEntitlements();
+  const allowed = canAccessCommunityShowcase(role, can('can_access_community_showcase')) && can('can_access_community_showcase');
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const { data: profiles, isLoading } = useCommunityShowcase(!roleLoading && allowed);
   const [search, setSearch] = useState('');
 
@@ -41,7 +46,7 @@ export default function VitrineComunidade() {
     );
   }, [profiles, search]);
 
-  if (!roleLoading && !allowed) return <Navigate to="/" replace />;
+  if (!roleLoading && !rightsLoading && !allowed) return <Navigate to="/" replace />;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -62,7 +67,7 @@ export default function VitrineComunidade() {
             </div>
           </div>
         </div>
-        {role === 'assinante' && (
+        {role === 'assinante' && can('matchmaking_enabled') && (
           <Button asChild className="shrink-0">
             <Link to="/matchmaking">
               <Sparkles className="mr-2 h-4 w-4" /> Ir para o MatchMaking
@@ -142,11 +147,14 @@ export default function VitrineComunidade() {
                 <div className="mt-auto flex items-center gap-2 pt-2 text-xs text-muted-foreground">
                   <HeartHandshake className="h-3.5 w-3.5" /> Perfil ativo na comunidade
                 </div>
+                <Button variant="outline" onClick={() => setSelectedProfileId(profile.id)}>Ver perfil</Button>
+                {can('can_create_gente_em_acao') && <ScheduleMeetingDialog recipientId={profile.id} memberName={profile.full_name} className="w-full whitespace-normal h-auto min-h-10" />}
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+      <CommunityProfileDialog profileId={selectedProfileId} onClose={() => setSelectedProfileId(null)} />
     </div>
   );
 }

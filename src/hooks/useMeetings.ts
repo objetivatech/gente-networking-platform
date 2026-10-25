@@ -36,13 +36,14 @@ export interface MeetingGuest {
   company: string | null;
 }
 
-export function useMeetings() {
+export function useMeetings(enabled = true) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: meetings, isLoading } = useQuery({
-    queryKey: ['meetings'],
+    queryKey: ['meetings', user?.id],
+    enabled: enabled && !!user?.id,
     queryFn: async () => {
       const { data, error } = await supabaseReadOnly.from('meetings').select('*').order('meeting_date', { ascending: true });
       if (error) throw error;
@@ -74,7 +75,7 @@ export function useMeetings() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: enabled && !!user?.id,
   });
 
   const toggleAttendance = useMutation({

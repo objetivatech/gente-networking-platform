@@ -10,6 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEntitlements } from './useEntitlements';
 import { useToast } from '@/hooks/use-toast';
 
 export type MeetingRequestStatus = 'pending' | 'confirmed' | 'declined' | 'cancelled';
@@ -41,6 +42,7 @@ interface CreateMeetingRequestInput {
 
 export function useMeetingRequests() {
   const { user } = useAuth();
+  const { can, role } = useEntitlements();
   const { toast } = useToast();
   const qc = useQueryClient();
 
@@ -71,12 +73,13 @@ export function useMeetingRequests() {
         recipient: map[r.recipient_id] || null,
       }));
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && (role === 'convidado' || can('can_create_gente_em_acao')),
   });
 
   const createRequest = useMutation({
     mutationFn: async (input: CreateMeetingRequestInput) => {
       if (!user?.id) throw new Error('Não autenticado');
+      if (!can('can_create_gente_em_acao')) throw new Error('Agendamento não incluído no plano');
       const payload = {
         requester_id: user.id,
         recipient_id: input.recipient_id,
@@ -97,31 +100,10 @@ export function useMeetingRequests() {
         supabase.from('profiles').select('full_name, email, phone, phone_digits').eq('id', input.recipient_id).maybeSingle(),
       ]);
 
-      // Notifica destinatário via activity_feed + email (best effort)
       try {
-        // Aviso no Feed é gerado automaticamente pelo banco (gatilho em meeting_requests)
-
-        if (recipient?.email) {
-          await supabase.functions.invoke('send-email', {
-            body: {
-              to: recipient.email,
-              subject: 'Nova solicitação de Gente em Ação',
-              template: 'meeting_request',
-              template_data: {
-                recipient_name: recipient.full_name || '',
-                requester_name: requester?.full_name || 'Um membro',
-                proposed_start: payload.proposed_start,
-                duration_minutes: payload.duration_minutes,
-                location: payload.location || '',
-                message: payload.message || '',
-                link: 'https://comunidade.gentenetworking.com.br/perfil?tab=agendamentos',
-              },
-            },
-          });
-        }
-      } catch (e) {
-        console.warn('Notificação de solicitação falhou (não crítico):', e);
-      }
+        const { error: notificationError } = await supabase.functions.invoke('community-notification', { body: { kind: 'request', reference_id: data.id } });
+        if (notificationError) toast({ title: 'Agendamento salvo', description: 'O aviso por e-mail falhou; use WhatsApp para reforçar o convite.', variant: 'destructive' });
+      } catch { toast({ title: 'Agendamento salvo', description: 'Não foi possível enviar o e-mail.', variant: 'destructive' }); }
 
       return {
         request: data as MeetingRequest,
@@ -132,7 +114,7 @@ export function useMeetingRequests() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['meeting-requests'] });
-      toast({ title: 'Solicitação enviada!', description: 'O membro receberá um aviso para confirmar.' });
+      toast({ title: 'Solicitação enviada!', description: 'Solicitação registrada para a pessoa confirmar.' });
     },
     onError: (e: any) => toast({ title: 'Erro', description: e?.message || 'Erro ao enviar solicitação', variant: 'destructive' }),
   });
@@ -147,36 +129,8 @@ export function useMeetingRequests() {
         .single();
       if (error) throw error;
 
-      // Notifica o solicitante
-      try {
-        const req = data as MeetingRequest;
-        const { data: requester } = await supabase
-          .from('profiles').select('full_name, email').eq('id', req.requester_id).maybeSingle();
-        const { data: me } = await supabase
-          .from('profiles').select('full_name').eq('id', req.recipient_id).maybeSingle();
-        // Aviso no Feed é gerado automaticamente pelo banco (gatilho em meeting_requests)
-
-        if (requester?.email) {
-          await supabase.functions.invoke('send-email', {
-            body: {
-              to: requester.email,
-              subject: status === 'confirmed' ? 'Gente em Ação confirmado ✅' : 'Solicitação de Gente em Ação recusada',
-              template: 'meeting_response',
-              template_data: {
-                requester_name: requester.full_name || '',
-                recipient_name: me?.full_name || 'O membro',
-                status,
-                proposed_start: req.proposed_start,
-                duration_minutes: req.duration_minutes,
-                location: req.location || '',
-                link: 'https://comunidade.gentenetworking.com.br/perfil?tab=agendamentos',
-              },
-            },
-          });
-        }
-      } catch (e) {
-        console.warn('Notificação de resposta falhou (não crítico):', e);
-      }
+      const { error: notificationError } = await supabase.functions.invoke('community-notification', { body: { kind: 'response', reference_id: id } });
+      if (notificationError) toast({ title: 'Resposta salva', description: 'Não foi possível enviar o aviso por e-mail.', variant: 'destructive' });
 
       return data;
     },
