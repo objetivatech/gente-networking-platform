@@ -42,7 +42,7 @@
 - [x] Fase 2 — Catraca no frontend (menu, rotas, início próprio) e bloqueio do Assinante em ranking, pontos e estatísticas no banco.
 - [x] Fase 3 — Vitrine exclusiva de Assinantes/Convidados ativos e franquia mensal do MatchMaking; sugestão semanal não consome cota.
 - [x] Fase 4 — Painel de planos e atribuição: recursos/limites editáveis no plano (franquia MatchMaking + 4 acessos), públicos Membro Premium e Assinante, atribuição/cancelamento de assinatura por perfil na Gestão de Pessoas (somente Admin).
-- [x] Fase 5 — Testes unitários da matriz, contadores, paginação e franquia.
+- [x] Fase 5 — 98 testes da plataforma e 3 testes de cobrança; matriz, contadores, paginação, franquia e entrada pública sem erros.
 - [ ] Fase 5 — Homologação de atribuição, cobrança, agendamento, convite Premium e consumo de cota com conta real — Supabase externo sem sessão autenticada disponível. Não criar/alterar conta de teste arbitrária.
 
 # Recuperação de atualização PWA — etapa exclusiva de correção

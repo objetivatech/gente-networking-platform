@@ -26,3 +26,4 @@
 - Read showcase detail through `get_community_profile` and invite subscribers through `guest_participations`; these flows must not query member directories or record attendance automatically.
 - Use the authorized community-notification endpoint for plan, Premium invitation and scheduling messages, deriving recipients from persisted records instead of caller-provided addresses.
 - Compute management cards and tabs from the same deduplicated filtered population, with paginated profile/role reads to prevent silent row-limit truncation.
+- Serialize subscription writes on the same profile lock as role transitions and claim community email dispatches atomically; concurrent administrative actions must not duplicate access or messages.

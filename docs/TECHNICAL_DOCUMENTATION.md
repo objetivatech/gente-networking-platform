@@ -15,6 +15,9 @@
 - `community-notification`: autenticação validada, destinatário derivado de assinatura/participação/agendamento. Mensagens registradas no histórico de envio; reenvios já concluídos são ignorados.
 - Página pública, sitemap, cases públicos e pitch exigem plano Premium e recurso liberado. Assinantes não recebem esses recursos, Conselho, ranking ou estatísticas de Membros.
 - Validação autenticada real permanece pendente: Supabase externo sem sessão disponível neste ambiente. Não foram criadas pessoas ou assinaturas de teste no ambiente real.
+- Validação executada: 98 testes da plataforma e 3 testes Deno de cobrança passaram; entrada pública e redirecionamento administrativo sem login conferidos sem erros de execução. Fluxos autenticados, envio real e consumo de cota não foram homologados.
+- Escritas de assinatura compartilham o bloqueio do perfil com mudanças de papel; mensagens usam reserva atômica em `community_message_claims`, exclusiva do serviço. Cobranças já pagas não são recriadas no mesmo vencimento.
+- Segurança: 67 apontamentos já existiam antes desta rodada. Sete novos apontamentos são RPCs autenticadas intencionais, revisadas com validações internas de papel, plano e escopo; funções internas de gatilho não são executáveis pelo navegador. A varredura não equivale a homologação autenticada.
 
 ## Unificação das LPs (em implantação)
 
