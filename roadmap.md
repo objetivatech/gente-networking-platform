@@ -2,9 +2,10 @@
 
 # Unificação LPs e entrada pública — sem Assinante
 
-- [ ] Modernizar entrada editável e criar página pública de Assinantes, com benefícios condicionados ao plano e evolução para Grupos Premium.
-- [ ] Remover acesso dos Convidados à Vitrine em menus, rotas e banco; preservar seus perfis como contatos autorizados.
-- [ ] Validar páginas públicas, navegação, login e regressões de permissões; manter virada de domínio fora desta rodada.
+- [x] Modernizar entrada editável e criar página pública de Assinantes, com benefícios condicionados ao plano e evolução para Grupos Premium.
+- [x] Remover acesso dos Convidados à Vitrine em menus, rotas e banco; preservar seus perfis como contatos autorizados.
+- [x] Validar páginas públicas desktop/mobile, navegação, abertura do login, ausência de cadastro aberto e regressões de permissões; virada de domínio permanece fora desta rodada.
+- [ ] Homologar edição e bloqueio da Vitrine em sessões reais Admin/Convidado — ambiente Supabase externo sem sessão disponível; testes unitários e definição da função conferidos, sem ampliar permissões para testar.
 
 - [x] Passar entrada para editor avançado, preservar conteúdo anterior e aplicar logos oficiais enviados em 22/10; cadastro aberto permanece ausente.
 
