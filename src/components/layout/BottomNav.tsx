@@ -43,7 +43,6 @@ const subscriberItems: NavItem[] = [
 ];
 
 const guestItems: NavItem[] = [
-  { icon: Users, label: 'Vitrine', path: '/vitrine' },
   { icon: User, label: 'Perfil', path: '/perfil' },
 ];
 

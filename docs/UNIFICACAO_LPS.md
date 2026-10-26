@@ -2,6 +2,14 @@
 
 **Estado: integração de código iniciada; virada pública NÃO realizada.**
 
+## Entrada e Assinantes — 26/10/2026
+
+- Entrada em `/auth` modernizada com imagem editorial ilustrativa, ecossistema e acesso à página `/assinantes` (também `/lps/assinantes`). Ambas permanecem no editor **LPs Avançadas**, com seções de apresentação e sem formulário de cadastro/checkout automático.
+- Página Assinantes apresenta Vitrine, MatchMaking e Gente em Ação condicionados ao plano, diferenças do Convidado e contratação separada dos Grupos Premium. CTA de planos usa o contato WhatsApp já adotado na plataforma; nenhum preço, pagamento ou plano de teste é publicado.
+- Convidados não acessam Vitrine em menus, URL direta ou RPC. Seus perfis ativos continuam elegíveis como contatos dos leitores autorizados; ativação, participações e pontuação permanecem inalteradas.
+- Conteúdos/links das LPs importadas, DNS e chave `LP_UNIFIED_ENABLED` não foram alterados. Links existentes continuam no gerenciador anterior até a virada autorizada.
+- Validação autenticada real continua pendente neste Supabase externo. Alertas de segurança anteriores não devem ser confundidos com mudanças desta rodada.
+
 ## Atualização de 24/10/2026
 
 - Admin enviou os 48 objetos ao `lps-media`; conteúdo público conferido byte a byte com a exportação. Biblioteca cadastrada com 48 URLs permanentes. Os nomes visíveis nesta carga são os caminhos do Storage; nomes editoriais originais e UUIDs de mídia ainda não foram reconciliados.
