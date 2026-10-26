@@ -157,6 +157,16 @@
 }
 
 @layer utilities {
+  .entry-hero {
+    min-height: min(640px, 72svh);
+  }
+  .entry-hero-shade {
+    background: linear-gradient(90deg, hsl(var(--foreground) / 0.92), hsl(var(--foreground) / 0.68) 45%, hsl(var(--foreground) / 0.08));
+  }
+  @media (max-width: 640px) {
+    .entry-hero { min-height: 0; }
+    .entry-hero-shade { background: hsl(var(--foreground) / 0.75); }
+  }
   .lp-platform-entry section[role="banner"] {
     min-height: 0;
     padding-top: 5rem;

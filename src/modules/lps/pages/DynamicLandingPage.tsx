@@ -9,6 +9,7 @@ import { SEOHead } from '../components/seo/SEOHead';
 import GenteHub from './GenteHub';
 import GenteNetworking from './GenteNetworking';
 import NotFound from '@/pages/NotFound';
+import { PlatformEntry } from '../components/PlatformEntry';
 function DynamicContent({ slug }: { slug: string }) {
   const { data: page, isLoading, error } = useLandingPage(slug);
   const advancedMode = page?.template === 'community';
@@ -23,6 +24,8 @@ export default function DynamicLandingPage() {
   const { slug: parameter } = useParams();
   const { pathname } = useLocation();
   const slug = parameter || pathname.split('/').filter(Boolean)[0] || 'inicio';
+  if (slug === 'assinantes') return <PlatformEntry subscriber />;
+  if (slug === 'entrada-plataforma') return <PlatformEntry />;
   if (slug === 'gentehub') return <GenteHub />;
   if (slug === 'participe') return <GenteNetworking />;
   return <DynamicContent slug={slug} />;

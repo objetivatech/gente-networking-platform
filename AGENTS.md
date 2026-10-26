@@ -4,6 +4,7 @@
 - Route new LP submissions exclusively through `submit-lead`; never create parallel lead/account/invitation writes or browser-local retry queues.
 - Keep invitation signup and confirmation routes when simplifying `/auth`; login-only presentation must not disable invitation activation.
 - Render platform entry from advanced content with an explicit section allowlist excluding lead forms; shared editor must not inject community signup defaults there.
+- Render the public subscriber presentation and platform entry through the same presentation-only advanced CMS allowlist, including friendly and preview URLs; this prevents automatic lead/account forms and keeps editorial changes consistent.
 - Bundle the official entry logos for external Cloudflare deployment while asset-path serving is unavailable there; do not depend on host-relative Lovable media endpoints for brand visibility.
 - Keep public LP cutover separate from code migration until source exports, media portability, tracking and authenticated acceptance checks pass.
 - Gate Cloudflare LP-host rewriting with `LP_UNIFIED_ENABLED`; it preserves source URLs and allows rollback without replacing the authenticated dashboard.

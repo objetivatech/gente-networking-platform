@@ -18,7 +18,7 @@ import { COMMUNITY_DEFAULTS, type AdvancedContent } from '@/modules/lps/componen
 import { previewForPage, validateSlug } from '../../lib/rules';
 import { PageSettings } from '../../components/admin/PageSettings';
 import type { Json } from '@/integrations/supabase/types';
-import { ENTRY_DEFAULTS, ENTRY_SECTIONS } from '../../lib/entry-content';
+import { ENTRY_DEFAULTS, ENTRY_SECTIONS, SUBSCRIBER_DEFAULTS } from '../../lib/entry-content';
 
 const SECTIONS: { key: keyof AdvancedContent; label: string }[] = [
   { key: 'hero', label: 'Hero' },
@@ -112,8 +112,9 @@ const ARRAY_FIELDS: Record<string, { key: string; label: string; hint: string }[
 };
 
 function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string }) {
-  const defaults = pageSlug === 'entrada-plataforma' ? ENTRY_DEFAULTS : COMMUNITY_DEFAULTS;
-  const sections = pageSlug === 'entrada-plataforma' ? SECTIONS.filter(s => ENTRY_SECTIONS.some(key => key === s.key)) : SECTIONS;
+  const presentationPage = ['entrada-plataforma', 'assinantes'].includes(pageSlug);
+  const defaults = pageSlug === 'assinantes' ? SUBSCRIBER_DEFAULTS : pageSlug === 'entrada-plataforma' ? ENTRY_DEFAULTS : COMMUNITY_DEFAULTS;
+  const sections = presentationPage ? SECTIONS.filter(s => ENTRY_SECTIONS.some(key => key === s.key)) : SECTIONS;
   const { data, isLoading } = useAdvancedPageContent(pageId);
   const upsert = useUpsertAdvancedPageContent();
   const [content, setContent] = useState<AdvancedContent>({});
