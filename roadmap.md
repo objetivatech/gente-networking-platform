@@ -2,6 +2,10 @@
 
 # Unificação LPs e entrada pública — sem Assinante
 
+- [ ] Modernizar entrada editável e criar página pública de Assinantes, com benefícios condicionados ao plano e evolução para Grupos Premium.
+- [ ] Remover acesso dos Convidados à Vitrine em menus, rotas e banco; preservar seus perfis como contatos autorizados.
+- [ ] Validar páginas públicas, navegação, login e regressões de permissões; manter virada de domínio fora desta rodada.
+
 - [x] Passar entrada para editor avançado, preservar conteúdo anterior e aplicar logos oficiais enviados em 22/10; cadastro aberto permanece ausente.
 
 - [x] Integrar código do gerenciador e renderizador existentes com acesso exclusivo do Admin.
