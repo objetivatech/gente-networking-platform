@@ -49,9 +49,9 @@ export const canDowngradeMember = (role: AppRole): boolean => role === 'admin';
 export const canUseMatchmaking = (role: AppRole): boolean =>
   isOneOf(role, ['admin', 'facilitador', 'membro', 'assinante']);
 
-/** Vitrine exclusiva: somente Assinantes e Convidados ativos. */
+/** Acesso à Vitrine: Assinante/Admin; Membro/Facilitador mediante plano. Convidados são contatos, não leitores. */
 export const canAccessCommunityShowcase = (role: AppRole, planAllowed = false): boolean =>
-  isOneOf(role, ['admin', 'assinante', 'convidado']) || (planAllowed && isOneOf(role, ['membro', 'facilitador']));
+  isOneOf(role, ['admin', 'assinante']) || (planAllowed && isOneOf(role, ['membro', 'facilitador']));
 
 /**
  * Quem pode acessar o Mural de Oportunidades (publicar/ver oportunidades).
@@ -94,6 +94,8 @@ export const SUBSCRIBER_ALLOWED_PATHS: ReadonlyArray<string> = [
 
 /** Decide se o papel pode abrir a rota interna informada. */
 export const canAccessAppPath = (role: AppRole, pathname: string): boolean => {
+  const normalized = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
+  if (role === 'convidado' && normalized === '/vitrine') return false;
   if (!isSubscriberRole(role)) return true; // demais papéis mantêm as regras atuais
   const path = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
   return SUBSCRIBER_ALLOWED_PATHS.includes(path);

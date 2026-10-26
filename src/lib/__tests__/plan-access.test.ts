@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { hasPlanFeature, isEligibleCommunityTarget, type Entitlements } from '../plan-access';
 const rights: Entitlements = { subscription: { subscription_id: 's', audience: 'assinante', plan_name: 'Teste', features: { matchmaking_enabled: true, matchmaking_monthly_quota: 3, can_create_gente_em_acao: true } } };
 describe('Plano e papel separados', () => {
+  it('Convidado não acessa Vitrine nem com flag ativa no plano', () => expect(hasPlanFeature('convidado', 'can_access_community_showcase', { subscription: { subscription_id: 's', audience: 'assinante', plan_name: 'Teste', features: { can_access_community_showcase: true } } })).toBe(false));
   it('Assinante com plano acessa MatchMaking', () => expect(hasPlanFeature('assinante', 'matchmaking_enabled', rights)).toBe(true));
   it('Assinante sem assinatura não acessa MatchMaking', () => expect(hasPlanFeature('assinante', 'matchmaking_enabled', { subscription: null })).toBe(false));
   it('Desligar MatchMaking prevalece sobre franquia positiva', () => expect(hasPlanFeature('assinante', 'matchmaking_enabled', { subscription: { ...rights.subscription, subscription_id: 's', plan_name: 'Teste', audience: 'assinante', features: { matchmaking_enabled: false, matchmaking_monthly_quota: 3 } } })).toBe(false));

@@ -139,9 +139,14 @@ describe('access-control: Assinante da Comunidade (Bloco 2)', () => {
     expect(canViewMembersDirectory('assinante')).toBe(false);
     expect(canViewGuestsDirectory('assinante')).toBe(false);
   });
-  it('Vitrine é exclusiva de Assinante e Convidado', () => {
+  it('Convidado não acessa Vitrine mesmo com liberação de plano', () => {
+    expect(canAccessCommunityShowcase('convidado', true)).toBe(false);
+    expect(canAccessAppPath('convidado', '/vitrine')).toBe(false);
+    expect(canAccessAppPath('convidado', '/vitrine/')).toBe(false);
+  });
+  it('Vitrine é acessível ao Assinante e administrada por Admin', () => {
     expect(canAccessCommunityShowcase('assinante')).toBe(true);
-    expect(canAccessCommunityShowcase('convidado')).toBe(true);
+    expect(canAccessCommunityShowcase('convidado')).toBe(false);
     expect(canAccessCommunityShowcase('membro')).toBe(false);
     expect(canAccessCommunityShowcase('facilitador')).toBe(false);
     expect(canAccessCommunityShowcase('admin')).toBe(true);

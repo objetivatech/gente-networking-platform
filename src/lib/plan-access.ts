@@ -44,7 +44,7 @@ export function hasPlanFeature(role: AppRole, feature: ModuleFeature, rights?: E
   }
   if (MEMBER_ONLY.includes(feature) && (role === 'assinante' || role === 'convidado')) return false;
   if (role === 'admin') return true;
-  if (role === 'convidado') return feature === 'can_access_community_showcase';
+  if (role === 'convidado') return false;
   if (!rights) return false;
   const plan = rights.subscription;
   if (feature === 'can_access_community_showcase' && role !== 'assinante') return plan?.features[feature] === true;
