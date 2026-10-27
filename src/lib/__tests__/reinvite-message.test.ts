@@ -3,7 +3,7 @@
  * © 2026 Ranktop SEO Inteligente.
  */
 import { describe, it, expect } from 'vitest';
-import { buildReinviteMessage, toWhatsAppDigits } from './reinvite-message';
+import { buildReinviteMessage, toWhatsAppDigits } from '../reinvite-message';
 
 describe('reconvite', () => {
   it('normaliza WhatsApp brasileiro com DDI 55', () => {
