@@ -26,6 +26,10 @@ import { richTextToPlain } from '@/lib/rich-text';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCommunityShowcase } from '@/hooks/useCommunityShowcase';
 import { canAccessCommunityShowcase } from '@/lib/access-control';
+import { useProfile } from '@/hooks/useProfile';
+import { useProfilesCompleteness } from '@/hooks/useProfilesCompleteness';
+import { ProfileCompletenessBadge } from '@/components/profile/ProfileCompletenessBadge';
+import { getCompatibilityScore, sortByCompletenessAndCompatibility } from '@/lib/profile-completeness';
 
 const initials = (name: string) => name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
 
@@ -37,16 +41,25 @@ export default function VitrineComunidade() {
   const { data: profiles, isLoading } = useCommunityShowcase(!roleLoading && allowed);
   const [search, setSearch] = useState('');
 
+  const { profile: viewer } = useProfile();
+  const completeness = useProfilesCompleteness((profiles || []).map((p) => p.id));
+
+  // Ordenação padrão (invisível): 1º completude, 2º compatibilidade com quem visita.
+  const ranked = useMemo(() => sortByCompletenessAndCompatibility(
+    (profiles || []).map((p) => ({ ...p, percent: completeness.get(p.id) ?? 0, compatibility: getCompatibilityScore(viewer, p) })),
+  ), [profiles, completeness, viewer]);
+  const compatibleCount = ranked.filter((p) => p.compatibility > 0).length;
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return profiles || [];
-    return (profiles || []).filter((p) =>
+    if (!term) return ranked;
+    return ranked.filter((p) =>
       [p.full_name, p.company, p.position, p.business_segment,
         richTextToPlain(p.what_i_do), richTextToPlain(p.ideal_client), ...(p.tags || [])]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term)),
     );
-  }, [profiles, search]);
+  }, [ranked, search]);
 
   if (!roleLoading && !rightsLoading && !allowed) return <Navigate to="/" replace />;
 
@@ -77,6 +90,21 @@ export default function VitrineComunidade() {
           </Button>
         )}
       </div>
+
+      {!isLoading && ranked.length > 0 && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <HeartHandshake className="h-8 w-8 shrink-0 text-primary" />
+              <p className="text-sm sm:text-base">
+                <strong className="text-lg text-primary">{ranked.length}</strong> {ranked.length === 1 ? 'perfil disponível' : 'perfis disponíveis'} na vitrine ·{' '}
+                <strong className="text-lg text-accent">{compatibleCount}</strong> com compatibilidade possível com você
+              </p>
+            </div>
+            <p className="text-xs text-muted-foreground sm:max-w-xs">Os perfis mais completos e mais compatíveis aparecem primeiro.</p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="pt-6">
@@ -128,6 +156,7 @@ export default function VitrineComunidade() {
                     <span className="line-clamp-2 text-wrap-anywhere">{profile.company}</span>
                   </div>
                 )}
+                <ProfileCompletenessBadge percent={completeness.get(profile.id)} />
                 {profile.business_segment && <Badge variant="outline" className="w-fit">{profile.business_segment}</Badge>}
                 {richTextToPlain(profile.what_i_do) && (
                   <div className="min-w-0">

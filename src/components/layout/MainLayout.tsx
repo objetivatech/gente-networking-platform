@@ -25,6 +25,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { canAccessAppPath } from '@/lib/access-control';
+import { ProfileCompletionBanner } from '@/components/profile/ProfileCompletionBanner';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -125,6 +126,7 @@ export default function MainLayout() {
             }}
           >
             <div className="w-full min-w-0 max-w-full">
+              <ProfileCompletionBanner />
               <ErrorBoundary
                 resetKey={location.pathname}
                 fallbackMessage="Ocorreu um erro ao carregar esta página. Tente recarregar."
