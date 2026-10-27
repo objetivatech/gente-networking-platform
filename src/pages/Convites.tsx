@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useInvitations, Invitation } from '@/hooks/useInvitations';
+import { ReinviteGuestDialog } from '@/components/guests/ReinviteGuestDialog';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { useHubMeetings } from '@/hooks/useHubMeetings';
@@ -502,6 +503,9 @@ export default function Convites() {
                            <span className="sr-only">Renovar convite</span>
                          </Button>
                        )}
+                      {effectiveStatus === 'accepted' && invitation.accepted_by && (
+                        <ReinviteGuestDialog guestId={invitation.accepted_by} guestName={invitation.name || 'convidado'} />
+                      )}
                       {effectiveStatus !== 'accepted' && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

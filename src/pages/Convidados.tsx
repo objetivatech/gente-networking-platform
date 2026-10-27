@@ -23,6 +23,7 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { useResendGuestActivation } from '@/hooks/useResendGuestActivation';
 import { useRenewGuestInvitation } from '@/hooks/useRenewGuestInvitation';
+import { ReinviteGuestDialog } from '@/components/guests/ReinviteGuestDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -344,6 +345,9 @@ export default function Convidados() {
                               Ver perfil <ExternalLink className="w-3 h-3" />
                             </Link>
                           ) : <span />}
+                          {g.can_manage && g.profile_id && (
+                            <ReinviteGuestDialog guestId={g.profile_id} guestName={g.full_name} />
+                          )}
                           {(() => {
                             const expired = g.invitation_status === 'expired'
                               || (g.invitation_status === 'pending' && !!g.invitation_expires_at && new Date(g.invitation_expires_at) <= new Date());
