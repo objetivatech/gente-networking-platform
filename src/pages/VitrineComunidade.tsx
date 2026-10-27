@@ -129,16 +129,16 @@ export default function VitrineComunidade() {
                   </div>
                 )}
                 {profile.business_segment && <Badge variant="outline" className="w-fit">{profile.business_segment}</Badge>}
-                {profile.what_i_do && (
+                {richTextToPlain(profile.what_i_do) && (
                   <div className="min-w-0">
                     <p className="font-medium">O que faz</p>
-                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere">{profile.what_i_do}</p>
+                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere whitespace-pre-line">{richTextToPlain(profile.what_i_do)}</p>
                   </div>
                 )}
-                {profile.ideal_client && (
+                {richTextToPlain(profile.ideal_client) && (
                   <div className="min-w-0">
                     <p className="font-medium">Cliente ideal</p>
-                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere">{profile.ideal_client}</p>
+                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere whitespace-pre-line">{richTextToPlain(profile.ideal_client)}</p>
                   </div>
                 )}
                 {profile.tags.length > 0 && (
