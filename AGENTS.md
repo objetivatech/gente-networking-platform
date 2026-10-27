@@ -28,3 +28,4 @@
 - Use the authorized community-notification endpoint for plan, Premium invitation and scheduling messages, deriving recipients from persisted records instead of caller-provided addresses.
 - Compute management cards and tabs from the same deduplicated filtered population, with paginated profile/role reads to prevent silent row-limit truncation.
 - Serialize subscription writes on the same profile lock as role transitions and claim community email dispatches atomically; concurrent administrative actions must not duplicate access or messages.
+- Complete invitation signup only through `complete-guest-signup` (confirmed account + accept + next-meeting attendance) and reinvite only via `reinvite_guest_to_meeting`, keeping the original `invited_by`; this removes the second e-mail without moving gamification authorship.
