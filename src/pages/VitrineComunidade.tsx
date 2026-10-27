@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { richTextToPlain } from '@/lib/rich-text';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCommunityShowcase } from '@/hooks/useCommunityShowcase';
 import { canAccessCommunityShowcase } from '@/lib/access-control';
@@ -40,7 +41,8 @@ export default function VitrineComunidade() {
     const term = search.trim().toLowerCase();
     if (!term) return profiles || [];
     return (profiles || []).filter((p) =>
-      [p.full_name, p.company, p.position, p.business_segment, p.what_i_do, p.ideal_client, ...(p.tags || [])]
+      [p.full_name, p.company, p.position, p.business_segment,
+        richTextToPlain(p.what_i_do), richTextToPlain(p.ideal_client), ...(p.tags || [])]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term)),
     );
@@ -127,16 +129,16 @@ export default function VitrineComunidade() {
                   </div>
                 )}
                 {profile.business_segment && <Badge variant="outline" className="w-fit">{profile.business_segment}</Badge>}
-                {profile.what_i_do && (
+                {richTextToPlain(profile.what_i_do) && (
                   <div className="min-w-0">
                     <p className="font-medium">O que faz</p>
-                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere">{profile.what_i_do}</p>
+                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere whitespace-pre-line">{richTextToPlain(profile.what_i_do)}</p>
                   </div>
                 )}
-                {profile.ideal_client && (
+                {richTextToPlain(profile.ideal_client) && (
                   <div className="min-w-0">
                     <p className="font-medium">Cliente ideal</p>
-                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere">{profile.ideal_client}</p>
+                    <p className="line-clamp-3 text-muted-foreground text-wrap-anywhere whitespace-pre-line">{richTextToPlain(profile.ideal_client)}</p>
                   </div>
                 )}
                 {profile.tags.length > 0 && (
