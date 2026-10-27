@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { richTextToPlain } from '@/lib/rich-text';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useCommunityShowcase } from '@/hooks/useCommunityShowcase';
 import { canAccessCommunityShowcase } from '@/lib/access-control';
@@ -40,7 +41,8 @@ export default function VitrineComunidade() {
     const term = search.trim().toLowerCase();
     if (!term) return profiles || [];
     return (profiles || []).filter((p) =>
-      [p.full_name, p.company, p.position, p.business_segment, p.what_i_do, p.ideal_client, ...(p.tags || [])]
+      [p.full_name, p.company, p.position, p.business_segment,
+        richTextToPlain(p.what_i_do), richTextToPlain(p.ideal_client), ...(p.tags || [])]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term)),
     );
