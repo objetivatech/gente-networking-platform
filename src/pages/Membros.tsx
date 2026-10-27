@@ -33,6 +33,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import RankBadge from '@/components/RankBadge';
+import { useProfilesCompleteness } from '@/hooks/useProfilesCompleteness';
+import { ProfileCompletenessBadge } from '@/components/profile/ProfileCompletenessBadge';
 import { 
   Users, 
   Search, 
@@ -87,7 +89,7 @@ function BusinessSegmentBadge({ segment }: { segment: string }) {
   );
 }
 
-function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewProfile: () => void }) {
+function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile; onViewProfile: () => void; percent?: number }) {
   const initials = member.full_name
     .split(' ')
     .map(n => n[0])
@@ -123,6 +125,7 @@ function MemberCard({ member, onViewProfile }: { member: MemberProfile; onViewPr
               </Badge>
             )}
 
+            <div className="mb-1"><ProfileCompletenessBadge percent={percent} /></div>
             {member.position && (
               <p className="text-sm text-muted-foreground line-clamp-2 text-wrap-anywhere">{member.position}</p>
             )}
@@ -317,6 +320,7 @@ interface TeamSectionProps {
 
 function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }: TeamSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const completeness = useProfilesCompleteness(team.members.map((m) => m.id));
 
   const filteredMembers = team.members.filter(member => {
     // Text search
@@ -370,6 +374,7 @@ function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }:
             <MemberCard 
               key={member.id}
               member={member as MemberProfile} 
+              percent={completeness.get(member.id)}
               onViewProfile={() => onViewProfile(member.slug || member.id)} 
             />
           ))}

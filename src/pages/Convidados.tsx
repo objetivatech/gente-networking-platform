@@ -23,6 +23,8 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useTeams } from '@/hooks/useTeams';
 import { useResendGuestActivation } from '@/hooks/useResendGuestActivation';
 import { useRenewGuestInvitation } from '@/hooks/useRenewGuestInvitation';
+import { useProfilesCompleteness } from '@/hooks/useProfilesCompleteness';
+import { ProfileCompletenessBadge } from '@/components/profile/ProfileCompletenessBadge';
 import { ReinviteGuestDialog } from '@/components/guests/ReinviteGuestDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -75,6 +77,8 @@ export default function Convidados() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [showPromoted, setShowPromoted] = useState(false);
+
+  const completeness = useProfilesCompleteness((guests || []).map((g) => g.profile_id));
 
   const filtered = useMemo(() => {
     if (!guests) return [];
@@ -276,6 +280,7 @@ export default function Convidados() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-2 text-sm">
+                        {g.profile_id && <ProfileCompletenessBadge percent={completeness.get(g.profile_id)} />}
                         {g.team_name && (
                           <Badge
                             variant="outline"
