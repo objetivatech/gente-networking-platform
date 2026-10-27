@@ -28,3 +28,6 @@ verify_jwt = false
 
 [functions.resend-guest-activation]
 verify_jwt = false
+
+[functions.complete-guest-signup]
+verify_jwt = false
