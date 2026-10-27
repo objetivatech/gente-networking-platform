@@ -41,7 +41,6 @@ const Conteudos = lazyWithRetry(() => import("./pages/Conteudos"));
 const Ranking = lazyWithRetry(() => import("./pages/Ranking"));
 const Convites = lazyWithRetry(() => import("./pages/Convites"));
 const ConvitePublico = lazyWithRetry(() => import("./pages/ConvitePublico"));
-const CadastroConvidado = lazyWithRetry(() => import("./pages/CadastroConvidado"));
 const Documentacao = lazyWithRetry(() => import("./pages/Documentacao"));
 const Configuracoes = lazyWithRetry(() => import("./pages/Configuracoes"));
 const AdminDashboard = lazyWithRetry(() => import("./pages/AdminDashboard"));
@@ -104,6 +103,11 @@ function PublicProfileRedirect() {
   return <Navigate to={`/m/${slug ?? ''}`} replace />;
 }
 
+function LegacyInviteSignupRedirect() {
+  const { code } = useParams<{ code: string }>();
+  return <Navigate to={`/convite/${code ?? ''}`} replace />;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -125,7 +129,7 @@ const App = () => (
               <Route path="/obrigado" element={<LpThankYou />} />
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
               <Route path="/convite/:code" element={<ErrorBoundary fallbackMessage="Erro ao carregar o convite. Tente recarregar a página."><ConvitePublico /></ErrorBoundary>} />
-              <Route path="/convite/:code/cadastrar" element={<ErrorBoundary fallbackMessage="Erro ao carregar o cadastro. Tente recarregar a página."><CadastroConvidado /></ErrorBoundary>} />
+              <Route path="/convite/:code/cadastrar" element={<LegacyInviteSignupRedirect />} />
               <Route path="/instalar" element={<Instalar />} />
               <Route path="/auth/confirm" element={<ErrorBoundary fallbackMessage="Erro ao confirmar email. Tente recarregar a página."><AuthConfirm /></ErrorBoundary>} />
               <Route path="/m/:slug" element={<ErrorBoundary fallbackMessage="Erro ao carregar o perfil público. Tente recarregar a página."><PublicProfile /></ErrorBoundary>} />

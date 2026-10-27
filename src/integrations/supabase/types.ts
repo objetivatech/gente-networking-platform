@@ -2739,6 +2739,7 @@ export type Database = {
         Args: { _context: string; _reference_id: string }
         Returns: boolean
       }
+      confirm_guest_next_meeting: { Args: { _user_id: string }; Returns: Json }
       create_guest_invitation: {
         Args: {
           _email?: string
@@ -2914,6 +2915,7 @@ export type Database = {
           team_id: string
         }[]
       }
+      get_invitation_welcome: { Args: { _code: string }; Returns: Json }
       get_matchmaking_draw_state: { Args: never; Returns: Json }
       get_matchmaking_profiles: {
         Args: never
@@ -3160,6 +3162,10 @@ export type Database = {
       register_meeting_request_whatsapp_open: {
         Args: { _request_id: string }
         Returns: string
+      }
+      reinvite_guest_to_meeting: {
+        Args: { _guest_id: string; _meeting_id: string }
+        Returns: Json
       }
       renew_guest_invitation: {
         Args: { _invitation_id: string }

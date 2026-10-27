@@ -50,6 +50,7 @@
 - [x] Fase 5 — 98 testes da plataforma e 3 testes de cobrança; matriz, contadores, paginação, franquia e entrada pública sem erros.
 - [ ] Fase 5 — Homologação de atribuição, cobrança, agendamento, convite Premium e consumo de cota com conta real — Supabase externo sem sessão autenticada disponível. Não criar/alterar conta de teste arbitrária.
 - [x] v3.55.1 — Data inicial da assinatura e dos encontros no fuso de Brasília (era UTC e nascia "no dia seguinte" à noite, deixando o plano inativo); exibição de datas de assinatura/cobrança em DD/MM/AAAA; 104 testes passaram.
+- [x] v3.56.0 — Convite em página única com ativação instantânea (sem 2º e-mail), presença automática no próximo encontro, Reconvidar por papel com WhatsApp e Admin movendo convidado entre Grupos.
 
 # Recuperação de atualização PWA — etapa exclusiva de correção
 
