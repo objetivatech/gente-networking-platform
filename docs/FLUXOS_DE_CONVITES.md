@@ -1,6 +1,31 @@
 # Fluxos de Convites
 
-**Versão:** v3.50.0 · Setembro/2026
+**Versão:** v3.56.0 · Outubro/2026
+
+## Fluxo enxuto de convites (v3.56.0)
+
+1. O link `/convite/:codigo` abre uma **página única**: foto e nome de quem convidou, Grupo,
+   data/horário/local do próximo encontro e o formulário (nome, e-mail, WhatsApp, empresa,
+   segmento, senha). O link antigo `/convite/:codigo/cadastrar` redireciona para ela.
+2. "Confirmar minha vaga" chama a função `complete-guest-signup`, que cria a conta **já
+   confirmada** (sem 2º e-mail), aceita o convite e confirma a presença no próximo encontro do
+   Grupo (ou no evento Gente HUB do convite). O convidado entra logado na plataforma.
+3. E-mail já cadastrado: a pessoa é orientada a entrar na conta existente; nada é sobrescrito.
+
+### Reconvite por papel
+
+| Papel | Quem pode reconvidar | Para quais encontros |
+|---|---|---|
+| Membro | Apenas os próprios convidados (`/convites`) | Encontros dos Grupos em que participa |
+| Facilitador | Convidados visíveis em `/convidados` | Encontros do Grupo que facilita |
+| Admin | Qualquer convidado | Qualquer encontro da rede |
+
+O reconvite (`reinvite_guest_to_meeting`) registra uma `guest_participations` com
+`status=invited` e devolve a mensagem pronta para WhatsApp. **A autoria continua com quem
+convidou primeiro** (`invited_by` original), portanto os 15 pontos de presença seguem para esse
+membro. Não cria conta, presença nem promoção. O Admin também pode mover a presença de um
+convidado para encontro de **outro Grupo** (`move_guest_attendance`); o Facilitador segue
+limitado ao próprio Grupo.
 
 ## Destinos disponíveis
 
