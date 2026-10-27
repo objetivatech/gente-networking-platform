@@ -44,3 +44,49 @@ export function getProfileCompleteness(profile: Record<string, any> | null | und
   const missing = fields.filter((f) => !f.filled);
   return { fields, missing, isComplete: missing.length === 0 };
 }
+
+/** Percentual (0–100) de campos obrigatórios preenchidos. */
+export function getProfileCompletenessPercent(profile: Record<string, any> | null | undefined): number {
+  const { fields, missing } = getProfileCompleteness(profile);
+  return Math.round(((fields.length - missing.length) * 100) / fields.length);
+}
+
+export type CompletenessLevel = 'complete' | 'almost' | 'incomplete';
+
+/** 100% = completo; 70–99% = faltam poucos campos; abaixo disso = incompleto. */
+export function getCompletenessLevel(percent: number): CompletenessLevel {
+  if (percent >= 100) return 'complete';
+  if (percent >= 70) return 'almost';
+  return 'incomplete';
+}
+
+const tokenize = (v: unknown): Set<string> =>
+  new Set(
+    String(v ?? '')
+      .replace(/<[^>]*>/g, ' ')
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length >= 4),
+  );
+
+const overlap = (a: Set<string>, b: Set<string>) => { let n = 0; a.forEach((w) => { if (b.has(w)) n++; }); return n; };
+
+/** Afinidade simples entre o visitante e um perfil da vitrine (0 = sem compatibilidade). */
+export function getCompatibilityScore(viewer: Record<string, any> | null | undefined, target: Record<string, any>): number {
+  if (!viewer) return 0;
+  let score = 0;
+  const vt = new Set<string>((viewer.tags || []).map((t: string) => t.toLowerCase()));
+  (target.tags || []).forEach((t: string) => { if (vt.has(t.toLowerCase())) score += 3; });
+  if (viewer.business_segment && target.business_segment &&
+      viewer.business_segment.trim().toLowerCase() === target.business_segment.trim().toLowerCase()) score += 2;
+  score += Math.min(4, overlap(tokenize(viewer.ideal_client), tokenize(`${target.what_i_do ?? ''} ${target.business_segment ?? ''}`)));
+  score += Math.min(4, overlap(tokenize(target.ideal_client), tokenize(`${viewer.what_i_do ?? ''} ${viewer.business_segment ?? ''}`)));
+  return score;
+}
+
+/** Ordenação padrão da vitrine: 1º completude (desc), 2º compatibilidade (desc), 3º nome. */
+export function sortByCompletenessAndCompatibility<T extends { full_name: string; percent: number; compatibility: number }>(list: T[]): T[] {
+  return [...list].sort((a, b) =>
+    b.percent - a.percent || b.compatibility - a.compatibility || a.full_name.localeCompare(b.full_name, 'pt-BR'));
+}

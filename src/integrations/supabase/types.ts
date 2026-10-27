@@ -2968,6 +2968,14 @@ export type Database = {
         }[]
       }
       get_my_premium_invitations: { Args: never; Returns: Json }
+      get_profiles_completeness: {
+        Args: { _ids: string[] }
+        Returns: {
+          id: string
+          missing_count: number
+          percent: number
+        }[]
+      }
       get_public_profile: {
         Args: { _slug: string }
         Returns: {
