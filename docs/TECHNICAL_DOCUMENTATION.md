@@ -13,6 +13,7 @@
 - `generate-pitch` preserva modelo/endpoint e comportamento existentes, acrescentando portas ao contexto. Pitch é persistido pelo usuário autenticado após resposta bem-sucedida; falha não apaga o texto anterior. Edição manual tem salvamento explícito.
 - Régua de nove campos, autoria de convites, pagamentos, franquias e gamificação não foram alterados. Não há publicação automática das portas ou pitch na página pública.
 - Manual: [MATCHMAKING.md](./MATCHMAKING.md). Validação em sessão real permanece pendente devido ao Supabase externo sem sessão disponível.
+- Verificações desta rodada: 131 testes passaram; banco confirmou 15 decisores e 18 setores; geração pelo modelo/endpoint existentes com dados fictícios retornou HTTP 200 e texto. `generate-pitch` foi publicado, mas sua chamada sem sessão foi barrada com 401; geração via função autenticada e persistência real no perfil não foram homologadas. Rotas protegidas redirecionaram para `/auth` sem erros. Não houve novos alertas de segurança; 78 anteriores permanecem fora do escopo.
 
 ## Planos e papéis (v3.55.0)
 

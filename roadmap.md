@@ -2,10 +2,10 @@
 
 # v3.57.0 — Portas de conexão e pitch persistente
 
-- [ ] Taxonomia de decisores/setores gerida exclusivamente pelo Admin, preservando seleções inativas.
-- [ ] Perfil com portas oferecidas/procuradas e observações; pitch salvo com geração explícita e edição manual.
-- [ ] Selos discretos e detalhes na Vitrine, Membros e MatchMaking; pontuação de ponte sem alterar franquias ou gamificação.
-- [ ] Documentação técnica, fluxos, manual interno e changelog atualizados; testes das regras e validação disponível.
+- [x] Taxonomia de 15 decisores/18 setores gerida exclusivamente pelo Admin, preservando seleções inativas; consulta invoker/RLS sem novos alertas de segurança.
+- [x] Perfil com portas oferecidas/procuradas e observações; pitch salvo com geração explícita e edição manual.
+- [x] Selos discretos e detalhes na Vitrine, Membros e MatchMaking; pontuação de ponte sem alterar franquias ou gamificação.
+- [x] Documentação técnica, fluxos, manual interno e changelog atualizados; 131 testes passaram, geração IA com dados fictícios retornou texto/HTTP 200, páginas sem login redirecionaram corretamente e build OK.
 - [ ] Homologar edição Admin/perfil, retorno do pitch salvo e conexões em sessão real — Supabase externo sem sessão autenticada disponível.
 
 # Unificação LPs e entrada pública — sem Assinante
