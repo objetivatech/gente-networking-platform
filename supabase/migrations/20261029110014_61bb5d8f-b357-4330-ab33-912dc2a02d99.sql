@@ -1,0 +1,5 @@
+DO $$ DECLARE def text; old text := $o$IF _feature IN ('public_profile_enabled','ai_pitch_enabled') THEN RETURN internal AND audience IN ('premium','membro') AND coalesce((f->>_feature)::boolean,false); END IF;$o$; BEGIN
+def := pg_get_functiondef('public.has_module_access(uuid,text)'::regprocedure);
+IF position(old IN def) = 0 THEN RAISE EXCEPTION 'has_module_access mudou; revisar'; END IF;
+def := replace(def, old, $n$IF _feature IN ('public_profile_enabled','ai_pitch_enabled') THEN IF public.has_role(_user_id,'admin') THEN RETURN true; END IF; IF NOT internal THEN RETURN false; END IF; IF f IS NULL THEN RETURN NOT EXISTS(SELECT 1 FROM public.billing_subscriptions WHERE profile_id=_user_id); END IF; RETURN audience IN ('premium','membro') AND coalesce((f->>_feature)::boolean,false); END IF;$n$);
+EXECUTE def; END $$;
