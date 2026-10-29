@@ -39,8 +39,12 @@ export function hasPlanFeature(role: AppRole, feature: ModuleFeature, rights?: E
   if (!role) return false;
   if (feature === 'can_access_community_showcase' && role === 'admin') return true;
   if (PREMIUM_ONLY.includes(feature)) {
-    return (role === 'membro' || role === 'facilitador') &&
-      ['premium', 'membro'].includes(rights?.subscription?.audience ?? '') && rights?.subscription?.features[feature] === true;
+    if (role === 'admin') return true;
+    if (role !== 'membro' && role !== 'facilitador') return false;
+    if (!rights) return false;
+    // Legacy members without any subscription record keep access; once a plan exists, it rules.
+    if (!rights.subscription) return !rights.has_subscription_history;
+    return ['premium', 'membro'].includes(rights.subscription.audience) && rights.subscription.features[feature] === true;
   }
   if (MEMBER_ONLY.includes(feature) && (role === 'assinante' || role === 'convidado')) return false;
   if (role === 'admin') return true;
