@@ -16,5 +16,9 @@ describe('Plano e papel separados', () => {
   it('Assinante recebe Convidado como candidato', () => expect(isEligibleCommunityTarget('assinante', 'convidado')).toBe(true));
   it('Membro Premium pode gerar pitch quando liberado', () => expect(hasPlanFeature('membro', 'ai_pitch_enabled', { subscription: { subscription_id: 's', plan_name: 'Premium', audience: 'premium', features: { ai_pitch_enabled: true } } })).toBe(true));
   it('Assinante nunca gera pitch Premium mesmo com flag', () => expect(hasPlanFeature('assinante', 'ai_pitch_enabled', { subscription: { subscription_id: 's', plan_name: 'Teste', audience: 'assinante', features: { ai_pitch_enabled: true } } })).toBe(false));
+  it('Admin sempre acessa pitch e página pública', () => expect(hasPlanFeature('admin', 'public_profile_enabled', { subscription: null })).toBe(true));
+  it('Membro sem plano cadastrado mantém pitch', () => expect(hasPlanFeature('membro', 'ai_pitch_enabled', { subscription: null })).toBe(true));
+  it('Membro com plano sem flag não gera pitch', () => expect(hasPlanFeature('membro', 'ai_pitch_enabled', { subscription: { subscription_id: 's', plan_name: 'P', audience: 'premium', features: {} } })).toBe(false));
+  it('Convidado não tem página pública', () => expect(hasPlanFeature('convidado', 'public_profile_enabled', { subscription: null })).toBe(false));
   it('Membro com assinatura cancelada não retoma acesso legado', () => expect(hasPlanFeature('membro', 'can_create_gente_em_acao', { subscription: null, has_subscription_history: true })).toBe(false));
 });
