@@ -1,5 +1,9 @@
 # Regras de arquitetura
 
+- Store connection selections as stable taxonomy IDs; expose them through scoped invoker reads or existing authorized profile reads, because renames and inactive options must preserve history without widening subscriber visibility.
+- Keep bridge scoring deterministic and shared by MatchMaking and Vitrine; preserve the nine-field completeness, monthly quotas and gamification independently of optional connection fields.
+- Persist pitch updates separately from general profile drafts and only after explicit generation or manual save, because unrelated profile changes must not overwrite the saved pitch.
+
 - Keep LP code isolated in `src/modules/lps` and reuse the platform client and UI tokens; this prevents cross-project auth and style collisions.
 - Route new LP submissions exclusively through `submit-lead`; never create parallel lead/account/invitation writes or browser-local retry queues.
 - Keep invitation signup and confirmation routes when simplifying `/auth`; login-only presentation must not disable invitation activation.

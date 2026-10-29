@@ -131,7 +131,7 @@ export function PitchGenerator({ profile, onSave }: PitchGeneratorProps) {
           </p>
         )}
 
-        {pitch && (
+        {(pitch || profile?.ai_pitch) && (
           <Textarea
             value={pitch}
             aria-label="Meu pitch"

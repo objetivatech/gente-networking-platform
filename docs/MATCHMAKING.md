@@ -1,5 +1,16 @@
 # MatchMaking — Conexões, tentativas, fila e franquia (v3.53.0)
 
+## v3.57.0 — Portas de conexão
+
+- Meu Perfil → Editar Perfil → Portas que abro / Portas que procuro: selecione múltiplos decisores e setores; observações opcionais até 500 caracteres. Salve o perfil.
+- Administração → Portas de conexão (`/admin/conexoes`): somente Admin ativo adiciona, renomeia, ordena ou desativa opções. A lista inicial tem 15 decisores e 18 setores. Desativar preserva as seleções antigas e impede novas seleções; opções inativas não pontuam no cruzamento.
+- Os cards de Membros, Vitrine e MatchMaking exibem no máximo dois selos de portas e `+N`. Foco/tooltip revela os demais; Perfil e Ver perfil mostram a lista completa.
+- IDs ativos procurados por uma pessoa cruzam com os oferecidos pela outra. Decisor + setor na mesma direção gera hipótese de Ponte Direta (+70); apenas uma dimensão gera ponte possível (+35); reciprocidade acrescenta +10. Não há multiplicação por número de opções nem IA externa no score. O acesso real ao decisor naquele setor precisa ser confirmado na conversa.
+- Profissionais do mesmo segmento não são automaticamente descartados. O novo bônus integra o score existente; tentativas, fila e franquia permanecem. Na Vitrine, completude continua como primeiro critério e compatibilidade como segundo; busca continua disponível, inclusive pelos rótulos das portas.
+- Portas e pitch não entram nos nove campos obrigatórios da completude; perfis atuais mantêm seu percentual.
+- Pitch: abrir Meu Perfil recupera o texto salvo. Gerar Novo Pitch usa também as portas e salva o resultado; edição manual exige Salvar alterações. Alterar outro campo ou recarregar não regenera o pitch. Permissões de plano/papel para IA permanecem.
+- Validação autenticada ponta a ponta permanece pendente no ambiente Supabase externo; consultar testes da versão antes de considerar homologado envio à IA e retorno do texto após novo login.
+
 Documento de referência da mecânica de MatchMaking do Gente Comunidade.
 
 ## Quem acessa

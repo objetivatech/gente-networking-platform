@@ -204,6 +204,7 @@ export default function MemberProfilePage() {
                 </div>
               )}
 
+              <ConnectionDoorsTags doors={member} expanded />
               {member.bio && <RichText value={member.bio} className="text-foreground/80" />}
 
               <div className="flex flex-wrap gap-4 pt-2">

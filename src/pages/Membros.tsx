@@ -35,8 +35,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import RankBadge from '@/components/RankBadge';
 import { useProfilesCompleteness } from '@/hooks/useProfilesCompleteness';
 import { ProfileCompletenessBadge } from '@/components/profile/ProfileCompletenessBadge';
-import { useConnectionDoors } from '@/hooks/useConnectionDoors';
 import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
+import type { ConnectionDoors } from '@/lib/connection-doors';
 import { 
   Users, 
   Search, 
@@ -61,7 +61,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface MemberProfile {
+interface MemberProfile extends ConnectionDoors {
   id: string;
   full_name: string;
   email: string | null;
@@ -92,7 +92,6 @@ function BusinessSegmentBadge({ segment }: { segment: string }) {
 }
 
 function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile; onViewProfile: () => void; percent?: number }) {
-  const doors = useConnectionDoors([member.id]);
   const initials = member.full_name
     .split(' ')
     .map(n => n[0])
@@ -146,7 +145,7 @@ function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile;
           </div>
         </div>
 
-        <div className="mt-3"><ConnectionDoorsTags doors={doors.get(member.id)} /></div>
+        <div className="mt-3"><ConnectionDoorsTags doors={member} /></div>
         <Button
           variant="outline"
           size="sm"
@@ -220,6 +219,7 @@ function MemberProfileModal({ member }: { member: MemberProfile }) {
       )}
 
       {/* Bio */}
+      <ConnectionDoorsTags doors={member} expanded />
       {member.bio && (
         <div>
           <h4 className="text-sm font-medium text-muted-foreground mb-1">Sobre</h4>

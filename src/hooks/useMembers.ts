@@ -12,8 +12,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabaseReadOnly } from '@/integrations/supabase/client';
+import type { ConnectionDoors } from '@/lib/connection-doors';
 
-export interface Member {
+export interface Member extends ConnectionDoors {
   id: string;
   full_name: string;
   email: string | null;
@@ -53,7 +54,7 @@ export function useMembers(includeInactive = false, enabled = true) {
       // 1. Get all profiles
       let profilesQuery = supabaseReadOnly
         .from('profiles')
-        .select('id, full_name, email, phone, company, position, bio, avatar_url, linkedin_url, instagram_url, website_url, business_segment, points, rank, slug, is_active')
+        .select('id, full_name, email, phone, company, position, bio, avatar_url, linkedin_url, instagram_url, website_url, business_segment, points, rank, slug, is_active, doors_open, doors_seek, doors_notes')
         .order('full_name');
       
       // Filtrar inativos a menos que explicitamente solicitado
