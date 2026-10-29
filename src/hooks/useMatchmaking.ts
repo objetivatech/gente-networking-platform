@@ -23,8 +23,10 @@ import { useToast } from '@/hooks/use-toast';
 import { analyzeMatchOpportunity, type MatchType } from '@/lib/matchmaking-rules';
 import { normalizeDrawState, type MatchmakingDrawState } from '@/lib/matchmaking-draw';
 import { todayLocalISODate } from '@/lib/date-utils';
+import { fetchConnectionDoors, useConnectionTaxonomies } from './useConnectionDoors';
+import type { ConnectionDoors } from '@/lib/connection-doors';
 
-export interface MatchSuggestion {
+export interface MatchSuggestion extends ConnectionDoors {
   id: string;
   full_name: string;
   company: string | null;
@@ -57,7 +59,7 @@ export interface MatchSuggestion {
   sharedAudiences: string[];
 }
 
-export interface MyProfileForMatch {
+export interface MyProfileForMatch extends ConnectionDoors {
   id: string;
   what_i_do: string | null;
   ideal_client: string | null;
@@ -158,9 +160,10 @@ export function useMatchmaking() {
   const enabled = !loadingRights && can('matchmaking_enabled');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: taxonomies = [] } = useConnectionTaxonomies();
 
   const query = useQuery({
-    queryKey: ['matchmaking', user?.id],
+    queryKey: ['matchmaking', user?.id, taxonomies],
     enabled: !!user?.id && enabled,
     staleTime: 2 * 60 * 1000,
     queryFn: async () => {
@@ -173,12 +176,13 @@ export function useMatchmaking() {
         supabase.rpc('get_matchmaking_profiles'),
         supabase
           .from('profiles')
-          .select('id, what_i_do, ideal_client, business_segment, tags')
+          .select('id, what_i_do, ideal_client, business_segment, tags, doors_open, doors_seek, doors_notes')
           .eq('id', user.id)
           .maybeSingle(),
       ]);
       if (pErr) throw pErr;
       if (meErr) throw meErr;
+      const doorsMap = await fetchConnectionDoors((profiles ?? []).map((p) => p.id));
 
       // 3. Conexões efetivas já realizadas pelo usuário (histórico completo)
       const { data: connections, error: cErr } = await supabase
@@ -214,6 +218,9 @@ export function useMatchmaking() {
       const myProfile: MyProfileForMatch | null = me
         ? {
             id: me.id,
+            doors_open: me.doors_open,
+            doors_seek: me.doors_seek,
+            doors_notes: me.doors_notes,
             what_i_do: me.what_i_do,
             ideal_client: me.ideal_client,
             business_segment: me.business_segment,
@@ -288,18 +295,21 @@ export function useMatchmaking() {
 
         const opportunity = analyzeMatchOpportunity(
           {
+            doors_open: me?.doors_open,
+            doors_seek: me?.doors_seek,
             what_i_do: me?.what_i_do,
             ideal_client: me?.ideal_client,
             business_segment: me?.business_segment,
             tags: myTags,
           },
           {
+            ...doorsMap.get(p.id),
             what_i_do: p.what_i_do,
             ideal_client: p.ideal_client,
             business_segment: p.business_segment,
             tags: otherTags,
           },
-          { hasIdealClientFit, hasSameSegment, hasSharedTags }
+          { hasIdealClientFit, hasSameSegment, hasSharedTags, taxonomies }
         );
 
         score += opportunity.partnershipScore;
@@ -324,6 +334,7 @@ export function useMatchmaking() {
         const adjustedScore = Math.max(0, score - Math.min(15, attemptsCount * 5));
 
         suggestions.push({
+          ...doorsMap.get(p.id),
           id: p.id,
           full_name: p.full_name,
           company: p.company,

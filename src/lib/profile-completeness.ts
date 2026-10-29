@@ -7,6 +7,8 @@
  * @copyright Ranktop / Gente Networking
  */
 
+import { analyzeDoorBridge, type ConnectionTaxonomy } from './connection-doors';
+
 export interface ProfileCompletenessField {
   key: string;
   label: string;
@@ -73,7 +75,7 @@ const tokenize = (v: unknown): Set<string> =>
 const overlap = (a: Set<string>, b: Set<string>) => { let n = 0; a.forEach((w) => { if (b.has(w)) n++; }); return n; };
 
 /** Afinidade simples entre o visitante e um perfil da vitrine (0 = sem compatibilidade). */
-export function getCompatibilityScore(viewer: Record<string, any> | null | undefined, target: Record<string, any>): number {
+export function getCompatibilityScore(viewer: Record<string, any> | null | undefined, target: Record<string, any>, taxonomies: ConnectionTaxonomy[] = []): number {
   if (!viewer) return 0;
   let score = 0;
   const vt = new Set<string>((viewer.tags || []).map((t: string) => t.toLowerCase()));
@@ -82,7 +84,7 @@ export function getCompatibilityScore(viewer: Record<string, any> | null | undef
       viewer.business_segment.trim().toLowerCase() === target.business_segment.trim().toLowerCase()) score += 2;
   score += Math.min(4, overlap(tokenize(viewer.ideal_client), tokenize(`${target.what_i_do ?? ''} ${target.business_segment ?? ''}`)));
   score += Math.min(4, overlap(tokenize(target.ideal_client), tokenize(`${viewer.what_i_do ?? ''} ${viewer.business_segment ?? ''}`)));
-  return score;
+  return score + analyzeDoorBridge(viewer, target, taxonomies).score;
 }
 
 /** Ordenação padrão da vitrine: 1º completude (desc), 2º compatibilidade (desc), 3º nome. */

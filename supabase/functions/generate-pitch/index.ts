@@ -34,6 +34,9 @@ interface PitchProfile {
   ideal_client?: string;
   how_to_refer_me?: string;
   tags?: string[];
+  doors_open?: string[];
+  doors_seek?: string[];
+  doors_notes?: string;
 }
 
 serve(async (req) => {
@@ -80,6 +83,9 @@ serve(async (req) => {
       profile.ideal_client && `Cliente ideal: ${profile.ideal_client}`,
       profile.how_to_refer_me && `Como me indicar: ${profile.how_to_refer_me}`,
       tags && `Tags/Habilidades: ${tags}`,
+      Array.isArray(profile.doors_open) && `Portas que abro: ${profile.doors_open.filter((v) => typeof v === 'string').join(', ')}`,
+      Array.isArray(profile.doors_seek) && `Portas que procuro: ${profile.doors_seek.filter((v) => typeof v === 'string').join(', ')}`,
+      profile.doors_notes && `Observações sobre portas e acessos: ${profile.doors_notes}`,
     ]
       .filter(Boolean)
       .join("\n");

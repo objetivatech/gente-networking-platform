@@ -10,6 +10,9 @@
  */
 
 import { CommunityProfileDialog } from '@/components/CommunityProfileDialog';
+import { useConnectionDoors, useConnectionTaxonomies } from '@/hooks/useConnectionDoors';
+import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
+import { doorLabels } from '@/lib/connection-doors';
 import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useMemo, useState } from 'react';
@@ -43,11 +46,13 @@ export default function VitrineComunidade() {
 
   const { profile: viewer } = useProfile();
   const completeness = useProfilesCompleteness((profiles || []).map((p) => p.id));
+  const doors = useConnectionDoors((profiles || []).map((p) => p.id));
+  const { data: taxonomies = [] } = useConnectionTaxonomies();
 
   // Ordenação padrão (invisível): 1º completude, 2º compatibilidade com quem visita.
   const ranked = useMemo(() => sortByCompletenessAndCompatibility(
-    (profiles || []).map((p) => ({ ...p, percent: completeness.get(p.id) ?? 0, compatibility: getCompatibilityScore(viewer, p) })),
-  ), [profiles, completeness, viewer]);
+    (profiles || []).map((p) => ({ ...p, ...doors.get(p.id), percent: completeness.get(p.id) ?? 0, compatibility: getCompatibilityScore(viewer, { ...p, ...doors.get(p.id) }, taxonomies) })),
+  ), [profiles, completeness, viewer, doors, taxonomies]);
   const compatibleCount = ranked.filter((p) => p.compatibility > 0).length;
 
   const filtered = useMemo(() => {
@@ -55,11 +60,11 @@ export default function VitrineComunidade() {
     if (!term) return ranked;
     return ranked.filter((p) =>
       [p.full_name, p.company, p.position, p.business_segment,
-        richTextToPlain(p.what_i_do), richTextToPlain(p.ideal_client), ...(p.tags || [])]
+        richTextToPlain(p.what_i_do), richTextToPlain(p.ideal_client), ...(p.tags || []), ...doorLabels(p.doors_open, taxonomies), ...doorLabels(p.doors_seek, taxonomies)]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term)),
     );
-  }, [ranked, search]);
+  }, [ranked, search, taxonomies]);
 
   if (!roleLoading && !rightsLoading && !allowed) return <Navigate to="/" replace />;
 
@@ -157,6 +162,7 @@ export default function VitrineComunidade() {
                   </div>
                 )}
                 <ProfileCompletenessBadge percent={completeness.get(profile.id)} />
+                <ConnectionDoorsTags doors={profile} />
                 {profile.business_segment && <Badge variant="outline" className="w-fit">{profile.business_segment}</Badge>}
                 {richTextToPlain(profile.what_i_do) && (
                   <div className="min-w-0">

@@ -115,6 +115,7 @@ const adminGroup: MenuGroup = {
     { icon: LifeBuoy, label: 'Resgate e Reativação', path: '/admin/resgate', roles: ['admin'] },
     { icon: FileText, label: 'Modelos de Contrato', path: '/admin/contratos', roles: ['admin'] },
     { icon: CircleDollarSign, label: 'Planos e Assinaturas', path: '/admin/planos', roles: ['admin'] },
+    { icon: HeartHandshake, label: 'Portas de conexão', path: '/admin/conexoes', roles: ['admin'] },
     { icon: ClipboardList, label: 'Gestão de Registros', path: '/admin/registros', roles: ['admin'] },
     { icon: Settings, label: 'Admin', path: '/admin', roles: ['admin', 'facilitador'] },
   ],

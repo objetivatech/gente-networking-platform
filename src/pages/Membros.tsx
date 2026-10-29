@@ -35,6 +35,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import RankBadge from '@/components/RankBadge';
 import { useProfilesCompleteness } from '@/hooks/useProfilesCompleteness';
 import { ProfileCompletenessBadge } from '@/components/profile/ProfileCompletenessBadge';
+import { useConnectionDoors } from '@/hooks/useConnectionDoors';
+import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
 import { 
   Users, 
   Search, 
@@ -90,6 +92,7 @@ function BusinessSegmentBadge({ segment }: { segment: string }) {
 }
 
 function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile; onViewProfile: () => void; percent?: number }) {
+  const doors = useConnectionDoors([member.id]);
   const initials = member.full_name
     .split(' ')
     .map(n => n[0])
@@ -143,6 +146,7 @@ function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile;
           </div>
         </div>
 
+        <div className="mt-3"><ConnectionDoorsTags doors={doors.get(member.id)} /></div>
         <Button
           variant="outline"
           size="sm"

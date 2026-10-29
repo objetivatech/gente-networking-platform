@@ -9,9 +9,11 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
-export type MatchType = 'indicacao' | 'parceria' | 'troca_base' | 'segmento' | 'tags';
+import { analyzeDoorBridge, type ConnectionDoors, type ConnectionTaxonomy } from './connection-doors';
 
-interface ProfileForOpportunity {
+export type MatchType = 'ponte' | 'indicacao' | 'parceria' | 'troca_base' | 'segmento' | 'tags';
+
+interface ProfileForOpportunity extends ConnectionDoors {
   what_i_do: string | null | undefined;
   ideal_client: string | null | undefined;
   business_segment: string | null | undefined;
@@ -165,12 +167,22 @@ const findComplementaryRule = (mine: ServiceCategory[], other: ServiceCategory[]
 export function analyzeMatchOpportunity(
   myProfile: ProfileForOpportunity,
   otherProfile: ProfileForOpportunity,
-  context: { hasIdealClientFit: boolean; hasSameSegment: boolean; hasSharedTags: boolean }
+  context: { hasIdealClientFit: boolean; hasSameSegment: boolean; hasSharedTags: boolean; taxonomies?: ConnectionTaxonomy[] }
 ): MatchOpportunity {
   const mine = inferCategories(myProfile);
   const otherCategories = inferCategories(otherProfile);
   const audiences = sharedAudience(myProfile, otherProfile);
   const complementary = findComplementaryRule(mine, otherCategories);
+
+  const bridge = analyzeDoorBridge(myProfile, otherProfile, context.taxonomies ?? []);
+  if (bridge.score > 0) return {
+    matchType: 'ponte', partnershipScore: bridge.score,
+    opportunityTitle: bridge.direct ? 'Oportunidade de Ponte Direta' : 'Possível ponte de indicação',
+    opportunityDescription: [bridge.forward.length ? `Esta pessoa abre portas que você procura: ${bridge.forward.join(', ')}.` : '', bridge.reverse.length ? `Você abre portas que esta pessoa procura: ${bridge.reverse.join(', ')}.` : ''].filter(Boolean).join(' '),
+    opportunityIdeas: ['Conversar sobre os contatos e setores em comum', 'Confirmar o relacionamento com o público procurado', 'Combinar uma apresentação com consentimento do contato'],
+    serviceCategories: Array.from(new Set([...mine, ...otherCategories].map((category) => category.label))),
+    sharedAudiences: audiences,
+  };
 
   if (complementary) {
     return {
