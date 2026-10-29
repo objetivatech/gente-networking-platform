@@ -3,6 +3,8 @@
  */
 
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { ConnectionDoorsEditor } from '@/components/profile/ConnectionDoorsEditor';
+import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useState, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
@@ -43,7 +45,7 @@ export default function Profile() {
   const { isSubscriber, isGuest, isLoading: loadingRole } = useAdmin();
   const { can } = useEntitlements();
   const memberMetrics = !loadingRole && !isSubscriber && !isGuest;
-  const { profile, isLoading, updateProfile, isUpdating } = useProfile();
+  const { profile, isLoading, updateProfile, updateProfileAsync, isUpdating } = useProfile();
   const { data: stats } = useStats('month', memberMetrics);
   const { cases, createCase, deleteCase } = useBusinessCases();
   const { myDeals } = useBusinessDeals();
@@ -73,6 +75,9 @@ export default function Profile() {
     how_to_refer_me: '',
     availability_note: '',
     tags: [] as string[],
+    doors_open: [] as string[],
+    doors_seek: [] as string[],
+    doors_notes: '',
   });
 
   const handleEdit = () => {
@@ -93,12 +98,15 @@ export default function Profile() {
         how_to_refer_me: (profile as any).how_to_refer_me || '',
         availability_note: (profile as any).availability_note || '',
         tags: (profile as any).tags || [],
+        doors_open: profile.doors_open ?? [],
+        doors_seek: profile.doors_seek ?? [],
+        doors_notes: profile.doors_notes ?? '',
       });
     }
     setIsEditing(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Normaliza strings vazias para null em campos opcionais (evita erro em colunas date/url)
     const payload: any = { ...formData };
     const optionalFields = [
@@ -109,8 +117,10 @@ export default function Profile() {
     optionalFields.forEach((k) => {
       if (typeof payload[k] === 'string' && payload[k].trim() === '') payload[k] = null;
     });
-    updateProfile(payload);
-    setIsEditing(false);
+    try {
+      await updateProfileAsync(payload);
+      setIsEditing(false);
+    } catch { /* mutation presents the error; keep the draft available */ }
   };
 
   const handleCancel = () => setIsEditing(false);
@@ -293,6 +303,7 @@ export default function Profile() {
                   </div>
 
                   {/* Social links */}
+                  <ConnectionDoorsEditor value={formData} onChange={(doors) => setFormData({ ...formData, doors_open: doors.doors_open ?? [], doors_seek: doors.doors_seek ?? [], doors_notes: doors.doors_notes ?? '' })} />
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-2"><Label>LinkedIn</Label><Input value={formData.linkedin_url} onChange={e => setFormData({ ...formData, linkedin_url: e.target.value })} placeholder="https://linkedin.com/in/..." /></div>
                     <div className="space-y-2"><Label>Instagram</Label><Input value={formData.instagram_url} onChange={e => setFormData({ ...formData, instagram_url: e.target.value })} placeholder="@usuario" /></div>
@@ -377,7 +388,8 @@ export default function Profile() {
             )}
 
             {/* Gerador de Pitch via IA */}
-            {can('ai_pitch_enabled') && <PitchGenerator profile={profile} />}
+            <ConnectionDoorsTags doors={profile} expanded />
+            {can('ai_pitch_enabled') && <PitchGenerator profile={profile} onSave={(pitch) => updateProfileAsync({ ai_pitch: pitch })} />}
 
             {/* Controle de publicação da página pública */}
             {can('public_profile_enabled') && <PublicProfilePublishControl

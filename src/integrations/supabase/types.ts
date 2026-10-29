@@ -1675,6 +1675,36 @@ export type Database = {
           },
         ]
       }
+      matchmaking_taxonomies: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          sort_order: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          sort_order?: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          sort_order?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       media_library: {
         Row: {
           alt_text: string | null
@@ -2121,6 +2151,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_pitch: string | null
           availability_note: string | null
           avatar_url: string | null
           banner_url: string | null
@@ -2131,6 +2162,9 @@ export type Database = {
           created_at: string | null
           deactivated_at: string | null
           deactivation_reason: string | null
+          doors_notes: string | null
+          doors_open: string[]
+          doors_seek: string[]
           email: string | null
           email_notifications_enabled: boolean | null
           email_reports_enabled: boolean
@@ -2160,6 +2194,7 @@ export type Database = {
           what_i_do: string | null
         }
         Insert: {
+          ai_pitch?: string | null
           availability_note?: string | null
           avatar_url?: string | null
           banner_url?: string | null
@@ -2170,6 +2205,9 @@ export type Database = {
           created_at?: string | null
           deactivated_at?: string | null
           deactivation_reason?: string | null
+          doors_notes?: string | null
+          doors_open?: string[]
+          doors_seek?: string[]
           email?: string | null
           email_notifications_enabled?: boolean | null
           email_reports_enabled?: boolean
@@ -2199,6 +2237,7 @@ export type Database = {
           what_i_do?: string | null
         }
         Update: {
+          ai_pitch?: string | null
           availability_note?: string | null
           avatar_url?: string | null
           banner_url?: string | null
@@ -2209,6 +2248,9 @@ export type Database = {
           created_at?: string | null
           deactivated_at?: string | null
           deactivation_reason?: string | null
+          doors_notes?: string | null
+          doors_open?: string[]
+          doors_seek?: string[]
           email?: string | null
           email_notifications_enabled?: boolean | null
           email_reports_enabled?: boolean
@@ -2968,6 +3010,15 @@ export type Database = {
         }[]
       }
       get_my_premium_invitations: { Args: never; Returns: Json }
+      get_profile_connection_doors: {
+        Args: { _ids: string[] }
+        Returns: {
+          doors_notes: string
+          doors_open: string[]
+          doors_seek: string[]
+          id: string
+        }[]
+      }
       get_profiles_completeness: {
         Args: { _ids: string[] }
         Returns: {

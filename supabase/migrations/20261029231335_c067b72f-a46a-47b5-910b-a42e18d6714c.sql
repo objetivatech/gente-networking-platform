@@ -1,0 +1,1 @@
+ALTER FUNCTION public.get_profile_connection_doors(uuid[]) SECURITY INVOKER;

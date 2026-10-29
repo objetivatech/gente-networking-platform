@@ -3,8 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { sanitizePayload } from '@/lib/form-utils';
+import type { ConnectionDoors } from '@/lib/connection-doors';
 
-export interface Profile {
+export interface Profile extends ConnectionDoors {
+  ai_pitch: string | null;
+  what_i_do: string | null;
+  ideal_client: string | null;
+  how_to_refer_me: string | null;
+  tags: string[] | null;
   id: string;
   full_name: string;
   email: string | null;
@@ -64,8 +70,9 @@ export function useProfile() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', user?.id], data);
+      ['profile', 'connection-doors', 'matchmaking', 'community-showcase', 'community-profile', 'members-directory', 'member-profile', 'profiles-completeness'].forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
       toast({
         title: 'Sucesso!',
         description: 'Perfil atualizado com sucesso',
@@ -86,6 +93,7 @@ export function useProfile() {
     isLoading,
     error,
     updateProfile: updateProfile.mutate,
+    updateProfileAsync: updateProfile.mutateAsync,
     isUpdating: updateProfile.isPending,
   };
 }

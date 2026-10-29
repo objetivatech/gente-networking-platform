@@ -19,6 +19,7 @@ import { canUseMatchmaking } from '@/lib/access-control';
 import { resolveMatchmakingDraws } from '@/lib/matchmaking-draw';
 import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
 import { MatchmakingCheckDialog } from '@/components/MatchmakingCheckDialog';
+import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -200,6 +201,7 @@ export default function Matchmaking() {
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-3 flex-1">
+                    <ConnectionDoorsTags doors={s} />
                     <div className="space-y-1 text-sm">
                       {s.company && (
                         <div className="flex items-center gap-2 text-muted-foreground">

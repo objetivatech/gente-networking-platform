@@ -1,7 +1,19 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-10-25
-> **Versão:** 3.55.0 — Planos, papéis e conexões da Comunidade
+> **Última atualização:** 2026-10-29
+> **Versão:** 3.57.0 — Portas de conexão e pitch persistente
+
+## Portas e pitch (v3.57.0)
+
+- `matchmaking_taxonomies`: IDs estáveis, tipo decisor/setor, rótulo, ativo e ordem; leitura autenticada paginada, escrita somente Admin ativo, sem exclusão pelo navegador.
+- `profiles.doors_open`, `doors_seek`: arrays UUID deduplicados por trigger; novas escolhas precisam estar ativas. Seleções históricas inativas são preservadas. `doors_notes` tem limite de 500 caracteres; `ai_pitch` guarda o texto confirmado pelo usuário.
+- `get_profile_connection_doors(uuid[])`: SECURITY INVOKER, somente autenticados, no máximo 2.000 IDs por chamada (cliente usa lotes de 200); RLS mais escopo explícito. Assinante só lê a si e contatos autorizados da Vitrine/MatchMaking; Convidado só a si. Não altera contratos existentes de RPC nem expõe o pitch nesse endpoint.
+- `/admin/conexoes` tem guarda Admin além de RLS. Perfil edita portas; hooks invalidam perfil, cards, completude e matchmaking após salvamento.
+- `connection-doors.ts` centraliza ponte direcional/recíproca e dois selos por card; pontuação determinística, sem novas chamadas de IA. Vitrine mantém completude primeiro e busca funcional.
+- `generate-pitch` preserva modelo/endpoint e comportamento existentes, acrescentando portas ao contexto. Pitch é persistido pelo usuário autenticado após resposta bem-sucedida; falha não apaga o texto anterior. Edição manual tem salvamento explícito.
+- Régua de nove campos, autoria de convites, pagamentos, franquias e gamificação não foram alterados. Não há publicação automática das portas ou pitch na página pública.
+- Manual: [MATCHMAKING.md](./MATCHMAKING.md). Validação em sessão real permanece pendente devido ao Supabase externo sem sessão disponível.
+- Verificações desta rodada: 131 testes passaram; banco confirmou 15 decisores e 18 setores; geração pelo modelo/endpoint existentes com dados fictícios retornou HTTP 200 e texto. `generate-pitch` foi publicado, mas sua chamada sem sessão foi barrada com 401; geração via função autenticada e persistência real no perfil não foram homologadas. Rotas protegidas redirecionaram para `/auth` sem erros. Não houve novos alertas de segurança; 78 anteriores permanecem fora do escopo.
 
 ## Planos e papéis (v3.55.0)
 

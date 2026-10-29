@@ -394,8 +394,12 @@ export default function Documentacao() {
                     <h4 className="font-semibold mt-4">Gerador de Pitch via IA</h4>
                     <p className="text-sm text-muted-foreground">
                       Utilize a ferramenta de pitch para gerar automaticamente um texto de apresentação profissional 
-                      baseado nas informações do seu perfil. Ideal para usar em encontros e apresentações.
+                      baseado nas informações do seu perfil e nas portas de conexão. O texto fica salvo: use Gerar Novo Pitch para substituí-lo ou Salvar alterações após uma edição manual. Alterar outros campos não regenera o pitch.
                     </p>
+                    <h4 className="font-semibold mt-4">Portas de conexão</h4>
+                    <p>Em Meu Perfil → Editar Perfil, marque os decisores e setores em Portas que abro e Portas que procuro. Acrescente observações e salve. Esses campos são opcionais e não alteram seu percentual de completude.</p>
+                    <p>Os cards mostram até dois selos e um contador dos demais. Abra o perfil para consultar a lista completa. O MatchMaking cruza portas procuradas e oferecidas para sugerir pontes de indicação; confirme o acesso na conversa. A Vitrine mantém a prioridade de perfis completos e os filtros continuam disponíveis.</p>
+                    <p>O Admin mantém os nomes, a ordem e a disponibilidade em Administração → Portas de conexão. Desativar uma opção preserva escolhas anteriores, mas ela deixa de ser oferecida e não pontua novos cruzamentos.</p>
                   </CardContent>
                 </Card>
 

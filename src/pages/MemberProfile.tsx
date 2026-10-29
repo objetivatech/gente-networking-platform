@@ -19,8 +19,10 @@ import { PointsHistoryCard } from '@/components/PointsHistoryCard';
 import { DigitalMemberCard } from '@/components/DigitalMemberCard';
 import { ScheduleMeetingDialog } from '@/components/ScheduleMeetingDialog';
 import ShareOrNudgeProfile from '@/components/ShareOrNudgeProfile';
+import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
+import type { ConnectionDoors } from '@/lib/connection-doors';
 
-interface MemberProfile {
+interface MemberProfile extends ConnectionDoors {
   id: string;
   full_name: string;
   email: string | null;
@@ -202,6 +204,7 @@ export default function MemberProfilePage() {
                 </div>
               )}
 
+              <ConnectionDoorsTags doors={member} expanded />
               {member.bio && <RichText value={member.bio} className="text-foreground/80" />}
 
               <div className="flex flex-wrap gap-4 pt-2">

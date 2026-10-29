@@ -13,22 +13,29 @@
  * edge function `generate-pitch` (Lovable AI Gateway).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useConnectionTaxonomies } from '@/hooks/useConnectionDoors';
+import { doorLabels } from '@/lib/connection-doors';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, Loader2, Copy, RefreshCw } from 'lucide-react';
+import { Sparkles, Loader2, Copy, RefreshCw, Save } from 'lucide-react';
 
 interface PitchGeneratorProps {
   profile: any;
+  onSave: (pitch: string) => Promise<unknown>;
 }
 
-export function PitchGenerator({ profile }: PitchGeneratorProps) {
+export function PitchGenerator({ profile, onSave }: PitchGeneratorProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [pitch, setPitch] = useState('');
+  const [pitch, setPitch] = useState(profile?.ai_pitch ?? '');
+  const [saving, setSaving] = useState(false);
+  const { data: taxonomies = [] } = useConnectionTaxonomies();
+  useEffect(() => { setPitch(profile?.ai_pitch ?? ''); }, [profile?.id, profile?.ai_pitch]);
+  const dirty = pitch !== (profile?.ai_pitch ?? '');
 
   const hasEnoughInfo = !!(
     profile &&
@@ -51,6 +58,9 @@ export function PitchGenerator({ profile }: PitchGeneratorProps) {
             ideal_client: profile.ideal_client,
             how_to_refer_me: profile.how_to_refer_me,
             tags: profile.tags || [],
+            doors_open: doorLabels(profile.doors_open, taxonomies),
+            doors_seek: doorLabels(profile.doors_seek, taxonomies),
+            doors_notes: profile.doors_notes,
           },
         },
       });
@@ -73,7 +83,9 @@ export function PitchGenerator({ profile }: PitchGeneratorProps) {
       if (data?.error) throw new Error(data.error);
       if (!data?.pitch) throw new Error('Resposta vazia da IA.');
 
+      await onSave(data.pitch);
       setPitch(data.pitch);
+      toast({ title: 'Novo pitch salvo no perfil' });
     } catch (e: any) {
       toast({
         title: 'Erro',
@@ -92,6 +104,12 @@ export function PitchGenerator({ profile }: PitchGeneratorProps) {
     } catch {
       toast({ title: 'Erro', description: 'Não foi possível copiar.', variant: 'destructive' });
     }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try { await onSave(pitch); } catch { /* profile mutation presents the error */ }
+    finally { setSaving(false); }
   };
 
   return (
@@ -113,9 +131,11 @@ export function PitchGenerator({ profile }: PitchGeneratorProps) {
           </p>
         )}
 
-        {pitch && (
+        {(pitch || profile?.ai_pitch) && (
           <Textarea
             value={pitch}
+            aria-label="Meu pitch"
+            disabled={loading || saving}
             onChange={(e) => setPitch(e.target.value)}
             rows={5}
             className="resize-none"
@@ -123,14 +143,14 @@ export function PitchGenerator({ profile }: PitchGeneratorProps) {
         )}
 
         <div className="flex flex-wrap gap-2">
-          <Button onClick={handleGenerate} disabled={loading} size="sm">
+          <Button onClick={handleGenerate} disabled={loading || saving} size="sm">
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Gerando...
               </>
             ) : pitch ? (
               <>
-                <RefreshCw className="h-4 w-4 mr-2" /> Gerar novamente
+                <RefreshCw className="h-4 w-4 mr-2" /> Gerar Novo Pitch
               </>
             ) : (
               <>
@@ -139,10 +159,11 @@ export function PitchGenerator({ profile }: PitchGeneratorProps) {
             )}
           </Button>
           {pitch && (
-            <Button onClick={handleCopy} variant="outline" size="sm" disabled={loading}>
+            <Button onClick={handleCopy} variant="outline" size="sm" disabled={loading || saving}>
               <Copy className="h-4 w-4 mr-2" /> Copiar
             </Button>
           )}
+          {dirty && <Button onClick={handleSave} variant="outline" size="sm" disabled={loading || saving}><Save className="h-4 w-4 mr-2" />{saving ? 'Salvando…' : 'Salvar alterações'}</Button>}
         </div>
       </CardContent>
     </Card>

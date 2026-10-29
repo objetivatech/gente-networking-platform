@@ -1,7 +1,18 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-10-25
-> **Versão:** 3.56.0 — Fluxo enxuto de convites e reconvite por papel
+> **Última atualização:** 2026-10-29
+> **Versão:** 3.57.0 — Portas de conexão e pitch salvo
+
+## Portas de conexão e pitch salvo
+
+1. Participante → Meu Perfil → Editar Perfil → marque decisores/setores em Portas que abro e Portas que procuro; observações opcionais → Salvar. Se falhar, o formulário mantém o rascunho.
+2. Cards internos → dois selos e contador → foco/tooltip ou abrir perfil para consultar todas as portas. As portas opcionais não retiram os 100% dos perfis já completos.
+3. MatchMaking → cruzamento de procura/oferta na direção correta → hipótese de ponte explicada → conversar e confirmar acesso → agendamento existente. Mesmo segmento não impede conexão; franquia e pontos permanecem iguais.
+4. Vitrine → completude primeiro, compatibilidade segundo → busca livre permanece; ao limpar a busca, volta a ordenação padrão.
+5. Admin → Administração → Portas de conexão → Decisores/Setores → Nova opção ou editar nome/ordem → Salvar. Desativar mantém escolhas históricas, mas deixa de oferecer a opção e de pontuar novos cruzamentos.
+6. Quem já tem permissão para Pitch → Meu Perfil → texto salvo é carregado → Gerar Novo Pitch substitui e salva após sucesso; ajustes manuais → Salvar alterações. Edição dos demais dados nunca regenera o pitch. Erro mantém o texto salvo anterior.
+
+Consulte [MATCHMAKING.md](./MATCHMAKING.md) para pontuação e limites. Homologação desses passos com sessão real permanece pendente neste ambiente externo.
 
 ### Entrada e LPs unificadas
 
