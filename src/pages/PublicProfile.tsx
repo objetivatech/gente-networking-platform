@@ -41,6 +41,32 @@ interface PublicProfileData {
   slug: string | null;
   rank: string | null;
   team_name: string | null;
+  ai_pitch: string | null;
+  doors_notes: string | null;
+  doors_open_decisores: string[] | null;
+  doors_open_setores: string[] | null;
+  doors_seek_decisores: string[] | null;
+  doors_seek_setores: string[] | null;
+}
+
+function DoorsGroup({ title, decisores, setores, tone }: {
+  title: string; decisores: string[] | null; setores: string[] | null; tone: 'open' | 'seek';
+}) {
+  const items = [...(decisores || []), ...(setores || [])];
+  if (items.length === 0) return null;
+  const chip = tone === 'open'
+    ? 'border-orange-200 bg-orange-50 text-[#b4620a]'
+    : 'border-slate-200 bg-slate-100 text-[#1E3A5F]';
+  return (
+    <div className="min-w-0">
+      <p className="mb-3 text-sm font-semibold text-slate-700">{title}</p>
+      <div className="flex flex-wrap gap-2">
+        {items.map((label) => (
+          <span key={label} className={`rounded-full border px-3 py-1 text-xs text-wrap-anywhere ${chip}`}>{label}</span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 const LOGO = '/logo-gente-networking-branco.png';
@@ -308,6 +334,43 @@ export default function PublicProfile() {
             {/* Grid principal */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <div className="space-y-6 lg:col-span-2">
+                {profile.ai_pitch && (
+                  <section className="rounded-2xl border-l-4 border-[#F7941D] bg-white p-6 ring-1 ring-slate-200 sm:p-8">
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#F7941D]">Pitch</p>
+                    <p className="whitespace-pre-line text-[15px] leading-relaxed text-slate-700 text-wrap-anywhere">
+                      {profile.ai_pitch}
+                    </p>
+                  </section>
+                )}
+
+                {hasDoors && (
+                  <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
+                    <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-[#1E3A5F]">
+                      <span className="h-5 w-1 rounded-full bg-[#F7941D]" />
+                      Portas de conexão
+                    </h2>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                      <DoorsGroup
+                        title="Portas que abro"
+                        decisores={profile.doors_open_decisores}
+                        setores={profile.doors_open_setores}
+                        tone="open"
+                      />
+                      <DoorsGroup
+                        title="Portas que procuro"
+                        decisores={profile.doors_seek_decisores}
+                        setores={profile.doors_seek_setores}
+                        tone="seek"
+                      />
+                    </div>
+                    {profile.doors_notes && (
+                      <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm leading-relaxed text-slate-600 text-wrap-anywhere">
+                        {profile.doors_notes}
+                      </p>
+                    )}
+                  </section>
+                )}
+
                 {(profile.bio || profile.what_i_do || profile.ideal_client) && (
                   <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
                     <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-[#1E3A5F]">
