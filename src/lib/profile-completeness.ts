@@ -23,7 +23,8 @@ function hasText(v: unknown): boolean {
 /**
  * Avalia a completude do perfil para fins de publicação.
  * Campos obrigatórios: foto (avatar), nome, empresa, cargo, segmento, bio,
- * "o que eu faço", "cliente ideal" e "como me indicar".
+ * "o que eu faço", "cliente ideal", "como me indicar" e os três campos de portas.
+ * Pitch por IA é opcional e não participa do percentual.
  */
 export function getProfileCompleteness(profile: Record<string, any> | null | undefined): {
   fields: ProfileCompletenessField[];
@@ -41,6 +42,9 @@ export function getProfileCompleteness(profile: Record<string, any> | null | und
     { key: 'what_i_do', label: 'O que eu faço', filled: hasText(p.what_i_do) },
     { key: 'ideal_client', label: 'Cliente ideal', filled: hasText(p.ideal_client) },
     { key: 'how_to_refer_me', label: 'Como me indicar', filled: hasText(p.how_to_refer_me) },
+    { key: 'doors_open', label: 'Portas que abro', filled: Array.isArray(p.doors_open) && p.doors_open.length > 0 },
+    { key: 'doors_seek', label: 'Portas que procuro', filled: Array.isArray(p.doors_seek) && p.doors_seek.length > 0 },
+    { key: 'doors_notes', label: 'Observações sobre portas e acessos', filled: hasText(p.doors_notes) },
   ];
 
   const missing = fields.filter((f) => !f.filled);

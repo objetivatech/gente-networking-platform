@@ -5,8 +5,8 @@
 
 ## Portas de conexão e pitch salvo
 
-1. Participante → Meu Perfil → Editar Perfil → marque decisores/setores em Portas que abro e Portas que procuro; observações opcionais → Salvar. Se falhar, o formulário mantém o rascunho.
-2. Cards internos → dois selos e contador → foco/tooltip ou abrir perfil para consultar todas as portas. As portas opcionais não retiram os 100% dos perfis já completos.
+1. Participante → Meu Perfil → Editar Perfil → marque ao menos uma opção em Portas que abro e Portas que procuro; preencha observações → Salvar. Se falhar, o formulário mantém o rascunho.
+2. Cards internos → dois selos e contador → foco/tooltip ou abrir perfil para consultar todas as portas. Os três novos campos contam na completude de 12 itens; pitch permanece opcional. Sem as portas, um perfil antes completo fica em 75%. Ao limpar um item obrigatório, a tarja reaparece.
 3. MatchMaking → cruzamento de procura/oferta na direção correta → hipótese de ponte explicada → conversar e confirmar acesso → agendamento existente. Mesmo segmento não impede conexão; franquia e pontos permanecem iguais.
 4. Vitrine → completude primeiro, compatibilidade segundo → busca livre permanece; ao limpar a busca, volta a ordenação padrão.
 5. Admin → Administração → Portas de conexão → Decisores/Setores → Nova opção ou editar nome/ordem → Salvar. Desativar mantém escolhas históricas, mas deixa de oferecer a opção e de pontuar novos cruzamentos.

@@ -152,6 +152,9 @@ const REQUIRED_FIELDS: { key: keyof MyProfileForMatch; label: string }[] = [
   { key: 'ideal_client', label: 'Cliente ideal' },
   { key: 'business_segment', label: 'Segmento de negócio' },
   { key: 'tags', label: 'Tags / palavras-chave' },
+  { key: 'doors_open', label: 'Portas que abro' },
+  { key: 'doors_seek', label: 'Portas que procuro' },
+  { key: 'doors_notes', label: 'Observações sobre portas e acessos' },
 ];
 
 export function useMatchmaking() {
@@ -287,7 +290,10 @@ export function useMatchmaking() {
         }
 
         // +10: perfil do outro bem preenchido (qualidade)
-        const otherComplete = !!p.what_i_do && !!p.ideal_client && !!p.business_segment && otherTags.length > 0;
+        const otherDoors = doorsMap.get(p.id);
+        const otherComplete = !!p.what_i_do && !!p.ideal_client && !!p.business_segment && otherTags.length > 0
+          && (otherDoors?.doors_open?.length ?? 0) > 0 && (otherDoors?.doors_seek?.length ?? 0) > 0
+          && !!otherDoors?.doors_notes?.trim();
         if (otherComplete) {
           score += 10;
           reasons.push('Perfil completo');

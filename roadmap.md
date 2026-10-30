@@ -2,6 +2,8 @@
 
 # v3.57.0 — Portas de conexão e pitch persistente
 
+- [x] Ajustar completude para incluir os três campos de portas, excluir pitch, sincronizar tarja/cards/banco e atualizar testes/documentação/histórico; 135 testes passaram, definição do banco conferida e build OK. Conferência visual autenticada permanece pendente no Supabase externo.
+
 - [x] Taxonomia de 15 decisores/18 setores gerida exclusivamente pelo Admin, preservando seleções inativas; consulta invoker/RLS sem novos alertas de segurança.
 - [x] Perfil com portas oferecidas/procuradas e observações; pitch salvo com geração explícita e edição manual.
 - [x] Selos discretos e detalhes na Vitrine, Membros e MatchMaking; pontuação de ponte sem alterar franquias ou gamificação.

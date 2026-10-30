@@ -1,0 +1,1 @@
+UPDATE public.system_changelog SET changes = changes || '["Completude atualizada: 12 itens, incluindo Portas que abro, Portas que procuro e Observações; Pitch por IA opcional e excluído do percentual. Limpar campo obrigatório faz a tarja reaparecer."]'::jsonb WHERE version='3.57.0';
