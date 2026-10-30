@@ -3030,11 +3030,17 @@ export type Database = {
       get_public_profile: {
         Args: { _slug: string }
         Returns: {
+          ai_pitch: string
           avatar_url: string
           banner_url: string
           bio: string
           business_segment: string
           company: string
+          doors_notes: string
+          doors_open_decisores: string[]
+          doors_open_setores: string[]
+          doors_seek_decisores: string[]
+          doors_seek_setores: string[]
           full_name: string
           how_to_refer_me: string
           id: string
