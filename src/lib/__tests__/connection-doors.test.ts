@@ -20,7 +20,7 @@ describe('portas de conexão', () => {
     const base = { what_i_do: 'Consultoria', ideal_client: '', business_segment: 'Consultoria', tags: [] };
     expect(analyzeMatchOpportunity({ ...base, doors_seek: ['ceo','industry'] }, { ...base, doors_open: ['ceo','industry'] }, { hasIdealClientFit: false, hasSameSegment: true, hasSharedTags: false, taxonomies: options })).toMatchObject({ matchType: 'ponte', partnershipScore: 70 });
   });
-  it('portas opcionais preservam 100% de completude', () => expect(getProfileCompletenessPercent({ avatar_url:'a',full_name:'b',company:'c',position:'d',business_segment:'e',bio:'f',what_i_do:'g',ideal_client:'h',how_to_refer_me:'i' })).toBe(100));
+  it('os nove campos antigos sem portas agora totalizam 75%', () => expect(getProfileCompletenessPercent({ avatar_url:'a',full_name:'b',company:'c',position:'d',business_segment:'e',bio:'f',what_i_do:'g',ideal_client:'h',how_to_refer_me:'i' })).toBe(75));
   it('na Vitrine ponte melhora compatibilidade sem passar completude', () => {
     const compatibility = getCompatibilityScore({ doors_seek: ['ceo','industry'] }, { doors_open: ['ceo','industry'] }, options);
     expect(compatibility).toBe(70);

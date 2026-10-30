@@ -2,11 +2,19 @@
 import { describe, it, expect } from 'vitest';
 import { getCompletenessLevel, getProfileCompletenessPercent, sortByCompletenessAndCompatibility } from '../profile-completeness';
 
-const full = { avatar_url: 'a', full_name: 'b', company: 'c', position: 'd', business_segment: 'e', bio: 'f', what_i_do: 'g', ideal_client: 'h', how_to_refer_me: 'i' };
+const full = { avatar_url: 'a', full_name: 'b', company: 'c', position: 'd', business_segment: 'e', bio: 'f', what_i_do: 'g', ideal_client: 'h', how_to_refer_me: 'i', doors_open: ['ceo'], doors_seek: ['industry'], doors_notes: 'Relacionamento com associações' };
 
 describe('completude do perfil', () => {
   it('perfil completo = 100%', () => expect(getProfileCompletenessPercent(full)).toBe(100));
-  it('limpar um campo derruba abaixo de 100% (tarja volta)', () => expect(getProfileCompletenessPercent({ ...full, bio: '  ' })).toBe(89));
+  it('limpar um campo derruba abaixo de 100% (tarja volta)', () => expect(getProfileCompletenessPercent({ ...full, bio: '  ' })).toBe(92));
+  it('portas oferecidas vazias impedem 100%', () => expect(getProfileCompletenessPercent({ ...full, doors_open: [] })).toBe(92));
+  it('portas procuradas vazias impedem 100%', () => expect(getProfileCompletenessPercent({ ...full, doors_seek: [] })).toBe(92));
+  it('observações vazias impedem 100%', () => expect(getProfileCompletenessPercent({ ...full, doors_notes: '   ' })).toBe(92));
+  it('pitch é opcional e não aumenta nem reduz o percentual', () => {
+    expect(getProfileCompletenessPercent({ ...full, ai_pitch: null })).toBe(100);
+    expect(getProfileCompletenessPercent({ ...full, ai_pitch: 'Pitch salvo' })).toBe(100);
+    expect(getProfileCompletenessPercent({ ...full, doors_notes: '', ai_pitch: 'Pitch salvo' })).toBe(92);
+  });
   it('níveis', () => {
     expect(getCompletenessLevel(100)).toBe('complete');
     expect(getCompletenessLevel(78)).toBe('almost');

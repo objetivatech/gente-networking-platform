@@ -397,7 +397,7 @@ export default function Documentacao() {
                       baseado nas informações do seu perfil e nas portas de conexão. O texto fica salvo: use Gerar Novo Pitch para substituí-lo ou Salvar alterações após uma edição manual. Alterar outros campos não regenera o pitch.
                     </p>
                     <h4 className="font-semibold mt-4">Portas de conexão</h4>
-                    <p>Em Meu Perfil → Editar Perfil, marque os decisores e setores em Portas que abro e Portas que procuro. Acrescente observações e salve. Esses campos são opcionais e não alteram seu percentual de completude.</p>
+                    <p>Em Meu Perfil → Editar Perfil, marque ao menos uma opção em Portas que abro e Portas que procuro. Acrescente observações e salve. Os três campos contam no preenchimento completo do perfil, agora com 12 itens. O Pitch por IA é opcional e não conta. Ao limpar qualquer item obrigatório, a tarja volta a aparecer.</p>
                     <p>Os cards mostram até dois selos e um contador dos demais. Abra o perfil para consultar a lista completa. O MatchMaking cruza portas procuradas e oferecidas para sugerir pontes de indicação; confirme o acesso na conversa. A Vitrine mantém a prioridade de perfis completos e os filtros continuam disponíveis.</p>
                     <p>O Admin mantém os nomes, a ordem e a disponibilidade em Administração → Portas de conexão. Desativar uma opção preserva escolhas anteriores, mas ela deixa de ser oferecida e não pontua novos cruzamentos.</p>
                   </CardContent>
