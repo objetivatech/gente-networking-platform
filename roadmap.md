@@ -69,3 +69,6 @@
 - [x] Remover recargas automáticas que podem repetir a falha e evitar esperas de notificações sem worker.
 - [x] Validar limpeza seletiva em testes, preservação de dados locais, manifest/ícones e ausência de registros no preview; documentar implantação Cloudflare. 55 testes passaram; página de instalação sem erros de execução.
 - [ ] Publicar pelo fluxo GitHub → Cloudflare e validar retorno com worker anterior instalado, cabeçalhos efetivos e páginas autenticadas — depende de publicação externa e sessão real, indisponíveis neste ambiente.
+
+- [x] Página pública /m/:slug — Etapa 1: Pitch salvo e Portas de conexão
+- [ ] Página pública /m/:slug — Etapa 2: "Quero conhecer o Grupo" ligado ao fluxo de convites com autoria/pontos do membro
