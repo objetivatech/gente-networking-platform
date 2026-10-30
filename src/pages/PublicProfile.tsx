@@ -135,7 +135,7 @@ function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug
   const roleLine = [profile.position, profile.company].filter(Boolean).join(' na ');
   const title = `${name}${roleLine ? ` — ${roleLine}` : ''} | Gente Networking`;
   const description = truncate(
-    richTextToPlain(profile.bio) || richTextToPlain(profile.what_i_do) ||
+    profile.ai_pitch || richTextToPlain(profile.bio) || richTextToPlain(profile.what_i_do) ||
     `${name} é membro do Gente Networking${profile.company ? `, atuando na ${profile.company}` : ''}. Conheça o perfil e conecte-se.`,
   );
   const image = profile.avatar_url || OG_FALLBACK;
@@ -148,6 +148,8 @@ function ProfileSEO({ profile, slug }: { profile: PublicProfileData | null; slug
       '@type': 'Person',
       name,
       ...(profile.position ? { jobTitle: profile.position } : {}),
+      ...((profile.doors_open_setores?.length || profile.doors_open_decisores?.length)
+        ? { knowsAbout: [...(profile.doors_open_setores || []), ...(profile.doors_open_decisores || [])] } : {}),
       ...(profile.company ? { worksFor: { '@type': 'Organization', name: profile.company } } : {}),
       ...(profile.avatar_url ? { image: profile.avatar_url } : {}),
       ...(profile.bio ? { description: richTextToPlain(profile.bio) } : {}),
@@ -343,7 +345,7 @@ export default function PublicProfile() {
                   </section>
                 )}
 
-                {hasDoors && (
+                {[profile.doors_open_decisores, profile.doors_open_setores, profile.doors_seek_decisores, profile.doors_seek_setores].some((a) => (a?.length ?? 0) > 0) && (
                   <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
                     <h2 className="mb-6 flex items-center gap-2 text-lg font-bold text-[#1E3A5F]">
                       <span className="h-5 w-1 rounded-full bg-[#F7941D]" />
