@@ -7,6 +7,7 @@ interface LeadInput {
   phone?: string | null; company?: string | null; segment?: string | null;
   event_edition?: string | null; notes?: string | null; client_location?: string | null;
   referral_source?: string | null; group_first_choice?: string | null; group_second_choice?: string | null;
+  answers?: Record<string, string>;
 }
 export function useCreateLead() {
   const qc = useQueryClient();
@@ -17,6 +18,9 @@ export function useCreateLead() {
       const params = new URLSearchParams(window.location.search);
       const notes = [lead.notes, lead.client_location && `Localização: ${lead.client_location}`, lead.referral_source && `Conheceu por: ${lead.referral_source}`, lead.group_second_choice && `Segunda opção: ${lead.group_second_choice}`, lead.event_edition && `Edição: ${lead.event_edition}`].filter(Boolean).join('\n');
       const { data, error } = await supabase.functions.invoke('submit-lead', { body: {
+        landing_page_id: lead.landing_page_id, answers: lead.answers,
+        client_location: lead.client_location, referral_source: lead.referral_source,
+        group_first_choice: lead.group_first_choice, group_second_choice: lead.group_second_choice,
         name: lead.name, email: lead.email, phone: lead.phone, company: lead.company, business_segment: lead.segment,
         source: page.capture_source ?? fallbackSource(page.slug), source_detail: page.slug,
         target_team_name: lead.group_first_choice || undefined,

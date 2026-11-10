@@ -12,6 +12,9 @@ import { useCreateLead } from '@/modules/lps/hooks/useLeads';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { AlreadyMemberNotice } from '@/modules/lps/components/landing/AlreadyMemberNotice';
+import { useLandingPage } from '../../hooks/useLandingPage';
+import { hasConfiguredLpForm } from '../../lib/form-config';
+import { ConfiguredLeadForm } from './ConfiguredLeadForm';
 
 
 const CLIENT_LOCATIONS = [
@@ -74,6 +77,7 @@ export function LeadForm({
     null,
   );
   const createLead = useCreateLead();
+  const { data: configuredPage } = useLandingPage(source);
   const formSchema = createFormSchema(showNetworkingGoals);
 
 
@@ -156,9 +160,11 @@ export function LeadForm({
     ? 'text-sm font-semibold text-secondary uppercase tracking-wide mb-3 mt-6 border-b border-border/10 pb-2' 
     : 'text-sm font-semibold text-secondary uppercase tracking-wide mb-3 mt-6 border-b border-border pb-2';
 
+  if (hasConfiguredLpForm(configuredPage?.form_config)) return <ConfiguredLeadForm config={configuredPage?.form_config} landingPageId={landingPageId} source={source} buttonText={buttonText} onSuccess={onSuccess} />;
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} data-rd-no-capture="true" className="space-y-4">
         {alreadyMember && (
           <AlreadyMemberNotice
             message={alreadyMember.message}

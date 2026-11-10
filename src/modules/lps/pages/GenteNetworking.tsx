@@ -39,6 +39,7 @@ export default function GenteNetworking() {
           logoUrl={page.logo_url || undefined}
           logoSize={page.logo_size || 'md'}
           pageName={page.name}
+          onFormSuccess={() => window.location.assign('/obrigado?source=participe')}
         />
       </main>
     </>

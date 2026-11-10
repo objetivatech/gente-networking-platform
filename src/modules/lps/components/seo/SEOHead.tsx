@@ -19,6 +19,7 @@ export function SEOHead({ page, blocks = [] }: { page: LandingPage; blocks?: Pag
     <meta property="og:title" content={page.meta_title || page.name} /><meta property="og:description" content={page.meta_description || ''} />
     <meta property="og:type" content="website" /><meta property="og:url" content={canonical} /><meta name="twitter:card" content="summary_large_image" />
     {page.og_image_url && <meta property="og:image" content={page.og_image_url} />}
+    {page.og_image_url && <meta name="twitter:image" content={page.og_image_url} />}
     {questions.length > 0 && <script type="application/ld+json">{JSON.stringify({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: questions.map(q => ({ '@type': 'Question', name: q.question, acceptedAnswer: { '@type': 'Answer', text: q.answer } })) }).replace(/</g, '\\u003c')}</script>}
   </Helmet>;
 }
