@@ -1,5 +1,14 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+# v3.58.0 — LPs após a virada
+- [ ] Corrigir envio de ativação e aviso administrativo com trava recuperável, sem replay histórico.
+- [ ] Remover instalação PWA das páginas públicas de LPs.
+- [ ] Entregar imagem/SEO individual no HTML do Cloudflare e seleção de mídia no CMS.
+- [ ] Configurar campos e perguntas dos formulários por LP, com validação no servidor.
+- [ ] Restaurar conversão RD Station no servidor e registrar resultado independente do CRM.
+- [ ] Atualizar documentação, manual e changelog; validar regressões e páginas públicas.
+- [ ] Homologar entrega real de e-mails/RD e edição Admin — Supabase externo sem sessão disponível.
+
 # v3.57.0 — Portas de conexão e pitch persistente
 
 - [x] Ajustar completude para incluir os três campos de portas, excluir pitch, sincronizar tarja/cards/banco e atualizar testes/documentação/histórico; 135 testes passaram, definição do banco conferida e build OK. Conferência visual autenticada permanece pendente no Supabase externo.
