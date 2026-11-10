@@ -13,6 +13,11 @@ describe('Regras da unificação', () => {
   it('remove execução ativa de conteúdo editorial', () => { const result = renderContent('<p onclick="alert(1)">Texto</p><script>alert(1)</script>'); expect(result).not.toContain('onclick'); expect(result).not.toContain('<script'); expect(result).toContain('Texto'); });
 });
 describe('platformHref (v3.59.1)', () => {
+  it('keeps checkout on the platform and reserves its URL', async () => {
+    const { platformHref } = await import('../rules');
+    expect(platformHref('/assinar', 'lps.gentenetworking.com.br')).toBe('https://comunidade.gentenetworking.com.br/assinar');
+    expect(validateSlug('assinar')).toBe(false);
+  });
   it('sends platform paths from the LP host to the platform origin', async () => {
     const { platformHref } = await import('../rules');
     expect(platformHref('/auth?entrar=1', 'lps.gentenetworking.com.br')).toBe('https://comunidade.gentenetworking.com.br/auth?entrar=1');

@@ -1,6 +1,7 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { getSecret } from './secrets.ts';
+export { safeAsaasPaymentUrl } from './asaas-public-rules.ts';
 
 export async function asaasContext() {
   const url = Deno.env.get('SUPABASE_URL');
@@ -21,13 +22,4 @@ export async function asaasContext() {
     return await response.json();
   }
   return { admin, environment: setting.environment as 'production' | 'sandbox', request };
-}
-
-export function safeAsaasPaymentUrl(value: unknown, environment: string): string | null {
-  if (typeof value !== 'string') return null;
-  try {
-    const url = new URL(value);
-    const hosts = environment === 'sandbox' ? ['sandbox.asaas.com'] : ['www.asaas.com', 'asaas.com'];
-    return url.protocol === 'https:' && hosts.includes(url.hostname) && !url.username && !url.password ? url.href : null;
-  } catch { return null; }
 }

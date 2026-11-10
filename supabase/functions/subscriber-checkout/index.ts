@@ -4,6 +4,7 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { z } from 'npm:zod@3.23.8';
 import { asaasContext, safeAsaasPaymentUrl } from '../_shared/asaas.ts';
 import { paymentState } from '../_shared/asaas-webhook-rules.ts';
+import { effectiveAsaasStatus } from '../_shared/asaas-public-rules.ts';
 
 const schema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('plans') }),
@@ -62,7 +63,9 @@ Deno.serve(async req => {
         }
       }
       const { data: sub } = await admin.from('billing_subscriptions').select('status,amount_cents,billing_plans(name)').eq('id', contract.subscription_id).single();
-      return json({ contract: { id: contract.id, status: sub?.status, plan: sub?.billing_plans, payment_url: safeAsaasPaymentUrl(contract.payment_url, contract.environment), amount_cents: sub?.amount_cents } });
+      const { data: updated } = await admin.from('asaas_contracts').select('paid_until').eq('id', contract.id).single();
+      const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+      return json({ contract: { id: contract.id, status: effectiveAsaasStatus(sub?.status ?? 'draft', updated?.paid_until ?? null, today), plan: sub?.billing_plans, payment_url: safeAsaasPaymentUrl(contract.payment_url, contract.environment), amount_cents: sub?.amount_cents } });
     }
 
     if (input.action === 'cancel') {
@@ -113,6 +116,6 @@ Deno.serve(async req => {
     }
   } catch (error) {
     // Only application-authored messages; provider bodies and tokens are never returned.
-    return json({ error: error instanceof Error && !/fetch|network|abort/i.test(error.message) ? error.message : 'Serviço de pagamentos indisponível. Tente novamente.' }, 503);
+    return json({ error: 'Não foi possível concluir o pagamento. Tente novamente ou solicite conferência à administração.' }, 503);
   }
 });
