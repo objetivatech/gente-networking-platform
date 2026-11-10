@@ -8,7 +8,7 @@ export type LpFieldKey = keyof typeof LP_FIELD_LABELS;
 export interface LpField { visible: boolean; required: boolean; label: string }
 export interface LpQuestion { id: string; label: string; type: 'text' | 'textarea' | 'select'; required: boolean; options: string[] }
 export interface LpFormConfig { fields: Partial<Record<LpFieldKey, LpField>>; questions: LpQuestion[] }
-export function normalizeLpForm(value: unknown): LpFormConfig {
+export function normalizeLpForm(value: unknown, draft = false): LpFormConfig {
   const input = value && typeof value === 'object' ? value as Record<string, unknown> : {};
   const rawFields = input.fields && typeof input.fields === 'object' ? input.fields as Record<string, unknown> : {};
   const fields: LpFormConfig['fields'] = {};
@@ -17,15 +17,15 @@ export function normalizeLpForm(value: unknown): LpFormConfig {
     if (!raw || typeof raw !== 'object') continue;
     const item = raw as Record<string, unknown>;
     fields[key] = { visible: item.visible !== false, required: item.required === true,
-      label: typeof item.label === 'string' && item.label.trim() ? item.label.trim().slice(0, 160) : LP_FIELD_LABELS[key] };
+      label: typeof item.label === 'string' && (draft || item.label.trim()) ? (draft ? item.label : item.label.trim()).slice(0, 160) : LP_FIELD_LABELS[key] };
   }
   const questions: LpQuestion[] = [];
   for (const raw of Array.isArray(input.questions) ? input.questions.slice(0, 20) : []) {
     if (!raw || typeof raw !== 'object') continue;
     const item = raw as Record<string, unknown>;
     if (typeof item.id !== 'string' || !/^[a-zA-Z0-9_-]{1,60}$/.test(item.id) || questions.some(q => q.id === item.id)) continue;
-    if (typeof item.label !== 'string' || !item.label.trim()) continue;
-    questions.push({ id: item.id, label: item.label.trim().slice(0, 160),
+    if (typeof item.label !== 'string' || (!draft && !item.label.trim())) continue;
+    questions.push({ id: item.id, label: (draft ? item.label : item.label.trim()).slice(0, 160),
       type: item.type === 'select' || item.type === 'textarea' ? item.type : 'text', required: item.required === true,
       options: Array.isArray(item.options) ? item.options.filter((o): o is string => typeof o === 'string' && !!o.trim()).map(o => o.trim().slice(0, 160)).slice(0, 40) : [] });
   }

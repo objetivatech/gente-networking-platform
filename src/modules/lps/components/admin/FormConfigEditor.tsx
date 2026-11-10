@@ -6,8 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
-export function FormConfigEditor({ value, onChange }: { value: unknown; onChange: (config: LpFormConfig) => void }) {
-  const config = normalizeLpForm(value);
+export function FormConfigEditor({ value, onChange, community = false, hub = false }: { value: unknown; onChange: (config: LpFormConfig) => void; community?: boolean; hub?: boolean }) {
+  const config = normalizeLpForm(value, true);
+  if (!Object.keys(config.fields).length && !config.questions.length) {
+    for (const key of Object.keys(LP_FIELD_LABELS) as LpFieldKey[]) {
+      const visible = community ? ['phone', 'segment'].includes(key) : !hub || !key.startsWith('group_');
+      config.fields[key] = { visible, required: visible && !(community && key === 'phone'), label: LP_FIELD_LABELS[key] };
+    }
+  }
   return <section className="space-y-4">
     <h3 className="font-semibold">Campos do formulário</h3>
     <div className="text-sm text-muted-foreground">Nome completo e e-mail são obrigatórios.</div>

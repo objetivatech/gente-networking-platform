@@ -243,7 +243,7 @@ serve(async (req) => {
 
     const parsed = BodySchema.safeParse(normalized);
     if (!parsed.success) {
-      console.error("[submit-lead] invalid payload", parsed.error.flatten(), "raw:", raw);
+      console.error("[submit-lead] invalid payload", parsed.error.flatten());
       return new Response(
         JSON.stringify({ error: "invalid_payload", details: parsed.error.flatten() }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -251,10 +251,10 @@ serve(async (req) => {
     }
     const data = parsed.data;
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !serviceKey) throw new Error('Missing service configuration');
+    const supabase = createClient(supabaseUrl, serviceKey);
 
     if (data.landing_page_id) {
       const { data: page, error: pageError } = await supabase.from('landing_pages').select('slug, is_active, capture_source, form_config, crm_team_id, crm_group_team_map').eq('id', data.landing_page_id).maybeSingle();
@@ -289,7 +289,8 @@ serve(async (req) => {
     }
 
     if (!teamId && data.source === "lp_gentehub") {
-      // Trigger crm_leads_route_hub cuida do vínculo com o grupo HUB.
+      const { data: hub } = await supabase.from('teams').select('id').eq('is_hub', true).order('created_at').limit(1).maybeSingle();
+      teamId = hub?.id ?? null;
       groupResolution = "hub_triage";
     }
 
