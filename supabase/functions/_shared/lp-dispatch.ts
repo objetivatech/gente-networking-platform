@@ -4,15 +4,7 @@ import { sendEmail } from './email-provider.ts';
 import { guestActivationEmailTemplate, lpNewLeadEmailTemplate } from './email-templates.ts';
 import { getSecret } from './secrets.ts';
 import { ONBOARDING_SUBJECTS, type OnboardingCategory } from './guest-onboarding.ts';
-export async function claimedDispatch(db: SupabaseClient, context: string, referenceId: string, action: () => Promise<boolean>): Promise<string> {
-  const { data: claimed, error } = await db.rpc('claim_community_message', { _context: context, _reference_id: referenceId });
-  if (error) { console.error('[lp-dispatch] claim failed', context, error.message); return 'error'; }
-  if (!claimed) return 'already_processed';
-  let ok = false;
-  try { ok = await action(); } catch { console.error('[lp-dispatch] provider exception', context); }
-  await db.from('community_message_claims').update({ state: ok ? 'sent' : 'failed', updated_at: new Date().toISOString() }).eq('context', context).eq('reference_id', referenceId);
-  return ok ? 'sent' : 'error';
-}
+import { claimedDispatch } from './lp-claim.ts';
 export async function dispatchLpIntake(db: SupabaseClient, input: {
   leadId: string; invitationId?: string | null; inviteUrl: string; category: OnboardingCategory;
   name: string; email: string; phone?: string | null; company?: string | null;

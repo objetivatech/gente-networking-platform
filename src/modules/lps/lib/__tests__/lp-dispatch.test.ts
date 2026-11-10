@@ -1,12 +1,10 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { describe, expect, it, vi } from 'vitest';
-vi.mock('../../../../../supabase/functions/_shared/email-provider.ts', () => ({ sendEmail: vi.fn() }));
-vi.mock('../../../../../supabase/functions/_shared/secrets.ts', () => ({ getSecret: vi.fn() }));
-import { claimedDispatch } from '../../../../../supabase/functions/_shared/lp-dispatch';
+import { claimedDispatch } from '../../../../../supabase/functions/_shared/lp-claim';
 describe('Reservas independentes de envio LP', () => {
   function fakeDb(claimed: boolean, error: unknown = null) {
     const eq = vi.fn().mockReturnThis();
-    const update = vi.fn(() => ({ eq }));
+    const update = vi.fn((_value: Record<string, string>) => ({ eq }));
     return { db: { rpc: vi.fn(async () => ({ data: claimed, error })), from: vi.fn(() => ({ update })) }, update };
   }
   it('não repete um envio já reservado/concluído', async () => {
