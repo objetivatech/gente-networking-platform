@@ -6,6 +6,8 @@
 
 - Keep LP code isolated in `src/modules/lps` and reuse the platform client and UI tokens; this prevents cross-project auth and style collisions.
 - Route new LP submissions exclusively through `submit-lead`; never create parallel lead/account/invitation writes or browser-local retry queues.
+- Validate per-LP form configuration from the persisted active page with shared pure rules; identity fields remain required and delivery claims are independent of CRM persistence so provider failures can be retried without duplicating intake.
+- Render LP metadata at the Cloudflare edge for all public LP paths and suppress platform installation on those paths; this separates crawler previews and app-only controls from public acquisition pages.
 - Keep invitation signup and confirmation routes when simplifying `/auth`; login-only presentation must not disable invitation activation.
 - Render platform entry from advanced content with an explicit section allowlist excluding lead forms; shared editor must not inject community signup defaults there.
 - Render the public subscriber presentation and platform entry through the same presentation-only advanced CMS allowlist, including friendly and preview URLs; this prevents automatic lead/account forms and keeps editorial changes consistent.

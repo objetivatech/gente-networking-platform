@@ -26,7 +26,7 @@ export function FormConfigEditor({ value, onChange }: { value: unknown; onChange
       return <div key={question.id} className="space-y-3 border-b border-border pb-4">
         <div className="flex gap-2"><Input aria-label="Pergunta" value={question.label} maxLength={160} onChange={e => change({ label: e.target.value })} /><Button variant="ghost" size="icon" title="Remover pergunta" onClick={() => onChange({ ...config, questions: config.questions.filter((_, i) => i !== index) })}><Trash2 className="h-4 w-4" /></Button></div>
         <select aria-label="Tipo de resposta" className="w-full rounded-md border border-input bg-background p-2" value={question.type} onChange={e => change({ type: e.target.value as typeof question.type })}><option value="text">Texto curto</option><option value="textarea">Texto longo</option><option value="select">Lista de opções</option></select>
-        {question.type === 'select' && <Textarea aria-label="Opções, uma por linha" placeholder="Uma opção por linha" value={question.options.join('\n')} onChange={e => change({ options: e.target.value.split('\n') })} />}
+        {question.type === 'select' && <Textarea aria-label="Opções, uma por linha" placeholder="Uma opção por linha" defaultValue={question.options.join('\n')} onBlur={e => change({ options: e.target.value.split('\n') })} />}
         <Label className="flex gap-2 items-center"><Switch checked={question.required} onCheckedChange={required => change({ required })} />Resposta obrigatória</Label>
       </div>;
     })}

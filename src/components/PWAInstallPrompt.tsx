@@ -12,18 +12,19 @@ import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Button } from '@/components/ui/button';
 import { X, Download, Smartphone } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { canShowPlatformInstall } from '@/modules/lps/lib/install-visibility';
 
 const DISMISS_KEY = 'pwa-banner-dismissed';
 const DISMISS_MS = 2 * 24 * 60 * 60 * 1000; // 2 dias
 
 export function PWAInstallPrompt() {
   const { pathname } = useLocation();
-  const lpPage = window.location.hostname === 'lps.gentenetworking.com.br' || pathname.startsWith('/lps/') || pathname === '/obrigado' || ['/participe', '/gentehub', '/comunidade', '/impulso', '/assinantes'].includes(pathname);
+  const lpPage = !canShowPlatformInstall(window.location.hostname, pathname);
   const { isInstallable, isInstalled, isIOS, isStandalone, promptInstall } = usePWAInstall();
   const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
-    if (isInstalled || isStandalone) {
+    if (lpPage || isInstalled || isStandalone) {
       setShowBanner(false);
       return;
     }
@@ -46,7 +47,7 @@ export function PWAInstallPrompt() {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [isInstallable, isInstalled, isIOS, isStandalone]);
+  }, [lpPage, isInstallable, isInstalled, isIOS, isStandalone]);
 
   const handleDismiss = () => {
     setShowBanner(false);
