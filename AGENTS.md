@@ -1,5 +1,7 @@
 # Regras de arquitetura
 
+- Authenticate Asaas callbacks with a server-resolved shared token and acknowledge events only after durable transactional processing; provisioning must return retryable failures, never imply payment or change roles.
+
 - Store connection selections as stable taxonomy IDs; expose them through scoped invoker reads or existing authorized profile reads, because renames and inactive options must preserve history without widening subscriber visibility.
 - Keep bridge scoring deterministic and shared by MatchMaking and Vitrine; synchronize profile completeness between the shared helper and SQL RPC, while keeping monthly quotas and gamification independent.
 - Persist pitch updates separately from general profile drafts and only after explicit generation or manual save, because unrelated profile changes must not overwrite the saved pitch.

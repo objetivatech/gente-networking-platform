@@ -85,4 +85,7 @@
 
 ## Assinantes self-service (v3.59.x)
 - [x] Logo, login e sessão existente na página de Assinantes (v3.59.1).
-- [ ] Contratação self-service do plano — aguardando definição do modelo financeiro.
+- [x] v3.59.2 — Asaas escolhido; chave presente no Vault e integração configurada em produção, último diagnóstico salvo válido em 06/11 (não constitui teste atual do provedor).
+- [ ] Configurar token compartilhado do webhook — depende do preenchimento seguro pelo usuário; endpoint de preparação rejeita chamadas sem autenticação e não confirma processamento financeiro.
+- [ ] Implementar contratação self-service Asaas, confirmação financeira transacional, recorrência e bloqueio por atraso — depende do token compartilhado; não emitir cobranças reais durante preparação.
+- [ ] Homologar pagamento/liberação/renovação com conta autorizada e ambiente de teste — sessão externa e credencial sandbox ainda não verificadas.

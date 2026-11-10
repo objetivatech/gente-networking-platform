@@ -1,7 +1,12 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-10
-> **Versão:** 3.59.1 — Formulários das LPs e acesso pela página de Assinantes
+> **Versão:** 3.59.2 — Preparação segura da integração Asaas
+
+## Asaas self-service — preparação (v3.59.2)
+- Chave existente no Vault; configuração de pagamentos em produção. Não foram emitidas cobranças nem alterados papéis.
+- `asaas-webhook` valida token compartilhado via resolvedor de serviço; nesta etapa responde 401/503, nunca confirma processamento de evento. `verify_jwt=false` é necessário para chamadas do provedor, com autenticação própria no serviço.
+- Contratação, processamento transacional e homologação aguardam configuração segura do token. [Guia e limites atuais](./ASAAS_SELF_SERVICE.md).
 
 ## LPs pós-virada (v3.58.0)
 - `landing_pages.form_config` guarda campos e perguntas; política existente restringe escrita ao Admin e leitura a páginas publicadas. `lp-form.ts` compartilha regras puras entre UI e intake; servidor resolve origem/destino pela página persistida.

@@ -1,7 +1,14 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-10
-> **Versão:** 3.59.1 — Formulários das LPs e acesso pela página de Assinantes
+> **Versão:** 3.59.2 — Preparação segura da integração Asaas
+
+## Contratação automática — em preparação
+
+Asaas escolhido → reutilizar chave da Central de Integrações → configurar token seguro
+de confirmação → implementar e homologar contratação/pagamento/liberação → habilitar ofertas.
+O fluxo ainda não está disponível ao visitante. Nenhuma cobrança real foi emitida na preparação.
+Não habilitar eventos no Asaas antes do processamento financeiro. [Guia Asaas](./ASAAS_SELF_SERVICE.md).
 
 ## Inscrições das LPs
 1. Admin → Landing Pages/LPs Avançadas → Configurações → definir Grupo padrão, campos, perguntas e imagem de compartilhamento → Salvar.
