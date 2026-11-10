@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, ArrowLeft } from 'lucide-react';
-export function PlatformLogin() {
+export function PlatformLogin({ onSuccess }: { onSuccess?: () => void } = {}) {
   const { signIn, resetPassword } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -23,7 +23,8 @@ export function PlatformLogin() {
     try {
       const { error: failure } = recovery ? await resetPassword(email.trim()) : await signIn(email.trim(), password);
       if (failure) { setError(recovery ? 'Não foi possível enviar o link. Tente novamente.' : failure.message.includes('Email not confirmed') ? 'Confirme seu e-mail antes de entrar.' : 'Não foi possível entrar. Confira seu e-mail e senha.'); return; }
-      if (recovery) toast({ title: 'Verifique seu e-mail', description: 'Se houver uma conta, você receberá o link de recuperação.' });
+      if (!recovery) { onSuccess?.(); return; }
+      toast({ title: 'Verifique seu e-mail', description: 'Se houver uma conta, você receberá o link de recuperação.' });
     } catch { setError('Não foi possível conectar. Tente novamente.'); }
     finally { setBusy(false); }
   };

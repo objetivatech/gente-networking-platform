@@ -110,3 +110,14 @@ Comparação realizada sem modificar o CRM, perfis, convites, pagamentos ou pont
 ## Alertas anteriores
 
 58 avisos de segurança já existentes permanecem fora desta rodada. As migrações novas não deixam novos avisos; duplicação usa SECURITY INVOKER e permissões do Admin.
+## v3.59.0 — Novos tipos de campo nos formulários
+- Perguntas extras: texto curto, texto longo, menu suspenso, opção única, e-mail validado e telefone/WhatsApp validado.
+- Telefone com máscara `(DD) 9XXXX-XXXX`, DDD 11–99, celular iniciando em 9, DDI 55 opcional.
+- As mesmas regras puras (`_shared/lp-form.ts`) validam no navegador e no `submit-lead`.
+
+## v3.59.1 — Navegação e login nas páginas de apresentação
+- O logo de `/assinantes` e `/auth` leva ao início da plataforma, não ao site institucional.
+- Na plataforma, o login do modal fecha e leva ao painel; com sessão ativa, o cabeçalho mostra "Ir para a plataforma".
+- No host `lps.gentenetworking.com.br` a sessão da plataforma não é legível (outra origem). Por isso, "Entrar" envia para `https://comunidade.gentenetworking.com.br/auth?entrar=1`, que abre o login automaticamente.
+- Helper `platformHref`/`isLpHost` em `src/modules/lps/lib/rules.ts`.
+- Pendente: contratação self-service do Assinante (modelo financeiro a definir).

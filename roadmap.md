@@ -82,3 +82,7 @@
 
 - [x] Página pública /m/:slug — Etapa 1: Pitch salvo e Portas de conexão
 - [ ] Página pública /m/:slug — Etapa 2: "Quero conhecer o Grupo" ligado ao fluxo de convites com autoria/pontos do membro
+
+## Assinantes self-service (v3.59.x)
+- [x] Logo, login e sessão existente na página de Assinantes (v3.59.1).
+- [ ] Contratação self-service do plano — aguardando definição do modelo financeiro.

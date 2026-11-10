@@ -12,3 +12,13 @@ describe('Regras da unificação', () => {
   it('não declara sucesso quando CRM falha', () => expect(() => parseSubmission(500, { error: 'failure' })).toThrow());
   it('remove execução ativa de conteúdo editorial', () => { const result = renderContent('<p onclick="alert(1)">Texto</p><script>alert(1)</script>'); expect(result).not.toContain('onclick'); expect(result).not.toContain('<script'); expect(result).toContain('Texto'); });
 });
+describe('platformHref (v3.59.1)', () => {
+  it('sends platform paths from the LP host to the platform origin', async () => {
+    const { platformHref } = await import('../rules');
+    expect(platformHref('/auth?entrar=1', 'lps.gentenetworking.com.br')).toBe('https://comunidade.gentenetworking.com.br/auth?entrar=1');
+  });
+  it('keeps relative paths on the platform host', async () => {
+    const { platformHref } = await import('../rules');
+    expect(platformHref('/auth', 'comunidade.gentenetworking.com.br')).toBe('/auth');
+  });
+});
