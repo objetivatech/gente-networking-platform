@@ -10,6 +10,7 @@ export interface LandingPage {
   name: string;
   is_active: boolean;
   template: string;
+  form_config: import('@/integrations/supabase/types').Json;
   capture_source: 'lp_gentehub' | 'lp_participe' | 'lp_networking' | 'site_elementor' | 'api' | 'convite_manual' | 'convite_membro';
   meta_title: string | null;
   meta_description: string | null;

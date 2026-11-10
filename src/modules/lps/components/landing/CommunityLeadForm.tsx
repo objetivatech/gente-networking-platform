@@ -6,6 +6,9 @@ import { useCreateLead } from '@/modules/lps/hooks/useLeads';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlreadyMemberNotice } from '@/modules/lps/components/landing/AlreadyMemberNotice';
+import { useLandingPage } from '../../hooks/useLandingPage';
+import { hasConfiguredLpForm } from '../../lib/form-config';
+import { ConfiguredLeadForm } from './ConfiguredLeadForm';
 
 
 const PROFESSION_OPTIONS = [
@@ -39,6 +42,7 @@ export function CommunityLeadForm({
   buttonText = 'Entrar gratuitamente na comunidade',
 }: CommunityLeadFormProps) {
   const createLead = useCreateLead();
+  const { data: configuredPage } = useLandingPage(source);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -125,8 +129,9 @@ export function CommunityLeadForm({
 
   const inputClassName = 'h-14 w-full min-w-0 rounded-[18px] border border-border bg-background pl-12 pr-4 text-base text-foreground placeholder:text-muted-foreground';
 
+  if (hasConfiguredLpForm(configuredPage?.form_config)) return <ConfiguredLeadForm config={configuredPage?.form_config} landingPageId={landingPageId} source={source} buttonText={buttonText} onSuccess={onSuccess} />;
   return (
-    <form onSubmit={onSubmit} className="w-full min-w-0 space-y-4">
+    <form onSubmit={onSubmit} data-rd-no-capture="true" className="w-full min-w-0 space-y-4">
       {alreadyMember && (
         <AlreadyMemberNotice
           message={alreadyMember.message}

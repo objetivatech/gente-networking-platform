@@ -11,11 +11,14 @@ import { useState, useEffect } from 'react';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { Button } from '@/components/ui/button';
 import { X, Download, Smartphone } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const DISMISS_KEY = 'pwa-banner-dismissed';
 const DISMISS_MS = 2 * 24 * 60 * 60 * 1000; // 2 dias
 
 export function PWAInstallPrompt() {
+  const { pathname } = useLocation();
+  const lpPage = window.location.hostname === 'lps.gentenetworking.com.br' || pathname.startsWith('/lps/') || pathname === '/obrigado' || ['/participe', '/gentehub', '/comunidade', '/impulso', '/assinantes'].includes(pathname);
   const { isInstallable, isInstalled, isIOS, isStandalone, promptInstall } = usePWAInstall();
   const [showBanner, setShowBanner] = useState(false);
 
@@ -58,7 +61,7 @@ export function PWAInstallPrompt() {
     }
   };
 
-  if (isInstalled || isStandalone || !showBanner) {
+  if (lpPage || isInstalled || isStandalone || !showBanner) {
     return null;
   }
 
@@ -74,7 +77,7 @@ export function PWAInstallPrompt() {
               Instale o Gente Comunidade
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Acesse rápido pela tela inicial, receba avisos e use offline.
+              Acesse rápido pela tela inicial e acompanhe a comunidade.
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <Button

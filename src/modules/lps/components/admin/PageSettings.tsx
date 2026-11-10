@@ -9,6 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Save, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { previewForPage } from '../../lib/rules';
+import { FormConfigEditor } from './FormConfigEditor';
+import { MediaLibrary } from './MediaLibrary';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { Json } from '@/integrations/supabase/types';
 
 interface PageSettingsProps {
   slug: string;
@@ -18,6 +22,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
   const { data: page, isLoading } = useLandingPage(slug);
   const updatePage = useUpdateLandingPage();
   const [formData, setFormData] = useState<Partial<LandingPage>>({});
+  const [selectImage, setSelectImage] = useState(false);
 
   useEffect(() => {
     if (page) {
@@ -28,6 +33,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
   const handleSave = async () => {
     if (!page) return;
     try {
+      if (formData.og_image_url && !/^https:\/\//i.test(formData.og_image_url)) { toast.error('Use uma URL HTTPS pública para a imagem.'); return; }
       await updatePage.mutateAsync({ id: page.id, ...formData });
       toast.success('Configurações salvas!');
     } catch (error) {
@@ -60,6 +66,9 @@ export function PageSettings({ slug }: PageSettingsProps) {
 
   return (
     <div className="space-y-6">
+      <Dialog open={selectImage} onOpenChange={setSelectImage}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>Imagem de compartilhamento</DialogTitle></DialogHeader><MediaLibrary selectable onSelect={url => { setFormData(prev => ({ ...prev, og_image_url: url })); setSelectImage(false); }} /></DialogContent>
+      </Dialog>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-foreground">{page.name}</h2>
         <div className="flex gap-2">
@@ -176,6 +185,8 @@ export function PageSettings({ slug }: PageSettingsProps) {
                 placeholder="https://seusite.com/imagem-og.jpg"
               />
               <p className="text-xs text-muted-foreground mt-1">Recomendado: 1200x630 pixels</p>
+              <Button variant="outline" className="mt-2" onClick={() => setSelectImage(true)}>Escolher da biblioteca</Button>
+              {formData.og_image_url && <img src={formData.og_image_url} alt="Prévia de compartilhamento" className="mt-3 aspect-[1200/630] w-full object-contain rounded-md" />}
             </div>
           </CardContent>
         </Card>
@@ -365,6 +376,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
           </CardContent>
         </Card>
       </div>
+      {!['entrada-plataforma', 'assinantes'].includes(slug) && <FormConfigEditor value={formData.form_config} onChange={config => setFormData(prev => ({ ...prev, form_config: config as unknown as Json }))} />}
     </div>
   );
 }
