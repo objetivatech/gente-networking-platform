@@ -27,6 +27,7 @@ import Index from './pages/Index';
 
 // Lazy-loaded pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const AssinarComunidade = lazyWithRetry(() => import('./pages/AssinarComunidade'));
 const RedefinirSenha = lazyWithRetry(() => import("./pages/RedefinirSenha"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const GenteEmAcao = lazyWithRetry(() => import("./pages/GenteEmAcao"));
@@ -122,6 +123,7 @@ const App = () => (
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/assinar" element={<ErrorBoundary><AssinarComunidade /></ErrorBoundary>} />
               <Route path="/lps/:slug" element={<ErrorBoundary><PublicLandingPage /></ErrorBoundary>} />
               <Route path="/gentehub" element={<PublicLandingPage />} />
               <Route path="/participe" element={<PublicLandingPage />} />
