@@ -1,12 +1,14 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-10
-> **Versão:** 3.59.2 — Preparação segura da integração Asaas
+> **Versão:** 3.60.0 — Contratação self-service Asaas
 
-## Asaas self-service — preparação (v3.59.2)
+## Asaas self-service (v3.60.0)
 - Chave existente no Vault; configuração de pagamentos em produção. Não foram emitidas cobranças nem alterados papéis.
-- `asaas-webhook` valida token compartilhado via resolvedor de serviço; nesta etapa responde 401/503, nunca confirma processamento de evento. `verify_jwt=false` é necessário para chamadas do provedor, com autenticação própria no serviço.
-- Contratação, processamento transacional e homologação aguardam configuração segura do token. [Guia e limites atuais](./ASAAS_SELF_SERVICE.md).
+- `asaas-webhook` valida token compartilhado, relê pagamentos no provedor e usa transação idempotente para cobrança/papel/acesso. `verify_jwt=false` exige autenticação própria; token salvo, configuração no Asaas pendente.
+- `/assinar` usa `subscriber-checkout`, oferece somente planos liberados pelo Admin via `self_service_enabled`, mantém cartão no Asaas e exige conta confirmada para contratar/cancelar/conferir. Catálogo público não expõe tabelas financeiras.
+- `asaas_contracts`/`asaas_payment_events` têm grants/RLS de leitura própria/Admin e escrita service-only; três RPCs internas controlam catálogo/reserva/processamento. Vigência paga é derivada em `has_module_access`, `get_user_entitlements` e `_matchmaking_draw_state`, sem cron.
+- Plano e assinatura genéricos não mudam papel; contratação explicitamente consentida é a única nova exceção, limitada a Assinante após pagamento. Homologação financeira real permanece pendente. [Configuração e limites](./ASAAS_SELF_SERVICE.md).
 
 ## LPs pós-virada (v3.58.0)
 - `landing_pages.form_config` guarda campos e perguntas; política existente restringe escrita ao Admin e leitura a páginas publicadas. `lp-form.ts` compartilha regras puras entre UI e intake; servidor resolve origem/destino pela página persistida.
