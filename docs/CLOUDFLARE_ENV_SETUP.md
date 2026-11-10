@@ -112,3 +112,12 @@ Ela lê variáveis de ambiente do **runtime** do Cloudflare Pages (sem o prefixo
 Após configurar, faça um novo deploy. Sem essas variáveis, a função ainda serve
 a página normalmente (a SPA renderiza no cliente), apenas sem as meta tags
 específicas do perfil para crawlers.
+
+## Compartilhamento individual das LPs (v3.58.0)
+
+`functions/_middleware.ts` usa as mesmas variáveis runtime para buscar somente
+páginas ativas e entregar título/descrição/imagem OG próprios no HTML. Aceita também
+`VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` quando disponíveis no runtime.
+Mantenha `LP_UNIFIED_ENABLED=true` e faça novo deploy do projeto unificado após
+esta atualização. Não precisa mudar novamente o DNS. Confirme uma URL pública
+com o depurador de compartilhamento; o preview Vite não executa Pages Functions.

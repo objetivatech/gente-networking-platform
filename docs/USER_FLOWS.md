@@ -1,7 +1,15 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-10-29
-> **Versão:** 3.57.0 — Portas de conexão e pitch salvo
+> **Última atualização:** 2026-11-10
+> **Versão:** 3.58.0 — LPs após a virada
+
+## Inscrições das LPs
+1. Admin → Landing Pages/LPs Avançadas → Configurações → definir Grupo padrão, campos, perguntas e imagem de compartilhamento → Salvar.
+2. Visitante → formulário → CRM deduplicado → convite válido → e-mail único de boas-vindas/ativação; aviso separado aos Admins com notificações habilitadas e conversão RD Station.
+3. Visitante → convite → concluir cadastro/ativação → Convidado; não vira Assinante/Membro por preencher LP ou entrar no WhatsApp.
+4. Obrigado/WhatsApp segue configuração da página. Participe passa a usar `/obrigado?source=participe`. Grupo WhatsApp e Grupo da plataforma são destinos distintos.
+5. Falha de envio mantém CRM. Admin confere convite e reenvia ativação; nova submissão retoma tentativas falhas sem repetir entregas concluídas. Não há reenvio automático das capturas antigas.
+6. Guia completo, exceções HUB e homologação: [UNIFICACAO_LPS.md](./UNIFICACAO_LPS.md).
 
 ## Portas de conexão e pitch salvo
 

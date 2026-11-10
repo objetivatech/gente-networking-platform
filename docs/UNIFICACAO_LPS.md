@@ -1,6 +1,30 @@
-# Unificação LPs → Plataforma — v3.52.0
+# Unificação LPs → Plataforma — v3.58.0
 
-**Estado: integração de código iniciada; virada pública NÃO realizada.**
+**Estado: virada pública informada pelo Admin; correções pós-virada implementadas. Os registros abaixo de 26/10 são históricos.**
+
+## Operação atual — 10/11/2026
+
+1. LP publicada → formulário → `submit-lead` valida nome/e-mail, configuração salva e perguntas; grava ou atualiza o CRM sem cadastro paralelo.
+2. O CRM pareia e-mail ou telefone normalizado. Membro/Facilitador/Admin ativo já existente é orientado ao login, sem nova captação. A fusão automática por telefone é comportamento legado e exige atenção com números compartilhados.
+3. Novo interessado recebe convite de ativação com mensagem por origem; convite pendente válido é reutilizado. Um perfil já ativado não precisa receber novo e-mail de ativação. Não há contratação/assinatura automática nesta rodada.
+4. Destino: Grupo padrão em **Landing Pages → Configurações → Grupo padrão do convite**; escolha de Grupo pode resolver por nome/mapa existente; Gente HUB usa o Grupo marcado HUB quando não há outro destino. Sem Grupo, o convite permite ativação sem ingresso automático em Grupo Premium. O link de WhatsApp NÃO define o Grupo da plataforma.
+5. Só ao concluir o convite a pessoa cria/confirma acesso e assume papel Convidado, pelo fluxo `complete-guest-signup`. Presença/autoria/pontos continuam sujeitos às regras existentes desse fluxo. Atenção: o intake HUB legado registra `meeting_lead_attendances` no próximo evento HUB antes da ativação; esta correção não alterou essa mecânica.
+6. Aviso de novo inscrito é enviado aos Admins ativos com notificações por e-mail habilitadas. O interessado recebe um único e-mail de boas-vindas/ativação, não dois e-mails redundantes.
+7. Ativação, aviso e RD Station têm reservas independentes e auditoria. Falha no provedor não apaga o CRM. Nova submissão recupera envios falhos; envios concluídos não são repetidos. Reenvio administrativo de ativação segue disponível e exige convite válido. Não há replay em lote de inscrições históricas nem cron de retentativa nesta entrega.
+8. RD Station recebe conversão `lp_<slug>` por API no servidor usando `RD_STATION_API_KEY`. Formulários têm `data-rd-no-capture=true` para evitar uma segunda conversão pelo capturador automático; rastreamento e GTM continuam. Confirmar no RD os identificadores usados nas automações existentes.
+
+### Editar formulários e imagem
+- Editor de blocos e **LPs Avançadas → Configurações** compartilham os campos por LP: exibição, obrigatoriedade, rótulos e perguntas texto curto/longo/lista. Nome/e-mail não podem ser removidos; respostas adicionais ficam nas notas e metadados do CRM. Entrada e Assinantes continuam apresentação sem formulário aberto.
+- Sem configuração, o formulário original permanece; ao personalizar, os campos iniciais são preservados até o Admin ocultá-los. Salve pelo botão **Salvar** da página.
+- **Imagem OG → Escolher da biblioteca** usa URL HTTPS pública. O Cloudflare injeta essa imagem no HTML recebido por WhatsApp/Facebook; não depende de JavaScript do navegador. Cache de compartilhamentos antigos pode precisar de nova leitura pelo serviço de compartilhamento.
+- LPs, inclusive novas campanhas e `/obrigado`, não exibem instalação da plataforma. Instalação manifest-only da plataforma permanece, sem novo worker/offline.
+
+### Publicação e homologação
+- Publicar o código no projeto Cloudflare Pages unificado; manter `LP_UNIFIED_ENABLED=true`.
+- Conferir runtime `SUPABASE_URL`/`SUPABASE_ANON_KEY` (ou equivalentes `VITE_SUPABASE_URL`/`VITE_SUPABASE_PUBLISHABLE_KEY`) para metadados individuais. Nunca usar service-role no Cloudflare/frontend.
+- Funções `submit-lead` e `resend-guest-activation` foram publicadas no Supabase. Testes automatizados e páginas públicas não substituem entrega real em caixa de entrada/RD nem edição autenticada do Admin, ainda pendentes nesta integração externa.
+- Os três leads recentes encontrados com e-mail em erro NÃO foram reprocessados automaticamente. O Admin pode reenviar ativação após conferir a validade do convite; conversões antigas não são reenviadas em lote.
+- Migração não introduziu novos alertas; 78 avisos de segurança preexistentes permanecem fora desta rodada.
 
 ## Entrada e Assinantes — 26/10/2026
 
