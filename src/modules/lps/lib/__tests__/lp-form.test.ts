@@ -1,6 +1,6 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { describe, expect, it } from 'vitest';
-import { normalizeLpForm, validateLpAnswers, hasConfiguredLpForm } from '../form-config';
+import { normalizeLpForm, validateLpAnswers, hasConfiguredLpForm, isValidLpPhone, isValidLpEmail } from '../form-config';
 import { canShowPlatformInstall } from '../install-visibility';
 import { lpMetaTags } from '../../../../../functions/_shared/lp-meta';
 describe('LPs após a virada', () => {
@@ -37,5 +37,19 @@ describe('LPs após a virada', () => {
   it('não publica URL insegura ou HTML editorial ativo nos metadados', () => {
     const html = lpMetaTags({ slug: 'participe', name: '<script>x</script>', og_image_url: 'javascript:alert(1)' });
     expect(html).not.toContain('<script>'); expect(html).not.toContain('javascript:');
+  });
+  it('valida telefone brasileiro com DDD', () => {
+    expect(isValidLpPhone('(51) 99999-9999')).toBe(true);
+    expect(isValidLpPhone('+55 51 3333-4444')).toBe(true);
+    expect(isValidLpPhone('(51) 89999-9999')).toBe(false);
+    expect(isValidLpPhone('(05) 99999-9999')).toBe(false);
+    expect(isValidLpPhone('9999-9999')).toBe(false);
+  });
+  it('valida e-mail', () => { expect(isValidLpEmail('a@b.com')).toBe(true); expect(isValidLpEmail('a@b')).toBe(false); });
+  it('rejeita WhatsApp inválido e aceita radio com opções', () => {
+    const config = normalizeLpForm({ fields: { phone: { visible: true, required: true } }, questions: [{ id: 'q', label: 'Q', type: 'radio', required: true, options: ['Sim', 'Não'] }] });
+    expect(validateLpAnswers(config, { phone: '123456' }, { q: 'Sim' })).toBe('Informe um WhatsApp válido com DDD.');
+    expect(validateLpAnswers(config, { phone: '51999999999' }, { q: 'Talvez' })).toBe('Opção inválida: Q');
+    expect(validateLpAnswers(config, { phone: '51999999999', email: 'x@y.com' }, { q: 'Não' })).toBeNull();
   });
 });
