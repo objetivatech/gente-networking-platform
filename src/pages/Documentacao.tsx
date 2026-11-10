@@ -59,6 +59,7 @@ export default function Documentacao() {
         <p>Planos e Assinaturas controla os módulos e a franquia mensal de MatchMaking. A sugestão semanal não consome sorteios. Página pública, cartão e pitch exigem plano Membro Premium.</p>
         <p>Admin acessa a Vitrine por padrão; Membros e Facilitadores precisam da liberação no plano. A Vitrine lista somente Assinantes e Convidados ativos e oferece perfil, WhatsApp e agendamento autorizado.</p>
         <p>Na ficha do Assinante, Convidar para encontro registra uma visita Premium; confirmar participação não registra presença nem pontuação.</p>
+        <p>Contratação automática pelo Asaas está em preparação (v3.59.2). A chave cadastrada será reutilizada; falta configurar o token de confirmação e homologar pagamentos antes de habilitar ofertas. O envio de cobrança administrativa não comprova pagamento.</p>
       </CardContent></Card>}
       <Tabs defaultValue="member" className="space-y-4">
         <TabsList className={`grid w-full ${showAdminDocs ? (showDevDocs ? 'grid-cols-3' : 'grid-cols-2') : 'grid-cols-1'}`}>

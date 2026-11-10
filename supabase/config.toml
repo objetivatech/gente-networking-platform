@@ -31,3 +31,6 @@ verify_jwt = false
 
 [functions.complete-guest-signup]
 verify_jwt = false
+
+[functions.asaas-webhook]
+verify_jwt = false
