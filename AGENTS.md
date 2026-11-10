@@ -1,6 +1,7 @@
 # Regras de arquitetura
 
-- Authenticate Asaas callbacks with a server-resolved shared token and acknowledge events only after durable transactional processing; provisioning must return retryable failures, never imply payment or change roles.
+- Authenticate Asaas callbacks with a server-resolved shared token, reread financial state from the provider, and acknowledge only after transactional processing; explicit self-service consent may grant only Subscriber access after payment, never internal roles or points.
+- Keep Asaas checkout tied to authenticated profiles and explicit public-plan opt-in; reserve issuance and reconcile ambiguous attempts instead of repeating charges, and derive paid-period expiration on access without polling.
 
 - Store connection selections as stable taxonomy IDs; expose them through scoped invoker reads or existing authorized profile reads, because renames and inactive options must preserve history without widening subscriber visibility.
 - Keep bridge scoring deterministic and shared by MatchMaking and Vitrine; synchronize profile completeness between the shared helper and SQL RPC, while keeping monthly quotas and gamification independent.

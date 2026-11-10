@@ -35,6 +35,7 @@ export interface BillingPlan {
   installments: number | null;
   contract_template_id: string | null;
   active: boolean;
+  self_service_enabled?: boolean;
   position: number;
   features: PlanFeatures;
   created_at: string;

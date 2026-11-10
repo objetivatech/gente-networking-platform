@@ -11,7 +11,7 @@ export function platformHref(path: string, hostname?: string): string {
 }
 export const RESERVED_SLUGS = new Set(['auth', 'redefinir-senha', 'convite', 'instalar', 'm', 'p', 'membro', 'perfil', 'feed', 'membros', 'matchmaking', 'oportunidades', 'pedidos-indicacao', 'convidados', 'aniversarios', 'estatisticas', 'gente-em-acao', 'depoimentos', 'negocios', 'indicacoes', 'equipes', 'encontros', 'conteudos', 'ranking', 'convites', 'termos-de-uso', 'politica-de-privacidade', 'politica-de-cookies', 'conselho', 'changelog', 'documentacao', 'configuracoes', 'dashboard', 'admin', '404', 'obrigado', 'lps']);
 export function validateSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && !RESERVED_SLUGS.has(slug);
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug !== 'assinar' && !RESERVED_SLUGS.has(slug);
 }
 export function canonicalForPage(slug: string): string {
   return slug === 'entrada-plataforma' ? `${PLATFORM_ORIGIN}/auth` : `${LP_CANONICAL_ORIGIN}/${slug === 'inicio' ? '' : slug}`;

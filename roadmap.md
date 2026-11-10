@@ -86,6 +86,7 @@
 ## Assinantes self-service (v3.59.x)
 - [x] Logo, login e sessão existente na página de Assinantes (v3.59.1).
 - [x] v3.59.2 — Asaas escolhido; chave presente no Vault e integração configurada em produção, último diagnóstico salvo válido em 06/11 (não constitui teste atual do provedor).
-- [ ] Configurar token compartilhado do webhook — depende do preenchimento seguro pelo usuário; endpoint de preparação rejeita chamadas sem autenticação e não confirma processamento financeiro.
-- [ ] Implementar contratação self-service Asaas, confirmação financeira transacional, recorrência e bloqueio por atraso — depende do token compartilhado; não emitir cobranças reais durante preparação.
+- [x] Token compartilhado salvo com segurança; configuração do mesmo token no painel Asaas ainda depende do usuário.
+- [x] v3.60.0 — Contratação em /assinar, oferta pública explícita pelo Admin, pagamento hospedado Asaas, confirmação transacional, reconciliação sob demanda, cancelamento e vigência paga sem polling; nenhum plano publicado ou cobrança real criada automaticamente.
+- [ ] Habilitar webhook no Asaas e publicar frontend Cloudflare — ações no painel externo do usuário; habilitar ofertas somente depois da homologação.
 - [ ] Homologar pagamento/liberação/renovação com conta autorizada e ambiente de teste — sessão externa e credencial sandbox ainda não verificadas.

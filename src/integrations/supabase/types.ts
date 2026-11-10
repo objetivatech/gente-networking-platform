@@ -90,6 +90,110 @@ export type Database = {
           },
         ]
       }
+      asaas_contracts: {
+        Row: {
+          consent_at: string
+          created_at: string
+          creation_started_at: string | null
+          customer_id: string | null
+          environment: string
+          id: string
+          lease_until: string | null
+          paid_until: string | null
+          payment_url: string | null
+          profile_id: string
+          remote_subscription_id: string | null
+          subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          consent_at?: string
+          created_at?: string
+          creation_started_at?: string | null
+          customer_id?: string | null
+          environment: string
+          id?: string
+          lease_until?: string | null
+          paid_until?: string | null
+          payment_url?: string | null
+          profile_id: string
+          remote_subscription_id?: string | null
+          subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          consent_at?: string
+          created_at?: string
+          creation_started_at?: string | null
+          customer_id?: string | null
+          environment?: string
+          id?: string
+          lease_until?: string | null
+          paid_until?: string | null
+          payment_url?: string | null
+          profile_id?: string
+          remote_subscription_id?: string | null
+          subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_contracts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asaas_contracts_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: true
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asaas_payment_events: {
+        Row: {
+          amount_cents: number
+          contract_id: string
+          created_at: string
+          due_date: string
+          event_id: string
+          payment_id: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          contract_id: string
+          created_at?: string
+          due_date: string
+          event_id: string
+          payment_id: string
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          contract_id?: string
+          created_at?: string
+          due_date?: string
+          event_id?: string
+          payment_id?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_payment_events_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "asaas_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendances: {
         Row: {
           id: string
@@ -278,6 +382,7 @@ export type Database = {
           name: string
           plan_type: string
           position: number
+          self_service_enabled: boolean
           updated_at: string
         }
         Insert: {
@@ -296,6 +401,7 @@ export type Database = {
           name: string
           plan_type?: string
           position?: number
+          self_service_enabled?: boolean
           updated_at?: string
         }
         Update: {
@@ -314,6 +420,7 @@ export type Database = {
           name?: string
           plan_type?: string
           position?: number
+          self_service_enabled?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -2771,8 +2878,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      apply_asaas_payment: {
+        Args: {
+          _amount: number
+          _contract: string
+          _due: string
+          _event: string
+          _paid_at?: string
+          _payment: string
+          _state: string
+        }
+        Returns: Json
+      }
       are_same_team: {
         Args: { p_user_id1: string; p_user_id2: string }
+        Returns: boolean
+      }
+      asaas_subscription_current: {
+        Args: { _subscription: string }
         Returns: boolean
       }
       calculate_monthly_points_for_team: {
@@ -3103,6 +3226,7 @@ export type Database = {
         Args: { _points: number }
         Returns: Database["public"]["Enums"]["member_rank"]
       }
+      get_self_service_plans: { Args: never; Returns: Json }
       get_statistics_snapshot: {
         Args: { _scope?: string; _team_id?: string }
         Returns: Json
@@ -3237,6 +3361,10 @@ export type Database = {
       }
       renew_guest_invitation: {
         Args: { _invitation_id: string }
+        Returns: Json
+      }
+      reserve_asaas_contract: {
+        Args: { _environment: string; _plan: string; _profile: string }
         Returns: Json
       }
       respond_premium_invitation: {

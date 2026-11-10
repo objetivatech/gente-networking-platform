@@ -52,6 +52,8 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const [interval, setInterval] = useState<BillingInterval>(plan?.billing_interval ?? 'monthly');
   const [audience, setAudience] = useState(plan?.audience ?? 'hub');
   const [templateId, setTemplateId] = useState(plan?.contract_template_id ?? 'none');
+  const [selfService, setSelfService] = useState(plan?.self_service_enabled ?? false);
+  const eligibleSelfService = audience === 'assinante' && planType === 'recorrente' && interval === 'monthly' && templateId === 'none' && parseCurrencyToCents(amount) > 0;
   // Recursos e limites do plano (Fase 4 — v3.54.0)
   const [quota, setQuota] = useState(
     plan?.features?.matchmaking_monthly_quota != null ? String(plan.features.matchmaking_monthly_quota) : '',
@@ -140,6 +142,10 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
           </div>
 
           {/* Recursos e limites liberados pelo plano */}
+          <div className="flex items-start justify-between gap-4 border-t pt-4">
+            <Label htmlFor="self-service-plan" className="leading-relaxed">Oferecer contratação pública pelo Asaas<span className="mt-1 block text-xs font-normal text-muted-foreground">Somente plano mensal de Assinante, valor positivo e sem contrato de assinatura eletrônica vinculado.</span></Label>
+            <Switch id="self-service-plan" disabled={!eligibleSelfService} checked={eligibleSelfService && selfService} onCheckedChange={setSelfService} />
+          </div>
           <div className="space-y-2 rounded-md border p-3">
             <p className="text-sm font-medium">Acessos e limites do plano</p>
             <div className="space-y-1.5">
@@ -190,6 +196,7 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                   billing_interval: planType === 'recorrente' ? interval : null,
                   contract_template_id: templateId === 'none' ? null : templateId,
                   features,
+                  self_service_enabled: eligibleSelfService && selfService,
                 },
                 { onSuccess: () => setOpen(false) },
               );

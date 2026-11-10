@@ -5,6 +5,7 @@ interface LpEnv { LP_UNIFIED_ENABLED?: string; SUPABASE_URL?: string; SUPABASE_A
 export const onRequest: PagesFunction<LpEnv> = async context => {
   const url = new URL(context.request.url);
   const lpHost = url.hostname === 'lps.gentenetworking.com.br';
+  if (lpHost && url.pathname === '/assinar') return Response.redirect(`https://comunidade.gentenetworking.com.br/assinar${url.search}`, 302);
   const internalLp = /^\/lps\/[a-z0-9-]+\/?$/.test(url.pathname);
   const friendlyLp = ['participe', 'gentehub', 'comunidade', 'impulso', 'assinantes'].includes(url.pathname.split('/')[1] || '');
   if ((!lpHost || context.env.LP_UNIFIED_ENABLED !== 'true') && !internalLp && !friendlyLp) return context.next();
