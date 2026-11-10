@@ -1,7 +1,7 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-10
-> **Versão:** 3.58.0 — LPs após a virada
+> **Versão:** 3.59.1 — Formulários das LPs e acesso pela página de Assinantes
 
 ## Inscrições das LPs
 1. Admin → Landing Pages/LPs Avançadas → Configurações → definir Grupo padrão, campos, perguntas e imagem de compartilhamento → Salvar.
@@ -630,3 +630,9 @@ Instalação mantida via manifest/ícones, sem alterar URLs de instalação. Cac
 - A sugestão semanal é orgânica e não consome franquia. O botão "Sortear nova conexão" registra `matchmaking_draw` em `usage_quota_events`, sem duplicar o mesmo contato no mês.
 - Planos ativos com `matchmaking_monthly_quota` limitam os sorteios; Assinante sem assinatura ativa ou sem franquia não sorteia. Membros ainda sem plano mantêm o comportamento atual até a Fase 4.
 - Assinante pode agendar e registrar tentativa de contato, mas não usa o botão "Já conectei" nem entra na gamificação de Membros.
+
+## Entrada pela página de Assinantes (v3.59.1)
+1. Visitante abre `/assinantes` (na plataforma ou nas LPs).
+2. "Entrar" / "Já tenho conta": na plataforma abre o login; nas LPs leva ao login da plataforma.
+3. Após entrar, a pessoa vai direto ao painel. Se já estiver logada, vê "Ir para a plataforma".
+4. Contratação self-service do plano ainda não disponível (próxima etapa).

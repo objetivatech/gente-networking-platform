@@ -1,7 +1,7 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-10
-> **Versão:** 3.58.0 — LPs após a virada
+> **Versão:** 3.59.1 — Formulários das LPs e acesso pela página de Assinantes
 
 ## LPs pós-virada (v3.58.0)
 - `landing_pages.form_config` guarda campos e perguntas; política existente restringe escrita ao Admin e leitura a páginas publicadas. `lp-form.ts` compartilha regras puras entre UI e intake; servidor resolve origem/destino pela página persistida.
@@ -832,3 +832,7 @@ Para dúvidas técnicas, consulte `/documentacao` ou entre em contato com a equi
 ## v3.51.1 — Recuperação de atualização PWA
 
 Instalação mantida via manifest/ícones, sem alterar URLs de instalação. Cache offline do aplicativo suspenso durante recuperação. Worker antigo em `/sw.js` substituído por limpeza seletiva que se desregistra mesmo em falha e solicita nova navegação dos clientes. Sem apagar autenticação, caches de outros serviços, dados locais ou histórico da plataforma. Nenhum registro de worker de aplicativo no preview/produção, polling de versão ou recarga automática por falha de chunk. Notificações locais não aguardam worker inexistente. Publicação e validação do worker substituto no Cloudflare são necessárias; atualização depende da verificação feita pelo navegador. Assinante da Comunidade permanece fora desta etapa.
+
+## v3.59.x
+- 3.59.0: tipos de campo `select`, `radio`, `email`, `phone` em `form_config`, validados por `_shared/lp-form.ts` no cliente e no `submit-lead`.
+- 3.59.1: `PlatformEntry` usa `platformHref` para links de plataforma, `PlatformLogin.onSuccess` navega a `/`, `/auth?entrar=1` abre o login; sessão existente exibe "Ir para a plataforma".
