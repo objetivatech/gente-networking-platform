@@ -26,14 +26,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
 import {
   classifyOnboardingCategory,
-  ONBOARDING_SUBJECTS,
 } from "../_shared/guest-onboarding.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
+import { normalizeLpForm, validateLpAnswers } from '../_shared/lp-form.ts';
+import { dispatchLpIntake } from '../_shared/lp-dispatch.ts';
 
 const SOURCES = [
   "lp_gentehub",
@@ -60,6 +56,12 @@ const BodySchema = z.object({
   invited_by: z.string().uuid().optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
   app_base_url: z.string().url().optional(),
+  landing_page_id: z.string().uuid().optional(),
+  answers: z.record(z.string().max(60), z.string().max(1000)).refine(v => Object.keys(v).length <= 20).optional(),
+  client_location: z.string().max(200).optional(),
+  referral_source: z.string().max(200).optional(),
+  group_first_choice: z.string().max(200).optional(),
+  group_second_choice: z.string().max(200).optional(),
 });
 
 function genCode(): string {
@@ -221,6 +223,12 @@ serve(async (req) => {
       invited_by: pick("invited_by", "ref"),
       notes: pick("notes", "mensagem", "observacoes"),
       app_base_url: pick("app_base_url"),
+      landing_page_id: pick('landing_page_id'),
+      answers: raw.answers,
+      client_location: pick('client_location'),
+      referral_source: pick('referral_source'),
+      group_first_choice: pick('group_first_choice'),
+      group_second_choice: pick('group_second_choice'),
     };
 
     if (!normalized.source || !SOURCES.includes(normalized.source as typeof SOURCES[number])) {
@@ -247,6 +255,20 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    if (data.landing_page_id) {
+      const { data: page, error: pageError } = await supabase.from('landing_pages').select('slug, is_active, capture_source, form_config, crm_team_id, crm_group_team_map').eq('id', data.landing_page_id).maybeSingle();
+      if (pageError || !page?.is_active) return new Response(JSON.stringify({ error: 'page_unavailable' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      data.source = page.capture_source;
+      data.source_detail = page.slug;
+      const config = normalizeLpForm(page.form_config);
+      const validation = validateLpAnswers(config, { ...data, segment: data.business_segment }, data.answers ?? {});
+      if (validation) return new Response(JSON.stringify({ error: validation }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const answerNotes = config.questions.map(q => data.answers?.[q.id] ? `${q.label}: ${data.answers[q.id]}` : '').filter(Boolean).join('\n');
+      data.notes = [data.notes, answerNotes].filter(Boolean).join('\n').slice(0, 20000);
+      const map = page.crm_group_team_map as Record<string, string> | null;
+      data.target_team_id = (data.group_first_choice && map?.[data.group_first_choice]) || page.crm_team_id || undefined;
+    }
 
     // ---- Resolução automática de grupo -------------------------------------
     let teamId: string | null = data.target_team_id ?? null;
@@ -485,6 +507,7 @@ serve(async (req) => {
         page_title: data.page_title ?? null,
         group_resolution: groupResolution,
         requested_group: data.target_team_name ?? null,
+        form_answers: data.answers ?? {},
       },
     };
 
@@ -599,52 +622,16 @@ serve(async (req) => {
       if (pageErr) console.error("[submit-lead] page register failed (non-blocking)", pageErr);
     }
 
-    // ---- Email imediato de ativação (best-effort e idempotente) --------------
-    const baseUrl = data.app_base_url ?? "https://comunidade.gentenetworking.com.br";
+    // Canonical platform URL is never accepted from a public caller for email links.
+    const baseUrl = "https://comunidade.gentenetworking.com.br";
     const inviteUrl = invitationCode ? `${baseUrl}/convite/${invitationCode}` : baseUrl;
 
-    let shouldSendActivation = false;
-    if (leadId && invitationStatus !== "accepted") {
-      // A troca condicional funciona como uma trava: em duas submissões simultâneas,
-      // apenas uma consegue reservar o envio enquanto o estado ainda é `pending`.
-      const { data: claimedLead } = await supabase
-        .from("crm_leads")
-        .update({ onboarding_email_status: "sent" })
-        .eq("id", leadId)
-        .eq("onboarding_email_status", "pending")
-        .select("id")
-        .maybeSingle();
-      shouldSendActivation = Boolean(claimedLead?.id);
-    }
-    if (shouldSendActivation && invitationStatus !== "accepted") try {
-      const { data: emailResult, error: emailInvokeError } = await supabase.functions.invoke("send-email", {
-        body: {
-          to: data.email,
-          subject: ONBOARDING_SUBJECTS[onboardingCategory],
-          template: "guest_activation",
-          context: `guest_activation_${onboardingCategory}`,
-          template_data: {
-            name: data.name,
-            guest_name: data.name,
-            invite_link: inviteUrl,
-            link: inviteUrl,
-            onboarding_category: onboardingCategory,
-          },
-        },
-      });
-      const sent = !emailInvokeError && emailResult?.ok === true;
-      await supabase.from("crm_leads").update({
-        onboarding_status: sent ? "aguardando_ativacao" : "cadastro_recebido",
-        onboarding_email_status: sent ? "sent" : "error",
-        onboarding_email_sent_at: sent ? new Date().toISOString() : null,
-      }).eq("id", leadId);
-      if (emailInvokeError || !sent) {
-        console.error("[submit-lead] activation email failed", emailInvokeError ?? emailResult);
-      }
-    } catch (emailErr) {
-      console.error("[submit-lead] email failed (non-blocking)", emailErr);
-      await supabase.from("crm_leads").update({ onboarding_email_status: "error" }).eq("id", leadId);
-    }
+    const delivery = leadId ? await dispatchLpIntake(supabase, {
+      leadId, invitationId, inviteUrl, category: onboardingCategory,
+      name: data.name, email: data.email, phone: data.phone, company: data.company,
+      pageSlug: data.source_detail ?? data.source, teamId,
+      activationNeeded: invitationStatus === 'pending' && !existing?.profile_id && existing?.onboarding_email_status !== 'sent',
+    }) : null;
 
     return new Response(
       JSON.stringify({
@@ -656,6 +643,7 @@ serve(async (req) => {
         team_id: teamId,
         hub_meeting_id: linkedMeetingId,
         group_resolution: groupResolution,
+        delivery,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
