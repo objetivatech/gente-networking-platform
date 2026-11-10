@@ -94,6 +94,7 @@ export type Database = {
         Row: {
           consent_at: string
           created_at: string
+          creation_started_at: string | null
           customer_id: string | null
           environment: string
           id: string
@@ -108,6 +109,7 @@ export type Database = {
         Insert: {
           consent_at?: string
           created_at?: string
+          creation_started_at?: string | null
           customer_id?: string | null
           environment: string
           id?: string
@@ -122,6 +124,7 @@ export type Database = {
         Update: {
           consent_at?: string
           created_at?: string
+          creation_started_at?: string | null
           customer_id?: string | null
           environment?: string
           id?: string
@@ -2889,6 +2892,10 @@ export type Database = {
       }
       are_same_team: {
         Args: { p_user_id1: string; p_user_id2: string }
+        Returns: boolean
+      }
+      asaas_subscription_current: {
+        Args: { _subscription: string }
         Returns: boolean
       }
       calculate_monthly_points_for_team: {
