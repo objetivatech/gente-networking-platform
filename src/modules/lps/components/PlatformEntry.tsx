@@ -1,5 +1,8 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { isLpHost, platformHref } from '../lib/rules';
 import { useLandingPage } from '../hooks/useLandingPage';
 import { useAdvancedPageContent } from '../hooks/useAdvancedPageContent';
 import { AdvancedPlatformEntry } from './AdvancedPlatformEntry';
@@ -13,21 +16,29 @@ import { ArrowRight, LogIn } from 'lucide-react';
 import { RDStationScript } from './landing/RDStationScript';
 import NotFound from '@/pages/NotFound';
 export function PlatformEntry({ subscriber = false }: { subscriber?: boolean }) {
-  const [loginOpen, setLoginOpen] = useState(false);
+  const [params] = useSearchParams();
+  const [loginOpen, setLoginOpenState] = useState(!subscriber && params.get('entrar') === '1');
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  // On the LP host the platform session lives on another origin: send the visitor to the platform login.
+  const setLoginOpen = (open: boolean) => { if (open && isLpHost()) { window.location.href = platformHref('/auth?entrar=1'); return; } setLoginOpenState(open); };
+  const entryAction = user && !isLpHost()
+    ? <Button asChild className="rounded-md"><Link to="/">Ir para a plataforma<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
+    : <Button onClick={() => setLoginOpen(true)} className="rounded-md"><LogIn className="mr-2 h-4 w-4" />Entrar</Button>;
   const { data: page, error, isLoading } = useLandingPage(subscriber ? 'assinantes' : 'entrada-plataforma');
   const { data: advanced, error: contentError, isLoading: contentLoading } = useAdvancedPageContent(page?.id);
   if (subscriber && !isLoading && !error && !page?.is_active) return <NotFound />;
   return <div className="min-w-0 bg-background">
     <RDStationScript />
     <header className="border-b bg-background"><div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-      <a href="https://gentenetworking.com.br" className="flex h-14 w-36 items-center"><img src={logo} alt="Gente Networking" className="h-auto max-h-14 w-full object-contain" /></a>
-      <nav className="flex items-center gap-2 sm:gap-3"><Button variant="ghost" className="hidden md:inline-flex" asChild><a href="/auth#ecossistema">O ecossistema</a></Button><Button variant="ghost" className="hidden sm:inline-flex" asChild><a href={subscriber ? '/auth' : '/assinantes'}>{subscriber ? 'Gente Networking' : 'Assinatura da Comunidade'}</a></Button><Button onClick={() => setLoginOpen(true)} className="rounded-md"><LogIn className="mr-2 h-4 w-4" />Entrar</Button></nav>
+      <a href={platformHref(subscriber ? '/assinantes' : '/auth')} aria-label="Gente Networking — início da plataforma" className="flex h-14 w-36 items-center"><img src={logo} alt="Gente Networking" className="h-auto max-h-14 w-full object-contain" /></a>
+      <nav className="flex items-center gap-2 sm:gap-3"><Button variant="ghost" className="hidden md:inline-flex" asChild><a href={platformHref('/auth#ecossistema')}>O ecossistema</a></Button><Button variant="ghost" className="hidden sm:inline-flex" asChild><a href={subscriber ? platformHref('/auth') : '/assinantes'}>{subscriber ? 'Gente Networking' : 'Assinatura da Comunidade'}</a></Button>{entryAction}</nav>
     </div></header>
     {page && <SEOHead page={page} />}
     <main>
       {isLoading || contentLoading ? <div className="grid min-h-64 place-items-center" role="status">Carregando…</div> : error || contentError || !page ? <section className="mx-auto max-w-4xl px-5 py-20"><h1 className="text-4xl font-bold">{subscriber ? 'Assinante da Comunidade' : 'Gente Networking'}</h1><p className="mt-5 text-lg text-muted-foreground">Não foi possível carregar esta página. Tente novamente em instantes.</p><Button onClick={() => setLoginOpen(true)} className="mt-8">Acessar a plataforma<ArrowRight className="ml-2 h-4 w-4" /></Button></section> : <AdvancedPlatformEntry content={(advanced?.content ?? {}) as AdvancedContent} subscriber={subscriber} onLogin={() => setLoginOpen(true)} />}
     </main>
     <footer className="border-t"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-7 text-sm text-muted-foreground"><span>© 2026 Gente Networking</span><a href="https://ranktop.com.br" target="_blank" rel="noreferrer">Criado e operado por Ranktop SEO Inteligente</a></div></footer>
-    <Dialog open={loginOpen} onOpenChange={setLoginOpen}><DialogContent className="z-[70] w-[calc(100%-2rem)] max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg"><DialogHeader><DialogTitle>Acesse o Gente</DialogTitle><DialogDescription>Entre com sua conta da plataforma.</DialogDescription></DialogHeader><PlatformLogin /></DialogContent></Dialog>
+    <Dialog open={loginOpen} onOpenChange={setLoginOpen}><DialogContent className="z-[70] w-[calc(100%-2rem)] max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-lg"><DialogHeader><DialogTitle>Acesse o Gente</DialogTitle><DialogDescription>Entre com sua conta da plataforma.</DialogDescription></DialogHeader><PlatformLogin onSuccess={() => { setLoginOpenState(false); navigate('/', { replace: true }); }} /></DialogContent></Dialog>
   </div>;
 }

@@ -1,6 +1,14 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 export const LP_CANONICAL_ORIGIN = 'https://gentenetworking.com.br';
 export const PLATFORM_ORIGIN = 'https://comunidade.gentenetworking.com.br';
+export const LP_HOST = 'lps.gentenetworking.com.br';
+export function isLpHost(hostname = typeof window === 'undefined' ? '' : window.location.hostname): boolean {
+  return hostname === LP_HOST;
+}
+/** Platform-owned paths must leave the LP host, whose origin cannot read the platform session. */
+export function platformHref(path: string, hostname?: string): string {
+  return isLpHost(hostname) ? `${PLATFORM_ORIGIN}${path}` : path;
+}
 export const RESERVED_SLUGS = new Set(['auth', 'redefinir-senha', 'convite', 'instalar', 'm', 'p', 'membro', 'perfil', 'feed', 'membros', 'matchmaking', 'oportunidades', 'pedidos-indicacao', 'convidados', 'aniversarios', 'estatisticas', 'gente-em-acao', 'depoimentos', 'negocios', 'indicacoes', 'equipes', 'encontros', 'conteudos', 'ranking', 'convites', 'termos-de-uso', 'politica-de-privacidade', 'politica-de-cookies', 'conselho', 'changelog', 'documentacao', 'configuracoes', 'dashboard', 'admin', '404', 'obrigado', 'lps']);
 export function validateSlug(slug: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && !RESERVED_SLUGS.has(slug);
