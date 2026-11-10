@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AlreadyMemberNotice } from './AlreadyMemberNotice';
-interface Props { config: unknown; landingPageId: string; source: string; buttonText?: string; onSuccess?: () => void }
-export function ConfiguredLeadForm({ config: rawConfig, landingPageId, source, buttonText = 'Enviar inscrição', onSuccess }: Props) {
+interface Props { config: unknown; landingPageId: string; source: string; buttonText?: string; eventEdition?: string; onSuccess?: () => void }
+export function ConfiguredLeadForm({ config: rawConfig, landingPageId, source, buttonText = 'Enviar inscrição', eventEdition, onSuccess }: Props) {
   const config = normalizeLpForm(rawConfig);
   const createLead = useCreateLead();
   const [values, setValues] = useState<Record<string, string>>({});
@@ -18,22 +18,24 @@ export function ConfiguredLeadForm({ config: rawConfig, landingPageId, source, b
   const [member, setMember] = useState<{ message: string; loginUrl: string } | null>(null);
   async function submit(event: FormEvent) {
     event.preventDefault();
-    const invalid = validateLpAnswers(config, values, answers);
+    const invalid = (values.name?.trim().length ?? 0) < 2 ? 'Informe seu nome completo.' : validateLpAnswers(config, values, answers);
     if (invalid) { toast.error(invalid); return; }
     setMember(null);
     try {
       const result = await createLead.mutateAsync({ landing_page_id: landingPageId, source, name: values.name ?? '', email: values.email ?? '',
         phone: values.phone, company: values.company, segment: values.segment, client_location: values.client_location,
-        referral_source: values.referral_source, group_first_choice: values.group_first_choice, group_second_choice: values.group_second_choice, answers });
+        referral_source: values.referral_source, group_first_choice: values.group_first_choice, group_second_choice: values.group_second_choice, event_edition: eventEdition, answers });
       if (result.crm.status === 'already_member') { setMember(result.crm); return; }
-      (window as Window & { dataLayer?: Record<string, unknown>[] }).dataLayer?.push({ event: 'lead_form_submit', lead_source: source });
+      const target = window as Window & { dataLayer?: Record<string, unknown>[] };
+      (target.dataLayer ??= []).push({ event: 'lead_form_submit', lead_source: source });
       setValues({}); setAnswers({}); toast.success('Inscrição recebida!'); onSuccess?.();
     } catch (error) { toast.error(error instanceof Error ? error.message : 'Não foi possível enviar. Tente novamente.'); }
   }
   const fieldInput = (key: string, label: string, required: boolean, type = 'text') => <div key={key} className="space-y-2">
     <Label htmlFor={`lp-${landingPageId}-${key}`}>{label}{required ? ' *' : ''}</Label>
-    <Input id={`lp-${landingPageId}-${key}`} name={key} type={type} required={required} maxLength={key === 'name' ? 120 : 200}
+    {key.startsWith('group_') ? <select id={`lp-${landingPageId}-${key}`} required={required} className="w-full rounded-md border border-input bg-background p-2" value={values[key] ?? ''} onChange={event => setValues(previous => ({ ...previous, [key]: event.target.value }))}><option value="">Selecione</option><option value="gente_master">Gente Master</option><option value="gente_impulso">Gente Impulso</option><option value="gente_conect">Gente Conect</option></select> : <Input id={`lp-${landingPageId}-${key}`} name={key} type={type} required={required} maxLength={key === 'phone' ? 40 : ['name', 'segment'].includes(key) ? 120 : 200}
       value={values[key] ?? ''} onChange={event => setValues(previous => ({ ...previous, [key]: event.target.value }))} />
+    }
   </div>;
   return <form onSubmit={submit} data-rd-no-capture="true" className="space-y-4 text-foreground bg-background rounded-lg p-5">
     {member && <AlreadyMemberNotice {...member} />}

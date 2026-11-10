@@ -505,7 +505,10 @@ export default function Documentacao() {
                     </p>
                     <h4 className="font-semibold mt-4">Landing Pages e entrada da plataforma</h4>
                     <p>O menu Landing Pages reúne os editores de blocos e páginas avançadas, configurações, mídia e auditoria. A página entrada-plataforma define a apresentação exibida antes do login. O cadastro por convite permanece disponível.</p>
-                    <p>A unificação ainda depende da importação das páginas antigas, da liberação de imagens públicas e dos testes finais antes da mudança no Cloudflare. Assinantes da Comunidade permanecem para uma etapa separada.</p>
+                    <p>Em Configurações de cada LP, defina o Grupo padrão do convite, personalize campos e perguntas e escolha a imagem de compartilhamento na biblioteca. Nome e e-mail permanecem obrigatórios. Clique em Salvar após editar.</p>
+                    <p>A inscrição registra o interessado no CRM e envia um único e-mail de boas-vindas com ativação, além do aviso aos Admins com notificações habilitadas e da conversão no RD Station. Apenas concluir o convite cria o acesso como Convidado; entrar no WhatsApp não ativa a plataforma nem contrata um plano.</p>
+                    <p>O Grupo da plataforma vem da configuração da LP ou da escolha do interessado; Gente HUB usa o Grupo HUB por padrão. Sem destino definido, não há ingresso automático em Grupo Premium. O link de WhatsApp é independente.</p>
+                    <p>Falhas de envio não apagam o cadastro. Confira a validade e use o reenvio de ativação no CRM. Uma nova submissão retoma envios falhos sem repetir entregas concluídas. Inscrições históricas não são reenviadas em lote. Gente HUB mantém seu registro de participação do lead no próximo evento.</p>
                   </CardContent>
                 </Card>
 

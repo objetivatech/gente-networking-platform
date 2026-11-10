@@ -116,8 +116,8 @@ const App = () => (
         <Toaster />
         <Sonner />
         <OfflineIndicator />
-        <PWAInstallPrompt />
         <BrowserRouter>
+          <PWAInstallPrompt />
           <LgpdBanner />
           <Suspense fallback={<PageLoader />}>
             <Routes>

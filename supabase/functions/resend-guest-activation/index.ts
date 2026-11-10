@@ -8,12 +8,9 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { ONBOARDING_SUBJECTS, type OnboardingCategory } from "../_shared/guest-onboarding.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { sendEmail } from '../_shared/email-provider.ts';
+import { guestActivationEmailTemplate } from '../_shared/email-templates.ts';
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
 const BodySchema = z.object({ lead_id: z.string().uuid() });
 
@@ -116,20 +113,13 @@ serve(async (req) => {
     }
 
     const category = (lead.onboarding_category || "outra_origem") as OnboardingCategory;
-    const { data: result, error: sendError } = await admin.functions.invoke("send-email", {
-      body: {
-        to: lead.email,
-        subject: ONBOARDING_SUBJECTS[category] ?? ONBOARDING_SUBJECTS.outra_origem,
-        template: "guest_activation",
-        context: `guest_activation_${category}`,
-        template_data: {
-          guest_name: lead.name,
-          invite_link: `https://comunidade.gentenetworking.com.br/convite/${invitation.code}`,
-          onboarding_category: category,
-        },
-      },
+    const result = await sendEmail({
+      to: lead.email,
+      subject: ONBOARDING_SUBJECTS[category] ?? ONBOARDING_SUBJECTS.outra_origem,
+      html: guestActivationEmailTemplate(lead.name, `https://comunidade.gentenetworking.com.br/convite/${invitation.code}`, category),
+      context: `guest_activation_${category}`, referenceId: lead.id, bypassRateLimit: true,
     });
-    const sent = !sendError && result?.ok === true;
+    const sent = result.ok;
     await admin.from("crm_leads").update({
       onboarding_status: sent ? "aguardando_ativacao" : "cadastro_recebido",
       onboarding_email_status: sent ? "sent" : "error",

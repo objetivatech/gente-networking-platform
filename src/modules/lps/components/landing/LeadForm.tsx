@@ -160,7 +160,7 @@ export function LeadForm({
     ? 'text-sm font-semibold text-secondary uppercase tracking-wide mb-3 mt-6 border-b border-border/10 pb-2' 
     : 'text-sm font-semibold text-secondary uppercase tracking-wide mb-3 mt-6 border-b border-border pb-2';
 
-  if (hasConfiguredLpForm(configuredPage?.form_config)) return <ConfiguredLeadForm config={configuredPage?.form_config} landingPageId={landingPageId} source={source} buttonText={buttonText} onSuccess={onSuccess} />;
+  if (hasConfiguredLpForm(configuredPage?.form_config)) return <ConfiguredLeadForm config={configuredPage?.form_config} landingPageId={landingPageId} source={source} buttonText={buttonText} eventEdition={eventEdition} onSuccess={onSuccess} />;
 
   return (
     <Form {...form}>

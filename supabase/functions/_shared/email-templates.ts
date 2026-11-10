@@ -419,6 +419,11 @@ ${ctaButton(selected.cta, safeInviteLink)}
 }
 
 // New meeting scheduled notification
+export function lpNewLeadEmailTemplate(name: string, email: string, page: string): string {
+  return emailWrapper(`<h1>Novo inscrito nas LPs</h1><p><strong>${escapeHtml(name)}</strong> realizou uma inscrição em ${escapeHtml(page)}.</p><p>E-mail: ${escapeHtml(email)}</p>${ctaButton('Consultar no CRM', `${APP_URL}/admin/crm`)}`);
+}
+
+// New meeting scheduled notification
 export function newMeetingEmailTemplate(name: string, meetingTitle: string, meetingDate: string, meetingTime?: string, location?: string, teamName?: string): string {
   const timeInfo = meetingTime ? ` às ${meetingTime}` : '';
   const locationInfo = location ? `<p style="color: #475569; font-size: 14px; margin: 4px 0;">📍 ${location}</p>` : '';

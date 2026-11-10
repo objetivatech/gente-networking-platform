@@ -13,6 +13,9 @@ import { FormConfigEditor } from './FormConfigEditor';
 import { MediaLibrary } from './MediaLibrary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { Json } from '@/integrations/supabase/types';
+import { normalizeLpForm } from '../../lib/form-config';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PageSettingsProps {
   slug: string;
@@ -23,6 +26,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
   const updatePage = useUpdateLandingPage();
   const [formData, setFormData] = useState<Partial<LandingPage>>({});
   const [selectImage, setSelectImage] = useState(false);
+  const { data: groups = [] } = useQuery({ queryKey: ['lps', 'admin-group-options'], queryFn: async () => { const { data, error } = await supabase.from('teams').select('id,name').order('name'); if (error) throw error; return data ?? []; } });
 
   useEffect(() => {
     if (page) {
@@ -34,7 +38,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
     if (!page) return;
     try {
       if (formData.og_image_url && !/^https:\/\//i.test(formData.og_image_url)) { toast.error('Use uma URL HTTPS pública para a imagem.'); return; }
-      await updatePage.mutateAsync({ id: page.id, ...formData });
+      await updatePage.mutateAsync({ id: page.id, ...formData, form_config: normalizeLpForm(formData.form_config) as unknown as Json });
       toast.success('Configurações salvas!');
     } catch (error) {
       console.error('Erro completo ao salvar:', error);
@@ -130,6 +134,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
                 <option value="lp_gentehub">Gente HUB</option><option value="lp_participe">Participe / Grupos / Comunidade</option><option value="lp_networking">Gente Networking</option><option value="site_elementor">Site</option>
               </select>
             </div>
+            <div className="space-y-2"><label htmlFor="lp-default-group" className="text-sm text-muted-foreground">Grupo padrão do convite</label><select id="lp-default-group" className="w-full rounded-md border border-input bg-background p-2" value={formData.crm_team_id ?? ''} onChange={e => setFormData(prev => ({ ...prev, crm_team_id: e.target.value || null }))}><option value="">Sem Grupo padrão (HUB usa o Grupo HUB)</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></div>
           </CardContent>
         </Card>
 
@@ -376,7 +381,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
           </CardContent>
         </Card>
       </div>
-      {!['entrada-plataforma', 'assinantes'].includes(slug) && <FormConfigEditor value={formData.form_config} onChange={config => setFormData(prev => ({ ...prev, form_config: config as unknown as Json }))} />}
+      {!['entrada-plataforma', 'assinantes'].includes(slug) && <FormConfigEditor community={page.template === 'community'} hub={page.capture_source === 'lp_gentehub'} value={formData.form_config} onChange={config => setFormData(prev => ({ ...prev, form_config: config as unknown as Json }))} />}
     </div>
   );
 }

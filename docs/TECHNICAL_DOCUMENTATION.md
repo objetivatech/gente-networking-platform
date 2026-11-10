@@ -1,7 +1,15 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-10-29
-> **Versão:** 3.57.0 — Portas de conexão e pitch persistente
+> **Última atualização:** 2026-11-10
+> **Versão:** 3.58.0 — LPs após a virada
+
+## LPs pós-virada (v3.58.0)
+- `landing_pages.form_config` guarda campos e perguntas; política existente restringe escrita ao Admin e leitura a páginas publicadas. `lp-form.ts` compartilha regras puras entre UI e intake; servidor resolve origem/destino pela página persistida.
+- `lp-dispatch.ts` usa o transporte compartilhado diretamente, removendo dependência da chamada interna bloqueada de `send-email`. Ativação é reservada por convite, aviso/RD por lead; falhas podem ser retomadas em nova submissão. Não existe cron/replay nesta etapa.
+- `notification_dispatch_log`: contextos `guest_activation_*`, `lp_new_lead`, `lp_conversion`; último usa canal/provedor `rd_station`. Resultados são independentes do sucesso de gravação no CRM.
+- `functions/_middleware.ts` preserva o gate de domínio e injeta OG individual em todos os HTMLs públicos de LP, removendo metadados estáticos concorrentes. Leitura anon de página ativa, timeout 5s, fallback normal em indisponibilidade. Runtime Cloudflare necessário; validar HTML publicado após deploy.
+- Instalação usa allowlist de caminhos da plataforma e nunca domínio LP. Não adiciona service worker. Formulários usam no-capture para evitar duplicação automática de conversão RD; Meta permanece somente GTM.
+- Fluxos e limitações: [UNIFICACAO_LPS.md](./UNIFICACAO_LPS.md).
 
 ## Portas e pitch (v3.57.0)
 

@@ -6,8 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus, Trash2 } from 'lucide-react';
-export function FormConfigEditor({ value, onChange }: { value: unknown; onChange: (config: LpFormConfig) => void }) {
-  const config = normalizeLpForm(value);
+export function FormConfigEditor({ value, onChange, community = false, hub = false }: { value: unknown; onChange: (config: LpFormConfig) => void; community?: boolean; hub?: boolean }) {
+  const config = normalizeLpForm(value, true);
+  if (!Object.keys(config.fields).length && !config.questions.length) {
+    for (const key of Object.keys(LP_FIELD_LABELS) as LpFieldKey[]) {
+      const visible = community ? ['phone', 'segment'].includes(key) : !hub || !key.startsWith('group_');
+      config.fields[key] = { visible, required: visible && !(community && key === 'phone'), label: LP_FIELD_LABELS[key] };
+    }
+  }
   return <section className="space-y-4">
     <h3 className="font-semibold">Campos do formulário</h3>
     <div className="text-sm text-muted-foreground">Nome completo e e-mail são obrigatórios.</div>
@@ -26,7 +32,7 @@ export function FormConfigEditor({ value, onChange }: { value: unknown; onChange
       return <div key={question.id} className="space-y-3 border-b border-border pb-4">
         <div className="flex gap-2"><Input aria-label="Pergunta" value={question.label} maxLength={160} onChange={e => change({ label: e.target.value })} /><Button variant="ghost" size="icon" title="Remover pergunta" onClick={() => onChange({ ...config, questions: config.questions.filter((_, i) => i !== index) })}><Trash2 className="h-4 w-4" /></Button></div>
         <select aria-label="Tipo de resposta" className="w-full rounded-md border border-input bg-background p-2" value={question.type} onChange={e => change({ type: e.target.value as typeof question.type })}><option value="text">Texto curto</option><option value="textarea">Texto longo</option><option value="select">Lista de opções</option></select>
-        {question.type === 'select' && <Textarea aria-label="Opções, uma por linha" placeholder="Uma opção por linha" value={question.options.join('\n')} onChange={e => change({ options: e.target.value.split('\n') })} />}
+        {question.type === 'select' && <Textarea aria-label="Opções, uma por linha" placeholder="Uma opção por linha" defaultValue={question.options.join('\n')} onBlur={e => change({ options: e.target.value.split('\n') })} />}
         <Label className="flex gap-2 items-center"><Switch checked={question.required} onCheckedChange={required => change({ required })} />Resposta obrigatória</Label>
       </div>;
     })}
