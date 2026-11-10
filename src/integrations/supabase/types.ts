@@ -1502,6 +1502,7 @@ export type Database = {
           crm_group_team_map: Json
           crm_team_id: string | null
           event_date: string | null
+          form_config: Json
           id: string
           is_active: boolean
           logo_size: string | null
@@ -1529,6 +1530,7 @@ export type Database = {
           crm_group_team_map?: Json
           crm_team_id?: string | null
           event_date?: string | null
+          form_config?: Json
           id?: string
           is_active?: boolean
           logo_size?: string | null
@@ -1556,6 +1558,7 @@ export type Database = {
           crm_group_team_map?: Json
           crm_team_id?: string | null
           event_date?: string | null
+          form_config?: Json
           id?: string
           is_active?: boolean
           logo_size?: string | null
