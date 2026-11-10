@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.get_self_service_plans() FROM anon,authenticated; GRANT EXECUTE ON FUNCTION public.get_self_service_plans() TO service_role;
