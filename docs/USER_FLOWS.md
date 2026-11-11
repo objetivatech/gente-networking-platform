@@ -1,7 +1,12 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-10
-> **Versão:** 3.60.0 — Contratação self-service Asaas
+> **Versão:** 3.61.0 — Gente HUB: encontro por LP e inscritos visíveis
+
+### Inscrição Gente HUB via LP (v3.61.0)
+1. No CMS, a LP da edição usa Origem = Gente HUB e escolhe o **Encontro Gente HUB desta edição** (vazio = próximo Evento Gente HUB futuro).
+2. O envio do formulário vincula o lead a esse encontro automaticamente.
+3. Em Encontros, todos os participantes (exceto Assinantes) veem os **Inscritos Gente HUB** (nome e empresa) e o total de confirmados inclui esses inscritos. Contatos aparecem só para Admin/Facilitador com acesso ao lead. Quem já ativou a conta e tem presença não é contado em dobro.
 
 ## Contratação automática Asaas
 

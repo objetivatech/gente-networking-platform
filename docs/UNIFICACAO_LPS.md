@@ -121,3 +121,8 @@ Comparação realizada sem modificar o CRM, perfis, convites, pagamentos ou pont
 - No host `lps.gentenetworking.com.br` a sessão da plataforma não é legível (outra origem). Por isso, "Entrar" envia para `https://comunidade.gentenetworking.com.br/auth?entrar=1`, que abre o login automaticamente.
 - Helper `platformHref`/`isLpHost` em `src/modules/lps/lib/rules.ts`.
 - Pendente: contratação self-service do Assinante (modelo financeiro a definir).
+
+
+## v3.61.0 — Edição do Gente HUB por LP
+- Campo `landing_pages.hub_meeting_id` (seletor "Encontro Gente HUB desta edição" nas configurações da LP, visível com origem Gente HUB). `submit-lead` usa esse encontro se for do tipo `hub_event`; senão, o próximo HUB futuro.
+- RPC `get_meeting_lead_attendees(uuid[])` expõe só nome/empresa dos inscritos a usuários autenticados não Assinantes, sem duplicar quem já tem presença com conta.
