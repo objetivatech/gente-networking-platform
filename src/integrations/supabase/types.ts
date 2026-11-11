@@ -1610,6 +1610,7 @@ export type Database = {
           crm_team_id: string | null
           event_date: string | null
           form_config: Json
+          hub_meeting_id: string | null
           id: string
           is_active: boolean
           logo_size: string | null
@@ -1638,6 +1639,7 @@ export type Database = {
           crm_team_id?: string | null
           event_date?: string | null
           form_config?: Json
+          hub_meeting_id?: string | null
           id?: string
           is_active?: boolean
           logo_size?: string | null
@@ -1666,6 +1668,7 @@ export type Database = {
           crm_team_id?: string | null
           event_date?: string | null
           form_config?: Json
+          hub_meeting_id?: string | null
           id?: string
           is_active?: boolean
           logo_size?: string | null
@@ -1686,7 +1689,15 @@ export type Database = {
           updated_at?: string
           whatsapp_group_link?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "landing_pages_hub_meeting_id_fkey"
+            columns: ["hub_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matchmaking_attempts: {
         Row: {
@@ -3098,6 +3109,15 @@ export type Database = {
           role: string
           tags: string[]
           what_i_do: string
+        }[]
+      }
+      get_meeting_lead_attendees: {
+        Args: { _meeting_ids: string[] }
+        Returns: {
+          company: string
+          full_name: string
+          lead_id: string
+          meeting_id: string
         }[]
       }
       get_members_health_scores: {
