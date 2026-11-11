@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useMeetingLeadAttendances } from '@/hooks/useHubMeetings';
+import { useMeetingLeadAttendances, useMeetingRegistrants } from '@/hooks/useHubMeetings';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Plus, Calendar, MapPin, Clock, Users, Check, X, Trash2, Ticket, Mail, Phone, ExternalLink, Search, ArrowUpCircle, History, ArrowRightLeft } from 'lucide-react';
@@ -555,6 +555,7 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
   const { data: attendees, isLoading } = useMeetingAttendees(meetingId);
   const { data: guests, isLoading: isLoadingGuests } = useMeetingGuests(meetingId);
   const { data: leadAttendances } = useMeetingLeadAttendances(meetingId);
+  const { data: registrants } = useMeetingRegistrants([meetingId]);
 
   const getInitials = (name: string) => name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -563,7 +564,12 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
   const memberAttendees = attendees?.filter(a => !guests?.some(g => g.id === a.user_id)) || [];
   const hasGuests = guests && guests.length > 0;
   const hasMembers = memberAttendees.length > 0;
-  const leads = (leadAttendances ?? []).filter((l) => l.lead);
+  // Base pública (nome/empresa) para todos; contatos só para quem a RLS do CRM permite ler.
+  const contactByLead = new Map((leadAttendances ?? []).filter((l) => l.lead).map((l) => [l.lead_id, l.lead]));
+  const leads = (registrants ?? []).map((r) => ({
+    id: r.lead_id,
+    lead: { name: r.full_name, company: r.company, phone: contactByLead.get(r.lead_id)?.phone ?? null, email: contactByLead.get(r.lead_id)?.email ?? null },
+  }));
   const hasLeads = leads.length > 0;
 
   if (!hasMembers && !hasGuests && !hasLeads) return <div className="mt-4 pt-4 border-t text-sm text-muted-foreground">Nenhum confirmado ainda</div>;
@@ -608,7 +614,7 @@ function AttendeesList({ meetingId, canRemove, onRemove }: { meetingId: string; 
       )}
       {hasLeads && (
         <div>
-          <p className="text-sm font-medium mb-2 text-sky-600">Leads do CRM ({leads.length})</p>
+          <p className="text-sm font-medium mb-2 text-sky-600">Inscritos Gente HUB ({leads.length})</p>
           <div className="flex flex-wrap gap-2">
             {leads.map((l) => (
               <div

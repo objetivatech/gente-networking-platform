@@ -73,6 +73,24 @@ export function useMeetingLeadAttendances(meetingId?: string) {
   });
 }
 
+export interface MeetingRegistrant { meeting_id: string; lead_id: string; full_name: string; company: string | null }
+
+/**
+ * Inscritos via LP (leads) visíveis a toda a comunidade: apenas nome e empresa.
+ * Usa RPC `get_meeting_lead_attendees`, que oculta contatos e evita duplicar quem já tem presença com conta.
+ */
+export function useMeetingRegistrants(meetingIds: string[]) {
+  return useQuery({
+    queryKey: ['meeting-registrants', [...meetingIds].sort().join(',')],
+    enabled: meetingIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await (supabase.rpc as any)('get_meeting_lead_attendees', { _meeting_ids: meetingIds });
+      if (error) throw error;
+      return (data ?? []) as MeetingRegistrant[];
+    },
+  });
+}
+
 export function useLinkLeadToMeeting() {
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -82,6 +100,7 @@ export function useLinkLeadToMeeting() {
     qc.invalidateQueries({ queryKey: ['crm-leads'] });
     qc.invalidateQueries({ queryKey: ['crm-lead-history'] });
     qc.invalidateQueries({ queryKey: ['meetings'] });
+    qc.invalidateQueries({ queryKey: ['meeting-registrants'] });
   };
 
   const link = useMutation({
