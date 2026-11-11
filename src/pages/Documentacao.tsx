@@ -53,6 +53,12 @@ export default function Documentacao() {
         </div>
       </div>
 
+      {showMemberDocs && <Card><CardHeader><CardTitle>Convites pelo seu perfil público</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>Compartilhe o link do seu perfil publicado. O visitante escolhe Quero conhecer o Grupo, informa nome, e-mail e WhatsApp e seleciona um dos seus Grupos.</p>
+        <p>O convite novo fica atribuído a você e aparece em Convites. O visitante recebe o e-mail de ativação; você recebe um aviso se suas notificações estiverem habilitadas. Um cadastro ou convite anterior mantém o convidador e o Grupo originais.</p>
+        <p>O formulário não gera pontos. A regra de 15 pontos por convidado presente continua, com autoria original e critérios existentes; Admins e Facilitadores não pontuam. Pessoas com conta ativa são orientadas a entrar, sem outra conta.</p>
+        <p>Se o e-mail não chegar, confira a ficha no CRM e reenvie a ativação pela gestão de convites. O perfil precisa estar publicado, ativo, autorizado pelo plano e vinculado a um Grupo.</p>
+      </CardContent></Card>}
       {isAdmin && <Card><CardHeader><CardTitle>Planos e Assinantes da Comunidade</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Gestão de Pessoas separa os papéis nos contadores e nas abas. Convidados incluem contas ativas e cadastros aguardando ativação.</p>
         <p>Plano → selecione um plano mensal para Assinantes → confirme a mudança de papel. Para um plano já vinculado, use Definir como Assinante. Reativação permite escolher papel e plano juntos, preserva histórico e registra falhas de e-mail ou cobrança.</p>

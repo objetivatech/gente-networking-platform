@@ -1,5 +1,7 @@
 # Regras de arquitetura
 
+- Resolve public-profile invitations transactionally through `submit-lead` using published slugs and host-owned groups; preserve original invitation authorship and gate delivery independently to avoid duplicate acquisition or points.
+
 - Authenticate Asaas callbacks with a server-resolved shared token, reread financial state from the provider, and acknowledge only after transactional processing; explicit self-service consent may grant only Subscriber access after payment, never internal roles or points.
 - Keep Asaas checkout tied to authenticated profiles and explicit public-plan opt-in; reserve issuance and reconcile ambiguous attempts instead of repeating charges, and derive paid-period expiration on access without polling.
 

@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.get_public_invitation_groups(text) FROM PUBLIC,anon,authenticated; GRANT EXECUTE ON FUNCTION public.get_public_invitation_groups(text) TO service_role;

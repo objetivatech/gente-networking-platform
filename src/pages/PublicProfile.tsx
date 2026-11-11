@@ -19,6 +19,7 @@ import { richTextToPlain } from '@/lib/rich-text';
 import PublicProfileStats from '@/components/public/PublicProfileStats';
 import PublicProfileCases from '@/components/public/PublicProfileCases';
 import PublicProfileActivity from '@/components/public/PublicProfileActivity';
+import PublicProfileInviteDialog from '@/components/public/PublicProfileInviteDialog';
 import {
   Loader2, Linkedin, Instagram, Globe, ArrowRight, UserX, Users,
 } from 'lucide-react';
@@ -72,7 +73,7 @@ function DoorsGroup({ title, decisores, setores, tone }: {
 const LOGO = '/logo-gente-networking-branco.png';
 const SITE_URL = 'https://comunidade.gentenetworking.com.br';
 const OG_FALLBACK = `${SITE_URL}${LOGO}`;
-const SIGNUP = '/auth?tab=signup';
+const SIGNUP = '/';
 
 function getInitials(name: string | null) {
   if (!name) return '?';
@@ -198,6 +199,7 @@ export default function PublicProfile() {
   const { slug } = useParams<{ slug: string }>();
   const [profile, setProfile] = useState<PublicProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -233,8 +235,8 @@ export default function PublicProfile() {
       <header className="sticky top-0 z-30 bg-[#1E3A5F] shadow-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <img src={LOGO} alt="Gente Networking" className="h-8 w-auto" />
-          <Button asChild size="sm" className="bg-[#F7941D] text-white hover:bg-[#e0850f]">
-            <Link to={SIGNUP}>Quero participar</Link>
+          <Button size="sm" variant="secondary" disabled={loading || !profile} onClick={() => setInviteOpen(true)} className="h-auto min-h-9 whitespace-normal">
+            Quero conhecer o Grupo
           </Button>
         </div>
       </header>
@@ -323,8 +325,8 @@ export default function PublicProfile() {
                       ><Globe className="h-4 w-4" /></a>
                     )}
                   </div>
-                  <Button asChild className="rounded-xl bg-[#F7941D] px-8 font-bold text-white shadow-lg shadow-orange-500/20 hover:bg-[#e0850f]">
-                    <Link to={SIGNUP}>Conectar agora</Link>
+                  <Button variant="secondary" onClick={() => setInviteOpen(true)} className="h-auto min-h-10 whitespace-normal px-8 font-bold">
+                    Quero conhecer o Grupo
                   </Button>
                 </div>
               </div>
@@ -412,8 +414,8 @@ export default function PublicProfile() {
                   <p className="mb-6 text-sm text-slate-500">
                     Conecte-se com especialistas como {firstName} e gere mais negócios.
                   </p>
-                  <Button asChild className="w-full rounded-xl bg-[#F7941D] py-6 font-bold text-white shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-[#e0850f]">
-                    <Link to={SIGNUP}>Quero participar</Link>
+                  <Button variant="secondary" onClick={() => setInviteOpen(true)} className="h-auto min-h-11 w-full whitespace-normal font-bold">
+                    Quero conhecer o Grupo
                   </Button>
                 </div>
               </div>
@@ -426,8 +428,8 @@ export default function PublicProfile() {
                 Junte-se ao Gente Networking, conecte-se com profissionais como {firstName} e
                 fortaleça sua rede de relacionamentos.
               </p>
-              <Button asChild size="lg" className="rounded-full bg-[#F7941D] px-10 font-bold text-white hover:bg-[#e0850f]">
-                <Link to={SIGNUP}>Quero me cadastrar <ArrowRight className="ml-1.5 h-4 w-4" /></Link>
+              <Button size="lg" variant="secondary" onClick={() => setInviteOpen(true)} className="h-auto min-h-11 whitespace-normal px-10 font-bold">
+                Quero conhecer o Grupo <ArrowRight className="ml-1.5 h-4 w-4" />
               </Button>
             </section>
           </>
@@ -437,12 +439,13 @@ export default function PublicProfile() {
       {/* CTA fixo no mobile */}
       {!loading && profile && (
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 p-3 backdrop-blur md:hidden">
-          <Button asChild className="w-full rounded-xl bg-[#F7941D] font-bold text-white hover:bg-[#e0850f]">
-            <Link to={SIGNUP}>Quero participar do Gente</Link>
+          <Button variant="secondary" onClick={() => setInviteOpen(true)} className="h-auto min-h-11 w-full whitespace-normal font-bold">
+            Quero conhecer o Grupo
           </Button>
         </div>
       )}
 
+      {profile && <PublicProfileInviteDialog key={slug} slug={profile.slug || slug || ''} hostName={firstName} open={inviteOpen} onOpenChange={setInviteOpen} />}
       <footer className="bg-[#1E3A5F] text-white/80">
         <div className="mx-auto max-w-5xl px-4 py-8 text-center text-sm">
           <img src={LOGO} alt="Gente Networking" className="mx-auto mb-3 h-7 w-auto opacity-90" />

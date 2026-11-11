@@ -1,7 +1,15 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-11-10
-> **Versão:** 3.60.0 — Contratação self-service Asaas
+> **Última atualização:** 2026-11-11
+> **Versão:** 3.62.0 — Convites pelo perfil público
+
+## Aquisição pelo perfil público (v3.62.0)
+- `/m/:slug` oferece `PublicProfileInviteDialog`, sem cadastro anônimo em `/auth`. Nome/e-mail/WhatsApp e consentimento são obrigatórios; empresa é opcional. Seleção limitada aos Grupos do perfil publicado e ativo com direito de publicação.
+- `submit-lead` atende `public_profile_groups` (somente catálogo autorizado) e `public_profile_invitation`. Ambas as RPCs são exclusivamente `service_role`; autoria e grupo são relidos no servidor. IDs de convidador enviados pelo visitante não são usados.
+- `submit_public_profile_invitation` serializa aquisições públicas em transação, deduplica por e-mail/telefone, reutiliza convite pendente e renova vencido preservando autor/destino. Contato com conta ativa recebe orientação de login sem alteração de papel, perfil, presença ou pontuação. Origens novas: `convite_membro` + `source_detail=perfil_publico_membro`; e-mail alternativo permanece no metadata do CRM, nunca substitui o principal do perfil.
+- Ativação e notificações usam reservas independentes. `public_profile_host_notice` deriva destinatário do convite persistido e respeita preferências de e-mail; convite de outra autoria não notifica o novo anfitrião como adquirente. Falha do provedor não desfaz CRM; reenvio continua pelo fluxo existente. A resposta pública não expõe código, e-mail principal ou IDs do lead.
+- Até 20 novos convites por anfitrião em 10 minutos neste contexto; inscrições repetidas não recriam convites. Nenhum trigger de gamificação foi alterado: pontos seguem os critérios existentes de presença e papel, nunca o envio do formulário. Ativação ocorre somente por `complete-guest-signup`.
+- Homologação de e-mail, ativação e pontos com conta real continua pendente; não inferir sucesso a partir do catálogo ou de testes simulados.
 
 ## Asaas self-service (v3.60.0)
 - Chave existente no Vault; configuração de pagamentos em produção. Não foram emitidas cobranças nem alterados papéis.

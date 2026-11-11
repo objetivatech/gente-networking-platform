@@ -81,7 +81,8 @@
 - [ ] Publicar pelo fluxo GitHub → Cloudflare e validar retorno com worker anterior instalado, cabeçalhos efetivos e páginas autenticadas — depende de publicação externa e sessão real, indisponíveis neste ambiente.
 
 - [x] Página pública /m/:slug — Etapa 1: Pitch salvo e Portas de conexão
-- [ ] Página pública /m/:slug — Etapa 2: "Quero conhecer o Grupo" ligado ao fluxo de convites com autoria/pontos do membro
+- [x] v3.62.0 — Página pública /m/:slug: "Quero conhecer o Grupo", seleção de Grupo do anfitrião, intake transacional via submit-lead, autoria original preservada, e-mail de ativação e aviso ao anfitrião com reservas independentes; documentação e changelog.
+- [ ] v3.62.0 — Homologar inscrição real → entrega de e-mail → ativação → presença/pontuação com dados autorizados; Supabase externo sem sessão autenticada disponível. Não criar identidades nem enviar convites de teste para pessoas reais arbitrariamente.
 
 ## Assinantes self-service (v3.59.x)
 - [x] Logo, login e sessão existente na página de Assinantes (v3.59.1).
