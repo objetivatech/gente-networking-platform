@@ -1,7 +1,16 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-11-10
-> **Versão:** 3.61.0 — Gente HUB: encontro por LP e inscritos visíveis
+> **Última atualização:** 2026-11-11
+> **Versão:** 3.62.0 — Convites pelo perfil público
+
+### Visitante pelo perfil público (v3.62.0)
+1. Membro compartilha `/m/seu-slug` → visitante abre **Quero conhecer o Grupo**.
+2. Visitante informa nome, e-mail e WhatsApp com DDD, escolhe um Grupo do anfitrião e autoriza o envio do convite; empresa é opcional.
+3. Plataforma confirma o perfil publicado e o Grupo, registra o lead com origem de perfil público e cria o convite atribuído ao anfitrião. Cadastro/convite anterior conserva a autoria e o destino original; conta existente é orientada a entrar, sem outra ativação.
+4. E-mail de ativação é enviado com o link do convite; anfitrião original recebe aviso conforme suas preferências. CRM, aviso administrativo e conversão RD têm resultados independentes. Falha de entrega não perde cadastro e pode ser retomada sem repetir entregas concluídas.
+5. Link recebido → página única de convite → completar cadastro pelo fluxo existente → Convidado. Nada de papel Assinante/Membro, presença ou pontos no simples envio do formulário.
+6. A pontuação do convidador continua a regra vigente de **15 pontos por convidado presente**, com as exclusões e a deduplicação existentes; Administradores/Facilitadores não pontuam. Presença automática da ativação segue a mecânica já existente, sem nova premiação por inscrição.
+7. Consulte [FLUXOS_DE_CONVITES.md](./FLUXOS_DE_CONVITES.md). Entrega/ativação/pontuação reais precisam de homologação autorizada.
 
 ### Inscrição Gente HUB via LP (v3.61.0)
 1. No CMS, a LP da edição usa Origem = Gente HUB e escolhe o **Encontro Gente HUB desta edição** (vazio = próximo Evento Gente HUB futuro).

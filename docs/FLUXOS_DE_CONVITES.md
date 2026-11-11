@@ -1,6 +1,14 @@
 # Fluxos de Convites
 
-**Versão:** v3.56.0 · Outubro/2026
+**Versão:** v3.62.0 · Novembro/2026
+
+## Convites pelo perfil público (v3.62.0)
+Compartilhe a página `/m/seu-slug`. O botão **Quero conhecer o Grupo** abre o formulário de solicitação com nome, e-mail, WhatsApp, empresa opcional, Grupo e autorização de envio. Somente Grupos do anfitrião publicado são oferecidos; sem Grupo disponível não é criado convite.
+
+- Novo visitante: CRM com origem `convite_membro` e contexto `perfil_publico_membro`; convite atribuído ao anfitrião. Recebe ativação e o anfitrião recebe aviso conforme suas preferências; acompanhe em **Convites**.
+- Lead/convite existente: reutilização ou renovação, sem transferir a autoria nem o Grupo anterior. O e-mail extra fica no CRM, sem substituir o e-mail de login. Pessoa com conta ativa deve entrar e usar os fluxos de participação existentes.
+- Não há pontos pelo formulário. Os **15 pontos por convidado presente** seguem a regra atual, atribuídos ao convidador original elegível; Admin/Facilitador não pontuam. O cadastro não promove papéis e não grava presença.
+- E-mail falhou: cadastro fica salvo; gestão pode reenviar ativação. Nova tentativa recupera entregas falhas, sem repetir as já concluídas. O convite é ativado pela página única e `complete-guest-signup`.
 
 ## Fluxo enxuto de convites (v3.56.0)
 
@@ -62,7 +70,7 @@ LP/site → CRM + convite pendente → email por origem → ativação voluntár
 
 Repetições por email ou telefone reutilizam o contato e o convite válidos. Um identificador
 de convidador vindo diretamente de formulário público é ignorado; somente um código de
-convite válido pode estabelecer esse vínculo.
+convite válido ou o contexto seguro de perfil publicado (v3.62.0) pode estabelecer esse vínculo.
 
 ## Compatibilidade histórica
 

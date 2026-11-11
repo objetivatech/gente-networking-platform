@@ -30,6 +30,8 @@ import {
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 import { normalizeLpForm, validateLpAnswers } from '../_shared/lp-form.ts';
 import { dispatchLpIntake } from '../_shared/lp-dispatch.ts';
+import { validatePublicProfileInvite } from '../_shared/public-profile-invite.ts';
+import { notifyPublicProfileHost } from '../_shared/public-profile-dispatch.ts';
 
 const SOURCES = [
   "lp_gentehub",
@@ -190,6 +192,28 @@ serve(async (req) => {
         raw = { ...parsedForm.flat };
         meta = parsedForm.meta;
       }
+    }
+
+    // Dedicated acquisition context uses the same intake endpoint, with server-resolved authorship.
+    if (raw.action === 'public_profile_groups' || raw.action === 'public_profile_invitation') {
+      const slug = raw.profile_slug;
+      if (typeof slug !== 'string' || !/^[a-zA-Z0-9_-]{1,150}$/.test(slug)) return new Response(JSON.stringify({ error: 'profile_unavailable' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const url = Deno.env.get('SUPABASE_URL'); const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (!url || !key) throw new Error('Missing service configuration');
+      const db = createClient(url, key);
+      if (raw.action === 'public_profile_groups') {
+        const { data: groups, error } = await db.rpc('get_public_invitation_groups', { _slug: slug });
+        if (error) throw error;
+        return new Response(JSON.stringify({ groups: groups ?? [] }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+      const invalid = validatePublicProfileInvite(raw);
+      if (invalid) return new Response(JSON.stringify({ error: invalid }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const { data: result, error } = await db.rpc('submit_public_profile_invitation', { _slug: slug, _team_id: raw.target_team_id, _name: raw.name, _email: raw.email, _phone: raw.phone, _company: raw.company ?? null });
+      if (error) throw error;
+      if (!result?.ok) return new Response(JSON.stringify({ error: result?.error ?? 'intake_failed' }), { status: result?.error === 'rate_limited' ? 429 : 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      const delivery = await dispatchLpIntake(db, { leadId: result.lead_id, invitationId: result.invitation_id, inviteUrl: `https://comunidade.gentenetworking.com.br/convite/${result.invitation_code}`, category: 'comunidade', name: result.name, email: result.email, phone: result.phone, company: result.company, pageSlug: 'perfil_publico_membro', teamId: result.team_id, activationNeeded: true });
+      const hostNotice = result.notify_host ? await notifyPublicProfileHost(db, result.invitation_id) : 'not_required';
+      return new Response(JSON.stringify({ ok: true, delivery: { ...delivery, host_notice: hostNotice } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const pick = (...keys: string[]) => {
