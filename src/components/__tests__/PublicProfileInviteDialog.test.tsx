@@ -5,7 +5,10 @@ import { MemoryRouter } from 'react-router-dom';
 import PublicProfileInviteDialog from '../public/PublicProfileInviteDialog';
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
 vi.mock('@/integrations/supabase/client', () => ({ supabase: { functions: { invoke } } }));
-beforeEach(() => { cleanup(); vi.clearAllMocks(); });
+beforeEach(() => {
+  cleanup(); invoke.mockReset();
+  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} });
+});
 const group = { id: '11111111-1111-4111-8111-111111111111', name: 'Grupo Teste' };
 async function fill() {
   await screen.findByLabelText('Nome completo');
