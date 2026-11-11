@@ -3173,6 +3173,13 @@ export type Database = {
           percent: number
         }[]
       }
+      get_public_invitation_groups: {
+        Args: { _slug: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_public_profile: {
         Args: { _slug: string }
         Returns: {
@@ -3393,6 +3400,17 @@ export type Database = {
       }
       set_integration_secret: {
         Args: { _name: string; _value: string }
+        Returns: Json
+      }
+      submit_public_profile_invitation: {
+        Args: {
+          _company?: string
+          _email: string
+          _name: string
+          _phone: string
+          _slug: string
+          _team_id: string
+        }
         Returns: Json
       }
       subscriber_can_see: {
