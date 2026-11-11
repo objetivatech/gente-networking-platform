@@ -27,6 +27,7 @@ export function PageSettings({ slug }: PageSettingsProps) {
   const [formData, setFormData] = useState<Partial<LandingPage>>({});
   const [selectImage, setSelectImage] = useState(false);
   const { data: groups = [] } = useQuery({ queryKey: ['lps', 'admin-group-options'], queryFn: async () => { const { data, error } = await supabase.from('teams').select('id,name').order('name'); if (error) throw error; return data ?? []; } });
+  const { data: hubMeetings = [] } = useQuery({ queryKey: ['lps', 'admin-hub-meetings'], queryFn: async () => { const { data, error } = await supabase.from('meetings').select('id,title,meeting_date').eq('event_type', 'hub_event').order('meeting_date', { ascending: false }).limit(50); if (error) throw error; return data ?? []; } });
 
   useEffect(() => {
     if (page) {
@@ -135,6 +136,9 @@ export function PageSettings({ slug }: PageSettingsProps) {
               </select>
             </div>
             <div className="space-y-2"><label htmlFor="lp-default-group" className="text-sm text-muted-foreground">Grupo padrão do convite</label><select id="lp-default-group" className="w-full rounded-md border border-input bg-background p-2" value={formData.crm_team_id ?? ''} onChange={e => setFormData(prev => ({ ...prev, crm_team_id: e.target.value || null }))}><option value="">Sem Grupo padrão (HUB usa o Grupo HUB)</option>{groups.map(group => <option key={group.id} value={group.id}>{group.name}</option>)}</select></div>
+            {formData.capture_source === 'lp_gentehub' && (
+              <div className="space-y-2"><label htmlFor="lp-hub-meeting" className="text-sm text-muted-foreground">Encontro Gente HUB desta edição</label><select id="lp-hub-meeting" className="w-full rounded-md border border-input bg-background p-2" value={formData.hub_meeting_id ?? ''} onChange={e => setFormData(prev => ({ ...prev, hub_meeting_id: e.target.value || null }))}><option value="">Automático (próximo Evento Gente HUB)</option>{hubMeetings.map(m => <option key={m.id} value={m.id}>{m.title} — {m.meeting_date.split('-').reverse().join('/')}</option>)}</select><p className="text-xs text-muted-foreground">Os inscritos desta página entram direto neste encontro. Crie o encontro em Encontros com o tipo "Evento Gente HUB".</p></div>
+            )}
           </CardContent>
         </Card>
 
