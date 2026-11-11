@@ -60,7 +60,7 @@ export function useMeetings(enabled = true) {
       // Fetch attendance counts
       const { data: attendances } = await supabase.from('attendances').select('meeting_id, user_id');
       // Inscritos via LP (Gente HUB) contam como confirmados; RPC já remove quem tem presença com conta.
-      const hubIds = data.filter(m => m.event_type === 'hub_event').map(m => m.id);
+      const hubIds = data.map(m => m.id);
       const { data: registrants } = hubIds.length
         ? await (supabase.rpc as any)('get_meeting_lead_attendees', { _meeting_ids: hubIds })
         : { data: [] };
