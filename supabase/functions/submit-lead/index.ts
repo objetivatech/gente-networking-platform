@@ -256,9 +256,11 @@ serve(async (req) => {
     if (!supabaseUrl || !serviceKey) throw new Error('Missing service configuration');
     const supabase = createClient(supabaseUrl, serviceKey);
 
+    let persistedPage: { hub_meeting_id?: string | null } | null = null;
     if (data.landing_page_id) {
       const { data: page, error: pageError } = await supabase.from('landing_pages').select('slug, is_active, capture_source, form_config, crm_team_id, crm_group_team_map, hub_meeting_id').eq('id', data.landing_page_id).maybeSingle();
       if (pageError || !page?.is_active) return new Response(JSON.stringify({ error: 'page_unavailable' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      persistedPage = page;
       data.source = page.capture_source;
       data.source_detail = page.slug;
       const config = normalizeLpForm(page.form_config);
