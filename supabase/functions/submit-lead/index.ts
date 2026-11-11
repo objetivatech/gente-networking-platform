@@ -257,7 +257,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceKey);
 
     if (data.landing_page_id) {
-      const { data: page, error: pageError } = await supabase.from('landing_pages').select('slug, is_active, capture_source, form_config, crm_team_id, crm_group_team_map').eq('id', data.landing_page_id).maybeSingle();
+      const { data: page, error: pageError } = await supabase.from('landing_pages').select('slug, is_active, capture_source, form_config, crm_team_id, crm_group_team_map, hub_meeting_id').eq('id', data.landing_page_id).maybeSingle();
       if (pageError || !page?.is_active) return new Response(JSON.stringify({ error: 'page_unavailable' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       data.source = page.capture_source;
       data.source_detail = page.slug;
@@ -588,7 +588,12 @@ serve(async (req) => {
     let linkedMeetingId: string | null = null;
     if (leadId && data.source === "lp_gentehub") {
       const today = new Date().toISOString().slice(0, 10);
-      const { data: nextHub } = await supabase
+      // Encontro explícito configurado na LP tem prioridade; senão, próximo HUB futuro.
+      const pinnedMeetingId = (persistedPage as { hub_meeting_id?: string | null } | null)?.hub_meeting_id ?? null;
+      const { data: pinnedHub } = pinnedMeetingId
+        ? await supabase.from("meetings").select("id").eq("id", pinnedMeetingId).eq("event_type", "hub_event").maybeSingle()
+        : { data: null };
+      const { data: fallbackHub } = pinnedHub ? { data: null } : await supabase
         .from("meetings")
         .select("id")
         .eq("event_type", "hub_event")
@@ -596,6 +601,7 @@ serve(async (req) => {
         .order("meeting_date", { ascending: true })
         .limit(1)
         .maybeSingle();
+      const nextHub = pinnedHub ?? fallbackHub;
       if (nextHub?.id) {
         const { error: linkErr } = await supabase
           .from("meeting_lead_attendances")
