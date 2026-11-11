@@ -10,8 +10,12 @@ export async function notifyPublicProfileHost(db: SupabaseClient, invitationId: 
     if (error || invite.metadata?.source_detail !== 'perfil_publico_membro') return false;
     const { data: host } = await db.from('profiles').select('email, is_active, email_notifications_enabled').eq('id', invite.invited_by).single();
     if (!host?.is_active || host.email_notifications_enabled === false || !host.email) return true;
+    const html = lpNewLeadEmailTemplate(invite.name ?? 'Visitante', invite.email ?? '', 'Seu perfil público')
+      .replace('Novo inscrito nas LPs', 'Uma pessoa quer conhecer seu Grupo')
+      .replace('Consultar no CRM', 'Acompanhar meus convites')
+      .replace('https://comunidade.gentenetworking.com.br/admin/crm', 'https://comunidade.gentenetworking.com.br/convites');
     const result = await sendEmail({ to: host.email, subject: 'Uma pessoa quer conhecer seu Grupo',
-      html: lpNewLeadEmailTemplate(invite.name ?? 'Visitante', invite.email ?? '', 'Seu perfil público — acompanhe em Convites'),
+      html,
       context: 'public_profile_host_notice', referenceId: invitationId });
     return result.ok;
   });
