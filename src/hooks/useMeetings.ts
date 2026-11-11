@@ -59,11 +59,17 @@ export function useMeetings(enabled = true) {
 
       // Fetch attendance counts
       const { data: attendances } = await supabase.from('attendances').select('meeting_id, user_id');
+      // Inscritos via LP (Gente HUB) contam como confirmados; RPC já remove quem tem presença com conta.
+      const hubIds = data.map(m => m.id);
+      const { data: registrants } = hubIds.length
+        ? await (supabase.rpc as any)('get_meeting_lead_attendees', { _meeting_ids: hubIds })
+        : { data: [] };
       
       return data.map(m => ({
         ...m,
         team: m.team_id ? teams[m.team_id] : null,
-        attendees_count: attendances?.filter(a => a.meeting_id === m.id).length || 0,
+        attendees_count: (attendances?.filter(a => a.meeting_id === m.id).length || 0)
+          + ((registrants as Array<{ meeting_id: string }> | null)?.filter(r => r.meeting_id === m.id).length || 0),
         is_attending: attendances?.some(a => a.meeting_id === m.id && a.user_id === user?.id) || false,
       })) as Meeting[];
     },

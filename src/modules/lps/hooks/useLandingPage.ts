@@ -29,6 +29,8 @@ export interface LandingPage {
   canonical_url: string | null;
   /** @deprecated não usado — mantido apenas por compatibilidade com registros antigos. */
   crm_team_id: string | null;
+  /** Encontro Gente HUB explicitamente vinculado (prioritário sobre o próximo HUB futuro). */
+  hub_meeting_id?: string | null;
   /** @deprecated não usado — mantido apenas por compatibilidade com registros antigos. */
   crm_group_team_map: Record<string, string> | null;
 
