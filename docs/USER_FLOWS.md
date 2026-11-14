@@ -3,6 +3,9 @@
 > **Última atualização:** 2026-11-14
 > **Versão:** 3.64.5 — Correções de prioridade e recuperação
 
+## Fase 5 — Manual e aceite
+O [manual consolidado Gente Conexões](./GENTE_CONEXOES.md) reúne caminhos do Admin e dos participantes, jornada de entrada, regras comerciais e checklist de liberação. Histórico 3.64.0–3.64.5 confirmado no Supabase, sem duplicações. Publicação, vídeo definitivo e testes autenticados/Asaas continuam pendentes; documentação concluída não significa cobrança ou oferta liberada.
+
 ## Correções da Fase 4 (v3.64.5)
 - Qualquer papel: aguardar carregamento → vídeo obrigatório quando aplicável → modal com os campos reais faltantes → Completar perfil agora ou Lembrar mais tarde → guia da página. Perfil completo não recebe modal. Nenhum guia é aberto sobre o vídeo, menu ou outro diálogo.
 - Lembrar mais tarde libera o guia nessa sessão sem exigir perfil completo. O aviso volta em nova sessão, ao surgir outra pendência ou se um perfil completo voltar a ficar incompleto. A tarja continua até os 12 campos serem preenchidos; pitch por IA é opcional.
@@ -11,8 +14,8 @@
 - Publicação Cloudflare, vídeo definitivo e homologação com contas reais no Supabase externo permanecem necessários.
 
 ## Guias e recuperação (v3.64.4)
-- O botão de interrogação no cabeçalho abre o guia da página atual: finalidade para networking, próxima ação e escopo do papel. Pode ser reaberto a qualquer momento; durante o vídeo obrigatório ou outro diálogo, aguarda liberação.
-- Primeiro acesso a cada página/papel neste navegador: guia automático apenas com perfil completo, sem vídeo, menu ou outro diálogo. Visita ao guia fica registrada por pessoa/papel/página no navegador, sem alterar permissões ou conclusão do vídeo. Perfil incompleto não bloqueia guia manual; sua tarja volta após fechar o guia e reaparece ao limpar campos obrigatórios.
+- O botão Guia no cabeçalho abre o guia da página atual: finalidade para networking, próxima ação e escopo do papel. Pode ser reaberto; durante vídeo obrigatório, aviso de perfil pendente ou outro diálogo, aguarda liberação.
+- Desde 3.64.5, primeiro acesso a cada página/papel neste navegador: guia automático com perfil completo ou após adiar o aviso de perfil, sem vídeo, menu ou outro diálogo. Visita fica registrada por pessoa/papel/página no navegador, sem alterar permissões ou conclusão do vídeo. A tarja volta após fechar o guia e reaparece ao limpar campos obrigatórios.
 - Admin → Planos e Assinaturas → Contratações pendentes, ou CRM → Contratações pendentes Gente Conexões: lista paginada de contratações sem primeiro pagamento há mais de 24h. Exclui trial, pagamento anterior, conta inativa, assinatura ativa/cancelada/concluída e processamento em andamento.
 - Retomar contato → revisar mensagem → abrir WhatsApp manualmente. Sem telefone válido, a ação fica indisponível. Mensagem aponta para a contratação existente em /assinar; não cria outra cobrança, não envia automaticamente e não registra contato como enviado.
 - Publicação Cloudflare e homologação autenticada dos guias/painel ainda necessárias no Supabase externo; não houve criação de pessoas, pagamentos ou mensagens para teste.
@@ -36,7 +39,7 @@
 - Admin → Acolhimento Conexões (`/admin/acolhimento`): título, URL HTTPS de arquivo MP4/WebM, duração total e botão de obrigatoriedade. Ao mudar vídeo ou duração, nasce uma nova versão; alteração de título não reinicia conclusão. Configuração inicial **desabilitada**, sem vídeo inventado.
 - Vídeo ocupa a página interna para Gente Conexões até concluir; não usa modal e oculta a tarja de perfil enquanto obrigatório. Configurações, saída e páginas legais continuam acessíveis. Progresso persiste por pessoa/versão no servidor; tempo pausado ou aba oculta não é contado. Erro de rede ou vídeo mostra nova tentativa, não conclusão falsa. Ao concluir, volta à página solicitada e a tarja de perfil segue sua regra original.
 - `connection_onboarding_config` tem leitura autenticada ativa; `connection_onboarding_progress` só permite ler o próprio progresso. Escritas passam por `connection-onboarding` → dispatcher exclusivo service_role, com Admin validado no servidor e incrementos limitados pelo tempo decorrido. Não é DRM/prova de atenção e não muda cobrança ou permissões financeiras.
-- Alterações não ativam planos, cobranças ou bloqueio de vídeo. Antes de habilitar, cadastrar arquivo válido e testar com conta autorizada. Homologação autenticada real, entrega de e-mail e publicação Cloudflare permanecem pendentes; tours, LP redesenhada e recuperação de carrinho são fases posteriores.
+- Alterações não ativam planos, cobranças ou bloqueio de vídeo. Antes de habilitar, cadastrar arquivo válido e testar com conta autorizada. Homologação autenticada real, entrega de e-mail e publicação Cloudflare permanecem pendentes. LP, guias e recuperação foram implementados nas Fases 3–4.
 
 ## Planos comerciais e teste gratuito (v3.64.0)
 Admin → Planos e Assinaturas → Editar plano: definir limite de vagas (vazio = ilimitado), texto/cor do selo e habilitar/desabilitar teste gratuito de 1 a 30 dias (padrão 7). Trial exige plano mensal de Assinante sem contrato eletrônico. Ofertas Fundador R$ 9,90 e Regular R$ 29,90 foram criadas **inativas**, sem contratação pública, limite ou trial habilitado. Franquia inicial sugerida: 5 sorteios; revise antes de publicar. Nenhuma conta foi alterada ou cobrança emitida.
@@ -45,7 +48,7 @@ Vagas contabilizam assinaturas active/draft/past_due, incluindo reservas pendent
 
 Contratação com consentimento → reserva serializada por perfil/plano → vínculo no Asaas → trial elegível libera somente Assinante, sem pontos. Primeira cobrança fica para o fim do teste; Pix/cartão continuam no Asaas, sem débito silencioso. Cancelamento interrompe novas cobranças; vencimento bloqueia acesso automaticamente pela regra existente. Trial é reservado uma única vez por perfil, inclusive após cancelamento; reenvios não prorrogam. Somente `service_role` executa ativação/reserva e consulta financeira. Selos aparecem em Vitrine, Membros e perfil público publicado, somente durante assinatura vigente e sem expor dados financeiros.
 
-Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda do Conexões e vídeo foram implementados na Fase 2; tours e página de vendas continuam para fases posteriores.
+Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda e vídeo foram implementados na Fase 2; página de vendas na Fase 3; guias e recuperação na Fase 4, com correções em 3.64.5.
 
 ### Agenda e reconvites (v3.63.0)
 Convidado → Início → Agenda de Encontros → HUB aberto ou Premium com convite → Confirmar Presença. Sem convite Premium, converse com o Facilitador pelo WhatsApp. Cada encontro tem confirmação/cancelamento independente; histórico de visitas não esconde novos eventos.

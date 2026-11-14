@@ -53,6 +53,18 @@ export default function Documentacao() {
         </div>
       </div>
 
+      {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: checklist de liberação</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>As Fases 1–4 estão implementadas e a Fase 5 consolida documentação e histórico, sem ativar ofertas ou criar cobranças. O histórico das versões 3.64.0 a 3.64.5 foi confirmado sem duplicações; consulte Changelog.</p>
+        <ol className="list-decimal pl-5 space-y-2">
+          <li>Publicar no Cloudflare e conferir /conexoes, redirecionamentos antigos, login, compartilhamento e ausência de instalação nas LPs.</li>
+          <li>Salvar e reabrir a apresentação no editor avançado; cadastrar e testar o vídeo definitivo em Acolhimento Conexões antes de exigir sua conclusão.</li>
+          <li>Nos cinco papéis, conferir aviso de perfil, adiamento, guia e reabertura; perfil completo não recebe aviso e novas pendências voltam a aparecer.</li>
+          <li>Com conta Gente Conexões, conferir Vitrine, limites do MatchMaking e agenda com confirmação somente por convite específico, inclusive HUB. Convidados não acessam a Vitrine.</li>
+          <li>Validar no Asaas contratação consentida, trial, vagas, pagamento, vencimento, cancelamento e selos, sem cobranças duplicadas.</li>
+          <li>No CRM e em Planos, conferir a aba Contratações abandonadas / pendentes com um caso autorizado elegível; contato via WhatsApp permanece manual.</li>
+        </ol>
+        <p>Testes automatizados não substituem essas verificações com contas reais. Revise condições comerciais e conclua o aceite antes de liberar as ofertas Fundador e Regular.</p>
+      </CardContent></Card>}
       {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: página de vendas</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Em LPs Avançadas, selecione Gente Conexões para editar a página /conexoes: apresentação, problema, benefícios, públicos, ecossistema, depoimentos, razões, planos e dúvidas. O conteúdo anterior é preservado; relatos aparecem somente quando cadastrados.</p>
         <p>Textos da oferta são editados na página. Valores, vagas, selo, teste gratuito, módulos e franquias são definidos em Planos e Assinaturas. Planos não publicados não aparecem; vagas esgotadas impedem novas contratações. Escolher uma oferta abre /assinar com o plano selecionado, sem cobrança automática.</p>

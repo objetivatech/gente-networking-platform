@@ -1,5 +1,11 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## Fase 5 — Fechamento documental do Gente Conexões (v3.64.5)
+- [x] Consolidar manual e checklist das Fases 1–4 em docs/GENTE_CONEXOES.md, corrigindo referências a funcionalidades ainda futuras.
+- [x] Conferir system_changelog no Supabase: versões 3.64.0–3.64.5 presentes, um registro por versão; sem nova migração.
+- [x] Documentação interna atualizada; 222 testes passaram, build OK; sem novas contas, mensagens, cobranças, serviços ou migrações.
+- [ ] Aceite operacional — depende de publicação Cloudflare, vídeo definitivo e contas autorizadas no Supabase externo/Asaas.
+
 ## v3.64.5 — Correções da Fase 4
 - [x] Modal de perfil para todos os papéis e sequência vídeo → perfil → guia; reabertura manual destacada.
 - [x] Painel de contratações abandonadas/pendentes visível no CRM e em Planos.

@@ -3,6 +3,11 @@
 > **Última atualização:** 2026-11-14
 > **Versão:** 3.64.5 — Correções de prioridade e recuperação
 
+## Fase 5 — Fechamento documental (14/11/2026)
+- Manual e checklist consolidados em [GENTE_CONEXOES.md](./GENTE_CONEXOES.md). Funcionalidades das Fases 1–4 implementadas; aceite operacional continua separado de testes automatizados.
+- Consulta ao Supabase confirmou um registro por versão 3.64.0–3.64.5 em `system_changelog`. Sem nova versão de aplicação, migração, serviço ou alteração comercial para repetir trabalho já concluído.
+- Guia/manual interno e histórico usam a versão corrigida da Fase 4. Publicação Cloudflare, vídeo definitivo, homologação autenticada e Asaas são pendências de liberação, não funcionalidades futuras.
+
 ## Correções da Fase 4 (v3.64.5)
 - `ContextualGuide` coordena vídeo obrigatório → `ProfileCompletionDialog` → guia, com a mesma lista real de 12 campos. Carregamento, menu e outros diálogos suspendem a sequência. Não modifica permissões ou progresso de vídeo.
 - Modal para todos os papéis: CTA /perfil e adiamento por assinatura dos campos faltantes em sessionStorage por pessoa. Completar o perfil limpa o adiamento; novos campos pendentes reabrem o aviso. A tarja mantém a regra de campos reais. Guia automático liberado após adiamento; botão Guia destacado para reabertura.
@@ -11,7 +16,7 @@
 
 ## Guias e recuperação (v3.64.4)
 - `contextual-guide` centraliza passos por rota/papel; `ContextualGuide` usa Dialog/Tooltip existentes no Header do MainLayout. Guia é exclusivamente orientação, não autorização. Persistência UX local por usuário/papel/rota/versão, com fallback manual quando storage indisponível. Não registra conclusão de onboarding nem acesso financeiro.
-- MainLayout mantém vídeo como prioridade bloqueante. Auto-guia exige perfil completo pelo helper compartilhado, ausência de menu e diálogos visíveis. MutationObserver observa apenas presença de diálogos/estado, sem polling; guia fecha se outro diálogo abre. Tarja é ocultada apenas enquanto guia aberto ou vídeo bloqueante; volta conforme campos pendentes.
+- MainLayout mantém vídeo como prioridade bloqueante. Desde 3.64.5, auto-guia aguarda perfil completo ou adiamento do modal de perfil, ausência de menu e diálogos visíveis. MutationObserver observa apenas presença de diálogos/estado, sem polling; guia fecha se outro diálogo abre. Tarja fica oculta durante vídeo/modal/guia e volta conforme campos pendentes.
 - `get_pending_connection_checkouts(offset,limit)` é SECURITY INVOKER, sem acesso anon, verifica auth.uid/has_role Admin e respeita RLS existentes. Limite 1–100 (UI 25), contagem e página da mesma população. Contratos sem pagamento inicial há mais de 24h, sem trial/paid_until, registros paid/paid_at, assinatura ativa do perfil, conta inativa ou lease vigente; somente draft/past_due do público assinante.
 - `PendingConnectionCheckouts` reutilizado em Planos e CRM; consulta habilitada somente para Admin, cache de 60s, sem polling. WhatsApp é manual/editável/validado; não envia, não cancela, não cobra, não altera CRM ou gamificação. Nenhuma chamada nova ao Asaas ou modelo de IA.
 - Banco: consulta instalada, sem novo alerta após mudança para invoker; 79 alertas preexistentes permanecem fora do escopo. Homologação autenticada não disponível (Supabase externo); validar abertura automática/manual, prioridade, painel com dados autorizados e envio manual após publicação Cloudflare.
@@ -34,7 +39,7 @@
 - Admin → Acolhimento Conexões (`/admin/acolhimento`): título, URL HTTPS de arquivo MP4/WebM, duração total e botão de obrigatoriedade. Ao mudar vídeo ou duração, nasce uma nova versão; alteração de título não reinicia conclusão. Configuração inicial **desabilitada**, sem vídeo inventado.
 - Vídeo ocupa a página interna para Gente Conexões até concluir; não usa modal e oculta a tarja de perfil enquanto obrigatório. Configurações, saída e páginas legais continuam acessíveis. Progresso persiste por pessoa/versão no servidor; tempo pausado ou aba oculta não é contado. Erro de rede ou vídeo mostra nova tentativa, não conclusão falsa. Ao concluir, volta à página solicitada e a tarja de perfil segue sua regra original.
 - `connection_onboarding_config` tem leitura autenticada ativa; `connection_onboarding_progress` só permite ler o próprio progresso. Escritas passam por `connection-onboarding` → dispatcher exclusivo service_role, com Admin validado no servidor e incrementos limitados pelo tempo decorrido. Não é DRM/prova de atenção e não muda cobrança ou permissões financeiras.
-- Alterações não ativam planos, cobranças ou bloqueio de vídeo. Antes de habilitar, cadastrar arquivo válido e testar com conta autorizada. Homologação autenticada real, entrega de e-mail e publicação Cloudflare permanecem pendentes; tours, LP redesenhada e recuperação de carrinho são fases posteriores.
+- Alterações não ativam planos, cobranças ou bloqueio de vídeo. Antes de habilitar, cadastrar arquivo válido e testar com conta autorizada. Homologação autenticada real, entrega de e-mail e publicação Cloudflare permanecem pendentes. LP, guias e recuperação foram implementados nas Fases 3–4.
 
 ## Planos comerciais e teste gratuito (v3.64.0)
 Admin → Planos e Assinaturas → Editar plano: definir limite de vagas (vazio = ilimitado), texto/cor do selo e habilitar/desabilitar teste gratuito de 1 a 30 dias (padrão 7). Trial exige plano mensal de Assinante sem contrato eletrônico. Ofertas Fundador R$ 9,90 e Regular R$ 29,90 foram criadas **inativas**, sem contratação pública, limite ou trial habilitado. Franquia inicial sugerida: 5 sorteios; revise antes de publicar. Nenhuma conta foi alterada ou cobrança emitida.
@@ -43,7 +48,7 @@ Vagas contabilizam assinaturas active/draft/past_due, incluindo reservas pendent
 
 Contratação com consentimento → reserva serializada por perfil/plano → vínculo no Asaas → trial elegível libera somente Assinante, sem pontos. Primeira cobrança fica para o fim do teste; Pix/cartão continuam no Asaas, sem débito silencioso. Cancelamento interrompe novas cobranças; vencimento bloqueia acesso automaticamente pela regra existente. Trial é reservado uma única vez por perfil, inclusive após cancelamento; reenvios não prorrogam. Somente `service_role` executa ativação/reserva e consulta financeira. Selos aparecem em Vitrine, Membros e perfil público publicado, somente durante assinatura vigente e sem expor dados financeiros.
 
-Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda do Conexões e vídeo foram implementados na Fase 2; tours e página de vendas continuam para fases posteriores.
+Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda e vídeo foram implementados na Fase 2; página de vendas na Fase 3; guias e recuperação na Fase 4, com correções em 3.64.5.
 
 ## Agenda e convites por evento (v3.63.0)
 - `guest-meetings` valida JWT e entrada; `guest_meetings_dispatch` é service-only e estabelece o caller derivado da sessão. `get_guest_agenda`, `set_guest_meeting_confirmation`, `invite_person_to_meeting` e `get_meeting_invitations` não são expostas diretamente a anon/authenticated. Não amplia leitura de Membros para Convidados/Assinantes.
