@@ -28,9 +28,14 @@ import { canAccessAppPath } from '@/lib/access-control';
 import { ProfileCompletionBanner } from '@/components/profile/ProfileCompletionBanner';
 import { useConnectionOnboarding } from '@/hooks/useConnectionOnboarding';
 import { ConnectionVideoGate } from '@/components/ConnectionVideoGate';
+import { ContextualGuide } from '@/components/ContextualGuide';
+import { useProfile } from '@/hooks/useProfile';
+import { getProfileCompleteness } from '@/lib/profile-completeness';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const { profile, isLoading: loadingProfile } = useProfile();
   const { user, loading } = useAuth();
   const location = useLocation();
   const { canPath, isLoading: loadingRights } = useEntitlements();
@@ -123,7 +128,7 @@ export default function MainLayout() {
       <div className="flex">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-h-screen min-w-0 lg:ml-0">
-          <Header onMenuClick={() => setSidebarOpen(true)} />
+          <Header onMenuClick={() => setSidebarOpen(true)} guide={<ContextualGuide userId={user.id} role={role} pathname={location.pathname} blocked={!!videoBlocked} profileComplete={!loadingProfile && !!profile && getProfileCompleteness(profile).isComplete} menuOpen={sidebarOpen} onOpenChange={setGuideOpen} />} />
           <main
             className="flex-1 min-w-0 p-4 lg:p-6"
             style={{
@@ -131,7 +136,7 @@ export default function MainLayout() {
             }}
           >
             <div className="w-full min-w-0 max-w-full">
-              {!videoBlocked && <ProfileCompletionBanner />}
+              {!videoBlocked && !guideOpen && <ProfileCompletionBanner />}
               <ErrorBoundary
                 resetKey={location.pathname}
                 fallbackMessage="Ocorreu um erro ao carregar esta página. Tente recarregar."

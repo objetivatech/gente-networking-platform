@@ -1,7 +1,14 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.3 — Página Gente Conexões
+> **Versão:** 3.64.4 — Guias e recuperação de contratações
+
+## Guias e recuperação (v3.64.4)
+- `contextual-guide` centraliza passos por rota/papel; `ContextualGuide` usa Dialog/Tooltip existentes no Header do MainLayout. Guia é exclusivamente orientação, não autorização. Persistência UX local por usuário/papel/rota/versão, com fallback manual quando storage indisponível. Não registra conclusão de onboarding nem acesso financeiro.
+- MainLayout mantém vídeo como prioridade bloqueante. Auto-guia exige perfil completo pelo helper compartilhado, ausência de menu e diálogos visíveis. MutationObserver observa apenas presença de diálogos/estado, sem polling; guia fecha se outro diálogo abre. Tarja é ocultada apenas enquanto guia aberto ou vídeo bloqueante; volta conforme campos pendentes.
+- `get_pending_connection_checkouts(offset,limit)` é SECURITY INVOKER, sem acesso anon, verifica auth.uid/has_role Admin e respeita RLS existentes. Limite 1–100 (UI 25), contagem e página da mesma população. Contratos sem pagamento inicial há mais de 24h, sem trial/paid_until, registros paid/paid_at, assinatura ativa do perfil, conta inativa ou lease vigente; somente draft/past_due do público assinante.
+- `PendingConnectionCheckouts` reutilizado em Planos e CRM; consulta habilitada somente para Admin, cache de 60s, sem polling. WhatsApp é manual/editável/validado; não envia, não cancela, não cobra, não altera CRM ou gamificação. Nenhuma chamada nova ao Asaas ou modelo de IA.
+- Banco: consulta instalada, sem novo alerta após mudança para invoker; 79 alertas preexistentes permanecem fora do escopo. Homologação autenticada não disponível (Supabase externo); validar abertura automática/manual, prioridade, painel com dados autorizados e envio manual após publicação Cloudflare.
 
 ## Página de vendas Gente Conexões (v3.64.3)
 - `ConnectionsLandingPage` renderiza a apresentação pública/prévia a partir do mesmo registro `assinantes`; `connections-content` tem allowlist própria de seções editoriais, incluindo `offer` e excluindo `form`. Entrada mantém `ENTRY_SECTIONS`; CMS legado e outras LPs não recebem defaults de contratação.

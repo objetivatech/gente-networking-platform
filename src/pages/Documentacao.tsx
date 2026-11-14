@@ -58,6 +58,14 @@ export default function Documentacao() {
         <p>Textos da oferta são editados na página. Valores, vagas, selo, teste gratuito, módulos e franquias são definidos em Planos e Assinaturas. Planos não publicados não aparecem; vagas esgotadas impedem novas contratações. Escolher uma oferta abre /assinar com o plano selecionado, sem cobrança automática.</p>
         <p>Não há formulário paralelo de cadastro nesta apresentação. Grupos Premium exigem contratação independente. Publicação Cloudflare e conferência da edição com uma conta Admin ainda são necessárias.</p>
       </CardContent></Card>}
+      {showMemberDocs && <Card><CardHeader><CardTitle>Guias por página e participação</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>A interrogação no cabeçalho abre o guia da página, com orientações de networking e o escopo do seu papel. É possível reabrir sempre. O início automático aguarda perfil completo, vídeo concluído e ausência de outro diálogo.</p>
+        <p>O guia não altera acesso ou pontos. A tarja de perfil reaparece após fechar o guia quando faltam campos; pitch por IA continua opcional.</p>
+      </CardContent></Card>}
+      {showAdminDocs && <Card><CardHeader><CardTitle>Recuperação de contratações Gente Conexões</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>Em Planos e Assinaturas, abra Contratações pendentes; o mesmo painel está no CRM. Apenas o Admin consulta pessoas sem primeiro pagamento há mais de 24 horas, sem teste gratuito ou pagamento anterior.</p>
+        <p>Retomar contato permite revisar uma mensagem e abrir o WhatsApp manualmente, sem nova cobrança ou envio automático. A pessoa retoma a contratação existente em /assinar. Contas inativas, assinaturas ativas/canceladas e processamento em andamento não entram nesta recuperação.</p>
+      </CardContent></Card>}
       {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: agenda e acolhimento</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Gente Conexões é o novo nome comercial da modalidade Assinante. Papéis técnicos, contas e planos foram preservados. A apresentação está em /conexoes; /assinantes e /lps/assinantes levam ao novo endereço. O conteúdo segue editável na mesma página do gerenciador e a contratação continua em /assinar. A Vitrine, menus e atalhos usam Vitrine Gente Conexões.</p>
         <p>Início e Encontros mostram os eventos futuros. Gente Conexões só confirma com convite específico para o encontro, inclusive HUB. Convidados continuam com HUB aberto. Admin/Facilitador do Grupo podem adicionar uma pessoa por encontro; isso não promove, não pontua nem confirma presença automaticamente.</p>

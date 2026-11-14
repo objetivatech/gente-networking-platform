@@ -12,11 +12,12 @@ import { Link, useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   onMenuClick: () => void;
+  guide?: React.ReactNode;
 }
 
 const LAST_SEEN_KEY = 'notifications-last-seen';
 
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header({ onMenuClick, guide }: HeaderProps) {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { activities } = useActivityFeed();
@@ -97,6 +98,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       <div className="flex-1" />
 
       <div className="flex items-center gap-4">
+        {guide}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">

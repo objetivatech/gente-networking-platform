@@ -3252,6 +3252,10 @@ export type Database = {
         }[]
       }
       get_my_premium_invitations: { Args: never; Returns: Json }
+      get_pending_connection_checkouts: {
+        Args: { _limit?: number; _offset?: number }
+        Returns: Json
+      }
       get_profile_connection_doors: {
         Args: { _ids: string[] }
         Returns: {

@@ -42,6 +42,7 @@ import { MODULE_FEATURES, MEMBER_ONLY, PREMIUM_ONLY, hasPlanFeature, type Module
 import { formatDateBR, todayLocalISODate } from '@/lib/date-utils';
 import { validCommercialTerms } from '@/lib/plan-commercial';
 import { PlanBadge } from '@/components/profile/PlanBadge';
+import { PendingConnectionCheckouts } from '@/components/crm/PendingConnectionCheckouts';
 
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const save = useSaveBillingPlan();
@@ -465,9 +466,11 @@ export default function PlanosAssinaturas() {
           <TabsTrigger value="descontos">Descontos</TabsTrigger>
           <TabsTrigger value="assinaturas">Assinaturas</TabsTrigger>
           <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
+          <TabsTrigger value="pendentes">Contratações pendentes</TabsTrigger>
         </TabsList>
 
         {/* PLANOS */}
+        <TabsContent value="pendentes" className="pt-4"><PendingConnectionCheckouts /></TabsContent>
         <TabsContent value="planos" className="space-y-3 pt-4">
           <div className="flex justify-end"><PlanDialog /></div>
           {(plans ?? []).length === 0 && (

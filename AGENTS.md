@@ -9,6 +9,7 @@
 
 - Authenticate Asaas callbacks with a server-resolved shared token, reread financial state from the provider, and acknowledge only after transactional processing; explicit self-service consent may grant only Subscriber access after payment or a server-reserved, provider-linked trial, never internal roles or points.
 - Keep Asaas checkout tied to authenticated profiles and explicit public-plan opt-in; reserve issuance and reconcile ambiguous attempts instead of repeating charges, and derive paid-period expiration on access without polling.
+- Keep guides local and subordinate to video/profile/dialog priority; recover first-payment checkouts through an Admin-checked invoker read, never automatic charges or messages.
 
 - Store connection selections as stable taxonomy IDs; expose them through scoped invoker reads or existing authorized profile reads, because renames and inactive options must preserve history without widening subscriber visibility.
 - Keep bridge scoring deterministic and shared by MatchMaking and Vitrine; synchronize profile completeness between the shared helper and SQL RPC, while keeping monthly quotas and gamification independent.

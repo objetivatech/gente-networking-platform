@@ -55,6 +55,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Info, Columns3 } from 'lucide-react';
+import { PendingConnectionCheckouts } from '@/components/crm/PendingConnectionCheckouts';
 
 const STATUS_COLORS: Record<CrmLeadStatus, string> = {
   novo: 'bg-slate-500',
@@ -373,6 +374,7 @@ export default function AdminCrm() {
       )}
 
       {/* Kanban */}
+      <Accordion type="single" collapsible><AccordionItem value="pending-checkouts"><AccordionTrigger>Contratações pendentes · Gente Conexões</AccordionTrigger><AccordionContent><PendingConnectionCheckouts /></AccordionContent></AccordionItem></Accordion>
       {isLoading ? (
         <p className="text-muted-foreground">Carregando leads...</p>
       ) : (

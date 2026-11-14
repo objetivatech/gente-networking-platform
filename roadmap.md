@@ -1,5 +1,11 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.4 — Gente Conexões, Fase 4
+- [x] Guia contextual por página/papel, disponível no cabeçalho; início automático sem competir com vídeo, perfil ou outros diálogos.
+- [x] Recuperação manual de contratações Asaas sem primeiro pagamento há mais de 24h, em Planos e CRM, sem novas cobranças/envios automáticos.
+- [x] Documentação/changelog e consulta invoker/Admin instalados; anon sem execução, nenhum alerta novo (79 preexistentes). Testes de regras/interface e regressões públicas desktop/mobile executados; banco sem candidatos na consulta diagnóstica.
+- [ ] Homologação autenticada e publicação Cloudflare — Supabase externo sem sessão e implantação externa sob gestão do usuário.
+
 ## v3.64.3 — Gente Conexões, Fase 3
 - [x] Redesenhar /conexoes com a referência Comunidade, seções editoriais completas e sem formulário paralelo.
 - [x] Reutilizar catálogo público para ofertas, vagas e trial reais; manter checkout /assinar e planos inativos preservados.

@@ -1,7 +1,14 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.3 — Página Gente Conexões
+> **Versão:** 3.64.4 — Guias e recuperação de contratações
+
+## Guias e recuperação (v3.64.4)
+- O botão de interrogação no cabeçalho abre o guia da página atual: finalidade para networking, próxima ação e escopo do papel. Pode ser reaberto a qualquer momento; durante o vídeo obrigatório ou outro diálogo, aguarda liberação.
+- Primeiro acesso a cada página/papel neste navegador: guia automático apenas com perfil completo, sem vídeo, menu ou outro diálogo. Visita ao guia fica registrada por pessoa/papel/página no navegador, sem alterar permissões ou conclusão do vídeo. Perfil incompleto não bloqueia guia manual; sua tarja volta após fechar o guia e reaparece ao limpar campos obrigatórios.
+- Admin → Planos e Assinaturas → Contratações pendentes, ou CRM → Contratações pendentes Gente Conexões: lista paginada de contratações sem primeiro pagamento há mais de 24h. Exclui trial, pagamento anterior, conta inativa, assinatura ativa/cancelada/concluída e processamento em andamento.
+- Retomar contato → revisar mensagem → abrir WhatsApp manualmente. Sem telefone válido, a ação fica indisponível. Mensagem aponta para a contratação existente em /assinar; não cria outra cobrança, não envia automaticamente e não registra contato como enviado.
+- Publicação Cloudflare e homologação autenticada dos guias/painel ainda necessárias no Supabase externo; não houve criação de pessoas, pagamentos ou mensagens para teste.
 
 ## Página de vendas Gente Conexões (v3.64.3)
 - `/conexoes` apresenta benefícios, problema/solução, públicos, ecossistema, razões, ofertas e FAQ, com imagens existentes da Comunidade. Depoimentos só aparecem após cadastro de relatos reais pelo Admin.
