@@ -58,10 +58,10 @@ Deno.serve(async req => {
       if (participation.invited_by !== user.id && participation.metadata?.reinvited_by !== user.id && !roles?.some(r => r.role === 'admin') && !(roles?.some(r => r.role === 'facilitador') && membership?.length)) return json({ error: 'Sem permissão' }, 403);
       const [{ data: profile }, { data: meeting }] = await Promise.all([
         db.from('profiles').select('full_name,email').eq('id', participation.profile_id).maybeSingle(),
-        db.from('meetings').select('title,meeting_date,meeting_time,location').eq('id', participation.meeting_id).maybeSingle(),
+        db.from('meetings').select('title,meeting_date,meeting_time,location,event_type').eq('id', participation.meeting_id).maybeSingle(),
       ]);
       if (!profile || !meeting) return json({ error: 'Convite indisponível' }, 409);
-      to = profile.email ?? ''; subject = 'Convite para um Encontro Premium — Gente Networking';
+      to = profile.email ?? ''; subject = meeting.event_type === 'hub_event' ? 'Convite para o Gente HUB — Gente Networking' : 'Convite para um Encontro Premium — Gente Networking';
       const { data: host } = await db.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
       html = eventInvitationEmailTemplate(profile.full_name, host?.full_name ?? 'Gente Networking', meeting.title, meeting.meeting_date, meeting.meeting_time, meeting.location, `${appUrl}/`);
     } else if (kind === 'request' || kind === 'response') {

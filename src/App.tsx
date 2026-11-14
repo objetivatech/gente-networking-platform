@@ -24,6 +24,7 @@ import { LgpdBanner } from "@/components/LgpdBanner";
 import { Loader2 } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import Index from './pages/Index';
+import { useAdmin } from '@/hooks/useAdmin';
 
 // Lazy-loaded pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
@@ -36,6 +37,8 @@ const Negocios = lazyWithRetry(() => import("./pages/Negocios"));
 const Indicacoes = lazyWithRetry(() => import("./pages/Indicacoes"));
 const Equipes = lazyWithRetry(() => import("./pages/Equipes"));
 const Encontros = lazyWithRetry(() => import("./pages/Encontros"));
+const ConnectionAgenda = lazyWithRetry(() => import('./pages/ConnectionAgenda'));
+const AdminConnectionOnboarding = lazyWithRetry(() => import('./pages/AdminConnectionOnboarding'));
 const Estatisticas = lazyWithRetry(() => import("./pages/Estatisticas"));
 const Admin = lazyWithRetry(() => import("./pages/Admin"));
 const Conteudos = lazyWithRetry(() => import("./pages/Conteudos"));
@@ -99,6 +102,12 @@ function PageLoader() {
   );
 }
 
+function MeetingsByRole() {
+  const { isSubscriber, isLoading } = useAdmin();
+  if (isLoading) return <PageLoader />;
+  return isSubscriber ? <ConnectionAgenda /> : <Encontros />;
+}
+
 // Redireciona a URL antiga /p/:slug para a nova /m/:slug (301 no lado do cliente)
 function PublicProfileRedirect() {
   const { slug } = useParams<{ slug: string }>();
@@ -157,7 +166,7 @@ const App = () => (
                 <Route path="/negocios" element={<Negocios />} />
                 <Route path="/indicacoes" element={<Indicacoes />} />
                 <Route path="/equipes" element={<Membros />} />
-                <Route path="/encontros" element={<Encontros />} />
+                <Route path="/encontros" element={<MeetingsByRole />} />
                 <Route path="/conteudos" element={<Conteudos />} />
                 <Route path="/ranking" element={<Ranking />} />
                 <Route path="/convites" element={<Convites />} />
@@ -177,6 +186,7 @@ const App = () => (
                 <Route path="/admin/contratos" element={<AdminContractTemplates />} />
                 <Route path="/admin/planos" element={<PlanosAssinaturas />} />
                 <Route path="/admin/conexoes" element={<AdminConnectionTaxonomies />} />
+                <Route path="/admin/acolhimento" element={<AdminConnectionOnboarding />} />
                 <Route path="/admin/lps" element={<LpPages />} />
                 <Route path="/admin/lps/avancadas" element={<LpAdvanced />} />
                 <Route path="/admin/lps/midia" element={<LpMedia />} />

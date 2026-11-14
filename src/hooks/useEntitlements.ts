@@ -21,6 +21,7 @@ export function useEntitlements() {
     },
   });
   const can = (feature: ModuleFeature) => hasPlanFeature(role, feature, query.data);
-  const canPath = (path: string) => !PATH_FEATURES[path] || can(PATH_FEATURES[path]);
+  // Subscriber agenda is a safe event overview, not member Premium access.
+  const canPath = (path: string) => (role === 'assinante' && path === '/encontros') || !PATH_FEATURES[path] || can(PATH_FEATURES[path]);
   return { ...query, role, can, canPath, isLoading: loadingRole || query.isLoading };
 }

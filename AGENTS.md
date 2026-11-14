@@ -1,6 +1,7 @@
 # Regras de arquitetura
 
 - Serve guest agendas and event invitations through the authenticated `guest-meetings` dispatcher with service-only RPCs; guest confirmations synchronize HUB CRM links transactionally and keep event invitations separate from attendance to preserve access scope, attribution and deduplicated counts.
+- Reuse the safe guest agenda for subscribers, requiring event-specific invitations even for HUB; keep onboarding progress private and versioned, with authenticated service-only writes and server-bounded playback increments, so role scope and persistent completion cannot be bypassed through unrestricted writes.
 
 - Resolve public-profile invitations transactionally through `submit-lead` using published slugs and host-owned groups; preserve original invitation authorship and gate delivery independently to avoid duplicate acquisition or points.
 

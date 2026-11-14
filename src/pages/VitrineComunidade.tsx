@@ -75,7 +75,7 @@ export default function VitrineComunidade() {
     <div className="space-y-6 animate-fade-in">
       <SEO
         title="Vitrine da Comunidade"
-        description="Conheça Assinantes da Comunidade e Convidados ativos do Gente Networking."
+        description="Conheça participantes do Gente Conexões e Convidados ativos do Gente Networking."
       />
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

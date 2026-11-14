@@ -117,12 +117,12 @@ import { canAccessAppPath, isSubscriberRole } from '../access-control';
 
 describe('access-control: Assinante da Comunidade (Bloco 2)', () => {
   it('Assinante não acessa áreas de Membros', () => {
-    for (const p of ['/membros', '/convidados', '/encontros', '/conselho', '/estatisticas', '/ranking', '/convites', '/oportunidades', '/pedidos-indicacao', '/membro/joao', '/admin', '/dashboard', '/documentacao']) {
+    for (const p of ['/membros', '/convidados', '/conselho', '/estatisticas', '/ranking', '/convites', '/oportunidades', '/pedidos-indicacao', '/membro/joao', '/admin', '/dashboard', '/documentacao']) {
       expect(canAccessAppPath('assinante', p)).toBe(false);
     }
   });
   it('Assinante acessa Início, Vitrine, MatchMaking e movimentos permitidos', () => {
-    for (const p of ['/', '/perfil', '/feed', '/vitrine', '/matchmaking', '/gente-em-acao', '/indicacoes', '/negocios', '/depoimentos', '/conteudos', '/configuracoes', '/perfil/']) {
+    for (const p of ['/', '/perfil', '/feed', '/vitrine', '/matchmaking', '/gente-em-acao', '/indicacoes', '/negocios', '/depoimentos', '/conteudos', '/configuracoes', '/perfil/', '/encontros']) {
       expect(canAccessAppPath('assinante', p)).toBe(true);
     }
   });

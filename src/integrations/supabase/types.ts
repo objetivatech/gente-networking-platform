@@ -698,6 +698,68 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_onboarding_config: {
+        Row: {
+          duration_seconds: number
+          enabled: boolean
+          id: boolean
+          title: string
+          updated_at: string
+          version: string
+          video_url: string | null
+        }
+        Insert: {
+          duration_seconds?: number
+          enabled?: boolean
+          id?: boolean
+          title?: string
+          updated_at?: string
+          version?: string
+          video_url?: string | null
+        }
+        Update: {
+          duration_seconds?: number
+          enabled?: boolean
+          id?: boolean
+          title?: string
+          updated_at?: string
+          version?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      connection_onboarding_progress: {
+        Row: {
+          completed_at: string | null
+          profile_id: string
+          updated_at: string
+          version: string
+          watched_seconds: number
+        }
+        Insert: {
+          completed_at?: string | null
+          profile_id: string
+          updated_at?: string
+          version: string
+          watched_seconds?: number
+        }
+        Update: {
+          completed_at?: string | null
+          profile_id?: string
+          updated_at?: string
+          version?: string
+          watched_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connection_onboarding_progress_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contents: {
         Row: {
           content_type: string
@@ -2937,7 +2999,20 @@ export type Database = {
         Args: { _context: string; _reference_id: string }
         Returns: boolean
       }
+      configure_connection_onboarding: {
+        Args: {
+          _duration: number
+          _enabled: boolean
+          _title: string
+          _url: string
+        }
+        Returns: undefined
+      }
       confirm_guest_next_meeting: { Args: { _user_id: string }; Returns: Json }
+      connection_onboarding_dispatch: {
+        Args: { _action: string; _caller: string; _payload: Json }
+        Returns: Json
+      }
       create_guest_invitation: {
         Args: {
           _email?: string
@@ -3322,6 +3397,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_connection_to_event: {
+        Args: { _meeting: string; _profile: string }
+        Returns: string
+      }
       invite_person_to_meeting: {
         Args: {
           _company?: string
@@ -3405,6 +3484,10 @@ export type Database = {
       recalculate_crm_attendance: {
         Args: { _lead_id: string }
         Returns: undefined
+      }
+      record_connection_onboarding: {
+        Args: { _seconds?: number; _version: string }
+        Returns: Json
       }
       register_crm_lead_page: {
         Args: {

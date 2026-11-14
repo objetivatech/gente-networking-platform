@@ -119,8 +119,8 @@ function PersonPlanPanel({ personId }: { personId: string }) {
                 <Badge variant="outline">{SUBSCRIPTION_STATUS_LABEL[s.status]}</Badge>
                 {s.status === 'active' && <Button size="sm" variant="outline" disabled={sendCharge.isPending} onClick={() => sendCharge.mutate({ subscription_id: s.id })}>Cobrar</Button>}
                 {planById.get(s.plan_id)?.audience === 'assinante' && s.status === 'active' && <Button size="sm" variant="outline" disabled={assign.isPending} onClick={() => {
-                  if (window.confirm('Confirmar a alteração desta pessoa para Assinante da Comunidade?')) assign.mutate({ profileId: personId, planId: s.plan_id, startDate: s.start_date, asSubscriber: true });
-                }}>Definir como Assinante</Button>}
+                  if (window.confirm('Confirmar a alteração desta pessoa para Gente Conexões?')) assign.mutate({ profileId: personId, planId: s.plan_id, startDate: s.start_date, asSubscriber: true });
+                }}>Definir como Gente Conexões</Button>}
                 {(s.status === 'active' || s.status === 'draft' || s.status === 'past_due') && (
                   <Button
                     size="sm"
@@ -167,7 +167,7 @@ function PersonPlanPanel({ personId }: { personId: string }) {
         </div>
         {subscriberPlan && <Label className="flex items-start gap-2 text-sm">
           <Checkbox checked={confirmSubscriber} onCheckedChange={v => setConfirmSubscriber(v === true)} />
-          Confirmo a mudança de Convidado para Assinante da Comunidade
+          Confirmo a mudança de Convidado para Gente Conexões
         </Label>}
         <Button
           size="sm"
@@ -455,7 +455,7 @@ export default function GestaoPessoas() {
       case 'membro':
         return <Badge className="bg-green-600">Membro</Badge>;
       case 'assinante':
-        return <Badge>Assinante da Comunidade</Badge>;
+        return <Badge>Gente Conexões</Badge>;
       case 'convidado':
         return <Badge variant="secondary">Convidado</Badge>;
       default:
@@ -507,7 +507,7 @@ export default function GestaoPessoas() {
   const inactiveMembers = filteredPeople.filter(p => !p.is_active);
 
   const stats = countPeople(filteredPeople, pendingActivation.length);
-  const roleLabels = { admin: 'Administradores', facilitador: 'Facilitadores', membro: 'Membros', assinante: 'Assinantes', convidado: 'Convidados' };
+  const roleLabels = { admin: 'Administradores', facilitador: 'Facilitadores', membro: 'Membros', assinante: 'Gente Conexões', convidado: 'Convidados' };
 
   const handlePromote = () => {
     if (!selectedPerson) return;
@@ -748,7 +748,7 @@ export default function GestaoPessoas() {
                 <SelectItem value="admin">Admin</SelectItem>
                 <SelectItem value="facilitador">Facilitador</SelectItem>
                 <SelectItem value="membro">Membro</SelectItem>
-                <SelectItem value="assinante">Assinante da Comunidade</SelectItem>
+                <SelectItem value="assinante">Gente Conexões</SelectItem>
                 <SelectItem value="convidado">Convidado</SelectItem>
                 <SelectItem value="sem_perfil">Sem perfil</SelectItem>
               </SelectContent>
@@ -959,7 +959,7 @@ export default function GestaoPessoas() {
                   <SelectItem value="membro">Membro</SelectItem>
                   <SelectItem value="facilitador">Facilitador</SelectItem>
                   <SelectItem value="convidado">Convidado (sem grupo)</SelectItem>
-                  <SelectItem value="assinante">Assinante da Comunidade (sem grupo)</SelectItem>
+                  <SelectItem value="assinante">Gente Conexões (sem grupo)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1133,7 +1133,7 @@ export default function GestaoPessoas() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>Convidar para encontro Premium</DialogTitle><DialogDescription>{selectedPerson?.full_name} permanece Assinante da Comunidade.</DialogDescription></DialogHeader>
+      <Dialog open={showPremiumDialog} onOpenChange={setShowPremiumDialog}><DialogContent className="max-h-[90dvh] overflow-y-auto"><DialogHeader><DialogTitle>Convidar para encontro Premium</DialogTitle><DialogDescription>{selectedPerson?.full_name} permanece Gente Conexões.</DialogDescription></DialogHeader>
         <Label>Encontro</Label><Select value={premiumMeetingId} onValueChange={setPremiumMeetingId}><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger><SelectContent>{(premiumMeetings ?? []).filter(m => m.event_type === 'premium_group' && m.meeting_date >= new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })).map(m => <SelectItem key={m.id} value={m.id}>{m.title} · {m.meeting_date.split('-').reverse().join('/')}</SelectItem>)}</SelectContent></Select>
         <DialogFooter><Button variant="outline" onClick={() => setShowPremiumDialog(false)}>Cancelar</Button><Button disabled={!premiumMeetingId || invitePremium.isPending} onClick={() => invitePremium.mutate()}>Enviar convite</Button></DialogFooter>
       </DialogContent></Dialog>

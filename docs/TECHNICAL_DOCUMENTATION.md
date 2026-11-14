@@ -1,7 +1,16 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.0 — Gente Conexões, Fase 1
+> **Versão:** 3.64.1 — Gente Conexões, Fase 2
+
+## Agenda e acolhimento Gente Conexões (v3.64.1)
+- O nome comercial passa a **Gente Conexões**, preservando o papel `assinante`, planos já cadastrados e URLs `/assinantes` e `/assinar`.
+- Início e Encontros reutilizam a agenda segura de eventos futuros. Gente Conexões só confirma com participação vinculada ao evento e status invited/confirmed/attended, inclusive HUB. Convite antigo genérico de Grupo não libera confirmação; Convidado continua com HUB aberto e regras Premium anteriores.
+- Admin/Facilitador do Grupo usam Encontros → Adicionar Convidado também para Gente Conexões existente. O convite é persistido sem promoção, pontos ou presença automática; notificações reutilizam o endpoint autorizado. Confirmação/cancelamento sincronizam CRM/HUB e as contagens existentes, sem duplicar pessoas.
+- Admin → Acolhimento Conexões (`/admin/acolhimento`): título, URL HTTPS de arquivo MP4/WebM, duração total e botão de obrigatoriedade. Ao mudar vídeo ou duração, nasce uma nova versão; alteração de título não reinicia conclusão. Configuração inicial **desabilitada**, sem vídeo inventado.
+- Vídeo ocupa a página interna para Gente Conexões até concluir; não usa modal e oculta a tarja de perfil enquanto obrigatório. Configurações, saída e páginas legais continuam acessíveis. Progresso persiste por pessoa/versão no servidor; tempo pausado ou aba oculta não é contado. Erro de rede ou vídeo mostra nova tentativa, não conclusão falsa. Ao concluir, volta à página solicitada e a tarja de perfil segue sua regra original.
+- `connection_onboarding_config` tem leitura autenticada ativa; `connection_onboarding_progress` só permite ler o próprio progresso. Escritas passam por `connection-onboarding` → dispatcher exclusivo service_role, com Admin validado no servidor e incrementos limitados pelo tempo decorrido. Não é DRM/prova de atenção e não muda cobrança ou permissões financeiras.
+- Alterações não ativam planos, cobranças ou bloqueio de vídeo. Antes de habilitar, cadastrar arquivo válido e testar com conta autorizada. Homologação autenticada real, entrega de e-mail e publicação Cloudflare permanecem pendentes; tours, LP redesenhada e recuperação de carrinho são fases posteriores.
 
 ## Planos comerciais e teste gratuito (v3.64.0)
 Admin → Planos e Assinaturas → Editar plano: definir limite de vagas (vazio = ilimitado), texto/cor do selo e habilitar/desabilitar teste gratuito de 1 a 30 dias (padrão 7). Trial exige plano mensal de Assinante sem contrato eletrônico. Ofertas Fundador R$ 9,90 e Regular R$ 29,90 foram criadas **inativas**, sem contratação pública, limite ou trial habilitado. Franquia inicial sugerida: 5 sorteios; revise antes de publicar. Nenhuma conta foi alterada ou cobrança emitida.
@@ -10,7 +19,7 @@ Vagas contabilizam assinaturas active/draft/past_due, incluindo reservas pendent
 
 Contratação com consentimento → reserva serializada por perfil/plano → vínculo no Asaas → trial elegível libera somente Assinante, sem pontos. Primeira cobrança fica para o fim do teste; Pix/cartão continuam no Asaas, sem débito silencioso. Cancelamento interrompe novas cobranças; vencimento bloqueia acesso automaticamente pela regra existente. Trial é reservado uma única vez por perfil, inclusive após cancelamento; reenvios não prorrogam. Somente `service_role` executa ativação/reserva e consulta financeira. Selos aparecem em Vitrine, Membros e perfil público publicado, somente durante assinatura vigente e sem expor dados financeiros.
 
-Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda do Conexões, vídeo, tours e página de vendas ficam para as próximas fases.
+Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda do Conexões e vídeo foram implementados na Fase 2; tours e página de vendas continuam para fases posteriores.
 
 ## Agenda e convites por evento (v3.63.0)
 - `guest-meetings` valida JWT e entrada; `guest_meetings_dispatch` é service-only e estabelece o caller derivado da sessão. `get_guest_agenda`, `set_guest_meeting_confirmation`, `invite_person_to_meeting` e `get_meeting_invitations` não são expostas diretamente a anon/authenticated. Não amplia leitura de Membros para Convidados/Assinantes.

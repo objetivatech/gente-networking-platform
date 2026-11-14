@@ -1,5 +1,11 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.1 — Gente Conexões, Fase 2
+- [ ] Reutilizar agenda futura para Gente Conexões com confirmação somente mediante convite específico, inclusive HUB.
+- [ ] Vídeo obrigatório configurável pelo Admin e conclusão persistida por pessoa e versão, sem competir com alerta de perfil.
+- [ ] Atualizar nome comercial, testes, documentação e changelog.
+- [ ] Homologação autenticada real — requer sessão no Supabase externo; vídeo definitivo deve ser informado pelo Admin.
+
 ## v3.64.0 — Gente Conexões, Fase 1
 - [x] Configurar vagas, selo e trial por plano, com validação e contratação segura.
 - [x] Preparar ofertas Fundador/Regular sem publicar ou cobrar automaticamente; valores 990/2990 centavos conferidos, ambas inativas.

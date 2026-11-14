@@ -26,6 +26,8 @@ import { useAdmin } from '@/hooks/useAdmin';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { canAccessAppPath } from '@/lib/access-control';
 import { ProfileCompletionBanner } from '@/components/profile/ProfileCompletionBanner';
+import { useConnectionOnboarding } from '@/hooks/useConnectionOnboarding';
+import { ConnectionVideoGate } from '@/components/ConnectionVideoGate';
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,6 +35,9 @@ export default function MainLayout() {
   const location = useLocation();
   const { canPath, isLoading: loadingRights } = useEntitlements();
   const { role, isLoading: loadingRole } = useAdmin();
+  const onboarding = useConnectionOnboarding(role);
+  const onboardingExempt = ['/configuracoes', '/termos-de-uso', '/politica-de-privacidade', '/politica-de-cookies'].includes(location.pathname);
+  const videoBlocked = role === 'assinante' && !onboardingExempt && (onboarding.required || onboarding.loading || onboarding.error);
   
   // Scroll to top on route change
   useScrollToTop();
@@ -126,12 +131,12 @@ export default function MainLayout() {
             }}
           >
             <div className="w-full min-w-0 max-w-full">
-              <ProfileCompletionBanner />
+              {!videoBlocked && <ProfileCompletionBanner />}
               <ErrorBoundary
                 resetKey={location.pathname}
                 fallbackMessage="Ocorreu um erro ao carregar esta página. Tente recarregar."
               >
-                <Outlet />
+                {videoBlocked ? onboarding.loading ? <Loader2 className="h-6 w-6 animate-spin text-primary" aria-label="Carregando acolhimento" /> : onboarding.error ? <div className="space-y-3"><p className="text-destructive">Não foi possível verificar o vídeo de acolhimento.</p><Button onClick={() => { onboarding.config.refetch(); onboarding.progress.refetch(); }}>Tentar novamente</Button></div> : <ConnectionVideoGate /> : <Outlet />}
               </ErrorBoundary>
             </div>
           </main>

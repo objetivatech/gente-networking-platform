@@ -37,7 +37,7 @@ const memberItems: NavItem[] = [
 const subscriberItems: NavItem[] = [
   { icon: Users, label: 'Vitrine', path: '/vitrine' },
   { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao' },
-  { icon: DollarSign, label: 'Negócios', path: '/negocios' },
+  { icon: Calendar, label: 'Encontros', path: '/encontros' },
   { icon: Send, label: 'Indicações', path: '/indicacoes' },
   { icon: User, label: 'Perfil', path: '/perfil' },
 ];

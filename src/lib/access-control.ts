@@ -82,13 +82,13 @@ export const isSubscriberRole = (role: AppRole): boolean => role === 'assinante'
 
 /**
  * Rotas internas liberadas ao Assinante. Tudo o que não estiver aqui
- * (Membros, Convidados, MatchMaking, Encontros, Conselho, Estatísticas,
+ * (Membros, Convidados, Conselho, Estatísticas,
  * Ranking, Convites, Oportunidades, Pedidos, Documentação, Admin…) é bloqueado.
  * O banco filtra os dados exibidos nestas rotas para Assinantes/Convidados.
  */
 export const SUBSCRIBER_ALLOWED_PATHS: ReadonlyArray<string> = [
   '/', '/feed', '/perfil', '/vitrine', '/matchmaking', '/gente-em-acao', '/indicacoes', '/negocios',
-  '/depoimentos', '/conteudos', '/configuracoes',
+  '/depoimentos', '/conteudos', '/configuracoes', '/encontros',
   '/termos-de-uso', '/politica-de-privacidade', '/politica-de-cookies',
 ];
 

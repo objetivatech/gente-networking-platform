@@ -53,6 +53,12 @@ export default function Documentacao() {
         </div>
       </div>
 
+      {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: agenda e acolhimento</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>Gente Conexões é o novo nome comercial da modalidade Assinante. Papéis técnicos, contas, planos e endereços existentes foram preservados.</p>
+        <p>Início e Encontros mostram os eventos futuros. Gente Conexões só confirma com convite específico para o encontro, inclusive HUB. Convidados continuam com HUB aberto. Admin/Facilitador do Grupo podem adicionar uma pessoa por encontro; isso não promove, não pontua nem confirma presença automaticamente.</p>
+        <p>Em Acolhimento Conexões, configure título, arquivo MP4/WebM por URL HTTPS e duração total; depois habilite Vídeo obrigatório. Inicialmente fica desligado. Trocar vídeo ou duração exige nova conclusão; título não reinicia.</p>
+        <p>O vídeo ocupa a página até concluir, com progresso salvo entre acessos. A tarja de perfil fica oculta durante o vídeo e volta apenas se faltarem campos. Configurações, saída e páginas legais seguem acessíveis. Teste o arquivo com uma conta Gente Conexões antes de habilitar.</p>
+      </CardContent></Card>}
       {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: vagas, selos e teste gratuito</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Em Planos e Assinaturas, edite o limite de vagas, texto/cor do selo e teste gratuito (1 a 30 dias, padrão 7). Vazio no limite significa ilimitado. Teste exige plano mensal de Assinante sem contrato eletrônico.</p>
         <p>Fundador (R$ 9,90) e Regular (R$ 29,90) estão inicialmente inativos. Revise recursos e franquia sugerida de 5 sorteios antes de liberar contratação pública. Não houve cobrança nem alteração de participantes.</p>
@@ -70,7 +76,7 @@ export default function Documentacao() {
         <p>O formulário não gera pontos. A regra de 15 pontos por convidado presente continua, com autoria original e critérios existentes; Admins e Facilitadores não pontuam. Pessoas com conta ativa são orientadas a entrar, sem outra conta.</p>
         <p>Se o e-mail não chegar, confira a ficha no CRM e reenvie a ativação pela gestão de convites. O perfil precisa estar publicado, ativo, autorizado pelo plano e vinculado a um Grupo.</p>
       </CardContent></Card>}
-      {isAdmin && <Card><CardHeader><CardTitle>Planos e Assinantes da Comunidade</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+      {isAdmin && <Card><CardHeader><CardTitle>Planos e Gente Conexões</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Gestão de Pessoas separa os papéis nos contadores e nas abas. Convidados incluem contas ativas e cadastros aguardando ativação.</p>
         <p>Plano → selecione um plano mensal para Assinantes → confirme a mudança de papel. Para um plano já vinculado, use Definir como Assinante. Reativação permite escolher papel e plano juntos, preserva histórico e registra falhas de e-mail ou cobrança.</p>
         <p>Planos e Assinaturas controla os módulos e a franquia mensal de MatchMaking. A sugestão semanal não consome sorteios. Página pública, cartão e pitch exigem plano Membro Premium.</p>

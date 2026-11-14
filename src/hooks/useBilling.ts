@@ -108,7 +108,7 @@ export const AUDIENCE_LABEL: Record<string, string> = {
   hub: 'Gente HUB',
   premium: 'Grupo Premium',
   membro: 'Membro Premium',
-  assinante: 'Assinante da Comunidade',
+  assinante: 'Gente Conexões',
   outro: 'Outro',
 };
 
