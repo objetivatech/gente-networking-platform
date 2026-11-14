@@ -22,6 +22,8 @@ export function ConnectionVideoGate() {
   }, [config.data?.version]);
   useEffect(() => {
     if (!ready) return;
+    const resetPosition = () => { lastPosition.current = video.current?.currentTime ?? 0; };
+    document.addEventListener('visibilitychange', resetPosition);
     const interval = window.setInterval(() => {
       const player = video.current;
       if (!player || recordRef.current.isPending) return;
@@ -31,7 +33,7 @@ export function ConnectionVideoGate() {
       lastPosition.current = player.currentTime;
       if (delta) recordRef.current.mutate(delta);
     }, 5000);
-    return () => window.clearInterval(interval);
+    return () => { window.clearInterval(interval); document.removeEventListener('visibilitychange', resetPosition); };
   }, [ready, config.data?.duration_seconds]);
   const duration = config.data?.duration_seconds ?? 1;
   const seconds = progress.data?.watched_seconds ?? 0;
