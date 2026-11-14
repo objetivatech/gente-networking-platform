@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import SEO from '@/components/SEO';
 
 const shortcuts = [
-  { icon: Users, label: 'Vitrine da Comunidade', path: '/vitrine' },
+  { icon: Users, label: 'Vitrine Gente Conexões', path: '/vitrine' },
   { icon: Sparkles, label: 'MatchMaking', path: '/matchmaking' },
   { icon: Handshake, label: 'Gente em Ação', path: '/gente-em-acao' },
   { icon: Send, label: 'Indicações', path: '/indicacoes' },

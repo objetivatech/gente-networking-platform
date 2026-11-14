@@ -34,6 +34,12 @@ describe('LPs após a virada', () => {
     expect(html).toContain('href="https://gentenetworking.com.br/participe"');
     expect(html).not.toContain('comunidade.gentenetworking.com.br');
   });
+  it('corrige o canônico legado no HTML servido sem perder a imagem configurada', () => {
+    const html = lpMetaTags({ slug: 'assinantes', name: 'Gente Conexões', canonical_url: 'https://gentenetworking.com.br/assinantes', og_image_url: 'https://example.com/conexoes.jpg' });
+    expect(html).toContain('href="https://gentenetworking.com.br/conexoes"');
+    expect(html).toContain('content="https://example.com/conexoes.jpg"');
+    expect(html).not.toContain('https://gentenetworking.com.br/assinantes');
+  });
   it('não publica URL insegura ou HTML editorial ativo nos metadados', () => {
     const html = lpMetaTags({ slug: 'participe', name: '<script>x</script>', og_image_url: 'javascript:alert(1)' });
     expect(html).not.toContain('<script>'); expect(html).not.toContain('javascript:');

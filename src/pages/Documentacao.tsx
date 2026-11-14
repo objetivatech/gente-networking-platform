@@ -54,7 +54,7 @@ export default function Documentacao() {
       </div>
 
       {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: agenda e acolhimento</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
-        <p>Gente Conexões é o novo nome comercial da modalidade Assinante. Papéis técnicos, contas, planos e endereços existentes foram preservados.</p>
+        <p>Gente Conexões é o novo nome comercial da modalidade Assinante. Papéis técnicos, contas e planos foram preservados. A apresentação está em /conexoes; /assinantes e /lps/assinantes levam ao novo endereço. O conteúdo segue editável na mesma página do gerenciador e a contratação continua em /assinar. A Vitrine, menus e atalhos usam Vitrine Gente Conexões.</p>
         <p>Início e Encontros mostram os eventos futuros. Gente Conexões só confirma com convite específico para o encontro, inclusive HUB. Convidados continuam com HUB aberto. Admin/Facilitador do Grupo podem adicionar uma pessoa por encontro; isso não promove, não pontua nem confirma presença automaticamente.</p>
         <p>Em Acolhimento Conexões, configure título, arquivo MP4/WebM por URL HTTPS e duração total; depois habilite Vídeo obrigatório. Inicialmente fica desligado. Trocar vídeo ou duração exige nova conclusão; título não reinicia.</p>
         <p>O vídeo ocupa a página até concluir, com progresso salvo entre acessos. A tarja de perfil fica oculta durante o vídeo e volta apenas se faltarem campos. Configurações, saída e páginas legais seguem acessíveis. Teste o arquivo com uma conta Gente Conexões antes de habilitar.</p>

@@ -77,7 +77,7 @@ export default function AssinarComunidade() {
   };
 
   return <div className="min-h-screen bg-background text-foreground">
-    <header className="border-b"><div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4"><Link to="/assinantes"><img src={logo} alt="Gente Networking" className="h-12 w-36 object-contain" /></Link><Button variant="ghost" asChild><Link to={user ? '/' : '/auth?entrar=1'}>{user ? 'Ir para a plataforma' : 'Entrar'}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div></header>
+    <header className="border-b"><div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4"><Link to="/conexoes"><img src={logo} alt="Gente Networking" className="h-12 w-36 object-contain" /></Link><Button variant="ghost" asChild><Link to={user ? '/' : '/auth?entrar=1'}>{user ? 'Ir para a plataforma' : 'Entrar'}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button></div></header>
     <main className="mx-auto max-w-6xl px-5 py-10 sm:py-16">
       <p className="text-sm font-semibold text-accent-foreground">Gente Conexões</p><h1 className="mt-3 text-3xl font-bold sm:text-4xl">Sua assinatura no Gente</h1><p className="mt-4 max-w-2xl text-muted-foreground">Conexões e recursos conforme seu plano. A participação nos Grupos Premium exige uma contratação própria.</p>
       <div className="mt-10 grid gap-10 lg:grid-cols-[1.2fr_1fr]">

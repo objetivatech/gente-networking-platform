@@ -1,19 +1,23 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { lpMetaTags, type LpMeta } from './_shared/lp-meta';
+import { connectionsRedirect } from '../src/modules/lps/lib/rules';
 interface LpEnv { LP_UNIFIED_ENABLED?: string; SUPABASE_URL?: string; SUPABASE_ANON_KEY?: string; VITE_SUPABASE_URL?: string; VITE_SUPABASE_PUBLISHABLE_KEY?: string }
 /** Opt-in host routing: do not redirect the LP domain until export and acceptance gates pass. */
 export const onRequest: PagesFunction<LpEnv> = async context => {
   const url = new URL(context.request.url);
+  const redirect = connectionsRedirect(url.pathname, url.search);
+  if (redirect) return Response.redirect(new URL(redirect, url.origin).toString(), 301);
   const lpHost = url.hostname === 'lps.gentenetworking.com.br';
   if (lpHost && url.pathname === '/assinar') return Response.redirect(`https://comunidade.gentenetworking.com.br/assinar${url.search}`, 302);
   const internalLp = /^\/lps\/[a-z0-9-]+\/?$/.test(url.pathname);
-  const friendlyLp = ['participe', 'gentehub', 'comunidade', 'impulso', 'assinantes'].includes(url.pathname.split('/')[1] || '');
+  const friendlyLp = ['participe', 'gentehub', 'comunidade', 'impulso', 'conexoes'].includes(url.pathname.split('/')[1] || '');
   if ((!lpHost || context.env.LP_UNIFIED_ENABLED !== 'true') && !internalLp && !friendlyLp) return context.next();
   const isPublicAsset = /\.[a-z0-9]+$/i.test(url.pathname) || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/__l5e/');
   if (isPublicAsset || url.pathname === '/obrigado') return context.next();
   const pieces = url.pathname.split('/').filter(Boolean);
   if (pieces[0] === 'admin') return Response.redirect('https://comunidade.gentenetworking.com.br/admin/lps', 302);
   let slug = internalLp ? pieces[1] : pieces[0] || 'inicio';
+  if (slug === 'conexoes') slug = 'assinantes';
   let response: Response;
   if (lpHost && context.env.LP_UNIFIED_ENABLED === 'true' && pieces.length <= 1) {
     url.pathname = `/lps/${pieces[0] || 'inicio'}`;

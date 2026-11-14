@@ -1,5 +1,6 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
-import { useParams, useLocation } from 'react-router-dom';
+import { Navigate, useParams, useLocation } from 'react-router-dom';
+import { connectionsRedirect } from '../lib/rules';
 import { useLandingPage } from '../hooks/useLandingPage';
 import { useBlocks } from '../hooks/useBlocks';
 import { useAdvancedPageContent } from '../hooks/useAdvancedPageContent';
@@ -22,9 +23,11 @@ function DynamicContent({ slug }: { slug: string }) {
 }
 export default function DynamicLandingPage() {
   const { slug: parameter } = useParams();
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const slug = parameter || pathname.split('/').filter(Boolean)[0] || 'inicio';
-  if (slug === 'assinantes') return <PlatformEntry subscriber />;
+  const redirect = connectionsRedirect(pathname, search, hash);
+  if (redirect) return <Navigate to={redirect} replace />;
+  if (slug === 'conexoes') return <PlatformEntry subscriber />;
   if (slug === 'entrada-plataforma') return <PlatformEntry />;
   if (slug === 'gentehub') return <GenteHub />;
   if (slug === 'participe') return <GenteNetworking />;

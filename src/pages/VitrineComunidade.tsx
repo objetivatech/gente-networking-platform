@@ -74,7 +74,7 @@ export default function VitrineComunidade() {
   return (
     <div className="space-y-6 animate-fade-in">
       <SEO
-        title="Vitrine da Comunidade"
+        title="Vitrine Gente Conexões"
         description="Conheça participantes do Gente Conexões e Convidados ativos do Gente Networking."
       />
 
@@ -85,8 +85,8 @@ export default function VitrineComunidade() {
               <Users className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold sm:text-3xl">Vitrine da Comunidade</h1>
-              <p className="text-muted-foreground">Assinantes e Convidados ativos disponíveis para conexão.</p>
+              <h1 className="text-2xl font-bold sm:text-3xl">Vitrine Gente Conexões</h1>
+              <p className="text-muted-foreground">Participantes do Gente Conexões e Convidados ativos disponíveis para conexão.</p>
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function VitrineComunidade() {
               <HeartHandshake className="h-8 w-8 shrink-0 text-primary" />
               <p className="text-sm sm:text-base">
                 <strong className="text-lg text-primary">{ranked.length}</strong> {ranked.length === 1 ? 'perfil disponível' : 'perfis disponíveis'} na vitrine ·{' '}
-                <strong className="text-lg text-accent">{compatibleCount}</strong> com compatibilidade possível com você
+                <strong className="text-lg text-accent-foreground">{compatibleCount}</strong> com compatibilidade possível com você
               </p>
             </div>
             <p className="text-xs text-muted-foreground sm:max-w-xs">Os perfis mais completos e mais compatíveis aparecem primeiro.</p>

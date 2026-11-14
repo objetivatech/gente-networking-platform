@@ -2,7 +2,7 @@
 import type { AppRole } from './access-control';
 
 export const MODULE_FEATURES = {
-  can_access_community_showcase: 'Vitrine da Comunidade',
+  can_access_community_showcase: 'Vitrine Gente Conexões',
   matchmaking_enabled: 'MatchMaking',
   can_create_gente_em_acao: 'Gente em Ação e agendamentos',
   can_access_referrals: 'Indicações',

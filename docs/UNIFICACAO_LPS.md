@@ -2,6 +2,10 @@
 
 **Estado: virada pública informada pelo Admin; correções pós-virada implementadas. Os registros abaixo de 26/10 são históricos.**
 
+## Gente Conexões — 14/11/2026 (v3.64.2)
+- Apresentação em `/conexoes`, prévia `/lps/conexoes`; `/assinantes` e `/lps/assinantes` redirecionam sem perder parâmetros/âncoras. O registro CMS continua `assinantes`, preservando conteúdo, mídias e edição. Checkout continua `/assinar`.
+- Metadados cliente/Cloudflare usam o domínio raiz canônico `https://gentenetworking.com.br/conexoes`. Publicar frontend e Pages Functions para aplicar no domínio real.
+
 ## Operação atual — 10/11/2026
 
 1. LP publicada → formulário → `submit-lead` valida nome/e-mail, configuração salva e perguntas; grava ou atualiza o CRM sem cadastro paralelo.

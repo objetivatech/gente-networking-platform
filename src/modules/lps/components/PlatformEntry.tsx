@@ -31,8 +31,8 @@ export function PlatformEntry({ subscriber = false }: { subscriber?: boolean }) 
   return <div className="min-w-0 bg-background">
     <RDStationScript />
     <header className="border-b bg-background"><div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
-      <a href={platformHref(subscriber ? '/assinantes' : '/auth')} aria-label="Gente Networking — início da plataforma" className="flex h-14 w-36 items-center"><img src={logo} alt="Gente Networking" className="h-auto max-h-14 w-full object-contain" /></a>
-      <nav className="flex items-center gap-2 sm:gap-3"><Button variant="ghost" className="hidden md:inline-flex" asChild><a href={platformHref('/auth#ecossistema')}>O ecossistema</a></Button><Button variant="ghost" className="hidden sm:inline-flex" asChild><a href={subscriber ? platformHref('/auth') : '/assinantes'}>{subscriber ? 'Gente Networking' : 'Gente Conexões'}</a></Button>{entryAction}</nav>
+      <a href={platformHref(subscriber ? '/conexoes' : '/auth')} aria-label="Gente Networking — início da plataforma" className="flex h-14 w-36 items-center"><img src={logo} alt="Gente Networking" className="h-auto max-h-14 w-full object-contain" /></a>
+      <nav className="flex items-center gap-2 sm:gap-3"><Button variant="ghost" className="hidden md:inline-flex" asChild><a href={platformHref('/auth#ecossistema')}>O ecossistema</a></Button><Button variant="ghost" className="hidden sm:inline-flex" asChild><a href={subscriber ? platformHref('/auth') : '/conexoes'}>{subscriber ? 'Gente Networking' : 'Gente Conexões'}</a></Button>{entryAction}</nav>
     </div></header>
     {page && <SEOHead page={page} />}
     <main>

@@ -5,7 +5,7 @@ import type { LandingPage } from '../../hooks/useLandingPage';
 import type { PageBlock } from '../../hooks/useBlocks';
 import { canonicalForPage } from '../../lib/rules';
 export function SEOHead({ page, blocks = [] }: { page: LandingPage; blocks?: PageBlock[]; baseUrl?: string }) {
-  const canonical = page.canonical_url || canonicalForPage(page.slug);
+  const canonical = ['assinantes', 'conexoes'].includes(page.slug) ? canonicalForPage('conexoes') : page.canonical_url || canonicalForPage(page.slug);
   useEffect(() => {
     const target = window as Window & { dataLayer?: Record<string, unknown>[] };
     (target.dataLayer ??= []).push({ event: 'page_view_lp', page_slug: page.slug, page_title: page.meta_title || page.name });

@@ -14,10 +14,14 @@ export function validateSlug(slug: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug !== 'assinar' && !RESERVED_SLUGS.has(slug);
 }
 export function canonicalForPage(slug: string): string {
-  return slug === 'entrada-plataforma' ? `${PLATFORM_ORIGIN}/auth` : `${LP_CANONICAL_ORIGIN}/${slug === 'inicio' ? '' : slug}`;
+  return slug === 'entrada-plataforma' ? `${PLATFORM_ORIGIN}/auth` : `${LP_CANONICAL_ORIGIN}/${slug === 'inicio' ? '' : slug === 'assinantes' ? 'conexoes' : slug}`;
 }
 export function previewForPage(slug: string): string {
-  return slug === 'entrada-plataforma' ? '/auth' : `/lps/${slug}`;
+  return slug === 'entrada-plataforma' ? '/auth' : `/lps/${slug === 'assinantes' ? 'conexoes' : slug}`;
+}
+/** Preserve the persisted CMS identity while redirecting old public addresses. */
+export function connectionsRedirect(pathname: string, search = '', hash = ''): string | null {
+  return /^\/(?:lps\/)?assinantes\/?$/.test(pathname) ? `/conexoes${search}${hash}` : null;
 }
 export function fallbackSource(slug: string): 'lp_gentehub' | 'lp_participe' | 'lp_networking' {
   if (slug === 'gentehub') return 'lp_gentehub';

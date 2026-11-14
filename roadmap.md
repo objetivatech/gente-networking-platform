@@ -1,5 +1,11 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.2 — Correções da identidade Gente Conexões
+- [x] Atualizar Vitrine, menus, atalhos e rótulos; corrigir contraste do contador compatível usando token de texto, sem alterar dados/filtros.
+- [x] Implementar rota canônica /conexoes com redirecionamento das URLs legadas, preservando conteúdo/CMS e checkout.
+- [x] Atualizar documentação/changelog versionado; 194 testes passaram, build OK, navegação pública/checkout/login conferidos desktop/mobile sem erros ou overflow.
+- [ ] Publicar frontend e Pages Functions no Cloudflare e conferir Vitrine autenticada — publicação externa e sessão autorizada no Supabase externo indisponíveis nesta rodada.
+
 ## v3.64.1 — Gente Conexões, Fase 2
 - [x] Reutilizar agenda futura para Gente Conexões com confirmação somente mediante convite específico, inclusive HUB.
 - [x] Vídeo obrigatório configurável pelo Admin e conclusão persistida por pessoa e versão, sem competir com alerta de perfil; inicialmente desabilitado.

@@ -61,7 +61,7 @@ const menuGroups: MenuGroup[] = [
     label: 'Comunidade',
     defaultOpen: true,
     items: [
-      { icon: Users, label: 'Vitrine da Comunidade', path: '/vitrine', roles: ['admin', 'facilitador', 'membro', 'assinante'] },
+      { icon: Users, label: 'Vitrine Gente Conexões', path: '/vitrine', roles: ['admin', 'facilitador', 'membro', 'assinante'] },
       { icon: Contact, label: 'Membros', path: '/membros', roles: ['admin', 'facilitador', 'membro'] },
       { icon: HeartHandshake, label: 'MatchMaking', path: '/matchmaking', roles: ['admin', 'facilitador', 'membro', 'assinante'], hiddenForRoles: HIDE_FOR_ADMIN },
       { icon: Ticket, label: 'Convidados', path: '/convidados', roles: ['admin', 'facilitador', 'membro'] },
@@ -207,7 +207,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 }
               >
                 <item.icon className="w-4 h-4 shrink-0" />
-                <span className="font-medium truncate">{item.label}</span>
+                <span className="min-w-0 font-medium text-wrap-anywhere">{item.label}</span>
               </NavLink>
             ))}
           </div>

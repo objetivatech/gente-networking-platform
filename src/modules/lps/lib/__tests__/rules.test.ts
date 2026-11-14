@@ -1,8 +1,22 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { describe, it, expect } from 'vitest';
-import { canonicalForPage, fallbackSource, parseSubmission, validateSlug } from '../rules';
+import { canonicalForPage, connectionsRedirect, previewForPage, fallbackSource, parseSubmission, validateSlug } from '../rules';
 import { renderContent } from '../markdown';
 describe('Regras da unificação', () => {
+  it('usa /conexoes no domínio raiz canônico também para o registro legado', () => {
+    expect(canonicalForPage('assinantes')).toBe('https://gentenetworking.com.br/conexoes');
+    expect(canonicalForPage('conexoes')).toBe('https://gentenetworking.com.br/conexoes');
+    expect(previewForPage('assinantes')).toBe('/lps/conexoes');
+  });
+  it('redireciona apresentação antiga sem perder parâmetros nem âncora', () => {
+    expect(connectionsRedirect('/assinantes', '?origem=hub', '#beneficios')).toBe('/conexoes?origem=hub#beneficios');
+    expect(connectionsRedirect('/lps/assinantes/')).toBe('/conexoes');
+  });
+  it('preserva checkout e outras páginas sem redirecionar', () => {
+    expect(connectionsRedirect('/assinar')).toBeNull();
+    expect(connectionsRedirect('/conexoes')).toBeNull();
+    expect(connectionsRedirect('/assinantes/outra')).toBeNull();
+  });
   it('mantém domínio raiz canônico para LPs', () => expect(canonicalForPage('impulso')).toBe('https://gentenetworking.com.br/impulso'));
   it('preserva entrada no domínio da plataforma', () => expect(canonicalForPage('entrada-plataforma')).toBe('https://comunidade.gentenetworking.com.br/auth'));
   it('não transforma Impulso em HUB', () => expect(fallbackSource('impulso')).toBe('lp_participe'));

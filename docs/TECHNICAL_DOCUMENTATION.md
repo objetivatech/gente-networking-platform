@@ -1,10 +1,15 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.1 — Gente Conexões, Fase 2
+> **Versão:** 3.64.2 — Correções Gente Conexões
+
+## Correções da identidade (v3.64.2)
+- Vitrine, menus, atalhos e rótulos dos recursos usam **Vitrine Gente Conexões**; o contador compatível usa cor de texto com contraste. Ordenação, filtros, permissões e franquias não mudam.
+- `/conexoes` e `/lps/conexoes` reutilizam o registro editorial `assinantes`, sem copiar conteúdo ou mudar IDs. URLs legadas redirecionam (301 no Cloudflare; substituição de histórico no navegador), mantendo parâmetros e âncoras. Metadados usam `https://gentenetworking.com.br/conexoes`, preservando o domínio raiz canônico.
+- Publicar também as Pages Functions no Cloudflare para efetivar o 301 e metadados na hospedagem externa; homologação autenticada da Vitrine permanece pendente.
 
 ## Agenda e acolhimento Gente Conexões (v3.64.1)
-- O nome comercial passa a **Gente Conexões**, preservando o papel `assinante`, planos já cadastrados e URLs `/assinantes` e `/assinar`.
+- O nome comercial passa a **Gente Conexões**, preservando o papel `assinante`, planos já cadastrados e checkout `/assinar`. A apresentação usa `/conexoes`; `/assinantes` e `/lps/assinantes` redirecionam preservando parâmetros.
 - Início e Encontros reutilizam a agenda segura de eventos futuros. Gente Conexões só confirma com participação vinculada ao evento e status invited/confirmed/attended, inclusive HUB. Convite antigo genérico de Grupo não libera confirmação; Convidado continua com HUB aberto e regras Premium anteriores.
 - Admin/Facilitador do Grupo usam Encontros → Adicionar Convidado também para Gente Conexões existente. O convite é persistido sem promoção, pontos ou presença automática; notificações reutilizam o endpoint autorizado. Confirmação/cancelamento sincronizam CRM/HUB e as contagens existentes, sem duplicar pessoas.
 - Admin → Acolhimento Conexões (`/admin/acolhimento`): título, URL HTTPS de arquivo MP4/WebM, duração total e botão de obrigatoriedade. Ao mudar vídeo ou duração, nasce uma nova versão; alteração de título não reinicia conclusão. Configuração inicial **desabilitada**, sem vídeo inventado.
