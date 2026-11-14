@@ -104,6 +104,7 @@ export type Database = {
           profile_id: string
           remote_subscription_id: string | null
           subscription_id: string
+          trial_until: string | null
           updated_at: string
         }
         Insert: {
@@ -119,6 +120,7 @@ export type Database = {
           profile_id: string
           remote_subscription_id?: string | null
           subscription_id: string
+          trial_until?: string | null
           updated_at?: string
         }
         Update: {
@@ -134,6 +136,7 @@ export type Database = {
           profile_id?: string
           remote_subscription_id?: string | null
           subscription_id?: string
+          trial_until?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -370,7 +373,10 @@ export type Database = {
           active: boolean
           amount_cents: number
           audience: string
+          badge_label: string | null
+          badge_tone: string
           billing_interval: string | null
+          capacity: number | null
           contract_template_id: string | null
           created_at: string
           created_by: string | null
@@ -383,13 +389,18 @@ export type Database = {
           plan_type: string
           position: number
           self_service_enabled: boolean
+          trial_days: number
+          trial_enabled: boolean
           updated_at: string
         }
         Insert: {
           active?: boolean
           amount_cents?: number
           audience?: string
+          badge_label?: string | null
+          badge_tone?: string
           billing_interval?: string | null
+          capacity?: number | null
           contract_template_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -402,13 +413,18 @@ export type Database = {
           plan_type?: string
           position?: number
           self_service_enabled?: boolean
+          trial_days?: number
+          trial_enabled?: boolean
           updated_at?: string
         }
         Update: {
           active?: boolean
           amount_cents?: number
           audience?: string
+          badge_label?: string | null
+          badge_tone?: string
           billing_interval?: string | null
+          capacity?: number | null
           contract_template_id?: string | null
           created_at?: string
           created_by?: string | null
@@ -421,6 +437,8 @@ export type Database = {
           plan_type?: string
           position?: number
           self_service_enabled?: boolean
+          trial_days?: number
+          trial_enabled?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -2841,6 +2859,7 @@ export type Database = {
         Args: { _code: string; _user_id: string }
         Returns: Json
       }
+      activate_asaas_trial: { Args: { _contract: string }; Returns: boolean }
       add_activity_feed:
         | {
             Args: {
@@ -3167,6 +3186,11 @@ export type Database = {
           id: string
         }[]
       }
+      get_profile_plan_badges: { Args: { _ids: string[] }; Returns: Json }
+      get_profile_plan_badges_for_viewer: {
+        Args: { _ids: string[]; _viewer: string }
+        Returns: Json
+      }
       get_profiles_completeness: {
         Args: { _ids: string[] }
         Returns: {
@@ -3182,6 +3206,7 @@ export type Database = {
           name: string
         }[]
       }
+      get_public_plan_badge: { Args: { _slug: string }; Returns: Json }
       get_public_profile: {
         Args: { _slug: string }
         Returns: {
@@ -3339,6 +3364,7 @@ export type Database = {
         }
         Returns: Json
       }
+      profile_plan_badge: { Args: { _profile: string }; Returns: Json }
       promote_crm_lead_to_member: {
         Args: {
           _lead_id: string

@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.get_profile_plan_badges(uuid[]) FROM authenticated; GRANT EXECUTE ON FUNCTION public.get_profile_plan_badges(uuid[]) TO service_role;

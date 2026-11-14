@@ -36,6 +36,11 @@ export interface BillingPlan {
   contract_template_id: string | null;
   active: boolean;
   self_service_enabled?: boolean;
+  capacity?: number | null;
+  badge_label?: string | null;
+  badge_tone?: 'accent' | 'primary' | 'secondary';
+  trial_enabled?: boolean;
+  trial_days?: number;
   position: number;
   features: PlanFeatures;
   created_at: string;

@@ -53,6 +53,12 @@ export default function Documentacao() {
         </div>
       </div>
 
+      {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: vagas, selos e teste gratuito</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>Em Planos e Assinaturas, edite o limite de vagas, texto/cor do selo e teste gratuito (1 a 30 dias, padrão 7). Vazio no limite significa ilimitado. Teste exige plano mensal de Assinante sem contrato eletrônico.</p>
+        <p>Fundador (R$ 9,90) e Regular (R$ 29,90) estão inicialmente inativos. Revise recursos e franquia sugerida de 5 sorteios antes de liberar contratação pública. Não houve cobrança nem alteração de participantes.</p>
+        <p>Assinaturas ativas, pendentes e em atraso ocupam vagas. Vagas esgotadas bloqueiam novas contratações sem mudar preço automaticamente. Revise contratações abandonadas antes de cancelar. Teste gratuito é concedido uma única vez por pessoa após consentimento e vínculo no Asaas; ao terminar, é necessário pagamento para continuar.</p>
+        <p>O selo aparece enquanto a assinatura está vigente. A validação real de teste, cobrança e cancelamento ainda deve ser feita antes de publicar as ofertas.</p>
+      </CardContent></Card>}
       {showMemberDocs && <Card><CardHeader><CardTitle>Agenda do Convidado e convites por encontro</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Convidados veem a agenda futura no Início, mesmo após visitas anteriores. Gente HUB é aberto; encontros Premium exigem convite ou reconvite para o encontro/Grupo. Sem convite, aparece contato do Facilitador.</p>
         <p>Admin e Facilitador do Grupo podem usar Encontros → Adicionar Convidado. Pessoas já ativas recebem reconvite, sem nova conta. O e-mail contém os dados do encontro; WhatsApp é enviado manualmente. Se o envio falhar, o convite permanece salvo e o modal permite tentar novamente.</p>

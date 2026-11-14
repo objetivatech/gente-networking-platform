@@ -40,6 +40,8 @@ import {
 
 import { MODULE_FEATURES, MEMBER_ONLY, PREMIUM_ONLY, hasPlanFeature, type ModuleFeature } from '@/lib/plan-access';
 import { formatDateBR, todayLocalISODate } from '@/lib/date-utils';
+import { validCommercialTerms } from '@/lib/plan-commercial';
+import { PlanBadge } from '@/components/profile/PlanBadge';
 
 function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const save = useSaveBillingPlan();
@@ -53,6 +55,11 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
   const [audience, setAudience] = useState(plan?.audience ?? 'hub');
   const [templateId, setTemplateId] = useState(plan?.contract_template_id ?? 'none');
   const [selfService, setSelfService] = useState(plan?.self_service_enabled ?? false);
+  const [capacity, setCapacity] = useState(plan?.capacity == null ? '' : String(plan.capacity));
+  const [badgeLabel, setBadgeLabel] = useState(plan?.badge_label ?? '');
+  const [badgeTone, setBadgeTone] = useState<'accent' | 'primary' | 'secondary'>(plan?.badge_tone ?? 'accent');
+  const [trial, setTrial] = useState(plan?.trial_enabled ?? false);
+  const [trialDays, setTrialDays] = useState(String(plan?.trial_days ?? 7));
   const eligibleSelfService = audience === 'assinante' && planType === 'recorrente' && interval === 'monthly' && templateId === 'none' && parseCurrencyToCents(amount) > 0;
   // Recursos e limites do plano (Fase 4 — v3.54.0)
   const [quota, setQuota] = useState(
@@ -147,6 +154,18 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
             <Switch id="self-service-plan" disabled={!eligibleSelfService} checked={eligibleSelfService && selfService} onCheckedChange={setSelfService} />
           </div>
           <div className="space-y-2 rounded-md border p-3">
+            <p className="text-sm font-medium">Oferta e identificação</p>
+            <Label htmlFor="plan-capacity">Limite de vagas (vazio = ilimitado)</Label>
+            <Input id="plan-capacity" type="number" min={1} step={1} value={capacity} onChange={e => setCapacity(e.target.value)} />
+            <Label htmlFor="plan-badge">Texto do selo</Label>
+            <Input id="plan-badge" maxLength={30} value={badgeLabel} onChange={e => setBadgeLabel(e.target.value)} placeholder="Fundador" />
+            <Label>Cor do selo</Label>
+            <Select value={badgeTone} onValueChange={v => setBadgeTone(v as typeof badgeTone)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="accent">Destaque laranja</SelectItem><SelectItem value="primary">Principal</SelectItem><SelectItem value="secondary">Discreto</SelectItem></SelectContent></Select>
+            <PlanBadge badge={{ label: badgeLabel, tone: badgeTone }} />
+            <div className="flex items-center justify-between gap-3"><Label htmlFor="plan-trial">Habilitar teste gratuito</Label><Switch id="plan-trial" checked={eligibleSelfService && trial} disabled={!eligibleSelfService} onCheckedChange={setTrial} /></div>
+            {eligibleSelfService && trial && <><Label htmlFor="plan-trial-days">Dias de teste (1 a 30)</Label><Input id="plan-trial-days" type="number" min={1} max={30} step={1} value={trialDays} onChange={e => setTrialDays(e.target.value)} /></>}
+          </div>
+          <div className="space-y-2 rounded-md border p-3">
             <p className="text-sm font-medium">Acessos e limites do plano</p>
             <div className="space-y-1.5">
               <Label>{PLAN_FEATURE_LABEL.matchmaking_monthly_quota}</Label>
@@ -175,7 +194,7 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
         </div>
         <DialogFooter>
           <Button
-            disabled={!name.trim() || save.isPending || (quota !== "" && (!Number.isSafeInteger(Number(quota)) || Number(quota) < 0))}
+            disabled={!name.trim() || save.isPending || !validCommercialTerms(capacity, trialDays) || (quota !== "" && (!Number.isSafeInteger(Number(quota)) || Number(quota) < 0))}
             onClick={() => {
               const features: PlanFeatures = { ...flags };
               for (const key of Object.keys(MODULE_FEATURES) as ModuleFeature[]) {
@@ -197,6 +216,11 @@ function PlanDialog({ plan }: { plan?: BillingPlan }) {
                   contract_template_id: templateId === 'none' ? null : templateId,
                   features,
                   self_service_enabled: eligibleSelfService && selfService,
+                  capacity: capacity.trim() === '' ? null : Number(capacity),
+                  badge_label: badgeLabel.trim() || null,
+                  badge_tone: badgeTone,
+                  trial_enabled: eligibleSelfService && trial,
+                  trial_days: Number(trialDays),
                 },
                 { onSuccess: () => setOpen(false) },
               );
@@ -475,6 +499,9 @@ export default function PlanosAssinaturas() {
                     </Badge>
                     <Badge variant="outline">{formatCents(p.amount_cents)}</Badge>
                     <Badge variant="outline">{AUDIENCE_LABEL[p.audience] ?? p.audience}</Badge>
+                    <PlanBadge badge={p.badge_label ? { label: p.badge_label, tone: p.badge_tone ?? 'accent' } : null} />
+                    {p.capacity != null && <Badge variant="outline">Até {p.capacity} vagas</Badge>}
+                    {p.trial_enabled && <Badge variant="outline">{p.trial_days} dias de teste</Badge>}
                     {p.contract_template_id && (
                       <Badge variant="outline" className="gap-1">
                         <FileText className="h-3 w-3" /> Contrato vinculado

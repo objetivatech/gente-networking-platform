@@ -8,6 +8,8 @@ import { effectiveAsaasStatus } from '../_shared/asaas-public-rules.ts';
 
 const schema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('plans') }),
+  z.object({ action: z.literal('public_badge'), slug: z.string().min(1).max(150) }),
+  z.object({ action: z.literal('badges'), ids: z.array(z.string().uuid()).max(2000) }),
   z.object({ action: z.literal('start'), plan_id: z.string().uuid(), cpf_cnpj: z.string().regex(/^\d{11}$|^\d{14}$/), consent: z.literal(true) }),
   z.object({ action: z.literal('status') }),
   z.object({ action: z.literal('cancel'), contract_id: z.string().uuid() }),
@@ -25,6 +27,10 @@ Deno.serve(async req => {
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const anon = Deno.env.get('SUPABASE_ANON_KEY');
     if (!url || !serviceKey || !anon) return json({ error: 'Serviço indisponível' }, 503);
+    if (input.action === 'public_badge') {
+      const { data, error } = await createClient(url, serviceKey).rpc('get_public_plan_badge', { _slug: input.slug });
+      return error ? json({ error: 'Não foi possível consultar o selo' }, 503) : json({ badge: data });
+    }
     if (input.action === 'plans') {
       const admin = createClient(url, serviceKey);
       const { data, error } = await admin.rpc('get_self_service_plans');
@@ -37,6 +43,10 @@ Deno.serve(async req => {
     const { data: userData, error: userError } = await client.auth.getUser(auth.slice(7));
     const user = userData.user;
     if (userError || !user || !user.email_confirmed_at) return json({ error: 'Entre com uma conta confirmada' }, 401);
+    if (input.action === 'badges') {
+      const { data, error } = await createClient(url, serviceKey).rpc('get_profile_plan_badges_for_viewer', { _viewer: user.id, _ids: input.ids });
+      return error ? json({ error: 'Não foi possível consultar os selos' }, 503) : json({ badges: data });
+    }
     const ctx = await asaasContext();
     const { admin, environment, request } = ctx;
     const { data: profile } = await admin.from('profiles').select('id,full_name,email,phone,is_active').eq('id', user.id).single();
@@ -63,9 +73,9 @@ Deno.serve(async req => {
         }
       }
       const { data: sub } = await admin.from('billing_subscriptions').select('status,amount_cents,billing_plans(name)').eq('id', contract.subscription_id).single();
-      const { data: updated } = await admin.from('asaas_contracts').select('paid_until').eq('id', contract.id).single();
+      const { data: updated } = await admin.from('asaas_contracts').select('paid_until,trial_until').eq('id', contract.id).single();
       const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
-      return json({ contract: { id: contract.id, status: effectiveAsaasStatus(sub?.status ?? 'draft', updated?.paid_until ?? null, today), plan: sub?.billing_plans, payment_url: safeAsaasPaymentUrl(contract.payment_url, contract.environment), amount_cents: sub?.amount_cents } });
+      return json({ contract: { id: contract.id, status: effectiveAsaasStatus(sub?.status ?? 'draft', updated?.paid_until ?? null, today), trial_until: updated?.trial_until, plan: sub?.billing_plans, payment_url: safeAsaasPaymentUrl(contract.payment_url, contract.environment), amount_cents: sub?.amount_cents } });
     }
 
     if (input.action === 'cancel') {
@@ -104,6 +114,9 @@ Deno.serve(async req => {
         const { error } = await admin.from('asaas_contracts').update({ remote_subscription_id: remoteId }).eq('id', contract.id);
         if (error) throw new Error('Vínculo financeiro requer conferência administrativa');
       }
+      const { data: trialActive, error: trialError } = await admin.rpc('activate_asaas_trial', { _contract: contract.id });
+      if (trialError) throw new Error('Teste gratuito requer conferência administrativa');
+      if (trialActive) return json({ trial_active: true });
       const payments = await request(`/subscriptions/${encodeURIComponent(remoteId)}/payments?limit=100`);
       const payment = (payments.data ?? []).filter((p: { subscription: string; status: string }) => p.subscription === remoteId && !['RECEIVED', 'CONFIRMED', 'REFUNDED', 'DELETED'].includes(p.status)).sort((a: { dueDate: string }, b: { dueDate: string }) => a.dueDate.localeCompare(b.dueDate))[0];
       const paymentUrl = safeAsaasPaymentUrl(payment?.invoiceUrl, environment);

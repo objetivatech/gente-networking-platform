@@ -19,6 +19,9 @@ import { richTextToPlain } from '@/lib/rich-text';
 import PublicProfileStats from '@/components/public/PublicProfileStats';
 import PublicProfileCases from '@/components/public/PublicProfileCases';
 import PublicProfileActivity from '@/components/public/PublicProfileActivity';
+import { PlanBadge } from '@/components/profile/PlanBadge';
+import type { PlanBadgeData } from '@/lib/plan-commercial';
+import { useQuery } from '@tanstack/react-query';
 import PublicProfileInviteDialog from '@/components/public/PublicProfileInviteDialog';
 import {
   Loader2, Linkedin, Instagram, Globe, ArrowRight, UserX, Users,
@@ -74,6 +77,14 @@ const LOGO = '/logo-gente-networking-branco.png';
 const SITE_URL = 'https://comunidade.gentenetworking.com.br';
 const OG_FALLBACK = `${SITE_URL}${LOGO}`;
 const SIGNUP = '/';
+function PublicPlanBadge({ slug }: { slug: string | null }) {
+ const { data } = useQuery({ queryKey: ['public-plan-badge', slug], enabled: !!slug, staleTime: 60_000, queryFn: async () => {
+ const { data, error } = await supabase.functions.invoke('subscriber-checkout', { body: { action: 'public_badge', slug } });
+ if (error) throw error;
+ return data.badge as PlanBadgeData | null;
+ } });
+ return <PlanBadge badge={data} />;
+}
 
 function getInitials(name: string | null) {
   if (!name) return '?';
@@ -281,6 +292,7 @@ export default function PublicProfile() {
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-3">
                     <h1 className="text-2xl font-bold text-[#1E3A5F] text-wrap-anywhere">{profile.full_name}</h1>
+                    <PublicPlanBadge slug={profile.slug} />
                     {profile.rank && (
                       <span className="rounded bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#F7941D]">
                         {profile.rank}

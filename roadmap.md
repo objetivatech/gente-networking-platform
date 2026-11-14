@@ -1,5 +1,12 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.0 — Gente Conexões, Fase 1
+- [x] Configurar vagas, selo e trial por plano, com validação e contratação segura.
+- [x] Preparar ofertas Fundador/Regular sem publicar ou cobrar automaticamente; valores 990/2990 centavos conferidos, ambas inativas.
+- [x] Exibir selos por assinatura vigente nos cards e perfil público com consultas autorizadas, sem revelar dados financeiros.
+- [x] Atualizar testes, documentação, manual e changelog; 185 testes passaram, build OK, contratação pública sem erros e Admin protegido. Função publicada, nenhum alerta novo (baseline: 79).
+- [ ] Homologar contratação real/trial — requer conta autorizada no Supabase externo e Asaas.
+
 ## v3.63.0 — Agenda do Convidado e convites por encontro
 - [x] Agenda segura com todos os próximos encontros, confirmação Premium por convite e Gente HUB aberto.
 - [x] Confirmação/cancelamento transacionais, sincronização HUB/CRM e listas sem duplicação.

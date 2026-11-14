@@ -1,3 +1,6 @@
+import { usePlanBadges } from '@/hooks/usePlanBadges';
+import { PlanBadge } from '@/components/profile/PlanBadge';
+import type { PlanBadgeData } from '@/lib/plan-commercial';
 import SEO from '@/components/SEO';
 /**
  * @page Membros
@@ -91,7 +94,7 @@ function BusinessSegmentBadge({ segment }: { segment: string }) {
   );
 }
 
-function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile; onViewProfile: () => void; percent?: number }) {
+function MemberCard({ member, onViewProfile, percent, badge }: { member: MemberProfile; onViewProfile: () => void; percent?: number; badge?: PlanBadgeData }) {
   const initials = member.full_name
     .split(' ')
     .map(n => n[0])
@@ -128,6 +131,7 @@ function MemberCard({ member, onViewProfile, percent }: { member: MemberProfile;
             )}
 
             <div className="mb-1"><ProfileCompletenessBadge percent={percent} /></div>
+            <PlanBadge badge={badge} />
             {member.position && (
               <p className="text-sm text-muted-foreground line-clamp-2 text-wrap-anywhere">{member.position}</p>
             )}
@@ -325,6 +329,7 @@ interface TeamSectionProps {
 function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }: TeamSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
   const completeness = useProfilesCompleteness(team.members.map((m) => m.id));
+  const badges = usePlanBadges(team.members.map(m => m.id));
 
   const filteredMembers = team.members.filter(member => {
     // Text search
@@ -379,6 +384,7 @@ function TeamSection({ team, search, segmentFilter, rankFilter, onViewProfile }:
               key={member.id}
               member={member as MemberProfile} 
               percent={completeness.get(member.id)}
+              badge={badges[member.id]}
               onViewProfile={() => onViewProfile(member.slug || member.id)} 
             />
           ))}

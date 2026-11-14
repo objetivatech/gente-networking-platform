@@ -1,7 +1,16 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.63.0 — Agenda do Convidado e convites por encontro
+> **Versão:** 3.64.0 — Gente Conexões, Fase 1
+
+## Planos comerciais e teste gratuito (v3.64.0)
+Admin → Planos e Assinaturas → Editar plano: definir limite de vagas (vazio = ilimitado), texto/cor do selo e habilitar/desabilitar teste gratuito de 1 a 30 dias (padrão 7). Trial exige plano mensal de Assinante sem contrato eletrônico. Ofertas Fundador R$ 9,90 e Regular R$ 29,90 foram criadas **inativas**, sem contratação pública, limite ou trial habilitado. Franquia inicial sugerida: 5 sorteios; revise antes de publicar. Nenhuma conta foi alterada ou cobrança emitida.
+
+Vagas contabilizam assinaturas active/draft/past_due, incluindo reservas pendentes; cancelamento/completed libera a vaga. Ao esgotar, novas contratações são bloqueadas, sem trocar preço automaticamente nem reajustar assinaturas anteriores. O Admin deve revisar reservas abandonadas antes de cancelá-las; não há expiração automática nesta fase.
+
+Contratação com consentimento → reserva serializada por perfil/plano → vínculo no Asaas → trial elegível libera somente Assinante, sem pontos. Primeira cobrança fica para o fim do teste; Pix/cartão continuam no Asaas, sem débito silencioso. Cancelamento interrompe novas cobranças; vencimento bloqueia acesso automaticamente pela regra existente. Trial é reservado uma única vez por perfil, inclusive após cancelamento; reenvios não prorrogam. Somente `service_role` executa ativação/reserva e consulta financeira. Selos aparecem em Vitrine, Membros e perfil público publicado, somente durante assinatura vigente e sem expor dados financeiros.
+
+Homologação autenticada, trial e primeira cobrança reais continuam pendentes no Supabase externo/Asaas. Ofertas só devem ser ativadas após revisão comercial e validação. Agenda do Conexões, vídeo, tours e página de vendas ficam para as próximas fases.
 
 ### Agenda e reconvites (v3.63.0)
 Convidado → Início → Agenda de Encontros → HUB aberto ou Premium com convite → Confirmar Presença. Sem convite Premium, converse com o Facilitador pelo WhatsApp. Cada encontro tem confirmação/cancelamento independente; histórico de visitas não esconde novos eventos.

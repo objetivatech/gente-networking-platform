@@ -9,6 +9,8 @@
  * © 2026 Ranktop SEO Inteligente. Todos os direitos reservados.
  */
 
+import { usePlanBadges } from '@/hooks/usePlanBadges';
+import { PlanBadge } from '@/components/profile/PlanBadge';
 import { CommunityProfileDialog } from '@/components/CommunityProfileDialog';
 import { useConnectionDoors, useConnectionTaxonomies } from '@/hooks/useConnectionDoors';
 import { ConnectionDoorsTags } from '@/components/profile/ConnectionDoorsTags';
@@ -45,6 +47,7 @@ export default function VitrineComunidade() {
   const [search, setSearch] = useState('');
 
   const { profile: viewer } = useProfile();
+  const planBadges = usePlanBadges((profiles || []).map(p => p.id));
   const completeness = useProfilesCompleteness((profiles || []).map((p) => p.id));
   const doors = useConnectionDoors((profiles || []).map((p) => p.id));
   const { data: taxonomies = [] } = useConnectionTaxonomies();
@@ -162,6 +165,7 @@ export default function VitrineComunidade() {
                   </div>
                 )}
                 <ProfileCompletenessBadge percent={completeness.get(profile.id)} />
+                <PlanBadge badge={planBadges[profile.id]} />
                 <ConnectionDoorsTags doors={profile} />
                 {profile.business_segment && <Badge variant="outline" className="w-fit">{profile.business_segment}</Badge>}
                 {richTextToPlain(profile.what_i_do) && (
