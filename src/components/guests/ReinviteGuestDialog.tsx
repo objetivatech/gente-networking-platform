@@ -69,6 +69,8 @@ export function ReinviteGuestDialog({ guestId, guestName, teamIds, triggerLabel 
       location: r.location,
     }));
     qc.invalidateQueries({ queryKey: ['guests-directory'] });
+    qc.invalidateQueries({ queryKey: ['guest-agenda'] });
+    qc.invalidateQueries({ queryKey: ['meeting-invitations'] });
     toast({ title: 'Reconvite registrado', description: 'Agora envie a mensagem pelo WhatsApp.' });
   };
 

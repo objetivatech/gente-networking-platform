@@ -1,7 +1,15 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-11-11
-> **Versão:** 3.62.0 — Convites pelo perfil público
+> **Última atualização:** 2026-11-14
+> **Versão:** 3.63.0 — Agenda do Convidado e convites por encontro
+
+## Agenda e convites por evento (v3.63.0)
+- `guest-meetings` valida JWT e entrada; `guest_meetings_dispatch` é service-only e estabelece o caller derivado da sessão. `get_guest_agenda`, `set_guest_meeting_confirmation`, `invite_person_to_meeting` e `get_meeting_invitations` não são expostas diretamente a anon/authenticated. Não amplia leitura de Membros para Convidados/Assinantes.
+- Agenda futura inclui todos os eventos; local aparece só em evento autorizado. HUB aberto; Premium usa participação ativa específica ou convite aceito de Grupo/snapshot. Trigger também bloqueia inserções diretas de presença própria sem convite válido.
+- Confirmação bloqueia perfil e grava presença + vínculo HUB/CRM em transação; cancelamento remove ambos, preserva CRM e autorização para reconfirmar. `recalculate_crm_attendance` e `get_meeting_lead_attendees` existentes mantêm contagens deduplicadas; origem prévia nunca é sobrescrita.
+- Convite direto exige Admin ou Facilitador do Grupo, resolve identidade por e-mail/telefone sem conflitos, reutiliza `reinvite_guest_to_meeting`, `invite_subscriber_premium` ou `create_guest_invitation`. Convite pendente e presença são listas distintas.
+- `community-notification` recebe referência persistida, autoriza emissor e deriva destinatário/local/link no servidor. Usa template de marca compartilhado, data DD/MM/AAAA e claim recuperável por referência. WhatsApp manual. Erro de entrega não reverte o convite.
+- Testes unitários/regressões e negativos sem sessão são verificáveis; fluxo real com conta externa e e-mail depende de homologação autorizada. Alertas preexistentes de segurança não foram corrigidos nesta versão.
 
 ## Aquisição pelo perfil público (v3.62.0)
 - `/m/:slug` oferece `PublicProfileInviteDialog`, sem cadastro anônimo em `/auth`. Nome/e-mail/WhatsApp e consentimento são obrigatórios; empresa é opcional. Seleção limitada aos Grupos do perfil publicado e ativo com direito de publicação.

@@ -28,8 +28,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import RichTextEditor from '@/components/RichTextEditor';
 import RichText from '@/components/RichText';
+import { InviteToMeetingDialog } from '@/components/guests/InviteToMeetingDialog';
+import { MeetingInvitations } from '@/components/guests/MeetingInvitations';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Encontros() {
+  const { user } = useAuth();
   const { meetings, isLoading, toggleAttendance, removeAttendance } = useMeetings();
   const { data: userRole } = useUserRole();
   const { createMeeting, deleteMeeting } = useAdminMeetings();
@@ -114,6 +118,7 @@ export default function Encontros() {
               <Button variant="ghost" size="sm" onClick={() => setSelectedMeeting(selectedMeeting === meeting.id ? null : meeting.id)}>
                 <Users className="w-4 h-4" />
               </Button>
+              {!isPastMeeting && (isGlobalAdmin || (userRole === 'facilitador' && teams?.some(t => t.id === meeting.team_id && t.members?.some(member => member.user_id === user?.id && member.is_facilitator)))) && <InviteToMeetingDialog meeting={meeting} />}
               {canManageMeetings && (
                 <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => deleteMeeting.mutate(meeting.id)}>
                   <Trash2 className="w-4 h-4" />
@@ -121,6 +126,7 @@ export default function Encontros() {
               )}
             </div>
           </div>
+          {selectedMeeting === meeting.id && <MeetingInvitations meetingId={meeting.id} />}
           {selectedMeeting === meeting.id && <AttendeesList meetingId={meeting.id} canRemove={canManageMeetings} onRemove={(userId) => removeAttendance.mutate({ meetingId: meeting.id, userId })} />}
         </CardContent>
       </Card>

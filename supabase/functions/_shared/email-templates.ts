@@ -134,6 +134,12 @@ function pointsBadge(points: number, description: string): string {
 
 // Email Templates
 
+export function eventInvitationEmailTemplate(name: string, inviter: string, title: string, date: string, time: string | null, location: string | null, link: string): string {
+  const parts = date.split('-');
+  const dateBR = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : date;
+  return emailWrapper(`<h1>Convite para ${escapeHtml(title)}</h1><p>Olá, ${escapeHtml(name)}!</p><p>${escapeHtml(inviter)} convidou você para este encontro.</p>${infoBox(`<p>${escapeHtml(dateBR)}${time ? ` às ${escapeHtml(time.slice(0, 5))}` : ''}</p><p>${escapeHtml(location ?? '')}</p>`)}${ctaButton('Acessar e confirmar participação', escapeHtml(link))}`);
+}
+
 export function testimonialEmailTemplate(fromName: string, toName: string, content: string): string {
   const emailContent = `
 <h1 style="color: #1e3a5f; font-size: 24px; font-weight: 700; margin: 0 0 24px;">Você recebeu um novo depoimento! 🎉</h1>

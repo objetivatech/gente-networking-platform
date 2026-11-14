@@ -1,5 +1,7 @@
 # Regras de arquitetura
 
+- Serve guest agendas and event invitations through the authenticated `guest-meetings` dispatcher with service-only RPCs; guest confirmations synchronize HUB CRM links transactionally and keep event invitations separate from attendance to preserve access scope, attribution and deduplicated counts.
+
 - Resolve public-profile invitations transactionally through `submit-lead` using published slugs and host-owned groups; preserve original invitation authorship and gate delivery independently to avoid duplicate acquisition or points.
 
 - Authenticate Asaas callbacks with a server-resolved shared token, reread financial state from the provider, and acknowledge only after transactional processing; explicit self-service consent may grant only Subscriber access after payment, never internal roles or points.

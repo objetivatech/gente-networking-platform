@@ -1,5 +1,13 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.63.0 — Agenda do Convidado e convites por encontro
+- [x] Agenda segura com todos os próximos encontros, confirmação Premium por convite e Gente HUB aberto.
+- [x] Confirmação/cancelamento transacionais, sincronização HUB/CRM e listas sem duplicação.
+- [x] Convite direto no encontro para Admin/Facilitador, com e-mail recuperável e WhatsApp manual; autoria preservada.
+- [x] Testes de regras, documentação técnica, fluxos, manual e changelog; 178 testes passaram, funções publicadas e acesso sem sessão rejeitado (401). Migrações não adicionaram alertas ao baseline de 79.
+- [ ] Publicar frontend pelo fluxo Cloudflare/GitHub — implantação externa sob gestão do usuário.
+- [ ] Homologação autenticada e entrega real — Supabase externo sem sessão autorizada disponível.
+
 # v3.58.0 — LPs após a virada
 - [x] Implementar envio de ativação e aviso administrativo com trava recuperável, sem replay histórico; funções publicadas, entrega real ainda pendente.
 - [x] Remover instalação PWA das páginas públicas de LPs; três LPs e Obrigado verificadas em desktop/mobile sem erros ou overflow.

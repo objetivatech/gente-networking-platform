@@ -53,6 +53,11 @@ export default function Documentacao() {
         </div>
       </div>
 
+      {showMemberDocs && <Card><CardHeader><CardTitle>Agenda do Convidado e convites por encontro</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
+        <p>Convidados veem a agenda futura no Início, mesmo após visitas anteriores. Gente HUB é aberto; encontros Premium exigem convite ou reconvite para o encontro/Grupo. Sem convite, aparece contato do Facilitador.</p>
+        <p>Admin e Facilitador do Grupo podem usar Encontros → Adicionar Convidado. Pessoas já ativas recebem reconvite, sem nova conta. O e-mail contém os dados do encontro; WhatsApp é enviado manualmente. Se o envio falhar, o convite permanece salvo e o modal permite tentar novamente.</p>
+        <p>Membros continuam convidando e reconvidando seus convidados em Convites. Autoria e regras de pontos permanecem. Convites pendentes aparecem separados dos confirmados ao expandir o encontro; HUB confirmado pela plataforma entra no CRM e não é contado em dobro.</p>
+      </CardContent></Card>}
       {showMemberDocs && <Card><CardHeader><CardTitle>Convites pelo seu perfil público</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>Compartilhe o link do seu perfil publicado. O visitante escolhe Quero conhecer o Grupo, informa nome, e-mail e WhatsApp e seleciona um dos seus Grupos.</p>
         <p>O convite novo fica atribuído a você e aparece em Convites. O visitante recebe o e-mail de ativação; você recebe um aviso se suas notificações estiverem habilitadas. Um cadastro ou convite anterior mantém o convidador e o Grupo originais.</p>

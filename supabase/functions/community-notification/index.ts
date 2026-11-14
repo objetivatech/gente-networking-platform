@@ -1,8 +1,10 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { sendEmail } from '../_shared/email-provider.ts';
-import { meetingRequestEmailTemplate, meetingResponseEmailTemplate } from '../_shared/email-templates.ts';
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
+import { meetingRequestEmailTemplate, meetingResponseEmailTemplate, eventInvitationEmailTemplate } from '../_shared/email-templates.ts';
+import { corsHeaders as cors } from 'npm:@supabase/supabase-js@2/cors';
+import { z } from 'npm:zod@3.25.76';
+const BodySchema = z.object({ kind: z.enum(['plan', 'premium', 'meeting_invitation', 'request', 'response']), reference_id: z.string().uuid() });
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 const escape = (value: string) => value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
 const appUrl = 'https://comunidade.gentenetworking.com.br';
@@ -20,7 +22,9 @@ Deno.serve(async req => {
     const db = createClient(url, service);
     const { data: activeCaller } = await db.from('profiles').select('is_active').eq('id', user.id).maybeSingle();
     if (!activeCaller?.is_active) return json({ error: 'Acesso desativado' }, 403);
-    const { kind, reference_id: referenceId } = await req.json();
+    const parsed = BodySchema.safeParse(await req.json().catch(() => ({})));
+    if (!parsed.success) return json({ error: 'Mensagem inválida' }, 400);
+    const { kind, reference_id: referenceId } = parsed.data;
     let to = '', subject = '', html = '';
     if (kind === 'plan') {
       const { data: role } = await db.from('user_roles').select('id').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
@@ -34,16 +38,32 @@ Deno.serve(async req => {
       if (!profile?.is_active || !plan?.active) return json({ error: 'Acesso indisponível' }, 409);
       to = profile.email ?? ''; subject = 'Seu plano na Comunidade Gente foi atualizado';
       html = `<h1>Gente Networking</h1><p>Olá, ${escape(profile.full_name)}!</p><p>Seu plano ${escape(plan.name)} foi vinculado ao seu cadastro. Seus acessos seguem os recursos desse plano.</p><p><a href="${appUrl}">Acessar a Comunidade Gente</a></p>`;
+    } else if (kind === 'meeting_invitation') {
+      const { data: invitation } = await db.from('invitations').select('*').eq('id', referenceId).maybeSingle();
+      if (!invitation?.event_id || invitation.status !== 'pending' || new Date(invitation.expires_at).getTime() <= Date.now()) return json({ error: 'Convite indisponível' }, 409);
+      const { data: meeting } = await db.from('meetings').select('title,meeting_date,meeting_time,location,team_id').eq('id', invitation.event_id).maybeSingle();
+      if (!meeting) return json({ error: 'Encontro indisponível' }, 409);
+      const { data: roles } = await db.from('user_roles').select('role').eq('user_id', user.id);
+      const { data: memberships } = await db.from('team_members').select('id').eq('user_id', user.id).eq('team_id', meeting.team_id).eq('is_facilitator', true);
+      const allowed = roles?.some(r => r.role === 'admin') || (roles?.some(r => r.role === 'facilitador') && Boolean(memberships?.length));
+      if (!allowed) return json({ error: 'Sem permissão' }, 403);
+      const { data: host } = await db.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+      to = invitation.email ?? ''; subject = 'Você foi convidado para um encontro — Gente Networking';
+      html = eventInvitationEmailTemplate(invitation.name ?? 'Convidado', host?.full_name ?? 'Gente Networking', meeting.title, meeting.meeting_date, meeting.meeting_time, meeting.location, `${appUrl}/convite/${invitation.code}`);
     } else if (kind === 'premium') {
       const { data: participation } = await db.from('guest_participations').select('*').eq('id', referenceId).maybeSingle();
-      if (!participation?.profile_id || participation.invited_by !== user.id) return json({ error: 'Sem permissão' }, 403);
+      if (!participation?.profile_id || !['invited', 'confirmed'].includes(participation.status)) return json({ error: 'Convite indisponível' }, 409);
+      const { data: roles } = await db.from('user_roles').select('role').eq('user_id', user.id);
+      const { data: membership } = participation.team_id ? await db.from('team_members').select('id').eq('user_id', user.id).eq('team_id', participation.team_id).eq('is_facilitator', true) : { data: [] };
+      if (participation.invited_by !== user.id && participation.metadata?.reinvited_by !== user.id && !roles?.some(r => r.role === 'admin') && !(roles?.some(r => r.role === 'facilitador') && membership?.length)) return json({ error: 'Sem permissão' }, 403);
       const [{ data: profile }, { data: meeting }] = await Promise.all([
         db.from('profiles').select('full_name,email').eq('id', participation.profile_id).maybeSingle(),
         db.from('meetings').select('title,meeting_date,meeting_time,location').eq('id', participation.meeting_id).maybeSingle(),
       ]);
       if (!profile || !meeting) return json({ error: 'Convite indisponível' }, 409);
       to = profile.email ?? ''; subject = 'Convite para um Encontro Premium — Gente Networking';
-      html = `<h1>Gente Networking</h1><p>Olá, ${escape(profile.full_name)}!</p><p>Você foi convidado para ${escape(meeting.title)} em ${escape(meeting.meeting_date)} ${escape(meeting.meeting_time ?? '')}.</p><p>${escape(meeting.location ?? '')}</p><p><a href="${appUrl}">Responder ao convite</a></p>`;
+      const { data: host } = await db.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+      html = eventInvitationEmailTemplate(profile.full_name, host?.full_name ?? 'Gente Networking', meeting.title, meeting.meeting_date, meeting.meeting_time, meeting.location, `${appUrl}/`);
     } else if (kind === 'request' || kind === 'response') {
       const { data: meeting } = await db.from('meeting_requests').select('*').eq('id', referenceId).maybeSingle();
       if (!meeting || (kind === 'request' ? meeting.requester_id !== user.id : meeting.recipient_id !== user.id)) return json({ error: 'Sem permissão' }, 403);

@@ -3020,6 +3020,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_guest_agenda: { Args: never; Returns: Json }
       get_guest_journey_directory: {
         Args: never
         Returns: {
@@ -3111,6 +3112,7 @@ export type Database = {
           what_i_do: string
         }[]
       }
+      get_meeting_invitations: { Args: { _meeting_id: string }; Returns: Json }
       get_meeting_lead_attendees: {
         Args: { _meeting_ids: string[] }
         Returns: {
@@ -3276,6 +3278,14 @@ export type Database = {
         }[]
       }
       get_year_month_from_date: { Args: { d: string }; Returns: string }
+      guest_can_confirm_meeting: {
+        Args: { _meeting_id: string; _user_id: string }
+        Returns: boolean
+      }
+      guest_meetings_dispatch: {
+        Args: { _action: string; _caller: string; _payload: Json }
+        Returns: Json
+      }
       has_module_access: {
         Args: { _feature: string; _user_id: string }
         Returns: boolean
@@ -3286,6 +3296,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      invite_person_to_meeting: {
+        Args: {
+          _company?: string
+          _email: string
+          _meeting_id: string
+          _name: string
+          _phone?: string
+        }
+        Returns: Json
       }
       invite_subscriber_premium: {
         Args: { _meeting_id: string; _profile_id: string }
@@ -3397,6 +3417,10 @@ export type Database = {
       respond_premium_invitation: {
         Args: { _accept: boolean; _participation_id: string }
         Returns: undefined
+      }
+      set_guest_meeting_confirmation: {
+        Args: { _confirm: boolean; _meeting_id: string }
+        Returns: Json
       }
       set_integration_secret: {
         Args: { _name: string; _value: string }

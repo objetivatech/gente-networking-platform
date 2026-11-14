@@ -1,7 +1,12 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-11-11
-> **Versão:** 3.62.0 — Convites pelo perfil público
+> **Última atualização:** 2026-11-14
+> **Versão:** 3.63.0 — Agenda do Convidado e convites por encontro
+
+### Agenda e reconvites (v3.63.0)
+Convidado → Início → Agenda de Encontros → HUB aberto ou Premium com convite → Confirmar Presença. Sem convite Premium, converse com o Facilitador pelo WhatsApp. Cada encontro tem confirmação/cancelamento independente; histórico de visitas não esconde novos eventos.
+
+Admin/Facilitador do Grupo → Encontros → Adicionar Convidado → informar contato → convite/reconvite vinculado ao evento → e-mail e mensagem manual de WhatsApp. Falha de e-mail mantém o convite e permite tentar novamente. Expandir o encontro mostra os convidados aguardando confirmação separadamente dos confirmados. HUB confirmado na plataforma é vinculado ao CRM automaticamente e conta uma única vez. Consulte [FLUXOS_DE_CONVITES.md](./FLUXOS_DE_CONVITES.md) para permissões, exceções e homologação pendente.
 
 ### Visitante pelo perfil público (v3.62.0)
 1. Membro compartilha `/m/seu-slug` → visitante abre **Quero conhecer o Grupo**.

@@ -1,6 +1,18 @@
 # Fluxos de Convites
 
-**Versão:** v3.62.0 · Novembro/2026
+**Versão:** v3.63.0 · Novembro/2026
+
+## Agenda do Convidado e convite por encontro (v3.63.0)
+
+- Convidado ativo entra na página inicial e vê todos os encontros de hoje em diante, mesmo que já tenha participado antes. Cada encontro tem sua própria confirmação; confirmar um não bloqueia outros.
+- Gente HUB é aberto: **Confirmar Presença no Gente HUB** sincroniza presença e vínculo ao CRM em uma transação. A origem nova é `api`, com contexto `plataforma_convidado_hub`; contatos existentes preservam sua origem. A lista e o total existentes deduplicam perfil e lead.
+- Premium: confirmação exige convite aceito para o Grupo (incluindo snapshot histórico) ou participação recorrente ativa para aquele encontro/Grupo. Sem autorização, aparece contato dos Facilitadores; local/link reservado não é exposto. Cancelar remove a confirmação e o vínculo HUB, sem apagar a ficha CRM nem o convite.
+- Admin ou Facilitador do Grupo → **Encontros → Adicionar Convidado** → nome, e-mail, WhatsApp e empresa → **Enviar Convite**. Admin tem escopo global; Facilitador apenas seu Grupo. Membros continuam convidando e reconvidando pelo fluxo existente em Convites.
+- Conta Convidado existente recebe reconvite, sem nova conta; Assinante ativo recebe visita Premium pela mecânica própria. Pessoa inativa exige reativação prévia; papéis internos não recebem nova ativação. E-mail/telefone conflitantes exigem revisão, sem fusão automática.
+- Novo contato recebe convite ligado ao encontro e ao CRM, e-mail com data/horário/local e link de ativação. Recorrente recebe link para acessar a agenda. Autoria original é preservada. WhatsApp é manual, com mensagem pronta, sem API da Meta.
+- E-mail e persistência são independentes. Falha aparece no modal com **Tentar enviar e-mail**; tentativas concluídas não duplicam entrega. Convites pendentes aparecem separados dos confirmados ao expandir o encontro.
+- Confirmações utilizam os triggers existentes; esta versão não altera valores ou elegibilidade de pontos, nem transforma um reconvite em presença automaticamente. A gamificação existente ainda utiliza o registro de presença/confirmacão já adotado na plataforma.
+- Homologação com Convidado/Facilitador reais e entrega de e-mail permanece pendente no Supabase externo; não houve convites enviados a contatos arbitrários.
 
 ## Convites pelo perfil público (v3.62.0)
 Compartilhe a página `/m/seu-slug`. O botão **Quero conhecer o Grupo** abre o formulário de solicitação com nome, e-mail, WhatsApp, empresa opcional, Grupo e autorização de envio. Somente Grupos do anfitrião publicado são oferecidos; sem Grupo disponível não é criado convite.
