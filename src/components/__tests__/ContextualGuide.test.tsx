@@ -4,7 +4,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ContextualGuide } from '../ContextualGuide';
-afterEach(() => { cleanup(); localStorage.clear(); });
+import { MemoryRouter } from 'react-router-dom';
+afterEach(() => { cleanup(); localStorage.clear(); sessionStorage.clear(); });
 it('guia manual permanece disponível com perfil incompleto e permite concluir/reabrir', async () => {
   const changed = vi.fn();
   render(<TooltipProvider><ContextualGuide userId="guide-test" role="assinante" pathname="/encontros" blocked={false} profileComplete={false} menuOpen={false} onOpenChange={changed} /></TooltipProvider>);
@@ -37,4 +38,12 @@ it('perfil completo inicia automaticamente e grava visita por página', async ()
   render(<TooltipProvider><ContextualGuide userId="guide-test" role="membro" pathname="/perfil" blocked={false} profileComplete menuOpen={false} onOpenChange={vi.fn()} /></TooltipProvider>);
   await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy(), { timeout: 1500 });
   expect(localStorage.getItem('gente-guide-v1:guide-test:membro:/perfil')).toBe('seen');
+});
+it.each(['assinante', 'convidado', 'membro', 'facilitador', 'admin'] as const)('perfil pendente precede guia para %s e permite adiamento', async role => {
+  render(<MemoryRouter><TooltipProvider><ContextualGuide userId="profile-test" role={role} pathname="/" blocked={false} profileComplete={false} profile={{ full_name: 'Pessoa Teste' }} menuOpen={false} onOpenChange={vi.fn()} /></TooltipProvider></MemoryRouter>);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Lembrar mais tarde' })).toBeTruthy());
+  expect(localStorage.getItem(`gente-guide-v1:profile-test:${role}:/`)).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Lembrar mais tarde' }));
+  await waitFor(() => expect(localStorage.getItem(`gente-guide-v1:profile-test:${role}:/`)).toBe('seen'), { timeout: 1800 });
+  expect(sessionStorage.getItem('gente-profile-prompt-v1:profile-test')).toContain('doors_notes');
 });

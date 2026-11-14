@@ -59,11 +59,12 @@ export default function Documentacao() {
         <p>Não há formulário paralelo de cadastro nesta apresentação. Grupos Premium exigem contratação independente. Publicação Cloudflare e conferência da edição com uma conta Admin ainda são necessárias.</p>
       </CardContent></Card>}
       {showMemberDocs && <Card><CardHeader><CardTitle>Guias por página e participação</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
-        <p>A interrogação no cabeçalho abre o guia da página, com orientações de networking e o escopo do seu papel. É possível reabrir sempre. O início automático aguarda perfil completo, vídeo concluído e ausência de outro diálogo.</p>
+        <p>O botão Guia no cabeçalho abre orientações da página e do seu papel. Todos os papéis, inclusive Gente Conexões, recebem primeiro o vídeo obrigatório quando aplicável, depois o aviso de campos pendentes e, em seguida, o guia. Completar perfil agora leva ao perfil; Lembrar mais tarde libera o guia sem exigir 100% de completude.</p>
+        <p>O adiamento vale nesta sessão para os mesmos campos. Novas pendências ou um perfil que voltou a ficar incompleto fazem o aviso reaparecer. A tarja continua visível quando faltam campos, fora dos diálogos e do vídeo.</p>
         <p>O guia não altera acesso ou pontos. A tarja de perfil reaparece após fechar o guia quando faltam campos; pitch por IA continua opcional.</p>
       </CardContent></Card>}
       {showAdminDocs && <Card><CardHeader><CardTitle>Recuperação de contratações Gente Conexões</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
-        <p>Em Planos e Assinaturas, abra Contratações pendentes; o mesmo painel está no CRM. Apenas o Admin consulta pessoas sem primeiro pagamento há mais de 24 horas, sem teste gratuito ou pagamento anterior.</p>
+        <p>Em CRM ou Planos e Assinaturas, abra a aba Contratações abandonadas / pendentes. O painel não fica mais escondido em uma seção recolhida. Apenas o Admin consulta pessoas sem primeiro pagamento há mais de 24 horas, sem teste gratuito ou pagamento anterior.</p>
         <p>Retomar contato permite revisar uma mensagem e abrir o WhatsApp manualmente, sem nova cobrança ou envio automático. A pessoa retoma a contratação existente em /assinar. Contas inativas, assinaturas ativas/canceladas e processamento em andamento não entram nesta recuperação.</p>
       </CardContent></Card>}
       {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: agenda e acolhimento</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">

@@ -36,6 +36,9 @@ export function getContextualGuide(path: string, role: AppRole): GuideStep[] {
   if (key === '/encontros' && role === 'convidado') scope = 'Gente HUB permite inscrição; encontros Premium exigem convite autorizado. Confirmar não registra presença automaticamente.';
   return [{ title, text: purpose }, { title: 'Transforme em uma próxima conexão', text: action }, { title: 'Seu acesso e sua participação', text: scope }];
 }
-export function canAutoStartGuide(videoBlocked: boolean, profileComplete: boolean, otherDialog: boolean, seen: boolean) {
-  return !videoBlocked && profileComplete && !otherDialog && !seen;
+export function canAutoStartGuide(videoBlocked: boolean, profileComplete: boolean, otherDialog: boolean, seen: boolean, profileDeferred = false) {
+  return !videoBlocked && (profileComplete || profileDeferred) && !otherDialog && !seen;
+}
+export function needsProfilePrompt(ready: boolean, complete: boolean, missingKey: string, deferredKey: string) {
+  return ready && !complete && missingKey !== deferredKey;
 }

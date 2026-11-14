@@ -1,7 +1,13 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.4 — Guias e recuperação de contratações
+> **Versão:** 3.64.5 — Correções de prioridade e recuperação
+
+## Correções da Fase 4 (v3.64.5)
+- `ContextualGuide` coordena vídeo obrigatório → `ProfileCompletionDialog` → guia, com a mesma lista real de 12 campos. Carregamento, menu e outros diálogos suspendem a sequência. Não modifica permissões ou progresso de vídeo.
+- Modal para todos os papéis: CTA /perfil e adiamento por assinatura dos campos faltantes em sessionStorage por pessoa. Completar o perfil limpa o adiamento; novos campos pendentes reabrem o aviso. A tarja mantém a regra de campos reais. Guia automático liberado após adiamento; botão Guia destacado para reabertura.
+- CRM passa a ter abas Leads e Kanban / Contratações abandonadas e pendentes; Planos usa o mesmo rótulo e painel. População, RPC e contato manual permanecem inalterados, sem consultas adicionais para contadores.
+- Histórico formal registra as versões 3.64.2–3.64.5 sem duplicar registros existentes. Testes de prioridade e adiamento cobrem os cinco papéis. Homologação real autenticada e publicação Cloudflare continuam pendentes.
 
 ## Guias e recuperação (v3.64.4)
 - `contextual-guide` centraliza passos por rota/papel; `ContextualGuide` usa Dialog/Tooltip existentes no Header do MainLayout. Guia é exclusivamente orientação, não autorização. Persistência UX local por usuário/papel/rota/versão, com fallback manual quando storage indisponível. Não registra conclusão de onboarding nem acesso financeiro.

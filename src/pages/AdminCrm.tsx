@@ -56,6 +56,7 @@ import {
 } from '@/components/ui/accordion';
 import { Info, Columns3 } from 'lucide-react';
 import { PendingConnectionCheckouts } from '@/components/crm/PendingConnectionCheckouts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const STATUS_COLORS: Record<CrmLeadStatus, string> = {
   novo: 'bg-slate-500',
@@ -202,6 +203,10 @@ export default function AdminCrm() {
         </div>
       </div>
 
+      <Tabs defaultValue="leads">
+        <TabsList className="hscroll"><TabsTrigger value="leads">Leads e Kanban</TabsTrigger><TabsTrigger value="pendentes">Contratações abandonadas / pendentes</TabsTrigger></TabsList>
+        <TabsContent value="pendentes" className="pt-4"><PendingConnectionCheckouts /></TabsContent>
+        <TabsContent value="leads" className="space-y-6 pt-4">
       {/* Guia de ingestão (v3.28.0) */}
       <Accordion type="single" collapsible className="rounded-lg border bg-muted/30">
         <AccordionItem value="ingestao" className="border-0">
@@ -374,7 +379,6 @@ export default function AdminCrm() {
       )}
 
       {/* Kanban */}
-      <Accordion type="single" collapsible><AccordionItem value="pending-checkouts"><AccordionTrigger>Contratações pendentes · Gente Conexões</AccordionTrigger><AccordionContent><PendingConnectionCheckouts /></AccordionContent></AccordionItem></Accordion>
       {isLoading ? (
         <p className="text-muted-foreground">Carregando leads...</p>
       ) : (
@@ -515,6 +519,8 @@ export default function AdminCrm() {
         </CardHeader>
       </Card>
 
+        </TabsContent>
+      </Tabs>
       <LeadDrawer
         lead={selectedLead}
         teamName={selectedLead?.target_team_id ? teamMap.get(selectedLead.target_team_id) : null}

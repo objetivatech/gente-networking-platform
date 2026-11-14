@@ -1,5 +1,11 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.5 — Correções da Fase 4
+- [x] Modal de perfil para todos os papéis e sequência vídeo → perfil → guia; reabertura manual destacada.
+- [x] Painel de contratações abandonadas/pendentes visível no CRM e em Planos.
+- [x] 222 testes passaram; build OK. Documentação e registro formal idempotente das versões 3.64.2–3.64.5 concluídos; nenhum alerta novo (79 preexistentes).
+- [ ] Homologação autenticada e publicação Cloudflare — Supabase externo sem sessão disponível; implantação externa.
+
 ## v3.64.4 — Gente Conexões, Fase 4
 - [x] Guia contextual por página/papel, disponível no cabeçalho; início automático sem competir com vídeo, perfil ou outros diálogos.
 - [x] Recuperação manual de contratações Asaas sem primeiro pagamento há mais de 24h, em Planos e CRM, sem novas cobranças/envios automáticos.

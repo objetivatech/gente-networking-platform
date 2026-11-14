@@ -1,7 +1,14 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.4 — Guias e recuperação de contratações
+> **Versão:** 3.64.5 — Correções de prioridade e recuperação
+
+## Correções da Fase 4 (v3.64.5)
+- Qualquer papel: aguardar carregamento → vídeo obrigatório quando aplicável → modal com os campos reais faltantes → Completar perfil agora ou Lembrar mais tarde → guia da página. Perfil completo não recebe modal. Nenhum guia é aberto sobre o vídeo, menu ou outro diálogo.
+- Lembrar mais tarde libera o guia nessa sessão sem exigir perfil completo. O aviso volta em nova sessão, ao surgir outra pendência ou se um perfil completo voltar a ficar incompleto. A tarja continua até os 12 campos serem preenchidos; pitch por IA é opcional.
+- Botão Guia no cabeçalho reabre manualmente; visita automática continua por pessoa/papel/página no navegador.
+- Admin → CRM → aba Contratações abandonadas / pendentes (ao lado de Leads e Kanban), ou Planos e Assinaturas → mesma aba. Total e lista aparecem no painel; Retomar contato mantém mensagem editável e WhatsApp manual, sem cobrança nova.
+- Publicação Cloudflare, vídeo definitivo e homologação com contas reais no Supabase externo permanecem necessários.
 
 ## Guias e recuperação (v3.64.4)
 - O botão de interrogação no cabeçalho abre o guia da página atual: finalidade para networking, próxima ação e escopo do papel. Pode ser reaberto a qualquer momento; durante o vídeo obrigatório ou outro diálogo, aguarda liberação.

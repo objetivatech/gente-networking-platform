@@ -1,0 +1,8 @@
+INSERT INTO public.system_changelog(version,title,description,category,changes)
+SELECT v.version,v.title,v.description,v.category,v.changes FROM (VALUES
+('3.64.2','Identidade Gente Conexões','Vitrine, navegação e endereço público alinhados ao nome comercial.','ui','["Vitrine Gente Conexões em menus e atalhos","Contraste do contador de perfis compatíveis corrigido","Endereço /conexoes com redirecionamento das URLs antigas"]'::jsonb),
+('3.64.3','Página de vendas Gente Conexões','Apresentação modernizada com editor avançado e ofertas reais.','feature','["Seções editoriais ampliadas e depoimentos somente quando cadastrados","Ofertas compartilham o catálogo público do checkout","Preços, vagas e teste gratuito definidos nos planos"]'::jsonb),
+('3.64.4','Guias e recuperação de contratações','Guias por página e papel, com recuperação manual pelo Admin.','feature','["Orientações contextuais com escopo de participação","Consulta restrita ao Admin de contratações sem primeiro pagamento há mais de 24 horas","Contato editável via WhatsApp, sem novas cobranças ou envio automático"]'::jsonb),
+('3.64.5','Correções da Fase 4','Modal de perfil, sequência de avisos e painel de contratações visível.','improvement','["Modal com campos reais pendentes para todos os papéis","Prioridade vídeo obrigatório, perfil e guia; adiamento libera o guia na sessão","Botão Guia destacado e tour disponível ao Gente Conexões","Aba Contratações abandonadas / pendentes no CRM e em Planos","Documentação e testes de prioridade atualizados; homologação autenticada e publicação Cloudflare pendentes"]'::jsonb)
+) AS v(version,title,description,category,changes)
+WHERE NOT EXISTS(SELECT 1 FROM public.system_changelog c WHERE c.version=v.version);

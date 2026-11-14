@@ -466,7 +466,7 @@ export default function PlanosAssinaturas() {
           <TabsTrigger value="descontos">Descontos</TabsTrigger>
           <TabsTrigger value="assinaturas">Assinaturas</TabsTrigger>
           <TabsTrigger value="cobrancas">Cobranças</TabsTrigger>
-          <TabsTrigger value="pendentes">Contratações pendentes</TabsTrigger>
+          <TabsTrigger value="pendentes">Contratações abandonadas / pendentes</TabsTrigger>
         </TabsList>
 
         {/* PLANOS */}
