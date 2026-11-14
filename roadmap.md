@@ -1,5 +1,13 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.3 — Gente Conexões, Fase 3
+- [x] Redesenhar /conexoes com a referência Comunidade, seções editoriais completas e sem formulário paralelo.
+- [x] Reutilizar catálogo público para ofertas, vagas e trial reais; manter checkout /assinar e planos inativos preservados.
+- [x] Ampliar editor avançado apenas para Conexões; preservar entrada, conteúdo salvo e URLs legadas.
+- [x] Validar navegação pública desktop/mobile e seleção real de plano sem cobrança; 197 testes passaram, build OK, imagens carregadas, sem erros ou overflow; documentação/changelog atualizados.
+- [ ] Publicar frontend no Cloudflare — implantação externa sob gestão do usuário.
+- [ ] Homologar edição/salvamento Admin — requer sessão autorizada no Supabase externo.
+
 ## v3.64.2 — Correções da identidade Gente Conexões
 - [x] Atualizar Vitrine, menus, atalhos e rótulos; corrigir contraste do contador compatível usando token de texto, sem alterar dados/filtros.
 - [x] Implementar rota canônica /conexoes com redirecionamento das URLs legadas, preservando conteúdo/CMS e checkout.

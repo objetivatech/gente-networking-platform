@@ -18,7 +18,8 @@ import { COMMUNITY_DEFAULTS, type AdvancedContent } from '@/modules/lps/componen
 import { previewForPage, validateSlug } from '../../lib/rules';
 import { PageSettings } from '../../components/admin/PageSettings';
 import type { Json } from '@/integrations/supabase/types';
-import { ENTRY_DEFAULTS, ENTRY_SECTIONS, SUBSCRIBER_DEFAULTS } from '../../lib/entry-content';
+import { ENTRY_DEFAULTS, ENTRY_SECTIONS } from '../../lib/entry-content';
+import { CONNECTION_DEFAULTS, CONNECTION_SECTIONS } from '../../lib/connections-content';
 
 const SECTIONS: { key: keyof AdvancedContent; label: string }[] = [
   { key: 'hero', label: 'Hero' },
@@ -30,11 +31,18 @@ const SECTIONS: { key: keyof AdvancedContent; label: string }[] = [
   { key: 'testimonials', label: 'Depoimentos' },
   { key: 'reasons', label: 'Razões' },
   { key: 'form', label: 'CTA + Form' },
+  { key: 'offer', label: 'Planos e contratação' },
   { key: 'faq', label: 'FAQ' },
 ];
 
 // Fields per section: which are simple strings, which are JSON arrays of objects.
 const SIMPLE_FIELDS: Record<string, { key: string; label: string; multiline?: boolean }[]> = {
+  offer: [
+    { key: 'title', label: 'Título', multiline: true },
+    { key: 'subtitle', label: 'Subtítulo', multiline: true },
+    { key: 'buttonText', label: 'Texto do botão de contratação' },
+    { key: 'reassurance', label: 'Condições e segurança', multiline: true },
+  ],
   hero: [
     { key: 'title', label: 'Título (use **palavra** para destaque laranja)', multiline: true },
     { key: 'subtitle', label: 'Subtítulo (use **palavra** para destaque laranja)', multiline: true },
@@ -113,8 +121,9 @@ const ARRAY_FIELDS: Record<string, { key: string; label: string; hint: string }[
 
 function AdvancedEditor({ pageId, pageSlug }: { pageId: string; pageSlug: string }) {
   const presentationPage = ['entrada-plataforma', 'assinantes'].includes(pageSlug);
-  const defaults = pageSlug === 'assinantes' ? SUBSCRIBER_DEFAULTS : pageSlug === 'entrada-plataforma' ? ENTRY_DEFAULTS : COMMUNITY_DEFAULTS;
-  const sections = presentationPage ? SECTIONS.filter(s => ENTRY_SECTIONS.some(key => key === s.key)) : SECTIONS;
+  const defaults = pageSlug === 'assinantes' ? CONNECTION_DEFAULTS : pageSlug === 'entrada-plataforma' ? ENTRY_DEFAULTS : COMMUNITY_DEFAULTS;
+  const allowed = pageSlug === 'assinantes' ? CONNECTION_SECTIONS : ENTRY_SECTIONS;
+  const sections = presentationPage ? SECTIONS.filter(s => allowed.some(key => key === s.key)) : SECTIONS.filter(s => s.key !== 'offer');
   const { data, isLoading } = useAdvancedPageContent(pageId);
   const upsert = useUpsertAdvancedPageContent();
   const [content, setContent] = useState<AdvancedContent>({});
@@ -337,7 +346,7 @@ export default function AdminAdvancedPages() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-semibold">{p.name}</p>
-                        <p className="text-xs text-muted-foreground">/{p.slug}</p>
+                        <p className="text-xs text-muted-foreground">/{p.slug === 'assinantes' ? 'conexoes' : p.slug}</p>
                       </div>
                       <Badge variant={p.is_active ? 'default' : 'secondary'}>{p.is_active ? 'Ativa' : 'Inativa'}</Badge>
                     </div>

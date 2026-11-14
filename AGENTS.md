@@ -20,7 +20,7 @@
 - Render LP metadata at the Cloudflare edge for all public LP paths and suppress platform installation on those paths; this separates crawler previews and app-only controls from public acquisition pages.
 - Keep invitation signup and confirmation routes when simplifying `/auth`; login-only presentation must not disable invitation activation.
 - Render platform entry from advanced content with an explicit section allowlist excluding lead forms; shared editor must not inject community signup defaults there.
-- Render the public subscriber presentation and platform entry through the same presentation-only advanced CMS allowlist, including friendly and preview URLs; this prevents automatic lead/account forms and keeps editorial changes consistent.
+- Render connections sales through its own presentation-only CMS allowlist and shared public checkout catalog; keep platform entry's smaller allowlist and exclude lead forms from both to prevent duplicate intake and fabricated commercial terms.
 - Map the public connections presentation to the existing subscriber CMS record and share legacy redirect rules between React and Cloudflare; this preserves content identity, attribution and old links without migrating accounts or checkout.
 - Bundle the official entry logos for external Cloudflare deployment while asset-path serving is unavailable there; do not depend on host-relative Lovable media endpoints for brand visibility.
 - Keep public LP cutover separate from code migration until source exports, media portability, tracking and authenticated acceptance checks pass.

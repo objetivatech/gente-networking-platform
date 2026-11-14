@@ -1,7 +1,14 @@
 # Fluxos de Usuário - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.2 — Correções Gente Conexões
+> **Versão:** 3.64.3 — Página Gente Conexões
+
+## Página de vendas Gente Conexões (v3.64.3)
+- `/conexoes` apresenta benefícios, problema/solução, públicos, ecossistema, razões, ofertas e FAQ, com imagens existentes da Comunidade. Depoimentos só aparecem após cadastro de relatos reais pelo Admin.
+- Admin → LPs → LPs Avançadas → página Gente Conexões (registro legado `assinantes`): editar cada seção e salvar. O editor inclui Problema, Para Quem, Depoimentos e Planos e contratação; não inclui formulário de cadastro paralelo. Textos salvos continuam prevalecendo sobre os padrões.
+- Preços, vagas, selo, trial, módulos e franquias vêm de Planos e Assinaturas, não do texto editorial. Ofertas não publicadas não aparecem; plano esgotado não permite continuar. Sem planos publicados, mostra indisponibilidade sem inventar preço ou contagem regressiva.
+- Conhecer os planos → escolher oferta → `/assinar?plano=ID` → criar conta/entrar → consentir → Asaas. Seleção só vale para plano disponível; o servidor revalida condições. Página pública não cria leads, convites, contas ou cobranças. Premium é contratação independente; confirmação de encontros exige convite específico, inclusive HUB.
+- Entrada `/auth`, formulários das outras LPs, URLs antigas e domínio canônico permanecem. Publicação Cloudflare e homologação de edição Admin/contratação real continuam pendentes.
 
 ## Correções da identidade (v3.64.2)
 - Vitrine, menus, atalhos e rótulos dos recursos usam **Vitrine Gente Conexões**; o contador compatível usa cor de texto com contraste. Ordenação, filtros, permissões e franquias não mudam.

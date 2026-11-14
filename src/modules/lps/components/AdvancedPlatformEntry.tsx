@@ -1,6 +1,7 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import type { AdvancedContent } from './landing/CommunityLandingPage';
 import { entryContent, SUBSCRIBER_DEFAULTS } from '../lib/entry-content';
+import { ConnectionsLandingPage } from './ConnectionsLandingPage';
 import { renderContent } from '../lib/markdown';
 import { platformHref } from '../lib/rules';
 import networking from '../assets/platform-networking.jpg';
@@ -17,6 +18,7 @@ function Copy({ text, className = '' }: { text?: string; className?: string }) {
   return <div className={`text-wrap-anywhere ${className}`} dangerouslySetInnerHTML={{ __html: renderContent(text) }} />;
 }
 export function AdvancedPlatformEntry({ content, onLogin, subscriber = false }: { content: AdvancedContent; onLogin: () => void; subscriber?: boolean }) {
+  if (subscriber) return <ConnectionsLandingPage content={content} onLogin={onLogin} />;
   const c = entryContent(content, subscriber ? SUBSCRIBER_DEFAULTS : undefined);
   return <>
     <section className="entry-hero relative isolate flex items-center overflow-hidden">

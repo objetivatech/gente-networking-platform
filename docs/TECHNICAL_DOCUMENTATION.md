@@ -1,7 +1,13 @@
 # Documentação Técnica - Gente Networking
 
 > **Última atualização:** 2026-11-14
-> **Versão:** 3.64.2 — Correções Gente Conexões
+> **Versão:** 3.64.3 — Página Gente Conexões
+
+## Página de vendas Gente Conexões (v3.64.3)
+- `ConnectionsLandingPage` renderiza a apresentação pública/prévia a partir do mesmo registro `assinantes`; `connections-content` tem allowlist própria de seções editoriais, incluindo `offer` e excluindo `form`. Entrada mantém `ENTRY_SECTIONS`; CMS legado e outras LPs não recebem defaults de contratação.
+- `ConnectionOffers` e `/assinar` compartilham `usePublicConnectionPlans`, chave `self-service-plans`, endpoint `subscriber-checkout` action plans, staleTime 60s, sem polling/retry automático. Catálogo não cria contrato e mantém validação comercial no servidor. Parâmetro plano pré-seleciona apenas resultado existente; não envia preço/condições pelo URL.
+- Admin edita problema, públicos, depoimentos e copy da oferta no editor avançado. Vagas/trial/preço/selo/franquias vêm exclusivamente do catálogo. Conteúdo editorial é sanitizado pelo renderizador existente; arrays vazios removem itens, relatos ausentes não recebem prova social fictícia.
+- Imagens existentes reutilizadas; sem geração, novos serviços, migrações ou mudanças em planos/contas/papéis/CRM/gamificação. Publicação Cloudflare e homologação autenticada do CMS externo pendentes. Changelog versionado em `docs/CHANGELOG_3.64.3.md`.
 
 ## Correções da identidade (v3.64.2)
 - Vitrine, menus, atalhos e rótulos dos recursos usam **Vitrine Gente Conexões**; o contador compatível usa cor de texto com contraste. Ordenação, filtros, permissões e franquias não mudam.

@@ -1,6 +1,6 @@
 /** @copyright © 2026 Ranktop SEO Inteligente. @author Diogo Devitte */
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,11 +15,11 @@ import { formatLpPhone, isValidLpPhone } from '@/modules/lps/lib/form-config';
 import logo from '@/assets/gente-networking-cor-cropped.png';
 import { ArrowRight, Check, RefreshCw, ShieldCheck } from 'lucide-react';
 import { PlanBadge } from '@/components/profile/PlanBadge';
-import { hasAvailableSeats, type PlanBadgeData } from '@/lib/plan-commercial';
+import { hasAvailableSeats } from '@/lib/plan-commercial';
 import { formatDateBR } from '@/lib/date-utils';
 import { z } from 'zod';
+import { usePublicConnectionPlans } from '@/modules/lps/hooks/usePublicConnectionPlans';
 
-type Plan = { id: string; name: string; description: string | null; amount_cents: number; features: Record<string, unknown>; badge_label: string | null; badge_tone: PlanBadgeData['tone']; remaining_seats: number | null; trial_enabled: boolean; trial_days: number };
 type Contract = { trial_until?: string | null; id: string; status: string; amount_cents: number; payment_url: string | null; plan: { name: string } | null };
 async function invoke(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('subscriber-checkout', { body });
@@ -34,14 +34,15 @@ async function invoke(body: Record<string, unknown>) {
 export default function AssinarComunidade() {
   const { user, loading, signUp } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('signup');
-  const [selected, setSelected] = useState<string>('');
+  const [params] = useSearchParams();
+  const [selected, setSelected] = useState<string>(params.get('plano') ?? '');
   const [cpf, setCpf] = useState('');
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [draft, setDraft] = useState({ name: '', email: '', phone: '', company: '', segment: '', password: '', confirm: '' });
-  const plans = useQuery({ queryKey: ['self-service-plans'], queryFn: async () => (await invoke({ action: 'plans' })).plans as Plan[], retry: false });
+  const plans = usePublicConnectionPlans();
   const status = useQuery({ queryKey: ['self-service-contract', user?.id], enabled: !!user, queryFn: async () => (await invoke({ action: 'status' })).contract as Contract | null, retry: false });
   const plan = plans.data?.find(p => p.id === selected);
   const contract = status.data;

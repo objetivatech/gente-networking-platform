@@ -38,6 +38,7 @@ export interface FaqItem { question: string; answer: string }
 export interface ContactItem { label: string; value: string }
 
 export interface AdvancedContent {
+  offer?: { title?: string; subtitle?: string; buttonText?: string; reassurance?: string };
   hero?: { title?: string; subtitle?: string; buttonText?: string; imageUrl?: string; highlights?: string[] };
   authority?: { title?: string; subtitle?: string; stats?: StatItem[] };
   problem?: { title?: string; subtitle?: string; points?: string[]; imageUrl?: string; callout?: string; calloutSubtitle?: string };
