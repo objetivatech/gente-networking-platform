@@ -1,7 +1,13 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-11-14
-> **Versão:** 3.64.5 — Correções de prioridade e recuperação
+> **Última atualização:** 2026-11-16
+> **Versão:** 3.64.6 — Confirmação de encontros
+
+## Confirmação sem comparecimento antecipado (v3.64.6)
+- Convidado → agenda → encontro autorizado → Confirmar Presença → confirmação vinculada ao encontro. Não gera comparecimento nem pontos; convite e anfitrião permanecem.
+- Gente HUB aberto → confirmar → inscrição no evento e vínculo CRM, sem duplicar cadastros/contagem. Para Gente Conexões, inclusive HUB exige convite específico.
+- Cancelar → desfaz somente confirmação e inscrição HUB criada por ela; preserva convite para reconfirmar. Comparecimento já registrado exige revisão pelo Facilitador/Admin.
+- Ativação confirma o próximo encontro pelo mesmo fluxo seguro; a gestão registra comparecimento real separadamente.
 
 ## Fase 5 — Manual e aceite
 O [manual consolidado Gente Conexões](./GENTE_CONEXOES.md) reúne caminhos do Admin e dos participantes, jornada de entrada, regras comerciais e checklist de liberação. Histórico 3.64.0–3.64.5 confirmado no Supabase, sem duplicações. Publicação, vídeo definitivo e testes autenticados/Asaas continuam pendentes; documentação concluída não significa cobrança ou oferta liberada.

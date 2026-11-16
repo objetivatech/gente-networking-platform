@@ -1,5 +1,11 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.6 — Confirmação de encontros
+- [x] Separar confirmação de comparecimento, preservar autoria e inscrição HUB/CRM; corrigir também ativação e leitura da agenda.
+- [x] Exibir o motivo retornado pelo servidor em falhas de confirmação; atualizar documentação e changelog.
+- [x] Regressão transacional do caso passou com rollback: Premium, HUB/CRM, duplicação, cancelamento, ativação e ausência de pontos/presenças antecipados; 222 testes passaram e build OK.
+- [ ] Aceite pela interface autenticada e publicação Cloudflare — depende de conta autorizada no Supabase externo e publicação externa.
+
 ## Fase 5 — Fechamento documental do Gente Conexões (v3.64.5)
 - [x] Consolidar manual e checklist das Fases 1–4 em docs/GENTE_CONEXOES.md, corrigindo referências a funcionalidades ainda futuras.
 - [x] Conferir system_changelog no Supabase: versões 3.64.0–3.64.5 presentes, um registro por versão; sem nova migração.

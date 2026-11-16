@@ -19,7 +19,14 @@ export function useGuestAgenda() {
   const confirmation = useMutation({
     mutationFn: async ({ meetingId, confirm }: { meetingId: string; confirm: boolean }) => {
       const { data, error } = await supabase.functions.invoke('guest-meetings', { body: { action: 'confirm', meeting_id: meetingId, confirm } });
-      if (error || data?.error) throw new Error(data?.error ?? 'Não foi possível atualizar a participação');
+      if (error || data?.error) {
+        let message = data?.error;
+        if (!message && error && 'context' in error && error.context instanceof Response) {
+          const body = await error.context.clone().json().catch(() => null);
+          message = body?.error;
+        }
+        throw new Error(message ?? 'Não foi possível atualizar a participação. Tente novamente; se persistir, fale com o Facilitador.');
+      }
     },
     onSuccess: (_, { confirm }) => {
       for (const key of ['guest-agenda', 'guest-meetings', 'meetings', 'meeting-attendees', 'meeting-guests', 'meeting-registrants', 'meeting-lead-attendances', 'meeting-invitations', 'guests-attendance-history', 'crm-leads']) qc.invalidateQueries({ queryKey: [key] });

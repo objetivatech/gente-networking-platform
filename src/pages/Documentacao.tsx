@@ -54,7 +54,8 @@ export default function Documentacao() {
       </div>
 
       {showAdminDocs && <Card><CardHeader><CardTitle>Gente Conexões: checklist de liberação</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
-        <p>As Fases 1–4 estão implementadas e a Fase 5 consolida documentação e histórico, sem ativar ofertas ou criar cobranças. O histórico das versões 3.64.0 a 3.64.5 foi confirmado sem duplicações; consulte Changelog.</p>
+        <p>As Fases 1–4 estão implementadas e a Fase 5 consolida documentação e histórico, sem ativar ofertas ou criar cobranças. Consulte Changelog para o histórico e a correção 3.64.6.</p>
+        <p>Confirmar Presença registra a intenção de participar, não o comparecimento nem pontos antecipados. Convidados podem confirmar Gente HUB sem convite, com inscrição no CRM; Gente Conexões exige convite específico, inclusive HUB. Comparecimento real continua sendo registrado pela gestão.</p>
         <ol className="list-decimal pl-5 space-y-2">
           <li>Publicar no Cloudflare e conferir /conexoes, redirecionamentos antigos, login, compartilhamento e ausência de instalação nas LPs.</li>
           <li>Salvar e reabrir a apresentação no editor avançado; cadastrar e testar o vídeo definitivo em Acolhimento Conexões antes de exigir sua conclusão.</li>

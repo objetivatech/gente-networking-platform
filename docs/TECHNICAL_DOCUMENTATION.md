@@ -1,7 +1,13 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-11-14
-> **Versão:** 3.64.5 — Correções de prioridade e recuperação
+> **Última atualização:** 2026-11-16
+> **Versão:** 3.64.6 — Confirmação de encontros
+
+## Correção de RSVP (v3.64.6)
+- `set_guest_meeting_confirmation` serializa pelo perfil e grava `guest_participations` específica por evento. Nunca insere/remove `attendances`; a confirmação não aciona gamificação/feed. `get_guest_agenda` lê RSVP e comparecimento já registrado.
+- Convite geral não é consumido; autoria é copiada para o RSVP. Repetições reutilizam a participação. `confirm_guest_next_meeting` usa a mesma função no fluxo de ativação, exclusivamente via serviço.
+- HUB mantém inscrição em `meeting_lead_attendances` e recálculo CRM deduplicado, sem presença Premium/pontos. Cancelamento remove somente inscrição HUB criada por esta confirmação; comparecimento registrado não pode ser apagado pelo participante.
+- Permissões permanecem: Premium autorizado para Convidado; Gente Conexões exige convite específico inclusive HUB. Teste transacional com rollback em `scripts/guest-confirmation-regression.sql`; nenhum registro real é confirmado para homologação.
 
 ## Fase 5 — Fechamento documental (14/11/2026)
 - Manual e checklist consolidados em [GENTE_CONEXOES.md](./GENTE_CONEXOES.md). Funcionalidades das Fases 1–4 implementadas; aceite operacional continua separado de testes automatizados.
@@ -53,7 +59,7 @@ Homologação autenticada, trial e primeira cobrança reais continuam pendentes 
 ## Agenda e convites por evento (v3.63.0)
 - `guest-meetings` valida JWT e entrada; `guest_meetings_dispatch` é service-only e estabelece o caller derivado da sessão. `get_guest_agenda`, `set_guest_meeting_confirmation`, `invite_person_to_meeting` e `get_meeting_invitations` não são expostas diretamente a anon/authenticated. Não amplia leitura de Membros para Convidados/Assinantes.
 - Agenda futura inclui todos os eventos; local aparece só em evento autorizado. HUB aberto; Premium usa participação ativa específica ou convite aceito de Grupo/snapshot. Trigger também bloqueia inserções diretas de presença própria sem convite válido.
-- Confirmação bloqueia perfil e grava presença + vínculo HUB/CRM em transação; cancelamento remove ambos, preserva CRM e autorização para reconfirmar. `recalculate_crm_attendance` e `get_meeting_lead_attendees` existentes mantêm contagens deduplicadas; origem prévia nunca é sobrescrita.
+- Desde v3.64.6, confirmação grava RSVP específico, não comparecimento; HUB mantém vínculo CRM transacional. Cancelamento preserva CRM e autorização para reconfirmar. `recalculate_crm_attendance` e `get_meeting_lead_attendees` existentes mantêm contagens deduplicadas; origem prévia nunca é sobrescrita.
 - Convite direto exige Admin ou Facilitador do Grupo, resolve identidade por e-mail/telefone sem conflitos, reutiliza `reinvite_guest_to_meeting`, `invite_subscriber_premium` ou `create_guest_invitation`. Convite pendente e presença são listas distintas.
 - `community-notification` recebe referência persistida, autoriza emissor e deriva destinatário/local/link no servidor. Usa template de marca compartilhado, data DD/MM/AAAA e claim recuperável por referência. WhatsApp manual. Erro de entrega não reverte o convite.
 - Testes unitários/regressões e negativos sem sessão são verificáveis; fluxo real com conta externa e e-mail depende de homologação autorizada. Alertas preexistentes de segurança não foram corrigidos nesta versão.
