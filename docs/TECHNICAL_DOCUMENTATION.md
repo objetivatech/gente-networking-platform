@@ -1,7 +1,12 @@
 # Documentação Técnica - Gente Networking
 
-> **Última atualização:** 2026-11-16
-> **Versão:** 3.64.6 — Confirmação de encontros
+> **Última atualização:** 2026-11-17
+> **Versão:** 3.64.7 — Persistência do aviso de perfil
+
+## Aviso de perfil a cada navegação (v3.64.7)
+- `MainLayout` remonta `ContextualGuide` por pessoa/papel/`location.key`, inclusive em nova navegação para a mesma URL e retornos pelo histórico. Fechar o aviso só libera a abertura atual; não lê nem grava dispensas em Storage.
+- Mudanças nos campos/completude reavaliam a pendência pelo helper compartilhado. Perfil completo não recebe modal; limpar um dos 12 campos o reativa. `/perfil` e `/perfil/` ficam livres do aviso automático para edição.
+- Vídeo, menu e outros diálogos continuam prioritários; depois de fechar o aviso, o guia pode iniciar sem sobreposição. A persistência de visitas do guia permanece independente.
 
 ## Correção de RSVP (v3.64.6)
 - `set_guest_meeting_confirmation` serializa pelo perfil e grava `guest_participations` específica por evento. Nunca insere/remove `attendances`; a confirmação não aciona gamificação/feed. `get_guest_agenda` lê RSVP e comparecimento já registrado.
@@ -16,7 +21,7 @@
 
 ## Correções da Fase 4 (v3.64.5)
 - `ContextualGuide` coordena vídeo obrigatório → `ProfileCompletionDialog` → guia, com a mesma lista real de 12 campos. Carregamento, menu e outros diálogos suspendem a sequência. Não modifica permissões ou progresso de vídeo.
-- Modal para todos os papéis: CTA /perfil e adiamento por assinatura dos campos faltantes em sessionStorage por pessoa. Completar o perfil limpa o adiamento; novos campos pendentes reabrem o aviso. A tarja mantém a regra de campos reais. Guia automático liberado após adiamento; botão Guia destacado para reabertura.
+- Modal para todos os papéis: CTA /perfil e fechamento temporário liberam o guia na abertura atual. Desde 3.64.7, nenhuma dispensa é salva; qualquer nova abertura de página reavalia o perfil, inclusive mesma URL e recarregamento. A tarja mantém a regra de campos reais.
 - CRM passa a ter abas Leads e Kanban / Contratações abandonadas e pendentes; Planos usa o mesmo rótulo e painel. População, RPC e contato manual permanecem inalterados, sem consultas adicionais para contadores.
 - Histórico formal registra as versões 3.64.2–3.64.5 sem duplicar registros existentes. Testes de prioridade e adiamento cobrem os cinco papéis. Homologação real autenticada e publicação Cloudflare continuam pendentes.
 

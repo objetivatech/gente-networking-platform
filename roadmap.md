@@ -1,5 +1,10 @@
 # Roadmap v3.50.0 — Convites, Participações, CRM e Resgate
 
+## v3.64.7 — Persistência do aviso de perfil
+- [x] Remover dispensa por sessão; reabrir em cada navegação, retorno à mesma página e recarregamento até completar os 12 campos; manter edição do perfil desimpedida.
+- [x] 228 testes passaram, build OK; regressões de navegação, completude e prioridade validadas; documentação e changelog 3.64.7 atualizados.
+- [ ] Aceite autenticado e publicação Cloudflare — depende de conta autorizada no Supabase externo e publicação externa.
+
 ## v3.64.6 — Confirmação de encontros
 - [x] Separar confirmação de comparecimento, preservar autoria e inscrição HUB/CRM; corrigir também ativação e leitura da agenda.
 - [x] Exibir o motivo retornado pelo servidor em falhas de confirmação; atualizar documentação e changelog.

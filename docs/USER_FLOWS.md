@@ -1,7 +1,12 @@
 # Fluxos de Usuário - Gente Networking
 
-> **Última atualização:** 2026-11-16
-> **Versão:** 3.64.6 — Confirmação de encontros
+> **Última atualização:** 2026-11-17
+> **Versão:** 3.64.7 — Persistência do aviso de perfil
+
+## Aviso persistente de perfil (v3.64.7)
+- Abrir qualquer página autorizada → aguardar vídeo/menu/outros diálogos → perfil incompleto recebe aviso. Fechar ou Lembrar mais tarde libera apenas aquele instante.
+- Navegar, retornar à mesma página, abrir novamente a mesma URL ou recarregar → novo aviso enquanto faltarem campos, sem memorizar dispensa.
+- Completar perfil agora → `/perfil`, livre do aviso automático para editar e salvar. Completar os 12 campos encerra o aviso; apagar qualquer campo obrigatório faz o aviso voltar ao sair do perfil. Pitch por IA continua opcional.
 
 ## Confirmação sem comparecimento antecipado (v3.64.6)
 - Convidado → agenda → encontro autorizado → Confirmar Presença → confirmação vinculada ao encontro. Não gera comparecimento nem pontos; convite e anfitrião permanecem.
@@ -14,7 +19,7 @@ O [manual consolidado Gente Conexões](./GENTE_CONEXOES.md) reúne caminhos do A
 
 ## Correções da Fase 4 (v3.64.5)
 - Qualquer papel: aguardar carregamento → vídeo obrigatório quando aplicável → modal com os campos reais faltantes → Completar perfil agora ou Lembrar mais tarde → guia da página. Perfil completo não recebe modal. Nenhum guia é aberto sobre o vídeo, menu ou outro diálogo.
-- Lembrar mais tarde libera o guia nessa sessão sem exigir perfil completo. O aviso volta em nova sessão, ao surgir outra pendência ou se um perfil completo voltar a ficar incompleto. A tarja continua até os 12 campos serem preenchidos; pitch por IA é opcional.
+- Lembrar mais tarde libera o guia na abertura atual sem exigir perfil completo. Desde 3.64.7, o aviso volta em cada nova abertura de página, inclusive a mesma, sem dispensa por sessão. A tarja continua até os 12 campos serem preenchidos; pitch por IA é opcional.
 - Botão Guia no cabeçalho reabre manualmente; visita automática continua por pessoa/papel/página no navegador.
 - Admin → CRM → aba Contratações abandonadas / pendentes (ao lado de Leads e Kanban), ou Planos e Assinaturas → mesma aba. Total e lista aparecem no painel; Retomar contato mantém mensagem editável e WhatsApp manual, sem cobrança nova.
 - Publicação Cloudflare, vídeo definitivo e homologação com contas reais no Supabase externo permanecem necessários.

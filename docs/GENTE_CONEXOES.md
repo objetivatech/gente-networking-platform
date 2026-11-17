@@ -31,13 +31,14 @@ Entrar na plataforma
   → vídeo obrigatório, se configurado e ainda não concluído
   → aviso de perfil, somente se faltarem campos
       → Completar perfil agora: abrir /perfil
-      → Lembrar mais tarde: adiar os mesmos campos nesta sessão
+      → Lembrar mais tarde ou fechar: liberar somente este instante
   → guia da página, quando ainda não visto neste navegador
   → navegação normal e reabertura pelo botão Guia
 ```
 
 - Vídeo tem conclusão persistida por pessoa/versão no servidor; trocar arquivo ou duração exige nova conclusão. Alterar título não reinicia. Não habilitar antes de validar o arquivo definitivo.
 - Completude usa os 12 campos reais, incluindo Portas que abro, Portas que procuro e observações. Pitch por IA é opcional. Novas pendências ou um perfil completo que volte a ficar incompleto fazem o aviso reaparecer; a tarja permanece fora de vídeo/diálogos enquanto faltarem campos.
+- Desde 3.64.7, o aviso reaparece a cada abertura, retorno ou recarregamento, inclusive na mesma página, sem memorizar dispensa. A página do perfil fica livre do aviso automático para permitir edição; após salvar todos os campos, o aviso para. Remover informação obrigatória reativa a cobrança nas demais páginas.
 - Guia é orientação local, não liberação de acesso, conclusão de vídeo ou gamificação. Vídeo, menu e outros diálogos suspendem sua abertura.
 
 ## Gestão comercial segura
@@ -58,7 +59,7 @@ Registrar data, conta autorizada, resultado e evidência de cada teste; não mar
 | Publicação Cloudflare e páginas públicas | `/conexoes` abre; URLs antigas preservam parâmetros; login chega à plataforma; OG/canônico corretos; sem aviso PWA nas LPs | Publicação externa do frontend e Pages Functions |
 | Editor Admin | Editar/salvar/reabrir conteúdo e conferir página pública; demais LPs e entrada não mudam | Conta Admin autorizada |
 | Vídeo Conexões | Pausar/retomar, sair/entrar, concluir e trocar versão; não contar aba oculta nem liberar por erro | Vídeo definitivo e conta Conexões |
-| Avisos e guia | Nos cinco papéis: perfil incompleto → modal → adiamento → guia; perfil completo sem modal; limpar campo reabre pendência; celular sem sobreposição | Contas autorizadas por papel |
+| Avisos e guia | Nos cinco papéis: incompleto → modal → fechar → guia; nova abertura/retorno/mesma URL/recarregamento reabre; edição livre; completo sem modal; limpar campo reativa; sem sobreposição | Contas autorizadas por papel |
 | Vitrine e MatchMaking | Convidado bloqueado por URL/consulta; Conexões não vê Membros/Facilitadores/Admins; extra consome franquia, semanal não | Plano e contas autorizadas |
 | Agenda e convites | Conexões vê futuros, só confirma com convite específico, inclusive HUB; reconvite não promove; CRM/cards não duplicam | Admin/Facilitador e evento autorizado |
 | Contratação e trial | Consentimento, reserva, primeira cobrança, webhook, liberação, vencimento e cancelamento sem duplicar ou estender trial | Asaas e cenário autorizado de teste |

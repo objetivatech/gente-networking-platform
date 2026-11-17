@@ -73,7 +73,7 @@ export default function Documentacao() {
       </CardContent></Card>}
       {showMemberDocs && <Card><CardHeader><CardTitle>Guias por página e participação</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">
         <p>O botão Guia no cabeçalho abre orientações da página e do seu papel. Todos os papéis, inclusive Gente Conexões, recebem primeiro o vídeo obrigatório quando aplicável, depois o aviso de campos pendentes e, em seguida, o guia. Completar perfil agora leva ao perfil; Lembrar mais tarde libera o guia sem exigir 100% de completude.</p>
-        <p>O adiamento vale nesta sessão para os mesmos campos. Novas pendências ou um perfil que voltou a ficar incompleto fazem o aviso reaparecer. A tarja continua visível quando faltam campos, fora dos diálogos e do vídeo.</p>
+        <p>Fechar ou escolher Lembrar mais tarde libera somente aquele instante. Enquanto faltarem campos, o aviso volta a cada abertura, retorno ou recarregamento, inclusive na mesma página. A página do perfil fica livre do aviso automático para edição. Completar os 12 campos encerra o aviso; remover informação obrigatória faz ele voltar. A tarja continua visível fora dos diálogos e do vídeo.</p>
         <p>O guia não altera acesso ou pontos. A tarja de perfil reaparece após fechar o guia quando faltam campos; pitch por IA continua opcional.</p>
       </CardContent></Card>}
       {showAdminDocs && <Card><CardHeader><CardTitle>Recuperação de contratações Gente Conexões</CardTitle></CardHeader><CardContent className="space-y-2 text-sm">

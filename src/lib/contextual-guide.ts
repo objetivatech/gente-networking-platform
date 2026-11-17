@@ -39,6 +39,6 @@ export function getContextualGuide(path: string, role: AppRole): GuideStep[] {
 export function canAutoStartGuide(videoBlocked: boolean, profileComplete: boolean, otherDialog: boolean, seen: boolean, profileDeferred = false) {
   return !videoBlocked && (profileComplete || profileDeferred) && !otherDialog && !seen;
 }
-export function needsProfilePrompt(ready: boolean, complete: boolean, missingKey: string, deferredKey: string) {
-  return ready && !complete && missingKey !== deferredKey;
+export function needsProfilePrompt(ready: boolean, complete: boolean, pathname: string) {
+  return ready && !complete && pathname.replace(/\/+$/, '') !== '/perfil';
 }

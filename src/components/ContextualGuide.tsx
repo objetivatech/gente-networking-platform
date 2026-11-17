@@ -11,18 +11,17 @@ import { ProfileCompletionDialog } from '@/components/profile/ProfileCompletionD
 
 export function ContextualGuide({ userId, role, pathname, blocked, profileComplete, menuOpen, onOpenChange, profile, profileReady = true }: { userId: string; role: AppRole; pathname: string; blocked: boolean; profileComplete: boolean; menuOpen: boolean; onOpenChange: (open: boolean) => void; profile?: Record<string, any> | null; profileReady?: boolean }) {
   const key = `gente-guide-v1:${userId}:${role}:${pathname}`;
-  const profileKey = `gente-profile-prompt-v1:${userId}`;
   const missingKey = getProfileCompleteness(profile).missing.map(field => field.key).join(',');
-  const [deferredKey, setDeferredKey] = useState(() => { try { return sessionStorage.getItem(profileKey) ?? ''; } catch { return ''; } });
-  const profilePending = !!profile && needsProfilePrompt(profileReady, profileComplete, missingKey, deferredKey);
+  const [profileDismissed, setProfileDismissed] = useState(false);
+  const profilePending = !!profile && needsProfilePrompt(profileReady, profileComplete, pathname) && !profileDismissed;
   const [profileOpen, setProfileOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [otherDialog, setOtherDialog] = useState(false);
   const steps = getContextualGuide(pathname, role);
   const change = (next: boolean) => { setOpen(next); onOpenChange(next); if (next) { setStep(0); try { localStorage.setItem(key, 'seen'); } catch { /* optional UX persistence */ } } };
-  const dismissProfile = () => { setDeferredKey(missingKey); setProfileOpen(false); try { sessionStorage.setItem(profileKey, missingKey); } catch { /* session fallback in memory */ } };
-  useEffect(() => { if (profileReady && profileComplete) { setDeferredKey(''); try { sessionStorage.removeItem(profileKey); } catch { /* optional UX persistence */ } } }, [profileReady, profileComplete, profileKey]);
+  const dismissProfile = () => { setProfileDismissed(true); setProfileOpen(false); };
+  useEffect(() => { setProfileDismissed(false); }, [pathname, role, userId, missingKey, profileComplete]);
   useEffect(() => {
     const update = () => setOtherDialog([...document.querySelectorAll('[role="dialog"], [role="alertdialog"]')].some(element => !element.closest('[data-contextual-guide]') && element.getClientRects().length > 0));
     update();
@@ -41,10 +40,10 @@ export function ContextualGuide({ userId, role, pathname, blocked, profileComple
   useEffect(() => {
     let seen = true;
     try { seen = localStorage.getItem(key) === 'seen'; } catch { /* manual guide stays available */ }
-    if (!profileReady || profilePending || profileOpen || !canAutoStartGuide(blocked || menuOpen, profileComplete, otherDialog, seen, !!profile && missingKey === deferredKey)) return;
+    if (!profileReady || profilePending || profileOpen || !canAutoStartGuide(blocked || menuOpen, profileComplete, otherDialog, seen, profileDismissed || pathname.replace(/\/+$/, '') === '/perfil')) return;
     const timer = window.setTimeout(() => change(true), 600);
     return () => window.clearTimeout(timer);
-  }, [key, blocked, profileComplete, otherDialog, menuOpen, profileReady, profilePending, profileOpen, missingKey, deferredKey]);
+  }, [key, blocked, profileComplete, otherDialog, menuOpen, profileReady, profilePending, profileOpen, profileDismissed, pathname]);
   const current = steps[step];
   return <>
     <Tooltip><TooltipTrigger asChild><Button variant="outline" size="sm" className="gap-2 shrink-0" aria-label="Guia desta página" disabled={blocked || otherDialog || menuOpen || profilePending || !profileReady} onClick={() => change(true)}><CircleHelp className="h-4 w-4" />Guia</Button></TooltipTrigger><TooltipContent>{blocked ? 'Conclua o acolhimento para abrir o guia' : profilePending ? 'Complete o perfil ou escolha lembrar mais tarde' : 'Guia desta página'}</TooltipContent></Tooltip>

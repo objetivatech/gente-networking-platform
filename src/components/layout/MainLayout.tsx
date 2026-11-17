@@ -128,7 +128,7 @@ export default function MainLayout() {
       <div className="flex">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex-1 flex flex-col min-h-screen min-w-0 lg:ml-0">
-          <Header onMenuClick={() => setSidebarOpen(true)} guide={<ContextualGuide key={user.id} userId={user.id} role={role} pathname={location.pathname} blocked={!!videoBlocked} profile={profile} profileReady={!loadingProfile && !!profile} profileComplete={!loadingProfile && !!profile && getProfileCompleteness(profile).isComplete} menuOpen={sidebarOpen} onOpenChange={setGuideOpen} />} />
+          <Header onMenuClick={() => setSidebarOpen(true)} guide={<ContextualGuide key={`${user.id}:${role}:${location.key}`} userId={user.id} role={role} pathname={location.pathname} blocked={!!videoBlocked} profile={profile} profileReady={!loadingProfile && !!profile} profileComplete={!loadingProfile && !!profile && getProfileCompleteness(profile).isComplete} menuOpen={sidebarOpen} onOpenChange={setGuideOpen} />} />
           <main
             className="flex-1 min-w-0 p-4 lg:p-6"
             style={{
